@@ -114,15 +114,21 @@ int main(int argc, char** argv)
 
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);
-  waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
   // Predefined positions ////////////////////////////////////////////////////
 
   Eigen::VectorXd armHome(6);
-  armHome << 0.00, 0.00, 0.00, 0.00, 0.00, 0.00;
+  armHome << 0.00, 3.14, 3.14, 0.00, 0.00, 0.00;
 
   Eigen::VectorXd armRelaxedHome(6);
   armRelaxedHome  << 1.00, 1.00, 1.00, 1.00, 1.00, 1.00;
+  
+  auto arm = robot.getArm();
+  auto armSkeleton = arm->getMetaSkeleton();
+  auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
+  armSkeleton->setPositions(armHome);
+  
+  waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
   if (target == 0) // target 0: closing hands
   {
@@ -136,19 +142,13 @@ int main(int argc, char** argv)
       waitForUser("Press [ENTER] to exit: ");
   }
 
-  auto arm = robot.getArm();
-  auto armSkeleton = arm->getMetaSkeleton();
-  auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
-
-  auto defaultPose = getCurrentConfig(robot);
-
   if (target == 2)
   {
     waitForUser("Press key to look at the goal pos.");
     armSkeleton->setPositions(armRelaxedHome);
 
     waitForUser("Press key to set arm back to start pos.");
-    armSkeleton->setPositions(defaultPose);
+    armSkeleton->setPositions(armHome);
 
     waitForUser("Press key to move arm to goal");
     moveArmTo(robot, armSpace, armSkeleton, armRelaxedHome);
