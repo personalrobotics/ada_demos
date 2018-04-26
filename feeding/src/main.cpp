@@ -7,6 +7,7 @@
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/DartLoader.hpp>
 #include <libada/Ada.hpp>
+#include <aikido/constraint/dart/CollisionFree.hpp>
 #include <aikido/constraint/Satisfied.hpp>
 #include <chrono>
 #include <thread>
@@ -16,10 +17,13 @@ namespace po = boost::program_options;
 
 using dart::dynamics::SkeletonPtr;
 using dart::dynamics::MetaSkeletonPtr;
+using dart::collision::CollisionDetectorPtr;
+using dart::collision::CollisionGroup;
 
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
 using aikido::constraint::dart::TSR;
+using aikido::constraint::dart::CollisionFree;
 using aikido::trajectory::TrajectoryPtr;
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
@@ -100,9 +104,10 @@ void moveArmToConfiguration(const Eigen::VectorXd& configuration,
                 ada::Ada& robot,
                 const MetaSkeletonStateSpacePtr& armSpace,
                 const MetaSkeletonPtr& armSkeleton,
-                const aikido::robot::HandPtr& hand) {
+                const aikido::robot::HandPtr& hand,
+                const aikido::constraint::dart::CollisionFreePtr& collisionFreeConstraint = nullptr) {
   
-  auto trajectory = robot.planToConfiguration(armSpace, armSkeleton, configuration, nullptr, planningTimeout);
+  auto trajectory = robot.planToConfiguration(armSpace, armSkeleton, configuration, collisionFreeConstraint, planningTimeout);
 
   moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
 }
@@ -111,11 +116,12 @@ void moveArmToTSR(aikido::constraint::dart::TSR& tsr,
                 ada::Ada& robot,
                 const MetaSkeletonStateSpacePtr& armSpace,
                 const MetaSkeletonPtr& armSkeleton,
-                const aikido::robot::HandPtr& hand) {
+                const aikido::robot::HandPtr& hand,
+                const aikido::constraint::dart::CollisionFreePtr& collisionFreeConstraint = nullptr) {
   auto goalTSR = std::make_shared<TSR> (tsr);
 
   auto trajectory = robot.planToTSR(armSpace, armSkeleton, hand->getBodyNode(),
-    goalTSR, nullptr, maxNumberTrials, planningTimeout);
+    goalTSR, collisionFreeConstraint, maxNumberTrials, planningTimeout);
 
   moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
 }
@@ -168,7 +174,7 @@ int main(int argc, char** argv)
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
   abovePlateConfig << 0.316168,  -3.71541,  -2.45178,  0.908875,  -2.39863,  1.94163;
   Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
-  inFrontOfPersonConfig << -2.5685,  -1.69921,  -2.2104,  0.602626,  1.55041,  0.674805;
+  inFrontOfPersonConfig << 0.21049,  -3.33854,  -1.73904,  2.06289,  -1.6257,  -2.68494;
 
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
@@ -192,6 +198,14 @@ int main(int argc, char** argv)
   robot.getWorld()->addSkeleton(table);
   auto foodItem = makeBodyFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
   robot.getWorld()->addSkeleton(foodItem);
+
+
+  // Setting up collisions
+  CollisionDetectorPtr collisionDetector = dart::collision::FCLCollisionDetector::create();
+  std::shared_ptr<CollisionGroup> armCollisionGroup = collisionDetector->createCollisionGroup(armSkeleton.get(), hand->getBodyNode());
+  std::shared_ptr<CollisionGroup> envCollisionGroup = collisionDetector->createCollisionGroup(table.get());
+  auto collisionFreeConstraint = std::make_shared<CollisionFree>(armSpace, armSkeleton, collisionDetector);
+  collisionFreeConstraint->addPairwiseCheck(armCollisionGroup, envCollisionGroup);
 
   if (!waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:")) {return 0;}
 
@@ -222,8 +236,8 @@ int main(int argc, char** argv)
   //auto marker = viewer.addTSRMarker(abovePlateTSR, 20);
   abovePlateTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
   
-  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand);
-  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand);
+  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -254,7 +268,7 @@ int main(int argc, char** argv)
   aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood};
 
   //auto marker2 = viewer.addTSRMarker(aboveFoodTSR, 20);
-  moveArmToTSR(aboveFoodTSR, robot, armSpace, armSkeleton, hand);
+  moveArmToTSR(aboveFoodTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   //auto marker3 = viewer.addTSRMarker(foodTSR, 20);
@@ -266,7 +280,7 @@ int main(int argc, char** argv)
       armSpace,
       armSkeleton,
       hand->getBodyNode(),
-      nullptr,
+      collisionFreeConstraint,
       Eigen::Vector3d(0,0,-1),
       heightAboveFood,
       5,
@@ -280,7 +294,7 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  //moveArmToTSR(foodTSR, robot, armSpace, armSkeleton, hand);
+  //moveArmToTSR(foodTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   hand->grab(foodItem);
 
@@ -290,7 +304,7 @@ int main(int argc, char** argv)
   
   try {
     ROS_INFO("planning...");
-    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,0,1), heightAbovePlate, 0.02, 0.08, 20);
+    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,0,1), heightAbovePlate, 5, 0.005, 0.04);
     ROS_INFO("executing...");
     moveArmOnTrajectory(abovePlateTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
@@ -301,12 +315,12 @@ int main(int argc, char** argv)
 
 
   // ***** MOVE TO PERSON *****
-  double distanceToPerson = 0.1;
+  double distanceToPerson = 0.25;
 
   auto personTSR = pr_tsr::getDefaultPlateTSR();
   Eigen::Isometry3d personPose;
   personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = Eigen::Vector3d(0.3, -0.52525,  0.602);
+  personPose.translation() = Eigen::Vector3d(0.1, -0.32525,  0.602);
   personTSR.mT0_w = personPose;
   personTSR.mTw_e.translation() = Eigen::Vector3d{distanceToPerson, 0, 0};
 
@@ -327,15 +341,15 @@ int main(int argc, char** argv)
   //auto marker4 = viewer.addTSRMarker(personTSR, 20);
   //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   try {
-    moveArmToConfiguration(inFrontOfPersonConfig, robot, armSpace, armSkeleton, hand);
-    //moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand);
+    moveArmToConfiguration(inFrontOfPersonConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+    //moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
   } catch (int e) {
     ROS_INFO("caught expection when planning to person");
     return 1;
   }
 
   try {
-    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,-1,0), distanceToPerson, 5, 0.02, 0.08);
+    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,-1,0), distanceToPerson, 5, 0.005, 0.04);
     moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
     ROS_INFO("caught expection");
