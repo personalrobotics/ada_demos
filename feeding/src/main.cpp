@@ -304,7 +304,7 @@ int main(int argc, char** argv)
   
   try {
     ROS_INFO("planning...");
-    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,0,1), heightAbovePlate, 5, 0.005, 0.04);
+    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,0,1), heightAbovePlate, 5, 0.005, 0.04);
     ROS_INFO("executing...");
     moveArmOnTrajectory(abovePlateTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
