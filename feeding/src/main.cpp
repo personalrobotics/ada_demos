@@ -168,7 +168,7 @@ int main(int argc, char** argv)
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);
 
-  // Predefined positions ////////////////////////////////////////////////////
+  // Predefined configurations ////////////////////////////////////////////////////
   Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
   armRelaxedHome << 0.631769 , -2.82569  ,-1.31347,  -1.29491 ,-0.774963 ,  1.6772;
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
@@ -184,10 +184,10 @@ int main(int argc, char** argv)
 
   Eigen::Isometry3d platePose;
   platePose = Eigen::Isometry3d::Identity();
-  platePose.translation() = Eigen::Vector3d(0.5, -0.142525,  0.302);
+  platePose.translation() = Eigen::Vector3d(0.4, -0.142525,  0.102);
   Eigen::Isometry3d tablePose;
   tablePose = Eigen::Isometry3d::Identity();
-  tablePose.translation() = Eigen::Vector3d(1.2, 0.05,  -0.43);
+  tablePose.translation() = Eigen::Vector3d(1.1, 0.05,  -0.63);
   Eigen::Isometry3d foodPose = platePose;
   // TODO
   //foodPose.translate()
@@ -206,12 +206,13 @@ int main(int argc, char** argv)
   std::shared_ptr<CollisionGroup> envCollisionGroup = collisionDetector->createCollisionGroup(table.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(armSpace, armSkeleton, collisionDetector);
   collisionFreeConstraint->addPairwiseCheck(armCollisionGroup, envCollisionGroup);
+  //collisionFreeConstraint = nullptr;
 
   if (!waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:")) {return 0;}
 
   auto defaultPose = getCurrentConfig(robot);
 
-  viewer.addFrame(hand->getBodyNode(), 0.2, 0.01, 1.0);
+  //viewer.addFrame(hand->getBodyNode(), 0.2, 0.01, 1.0);
 
   // ***** MOVE ABOVE PLATE *****
   double heightAbovePlate = 0.15;
@@ -236,8 +237,8 @@ int main(int argc, char** argv)
   //auto marker = viewer.addTSRMarker(abovePlateTSR, 20);
   abovePlateTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
   
-  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
-  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  //moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -320,7 +321,7 @@ int main(int argc, char** argv)
   auto personTSR = pr_tsr::getDefaultPlateTSR();
   Eigen::Isometry3d personPose;
   personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = Eigen::Vector3d(0.1, -0.32525,  0.602);
+  personPose.translation() = Eigen::Vector3d(0.1, -0.52525,  0.502);
   personTSR.mT0_w = personPose;
   personTSR.mTw_e.translation() = Eigen::Vector3d{distanceToPerson, 0, 0};
 
@@ -341,8 +342,8 @@ int main(int argc, char** argv)
   //auto marker4 = viewer.addTSRMarker(personTSR, 20);
   //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   try {
-    moveArmToConfiguration(inFrontOfPersonConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
-    //moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+    //moveArmToConfiguration(inFrontOfPersonConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+    moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
   } catch (int e) {
     ROS_INFO("caught expection when planning to person");
     return 1;
