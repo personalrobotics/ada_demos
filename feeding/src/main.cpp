@@ -28,10 +28,12 @@ static const int maxNumberTrials{1};
 static const double planningTimeout{5.};
 bool adaReal = false;
 
-void waitForUser(const std::string& msg)
+bool waitForUser(const std::string& msg)
 {
   ROS_INFO(msg.c_str());
-  std::cin.get();
+  char input = ' ';
+  std::cin.get(input);
+  return input != 'n';
 }
 
 const SkeletonPtr makeBodyFromURDF(
@@ -64,7 +66,7 @@ Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
 void moveArmOnTrajectory(TrajectoryPtr trajectory,
                          ada::Ada& robot,
                          const MetaSkeletonStateSpacePtr& armSpace,
-                         const MetaSkeletonPtr& armSkeleton)
+                         const MetaSkeletonPtr& armSkeleton, bool smooth = true)
 {  
   // Example for moving to configuration
   //
@@ -75,11 +77,16 @@ void moveArmOnTrajectory(TrajectoryPtr trajectory,
   }
 
   auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
-  ROS_INFO("smoothing...");
-  auto smoothTrajectory = robot.smoothPath(armSkeleton, trajectory.get(), testable);
-  ROS_INFO("timing...");
-  aikido::trajectory::TrajectoryPtr timedTrajectory =
-    std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+  aikido::trajectory::TrajectoryPtr timedTrajectory;
+  if (smooth) {
+    ROS_INFO("smoothing...");
+    auto smoothTrajectory = robot.smoothPath(armSkeleton, trajectory.get(), testable);
+    ROS_INFO("timing...");
+    timedTrajectory = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+  } else {
+    ROS_INFO("timing...");
+    timedTrajectory = std::move(robot.retimePath(armSkeleton, trajectory.get()));
+  }
 
   ROS_INFO("executing...");
   auto future = robot.executeTrajectory(timedTrajectory);
@@ -134,6 +141,8 @@ int main(int argc, char** argv)
   ROS_INFO("Loading Plate and FoodItem.");
   const std::string plateName{"plate"};
   const std::string plateURDFUri("package://pr_ordata/data/objects/plate.urdf");
+  const std::string tableName{"table"};
+  const std::string tableURDFUri("package://pr_ordata/data/furniture/table.urdf");
   const std::string foodItemName{"foodItem"};
   const std::string foodItemURDFUri("package://pr_ordata/data/objects/food_item.urdf");
 
@@ -159,7 +168,7 @@ int main(int argc, char** argv)
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
   abovePlateConfig << 0.316168,  -3.71541,  -2.45178,  0.908875,  -2.39863,  1.94163;
   Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
-  inFrontOfPersonConfig << -2.94942,  -1.64662,  -1.86031,  0.79527,  1.85384,  0.773224;
+  inFrontOfPersonConfig << -2.5685,  -1.69921,  -2.2104,  0.602626,  1.55041,  0.674805;
 
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
@@ -170,19 +179,21 @@ int main(int argc, char** argv)
   Eigen::Isometry3d platePose;
   platePose = Eigen::Isometry3d::Identity();
   platePose.translation() = Eigen::Vector3d(0.5, -0.142525,  0.302);
+  Eigen::Isometry3d tablePose;
+  tablePose = Eigen::Isometry3d::Identity();
+  tablePose.translation() = Eigen::Vector3d(1.2, 0.05,  -0.43);
   Eigen::Isometry3d foodPose = platePose;
   // TODO
   //foodPose.translate()
 
   auto plate = makeBodyFromURDF(resourceRetriever, plateURDFUri, platePose);
   robot.getWorld()->addSkeleton(plate);
+  auto table = makeBodyFromURDF(resourceRetriever, tableURDFUri, tablePose);
+  robot.getWorld()->addSkeleton(table);
   auto foodItem = makeBodyFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
   robot.getWorld()->addSkeleton(foodItem);
 
-  // Get Plate TSR
-  
-
-  waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
+  if (!waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:")) {return 0;}
 
   auto defaultPose = getCurrentConfig(robot);
 
@@ -262,7 +273,7 @@ int main(int argc, char** argv)
       0.005,
       0.04);
     ROS_INFO("executing...");
-    moveArmOnTrajectory(intoFoodTrajectory, robot, armSpace, armSkeleton);
+    moveArmOnTrajectory(intoFoodTrajectory, robot, armSpace, armSkeleton, false);
     ROS_INFO("done");
   } catch (int e) {
     ROS_INFO("caught expection");
@@ -274,19 +285,18 @@ int main(int argc, char** argv)
   hand->grab(foodItem);
 
   //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand);
+  //moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand);
   //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand);
-  /*
+  
   try {
     ROS_INFO("planning...");
-    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,0,1), heightAbovePlate, 10, 0.1, 20);
+    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,0,1), heightAbovePlate, 0.02, 0.08, 20);
     ROS_INFO("executing...");
-    moveArmOnTrajectory(abovePlateTrajectory, robot, armSpace, armSkeleton);
-    ROS_INFO("done");
+    moveArmOnTrajectory(abovePlateTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
     ROS_INFO("caught expection");
     return 1;
-  }*/
+  }
 
 
 
@@ -296,7 +306,7 @@ int main(int argc, char** argv)
   auto personTSR = pr_tsr::getDefaultPlateTSR();
   Eigen::Isometry3d personPose;
   personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = Eigen::Vector3d(0.3, -0.32525,  0.602);
+  personPose.translation() = Eigen::Vector3d(0.3, -0.52525,  0.602);
   personTSR.mT0_w = personPose;
   personTSR.mTw_e.translation() = Eigen::Vector3d{distanceToPerson, 0, 0};
 
@@ -326,7 +336,7 @@ int main(int argc, char** argv)
 
   try {
     auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,-1,0), distanceToPerson, 5, 0.02, 0.08);
-    moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton);
+    moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
     ROS_INFO("caught expection");
     return 1;
