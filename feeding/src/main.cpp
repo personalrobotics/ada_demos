@@ -10,7 +10,7 @@
 #include <aikido/constraint/Satisfied.hpp>
 #include <chrono>
 #include <thread>
-#include <pr_tsr/can.hpp>
+#include <pr_tsr/plate.hpp>
 
 namespace po = boost::program_options;
 
@@ -20,6 +20,7 @@ using dart::dynamics::MetaSkeletonPtr;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
 using aikido::constraint::dart::TSR;
+using aikido::trajectory::TrajectoryPtr;
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
@@ -60,29 +61,29 @@ Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
   return defaultPose;
 }
 
-void moveArmTo(ada::Ada& robot,
-               const MetaSkeletonStateSpacePtr& armSpace,
-               const MetaSkeletonPtr& armSkeleton,
-               const Eigen::VectorXd& goalPos)
-{
-  auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
-
-  auto trajectory = robot.planToConfiguration(
-      armSpace, armSkeleton, goalPos, nullptr, planningTimeout);
+void moveArmOnTrajectory(TrajectoryPtr trajectory,
+                         ada::Ada& robot,
+                         const MetaSkeletonStateSpacePtr& armSpace,
+                         const MetaSkeletonPtr& armSkeleton)
+{  
+  // Example for moving to configuration
+  //auto trajectory = robot.planToConfiguration(armSpace, armSkeleton, goalPos, nullptr, planningTimeout);
 
   if (!trajectory)
   {
     throw std::runtime_error("Failed to find a solution");
   }
 
+  auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
   auto smoothTrajectory = robot.smoothPath(armSkeleton, trajectory.get(), testable);
   aikido::trajectory::TrajectoryPtr timedTrajectory =
     std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
 
   auto future = robot.executeTrajectory(timedTrajectory);
   future.wait();
-}
 
+  getCurrentConfig(robot);
+}
 
 void moveArmToTSR(aikido::constraint::dart::TSR& tsr,
                 ada::Ada& robot,
@@ -94,19 +95,7 @@ void moveArmToTSR(aikido::constraint::dart::TSR& tsr,
   auto trajectory = robot.planToTSR(armSpace, armSkeleton, hand->getBodyNode(),
     goalTSR, nullptr, maxNumberTrials, planningTimeout);
 
-  if (!trajectory)
-  {
-    throw std::runtime_error("Failed to find a solution");
-  }
-
-  auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
-  auto smoothTrajectory = robot.smoothPath(armSkeleton, trajectory.get(), testable);
-  aikido::trajectory::TrajectoryPtr timedTrajectory = robot.retimePath(armSkeleton, smoothTrajectory.get());
-
-  auto future = robot.executeTrajectory(timedTrajectory);
-  future.wait();
-
-  getCurrentConfig(robot);
+  moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
 }
 
 
@@ -126,10 +115,12 @@ int main(int argc, char** argv)
   ada::Ada robot(env, !adaReal);
   auto robotSkeleton = robot.getMetaSkeleton();
 
-  // Load Soda Can in simulation
-  ROS_INFO("Loading Can.");
-  const std::string sodaName{"can"};
-  const std::string sodaURDFUri("package://pr_ordata/data/objects/can.urdf");
+  // Load Plate and FootItem in simulation
+  ROS_INFO("Loading Plate and FoodItem.");
+  const std::string plateName{"plate"};
+  const std::string plateURDFUri("package://pr_ordata/data/objects/plate.urdf");
+  const std::string foodItemName{"foodItem"};
+  const std::string foodItemURDFUri("package://pr_ordata/data/objects/food_item.urdf");
 
   const auto resourceRetriever = std::make_shared<aikido::io::CatkinResourceRetriever>();
 
@@ -157,13 +148,19 @@ int main(int argc, char** argv)
   auto hand = std::static_pointer_cast<ada::AdaHand>(robot.getHand());
   armSkeleton->setPositions(armRelaxedHome);
 
-  Eigen::Isometry3d sodaPose;
-  sodaPose = Eigen::Isometry3d::Identity();
-  sodaPose.translation() = Eigen::Vector3d(0.5, -0.142525,  0.302); // 0.502
-  auto soda = makeBodyFromURDF(resourceRetriever, sodaURDFUri, sodaPose);
-  robot.getWorld()->addSkeleton(soda);
+  Eigen::Isometry3d platePose;
+  platePose = Eigen::Isometry3d::Identity();
+  platePose.translation() = Eigen::Vector3d(0.5, -0.142525,  0.302);
+  Eigen::Isometry3d foodPose = platePose;
+  // TODO
+  //foodPose.translate()
 
-  // Get Soda Can TSR
+  auto plate = makeBodyFromURDF(resourceRetriever, plateURDFUri, platePose);
+  robot.getWorld()->addSkeleton(plate);
+  auto foodItem = makeBodyFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
+  robot.getWorld()->addSkeleton(foodItem);
+
+  // Get Plate TSR
   
 
   waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
@@ -173,12 +170,12 @@ int main(int argc, char** argv)
   viewer.addFrame(hand->getBodyNode(), 0.2, 0.01, 1.0);
 
   // ***** MOVE ABOVE PLATE *****
-  double heightAbovePlate = 0.2;
-  double horizontal_tolerance_above_plate = 0.1;
+  double heightAbovePlate = 0.15;
+  double horizontal_tolerance_above_plate = 0.05;
   double vertical_tolerance_above_plate = 0.03;
 
-  auto abovePlateTSR = pr_tsr::getDefaultCanTSR();
-  abovePlateTSR.mT0_w = sodaPose;
+  auto abovePlateTSR = pr_tsr::getDefaultPlateTSR();
+  abovePlateTSR.mT0_w = platePose;
   abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAbovePlate};
 
   Eigen::MatrixXd abovePlateBw = Eigen::Matrix<double, 6, 2>::Zero();
@@ -197,18 +194,14 @@ int main(int argc, char** argv)
   abovePlateTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
   moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand);
 
-
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-  double heightAboveFood = 0.1;
+  double heightAboveFood = 0.07;
   double horizontal_tolerance_near_food = 0.002;
   double vertical_tolerance_near_food = 0.002;
 
-  auto foodTSR = pr_tsr::getDefaultCanTSR();
-  Eigen::Isometry3d foodPose = sodaPose;
-  // TODO
-  //foodPose.translate()
+  auto foodTSR = pr_tsr::getDefaultPlateTSR();
   foodTSR.mT0_w = foodPose;
   foodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
@@ -232,26 +225,64 @@ int main(int argc, char** argv)
   //auto marker2 = viewer.addTSRMarker(aboveFoodTSR, 20);
   moveArmToTSR(aboveFoodTSR, robot, armSpace, armSkeleton, hand);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   //auto marker3 = viewer.addTSRMarker(foodTSR, 20);
+
+/* FAILING SEGFAULT
+  try {
+    ROS_INFO("planning...");
+    auto intoFoodTrajectory = robot.getArm()->planToEndEffectorOffset(
+      armSpace,
+      armSkeleton,
+      hand->getBodyNode(),
+      nullptr,
+      Eigen::Vector3d(0,0,-1),
+      heightAboveFood,
+      5,
+      0.02,
+      4);
+    ROS_INFO("executing...");
+    moveArmOnTrajectory(intoFoodTrajectory, robot, armSpace, armSkeleton);
+    ROS_INFO("done");
+  } catch (int e) {
+    ROS_INFO("caught expection");
+    return 1;
+  }
+  */
+
   moveArmToTSR(foodTSR, robot, armSpace, armSkeleton, hand);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  hand->grab(foodItem);
+
+  //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
   moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand);
+  /*
+  try {
+    ROS_INFO("planning...");
+    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,0,1), heightAbovePlate, 10, 0.1, 20);
+    ROS_INFO("executing...");
+    moveArmOnTrajectory(abovePlateTrajectory, robot, armSpace, armSkeleton);
+    ROS_INFO("done");
+  } catch (int e) {
+    ROS_INFO("caught expection");
+    return 1;
+  }*/
+
 
 
   // ***** MOVE TO PERSON *****
+  double distanceToPerson = 0.1;
 
-  auto personTSR = pr_tsr::getDefaultCanTSR();
+  auto personTSR = pr_tsr::getDefaultPlateTSR();
   Eigen::Isometry3d personPose;
   personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = Eigen::Vector3d(0.2, -0.32525,  0.602);
+  personPose.translation() = Eigen::Vector3d(0.3, -0.32525,  0.602);
   personTSR.mT0_w = personPose;
-  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+  personTSR.mTw_e.translation() = Eigen::Vector3d{distanceToPerson, 0, 0};
 
 
-  double horizontal_tolerance_near_person = 0.1;
-  double vertical_tolerance_near_person = 0.1;
+  double horizontal_tolerance_near_person = 0.01;
+  double vertical_tolerance_near_person = 0.01;
 
   Eigen::MatrixXd personBw = Eigen::Matrix<double, 6, 2>::Zero();
   personBw(0, 0) = -horizontal_tolerance_near_person;
@@ -264,8 +295,21 @@ int main(int argc, char** argv)
   personTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("person")->matrix();
 
   //auto marker4 = viewer.addTSRMarker(personTSR, 20);
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-  moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand);
+  //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  try {
+    moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand);
+  } catch (int e) {
+    ROS_INFO("caught expection when planning to person");
+    return 1;
+  }
+
+  try {
+    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,-1,0), distanceToPerson, 5, 0.02, 8);
+    moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton);
+  } catch (int e) {
+    ROS_INFO("caught expection");
+    return 1;
+  }
 
   std::cin.get();
   return 0;
