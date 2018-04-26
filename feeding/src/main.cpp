@@ -67,7 +67,7 @@ void moveArmOnTrajectory(TrajectoryPtr trajectory,
                          const MetaSkeletonPtr& armSkeleton)
 {  
   // Example for moving to configuration
-  //auto trajectory = robot.planToConfiguration(armSpace, armSkeleton, goalPos, nullptr, planningTimeout);
+  //
 
   if (!trajectory)
   {
@@ -75,14 +75,29 @@ void moveArmOnTrajectory(TrajectoryPtr trajectory,
   }
 
   auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
+  ROS_INFO("smoothing...");
   auto smoothTrajectory = robot.smoothPath(armSkeleton, trajectory.get(), testable);
+  ROS_INFO("timing...");
   aikido::trajectory::TrajectoryPtr timedTrajectory =
     std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
 
+  ROS_INFO("executing...");
   auto future = robot.executeTrajectory(timedTrajectory);
   future.wait();
+  ROS_INFO("movement done");
 
   getCurrentConfig(robot);
+}
+
+void moveArmToConfiguration(const Eigen::VectorXd& configuration,
+                ada::Ada& robot,
+                const MetaSkeletonStateSpacePtr& armSpace,
+                const MetaSkeletonPtr& armSkeleton,
+                const aikido::robot::HandPtr& hand) {
+  
+  auto trajectory = robot.planToConfiguration(armSpace, armSkeleton, configuration, nullptr, planningTimeout);
+
+  moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
 }
 
 void moveArmToTSR(aikido::constraint::dart::TSR& tsr,
@@ -141,6 +156,10 @@ int main(int argc, char** argv)
   // Predefined positions ////////////////////////////////////////////////////
   Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
   armRelaxedHome << 0.631769 , -2.82569  ,-1.31347,  -1.29491 ,-0.774963 ,  1.6772;
+  Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
+  abovePlateConfig << 0.316168,  -3.71541,  -2.45178,  0.908875,  -2.39863,  1.94163;
+  Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
+  inFrontOfPersonConfig << -2.94942,  -1.64662,  -1.86031,  0.79527,  1.85384,  0.773224;
 
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
@@ -190,9 +209,10 @@ int main(int argc, char** argv)
   abovePlateTSR.mBw = abovePlateBw;
 
   //auto marker = viewer.addTSRMarker(abovePlateTSR, 20);
-
   abovePlateTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
-  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand);
+  
+  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand);
+  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand);
 
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -228,7 +248,7 @@ int main(int argc, char** argv)
   //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   //auto marker3 = viewer.addTSRMarker(foodTSR, 20);
 
-/* FAILING SEGFAULT
+
   try {
     ROS_INFO("planning...");
     auto intoFoodTrajectory = robot.getArm()->planToEndEffectorOffset(
@@ -239,8 +259,8 @@ int main(int argc, char** argv)
       Eigen::Vector3d(0,0,-1),
       heightAboveFood,
       5,
-      0.02,
-      4);
+      0.005,
+      0.04);
     ROS_INFO("executing...");
     moveArmOnTrajectory(intoFoodTrajectory, robot, armSpace, armSkeleton);
     ROS_INFO("done");
@@ -248,14 +268,14 @@ int main(int argc, char** argv)
     ROS_INFO("caught expection");
     return 1;
   }
-  */
 
-  moveArmToTSR(foodTSR, robot, armSpace, armSkeleton, hand);
+  //moveArmToTSR(foodTSR, robot, armSpace, armSkeleton, hand);
 
   hand->grab(foodItem);
 
   //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand);
+  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand);
+  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand);
   /*
   try {
     ROS_INFO("planning...");
@@ -297,14 +317,15 @@ int main(int argc, char** argv)
   //auto marker4 = viewer.addTSRMarker(personTSR, 20);
   //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   try {
-    moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand);
+    moveArmToConfiguration(inFrontOfPersonConfig, robot, armSpace, armSkeleton, hand);
+    //moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand);
   } catch (int e) {
     ROS_INFO("caught expection when planning to person");
     return 1;
   }
 
   try {
-    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,-1,0), distanceToPerson, 5, 0.02, 8);
+    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), nullptr, Eigen::Vector3d(0,-1,0), distanceToPerson, 5, 0.02, 0.08);
     moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton);
   } catch (int e) {
     ROS_INFO("caught expection");
