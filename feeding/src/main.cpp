@@ -219,7 +219,7 @@ int main(int argc, char** argv)
   std::shared_ptr<CollisionGroup> envCollisionGroup = collisionDetector->createCollisionGroup(table.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(armSpace, armSkeleton, collisionDetector);
   collisionFreeConstraint->addPairwiseCheck(armCollisionGroup, envCollisionGroup);
-  //collisionFreeConstraint = nullptr;
+  collisionFreeConstraint = nullptr;
 
   if (!waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:")) {return 0;}
 
