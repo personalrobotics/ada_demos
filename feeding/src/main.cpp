@@ -176,7 +176,7 @@ int main(int argc, char** argv)
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
   abovePlateConfig << 0.536541,  -3.39606,  -1.80746,  0.601788,  -1.88629,  -2.20747;
   Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
-  inFrontOfPersonConfig << -2.60367,  -1.76164,  -0.787484,  0.108944,  2.68967,  1.33306;
+  inFrontOfPersonConfig << 1.09007,  -2.97579,  -0.563162,  -0.907691,  1.09752,  -1.47537;
 
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
@@ -219,7 +219,7 @@ int main(int argc, char** argv)
   std::shared_ptr<CollisionGroup> envCollisionGroup = collisionDetector->createCollisionGroup(table.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(armSpace, armSkeleton, collisionDetector);
   collisionFreeConstraint->addPairwiseCheck(armCollisionGroup, envCollisionGroup);
-  collisionFreeConstraint = nullptr;
+  //collisionFreeConstraint = nullptr;
 
   if (!waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:")) {return 0;}
 
@@ -352,8 +352,8 @@ int main(int argc, char** argv)
   //auto marker4 = viewer.addTSRMarker(personTSR, 20);
   //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   try {
-    //moveArmToConfiguration(inFrontOfPersonConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
-    moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+    moveArmToConfiguration(inFrontOfPersonConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+    //moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
   } catch (int e) {
     ROS_INFO("caught expection when planning to person");
     return 1;
@@ -370,6 +370,15 @@ int main(int argc, char** argv)
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   hand->ungrab();
   robot.getWorld()->removeSkeleton(foodItem);
+
+  try {
+    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,1,0), distanceToPerson/2, 5, 0.005, 0.04);
+    moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton, false);
+  } catch (int e) {
+    ROS_INFO("caught expection");
+    return 1;
+  }
+
   moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   std::cin.get();
