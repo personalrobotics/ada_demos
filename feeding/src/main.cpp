@@ -151,6 +151,8 @@ int main(int argc, char** argv)
   const std::string tableURDFUri("package://pr_ordata/data/furniture/table.urdf");
   const std::string foodItemName{"foodItem"};
   const std::string foodItemURDFUri("package://pr_ordata/data/objects/food_item.urdf");
+  const std::string tomName{"tom"};
+  const std::string tomURDFUri("package://pr_ordata/data/objects/tom.urdf");
 
   const auto resourceRetriever = std::make_shared<aikido::io::CatkinResourceRetriever>();
 
@@ -172,9 +174,9 @@ int main(int argc, char** argv)
   Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
   armRelaxedHome << 0.631769 , -2.82569  ,-1.31347,  -1.29491 ,-0.774963 ,  1.6772;
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
-  abovePlateConfig << 0.316168,  -3.71541,  -2.45178,  0.908875,  -2.39863,  1.94163;
+  abovePlateConfig << 0.536541,  -3.39606,  -1.80746,  0.601788,  -1.88629,  -2.20747;
   Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
-  inFrontOfPersonConfig << 0.21049,  -3.33854,  -1.73904,  2.06289,  -1.6257,  -2.68494;
+  inFrontOfPersonConfig << -2.60367,  -1.76164,  -0.787484,  0.108944,  2.68967,  1.33306;
 
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
@@ -191,6 +193,16 @@ int main(int argc, char** argv)
   Eigen::Isometry3d foodPose = platePose;
   // TODO
   //foodPose.translate()
+  Eigen::Isometry3d personPose;
+  personPose = Eigen::Isometry3d::Identity();
+  personPose.translation() = Eigen::Vector3d(0.1, -0.77525,  0.502);
+  Eigen::Isometry3d tomPose = Eigen::Isometry3d::Identity();
+  Eigen::Matrix3d rotation;
+  rotation = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
+             * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY())
+             * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitX());
+  tomPose.linear() = rotation;
+  tomPose.translation() = personPose.translation();
 
   auto plate = makeBodyFromURDF(resourceRetriever, plateURDFUri, platePose);
   robot.getWorld()->addSkeleton(plate);
@@ -198,7 +210,8 @@ int main(int argc, char** argv)
   robot.getWorld()->addSkeleton(table);
   auto foodItem = makeBodyFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
   robot.getWorld()->addSkeleton(foodItem);
-
+  auto tom = makeBodyFromURDF(resourceRetriever, tomURDFUri, tomPose);
+  robot.getWorld()->addSkeleton(tom);
 
   // Setting up collisions
   CollisionDetectorPtr collisionDetector = dart::collision::FCLCollisionDetector::create();
@@ -206,7 +219,7 @@ int main(int argc, char** argv)
   std::shared_ptr<CollisionGroup> envCollisionGroup = collisionDetector->createCollisionGroup(table.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(armSpace, armSkeleton, collisionDetector);
   collisionFreeConstraint->addPairwiseCheck(armCollisionGroup, envCollisionGroup);
-  //collisionFreeConstraint = nullptr;
+  collisionFreeConstraint = nullptr;
 
   if (!waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:")) {return 0;}
 
@@ -237,8 +250,8 @@ int main(int argc, char** argv)
   //auto marker = viewer.addTSRMarker(abovePlateTSR, 20);
   abovePlateTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
   
-  //moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
-  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -319,15 +332,12 @@ int main(int argc, char** argv)
   double distanceToPerson = 0.25;
 
   auto personTSR = pr_tsr::getDefaultPlateTSR();
-  Eigen::Isometry3d personPose;
-  personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = Eigen::Vector3d(0.1, -0.52525,  0.502);
   personTSR.mT0_w = personPose;
-  personTSR.mTw_e.translation() = Eigen::Vector3d{distanceToPerson, 0, 0};
+  personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
 
 
   double horizontal_tolerance_near_person = 0.01;
-  double vertical_tolerance_near_person = 0.01;
+  double vertical_tolerance_near_person = 0.004;
 
   Eigen::MatrixXd personBw = Eigen::Matrix<double, 6, 2>::Zero();
   personBw(0, 0) = -horizontal_tolerance_near_person;
@@ -356,6 +366,11 @@ int main(int argc, char** argv)
     ROS_INFO("caught expection");
     return 1;
   }
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  hand->ungrab();
+  robot.getWorld()->removeSkeleton(foodItem);
+  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   std::cin.get();
   return 0;
