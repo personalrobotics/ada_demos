@@ -216,10 +216,10 @@ int main(int argc, char** argv)
   // Setting up collisions
   CollisionDetectorPtr collisionDetector = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<CollisionGroup> armCollisionGroup = collisionDetector->createCollisionGroup(armSkeleton.get(), hand->getBodyNode());
-  std::shared_ptr<CollisionGroup> envCollisionGroup = collisionDetector->createCollisionGroup(table.get());
+  std::shared_ptr<CollisionGroup> envCollisionGroup = collisionDetector->createCollisionGroup(table.get(), tom.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(armSpace, armSkeleton, collisionDetector);
   collisionFreeConstraint->addPairwiseCheck(armCollisionGroup, envCollisionGroup);
-  collisionFreeConstraint = nullptr;
+  //collisionFreeConstraint = nullptr;
 
   if (!waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:")) {return 0;}
 
@@ -262,7 +262,7 @@ int main(int argc, char** argv)
 
   auto foodTSR = pr_tsr::getDefaultPlateTSR();
   foodTSR.mT0_w = foodPose;
-  foodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+  foodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0.02};
 
   Eigen::MatrixXd nearFoodBw = Eigen::Matrix<double, 6, 2>::Zero();
   nearFoodBw(0, 0) = -horizontal_tolerance_near_food;
