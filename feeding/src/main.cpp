@@ -9,6 +9,7 @@
 #include <libada/Ada.hpp>
 #include <aikido/constraint/dart/CollisionFree.hpp>
 #include <aikido/constraint/Satisfied.hpp>
+#include <aikido/io/util.hpp>
 #include <chrono>
 #include <thread>
 #include <pr_tsr/plate.hpp>
@@ -38,23 +39,6 @@ bool waitForUser(const std::string& msg)
   char input = ' ';
   std::cin.get(input);
   return input != 'n';
-}
-
-const SkeletonPtr makeBodyFromURDF(
-        const std::shared_ptr<aikido::io::CatkinResourceRetriever>
-            resourceRetriever,
-        const std::string& uri,
-        const Eigen::Isometry3d& transform)
-{
-    dart::utils::DartLoader urdfLoader;
-    const SkeletonPtr skeleton = urdfLoader.parseSkeleton(uri, resourceRetriever);
-
-    if (!skeleton)
-        throw std::runtime_error("unable to load '" + uri + "'");
-
-    dynamic_cast<dart::dynamics::FreeJoint*>(skeleton->getJoint(0))
-        ->setTransform(transform);
-    return skeleton;
 }
 
 Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
