@@ -188,13 +188,13 @@ int main(int argc, char** argv)
   tomPose.linear() = rotation;
   tomPose.translation() = personPose.translation();
 
-  auto plate = makeBodyFromURDF(resourceRetriever, plateURDFUri, platePose);
+  auto plate = loadSkeletonFromURDF(resourceRetriever, plateURDFUri, platePose);
   robot.getWorld()->addSkeleton(plate);
-  auto table = makeBodyFromURDF(resourceRetriever, tableURDFUri, tablePose);
+  auto table = loadSkeletonFromURDF(resourceRetriever, tableURDFUri, tablePose);
   robot.getWorld()->addSkeleton(table);
-  auto foodItem = makeBodyFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
+  auto foodItem = loadSkeletonFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
   robot.getWorld()->addSkeleton(foodItem);
-  auto tom = makeBodyFromURDF(resourceRetriever, tomURDFUri, tomPose);
+  auto tom = loadSkeletonFromURDF(resourceRetriever, tomURDFUri, tomPose);
   robot.getWorld()->addSkeleton(tom);
 
   // Setting up collisions
@@ -234,8 +234,8 @@ int main(int argc, char** argv)
   //auto marker = viewer.addTSRMarker(abovePlateTSR, 20);
   abovePlateTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
   
-  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
-  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  //moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -363,7 +363,8 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  //moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   std::cin.get();
   return 0;
