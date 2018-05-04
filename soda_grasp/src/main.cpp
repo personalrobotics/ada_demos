@@ -126,7 +126,7 @@ int main(int argc, char** argv)
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
-  auto hand = std::static_pointer_cast<ada::AdaHand>(robot.getHand());
+  auto hand = robot.getHand();
   armSkeleton->setPositions(armRelaxedHome);
 
   Eigen::Isometry3d sodaPose;

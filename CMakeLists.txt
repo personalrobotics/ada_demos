@@ -48,6 +48,7 @@ include_directories(${Boost_INCLUDE_DIR})
 
 add_subdirectory(soda_grasp)
 add_subdirectory(simple_trajectories)
+add_subdirectory(feeding)
 
 # ===============================================================================
 # Formatting
