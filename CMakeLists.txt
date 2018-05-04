@@ -49,6 +49,7 @@ include_directories(${Boost_INCLUDE_DIR})
 add_subdirectory(soda_grasp)
 add_subdirectory(simple_trajectories)
 add_subdirectory(feeding)
+add_subdirectory(voxel)
 
 # ===============================================================================
 # Formatting
@@ -62,7 +63,9 @@ if(CLANG_FORMAT_EXECUTABLE)
   file(GLOB_RECURSE ALL_SOURCE_FILES
     LIST_DIRECTORIES false
     soda_grasp/src/*.cpp
-    simple_trajectories/src/*.cpp)
+    simple_trajectories/src/*.cpp
+    voxel/src/*.cpp
+  )
   list(LENGTH ALL_SOURCE_FILES NUM_SOURCE_FILES)
 
   add_custom_target(format
