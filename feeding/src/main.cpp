@@ -261,7 +261,7 @@ int main(int argc, char** argv)
 
   try {
     ROS_INFO("planning...");
-    auto intoFoodTrajectory = robot.getArm()->planToEndEffectorOffset(
+    auto intoFoodTrajectory = robot.planToEndEffectorOffset(
       armSpace,
       armSkeleton,
       hand->getBodyNode(),
@@ -283,7 +283,7 @@ int main(int argc, char** argv)
 
   try {
     ROS_INFO("planning...");
-    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,0,1), heightAbovePlate, planningTimeout, positionTolerance, angularTolerance);
+    auto abovePlateTrajectory = robot.planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,0,1), heightAbovePlate, planningTimeout, positionTolerance, angularTolerance);
     ROS_INFO("executing...");
     moveArmOnTrajectory(abovePlateTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
@@ -316,7 +316,7 @@ int main(int argc, char** argv)
   }
 
   try {
-    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,-1,0), distanceToPerson, planningTimeout, positionTolerance, angularTolerance);
+    auto toPersonTrajectory = robot.planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,-1,0), distanceToPerson, planningTimeout, positionTolerance, angularTolerance);
     moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
     ROS_INFO("caught expection");
@@ -328,7 +328,7 @@ int main(int argc, char** argv)
   robot.getWorld()->removeSkeleton(foodItem);
 
   try {
-    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,1,0), distanceToPerson/2, planningTimeout, positionTolerance, angularTolerance);
+    auto toPersonTrajectory = robot.planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,1,0), distanceToPerson/2, planningTimeout, positionTolerance, angularTolerance);
     moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
     ROS_INFO("caught expection");
