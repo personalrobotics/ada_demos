@@ -31,6 +31,8 @@ static const std::string baseFrameName("map");
 
 static const int maxNumberTrials{1};
 static const double planningTimeout{5.};
+static const double positionTolerance = 0.005;
+static const double angularTolerance = 0.04;
 bool adaReal = false;
 
 bool waitForUser(const std::string& msg)
@@ -111,6 +113,32 @@ void moveArmToTSR(aikido::constraint::dart::TSR& tsr,
 }
 
 
+Eigen::Isometry3d createIsometry(double x, double y, double z, double roll = 0, double pitch = 0, double yaw = 0) {
+  Eigen::Isometry3d isometry = Eigen::Isometry3d::Identity();
+  isometry.translation() = Eigen::Vector3d(x, y, z);
+  Eigen::Matrix3d rotation;
+  rotation = Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ())
+             * Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY())
+             * Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX());
+  isometry.linear() = rotation;
+  
+  return isometry;
+} 
+
+Eigen::MatrixXd createBwMatrixForTSR(double horizontalTolerance, double verticalTolerance, double yawMin, double yawMax) {
+  Eigen::MatrixXd bw = Eigen::Matrix<double, 6, 2>::Zero();
+  bw(0, 0) = -horizontalTolerance;
+  bw(0, 1) = horizontalTolerance;
+  bw(1, 0) = -horizontalTolerance;
+  bw(1, 1) = horizontalTolerance;
+  bw(2, 0) = -verticalTolerance;
+  bw(2, 1) = verticalTolerance;
+  bw(5, 0) = yawMin;
+  bw(5, 1) = yawMax;\
+  return bw;
+}
+
+
 int main(int argc, char** argv)
 {
   // Default options for flags
@@ -165,28 +193,15 @@ int main(int argc, char** argv)
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
-  auto hand = std::static_pointer_cast<ada::AdaHand>(robot.getHand());
+  auto hand = robot.getHand();
   armSkeleton->setPositions(armRelaxedHome);
 
-  Eigen::Isometry3d platePose;
-  platePose = Eigen::Isometry3d::Identity();
-  platePose.translation() = Eigen::Vector3d(0.4, -0.142525,  0.102);
-  Eigen::Isometry3d tablePose;
-  tablePose = Eigen::Isometry3d::Identity();
-  tablePose.translation() = Eigen::Vector3d(1.1, 0.05,  -0.64);
+  // Predefined poses
+  Eigen::Isometry3d platePose = createIsometry(0.4, -0.142525, 0.102);
+  Eigen::Isometry3d tablePose = createIsometry(1.1, 0.05, -0.64);
   Eigen::Isometry3d foodPose = platePose;
-  // TODO
-  //foodPose.translate()
-  Eigen::Isometry3d personPose;
-  personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = Eigen::Vector3d(0.1, -0.77525,  0.502);
-  Eigen::Isometry3d tomPose = Eigen::Isometry3d::Identity();
-  Eigen::Matrix3d rotation;
-  rotation = Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
-             * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitY())
-             * Eigen::AngleAxisd(0, Eigen::Vector3d::UnitX());
-  tomPose.linear() = rotation;
-  tomPose.translation() = personPose.translation();
+  Eigen::Isometry3d personPose = createIsometry(0.1, -0.77525, 0.502);
+  Eigen::Isometry3d tomPose = createIsometry(0.1, -0.77525, 0.502, 0, 0, M_PI);
 
   auto plate = loadSkeletonFromURDF(resourceRetriever, plateURDFUri, platePose);
   robot.getWorld()->addSkeleton(plate);
@@ -203,13 +218,10 @@ int main(int argc, char** argv)
   std::shared_ptr<CollisionGroup> envCollisionGroup = collisionDetector->createCollisionGroup(table.get(), tom.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(armSpace, armSkeleton, collisionDetector);
   collisionFreeConstraint->addPairwiseCheck(armCollisionGroup, envCollisionGroup);
-  //collisionFreeConstraint = nullptr;
 
   if (!waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:")) {return 0;}
 
   auto defaultPose = getCurrentConfig(robot);
-
-  //viewer.addFrame(hand->getBodyNode(), 0.2, 0.01, 1.0);
 
   // ***** MOVE ABOVE PLATE *****
   double heightAbovePlate = 0.15;
@@ -220,22 +232,11 @@ int main(int argc, char** argv)
   abovePlateTSR.mT0_w = platePose;
   abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAbovePlate};
 
-  Eigen::MatrixXd abovePlateBw = Eigen::Matrix<double, 6, 2>::Zero();
-  abovePlateBw(0, 0) = -horizontal_tolerance_above_plate;
-  abovePlateBw(0, 1) = horizontal_tolerance_above_plate;
-  abovePlateBw(1, 0) = -horizontal_tolerance_above_plate;
-  abovePlateBw(1, 1) = horizontal_tolerance_above_plate;
-  abovePlateBw(2, 0) = -vertical_tolerance_above_plate;
-  abovePlateBw(2, 1) = vertical_tolerance_above_plate;
-  abovePlateBw(5, 0) = -M_PI;
-  abovePlateBw(5, 1) = M_PI;
-  abovePlateTSR.mBw = abovePlateBw;
-
-  //auto marker = viewer.addTSRMarker(abovePlateTSR, 20);
+  abovePlateTSR.mBw = createBwMatrixForTSR(horizontal_tolerance_above_plate, vertical_tolerance_above_plate, -M_PI, M_PI);
   abovePlateTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
   
-  //moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
-  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -248,16 +249,7 @@ int main(int argc, char** argv)
   foodTSR.mT0_w = foodPose;
   foodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0.02};
 
-  Eigen::MatrixXd nearFoodBw = Eigen::Matrix<double, 6, 2>::Zero();
-  nearFoodBw(0, 0) = -horizontal_tolerance_near_food;
-  nearFoodBw(0, 1) = horizontal_tolerance_near_food;
-  nearFoodBw(1, 0) = -horizontal_tolerance_near_food;
-  nearFoodBw(1, 1) = horizontal_tolerance_near_food;
-  nearFoodBw(2, 0) = -vertical_tolerance_near_food;
-  nearFoodBw(2, 1) = vertical_tolerance_near_food;
-  nearFoodBw(5, 0) = -M_PI;
-  nearFoodBw(5, 1) = M_PI;
-  foodTSR.mBw = nearFoodBw;
+  foodTSR.mBw = createBwMatrixForTSR(horizontal_tolerance_near_food, vertical_tolerance_near_food, -M_PI, M_PI);
   foodTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
 
   // ***** MOVE ABOVE FOOD, INTO FOOD AND ABOVE PLATE *****
@@ -265,12 +257,7 @@ int main(int argc, char** argv)
   aikido::constraint::dart::TSR aboveFoodTSR(foodTSR);
   aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood};
 
-  //auto marker2 = viewer.addTSRMarker(aboveFoodTSR, 20);
   moveArmToTSR(aboveFoodTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
-
-  //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-  //auto marker3 = viewer.addTSRMarker(foodTSR, 20);
-
 
   try {
     ROS_INFO("planning...");
@@ -281,9 +268,9 @@ int main(int argc, char** argv)
       collisionFreeConstraint,
       Eigen::Vector3d(0,0,-1),
       heightAboveFood,
-      5,
-      0.005,
-      0.04);
+      planningTimeout,
+      positionTolerance,
+      angularTolerance);
     ROS_INFO("executing...");
     moveArmOnTrajectory(intoFoodTrajectory, robot, armSpace, armSkeleton, false);
     ROS_INFO("done");
@@ -292,17 +279,11 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  //moveArmToTSR(foodTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
-
   hand->grab(foodItem);
 
-  //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-  //moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand);
-  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand);
-  
   try {
     ROS_INFO("planning...");
-    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,0,1), heightAbovePlate, 5, 0.005, 0.04);
+    auto abovePlateTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,0,1), heightAbovePlate, planningTimeout, positionTolerance, angularTolerance);
     ROS_INFO("executing...");
     moveArmOnTrajectory(abovePlateTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
@@ -323,18 +304,9 @@ int main(int argc, char** argv)
   double horizontal_tolerance_near_person = 0.01;
   double vertical_tolerance_near_person = 0.004;
 
-  Eigen::MatrixXd personBw = Eigen::Matrix<double, 6, 2>::Zero();
-  personBw(0, 0) = -horizontal_tolerance_near_person;
-  personBw(0, 1) = horizontal_tolerance_near_person;
-  personBw(1, 0) = -horizontal_tolerance_near_person;
-  personBw(1, 1) = horizontal_tolerance_near_person;
-  personBw(2, 0) = -vertical_tolerance_near_person;
-  personBw(2, 1) = vertical_tolerance_near_person;
-  personTSR.mBw = personBw;
+  personTSR.mBw = createBwMatrixForTSR(horizontal_tolerance_near_person, vertical_tolerance_near_person, 0, 0);
   personTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("person")->matrix();
 
-  //auto marker4 = viewer.addTSRMarker(personTSR, 20);
-  //std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   try {
     moveArmToConfiguration(inFrontOfPersonConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
     //moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
@@ -344,7 +316,7 @@ int main(int argc, char** argv)
   }
 
   try {
-    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,-1,0), distanceToPerson, 5, 0.005, 0.04);
+    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,-1,0), distanceToPerson, planningTimeout, positionTolerance, angularTolerance);
     moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
     ROS_INFO("caught expection");
@@ -356,15 +328,15 @@ int main(int argc, char** argv)
   robot.getWorld()->removeSkeleton(foodItem);
 
   try {
-    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,1,0), distanceToPerson/2, 5, 0.005, 0.04);
+    auto toPersonTrajectory = robot.getArm()->planToEndEffectorOffset(armSpace, armSkeleton, hand->getBodyNode(), collisionFreeConstraint, Eigen::Vector3d(0,1,0), distanceToPerson/2, planningTimeout, positionTolerance, angularTolerance);
     moveArmOnTrajectory(toPersonTrajectory, robot, armSpace, armSkeleton, false);
   } catch (int e) {
     ROS_INFO("caught expection");
     return 1;
   }
 
-  //moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
-  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  moveArmToConfiguration(abovePlateConfig, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+  //moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
 
   std::cin.get();
   return 0;
