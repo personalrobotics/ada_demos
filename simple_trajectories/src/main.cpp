@@ -23,6 +23,7 @@ static const std::string baseFrameName("map");
 
 static const double planningTimeout{5.};
 bool adaReal = false;
+bool feeding = false;
 
 void waitForUser(const std::string& msg)
 {
@@ -103,7 +104,7 @@ int main(int argc, char** argv)
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
-  ada::Ada robot(env, !adaReal);
+  ada::Ada robot(env, !adaReal, feeding);
   auto robotSkeleton = robot.getMetaSkeleton();
 
   // Start Visualization Topic
