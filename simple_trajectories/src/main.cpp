@@ -1,5 +1,7 @@
+#include <chrono>
 #include <iostream>
 #include <Eigen/Dense>
+#include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
@@ -7,8 +9,6 @@
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/DartLoader.hpp>
 #include <libada/Ada.hpp>
-#include <aikido/constraint/Satisfied.hpp>
-#include <chrono>
 
 namespace po = boost::program_options;
 
@@ -33,17 +33,19 @@ void waitForUser(const std::string& msg)
 Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
 {
   using namespace Eigen;
-  IOFormat CommaInitFmt(StreamPrecision, DontAlignCols, ", ", ", ", "", "", " << ", ";");
+  IOFormat CommaInitFmt(
+      StreamPrecision, DontAlignCols, ", ", ", ", "", "", " << ", ";");
   // TODO (Tapo): Change this back once the robot vs. arm is cleared
   auto defaultPose = robot.getArm()->getMetaSkeleton()->getPositions();
   ROS_INFO_STREAM("Current configuration" << defaultPose.format(CommaInitFmt));
   return defaultPose;
 }
 
-void moveArmTo(ada::Ada& robot,
-               const MetaSkeletonStateSpacePtr& armSpace,
-               const MetaSkeletonPtr& armSkeleton,
-               const Eigen::VectorXd& goalPos)
+void moveArmTo(
+    ada::Ada& robot,
+    const MetaSkeletonStateSpacePtr& armSpace,
+    const MetaSkeletonPtr& armSkeleton,
+    const Eigen::VectorXd& goalPos)
 {
   auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
 
@@ -55,14 +57,14 @@ void moveArmTo(ada::Ada& robot,
     throw std::runtime_error("Failed to find a solution");
   }
 
-  auto smoothTrajectory = robot.smoothPath(armSkeleton, trajectory.get(), testable);
-  aikido::trajectory::TrajectoryPtr timedTrajectory =
-    std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+  auto smoothTrajectory
+      = robot.smoothPath(armSkeleton, trajectory.get(), testable);
+  aikido::trajectory::TrajectoryPtr timedTrajectory
+      = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
 
   auto future = robot.executeTrajectory(timedTrajectory);
   future.wait();
 }
-
 
 int main(int argc, char** argv)
 {
@@ -70,11 +72,13 @@ int main(int argc, char** argv)
   int target;
 
   po::options_description po_desc("simple_trajectories options");
-  po_desc.add_options()
-    ("help", "Produce help message")
-    ("adareal,h", po::bool_switch(&adaReal)->default_value(false), "Run ADA in real")
-    ("target,t", po::value<int>(&target)->default_value(2), "A target trajectory to execute")
-  ;
+  po_desc.add_options()("help", "Produce help message")(
+      "adareal,h",
+      po::bool_switch(&adaReal)->default_value(false),
+      "Run ADA in real")(
+      "target,t",
+      po::value<int>(&target)->default_value(2),
+      "A target trajectory to execute");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -94,7 +98,8 @@ int main(int argc, char** argv)
   ros::NodeHandle nh("~");
 
   // Create AIKIDO World
-  aikido::planner::WorldPtr env(new aikido::planner::World("simple_trajectories"));
+  aikido::planner::WorldPtr env(
+      new aikido::planner::World("simple_trajectories"));
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
@@ -121,25 +126,25 @@ int main(int argc, char** argv)
   armHome << 0.00, 3.14, 3.14, 0.00, 0.00, 0.00;
 
   Eigen::VectorXd armRelaxedHome(6);
-  armRelaxedHome  << 1.00, 1.00, 1.00, 1.00, 1.00, 1.00;
-  
+  armRelaxedHome << 1.00, 1.00, 1.00, 1.00, 1.00, 1.00;
+
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
   armSkeleton->setPositions(armHome);
-  
+
   waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
   if (target == 0) // target 0: closing hands
   {
-      robot.getHand()->executePreshape("closed").wait();
-      waitForUser("Press [ENTER] to exit: ");
-      return 0;
+    robot.getHand()->executePreshape("closed").wait();
+    waitForUser("Press [ENTER] to exit: ");
+    return 0;
   }
   else if (target == 1) // target 1: opening hands
   {
-      robot.getHand()->executePreshape("open").wait();
-      waitForUser("Press [ENTER] to exit: ");
+    robot.getHand()->executePreshape("open").wait();
+    waitForUser("Press [ENTER] to exit: ");
   }
 
   if (target == 2)
@@ -156,10 +161,10 @@ int main(int argc, char** argv)
     waitForUser("Press [ENTER] to exit: ");
   }
 
-   if (adaReal)
-   {
-     robot.switchFromTrajectoryExecutorsToGravityCompensationControllers();
-   }
+  if (adaReal)
+  {
+    robot.switchFromTrajectoryExecutorsToGravityCompensationControllers();
+  }
 
   std::cin.get();
   return 0;
