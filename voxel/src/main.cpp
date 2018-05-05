@@ -2,6 +2,7 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <aikido/constraint/Satisfied.hpp>
+#include <aikido/perception/PointCloud.hpp>
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
@@ -18,10 +19,12 @@ using dart::dynamics::MetaSkeletonPtr;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
 
-static const std::string topicName("dart_markers");
+static const std::string topicName("/camera/depth/color/points");
 static const std::string baseFrameName("map");
 
+static const double detectionTimeout{5.};
 static const double planningTimeout{5.};
+
 bool adaReal = false;
 
 void waitForUser(const std::string& msg)
@@ -66,6 +69,23 @@ void moveArmTo(
   future.wait();
 }
 
+/// Perceive objects with PoseEstimatorModule.
+/// \param[in]  nh: ROS node handle to use for detection
+/// \param[in]  detectorTopicName: The MarkerArray topic name
+///                 of a specific detector to use
+/// \param[in]  detectorDataURI: The JSON data file for the detector
+/// \param[in]  resourceRetriever: Resource retriever to resolve package URIs
+/// \param[in]  robot: Robot that the transforms are defined relative to
+void perceivePointCloud(
+    ros::NodeHandle nodeHandle, std::string detectorTopicName)
+{
+  using aikido::perception::PointCloud;
+
+  PointCloud objDetector(nodeHandle, detectorTopicName);
+
+  objDetector.updatePointCloud(ros::Duration(detectionTimeout));
+}
+
 int main(int argc, char** argv)
 {
   // Default options for flags
@@ -77,7 +97,7 @@ int main(int argc, char** argv)
       po::bool_switch(&adaReal)->default_value(false),
       "Run ADA in real")(
       "target,t",
-      po::value<int>(&target)->default_value(2),
+      po::value<int>(&target)->default_value(3),
       "A target trajectory to execute");
 
   po::variables_map vm;
@@ -89,7 +109,8 @@ int main(int argc, char** argv)
     std::cout << po_desc << std::endl;
     std::cout << "target 0: closing hands" << std::endl
               << "target 1: opening hands" << std::endl
-              << "target 2: move arms to relaxed home positions" << std::endl;
+              << "target 2: move arms to relaxed home positions" << std::endl
+              << "target 3: perceive point cloud" << std::endl;
     return 0;
   }
 
@@ -145,8 +166,7 @@ int main(int argc, char** argv)
     robot.getHand()->executePreshape("open").wait();
     waitForUser("Press [ENTER] to exit: ");
   }
-
-  if (target == 2)
+  else if (target == 2)
   {
     waitForUser("Press key to look at the goal pos.");
     armSkeleton->setPositions(armRelaxedHome);
@@ -158,6 +178,19 @@ int main(int argc, char** argv)
     moveArmTo(robot, armSpace, armSkeleton, armRelaxedHome);
 
     waitForUser("Press [ENTER] to exit: ");
+  }
+  else if (target == 3)
+  {
+    bool pause = false;
+    while (true)
+    {
+      std::cout << "Enter 1 to continue, 0 to exit: ";
+      std::cin >> pause;
+      if (pause == 0)
+        break;
+
+      perceivePointCloud(nh, topicName);
+    }
   }
 
   if (adaReal)
