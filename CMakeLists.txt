@@ -62,6 +62,7 @@ if(CLANG_FORMAT_EXECUTABLE)
 
   file(GLOB_RECURSE ALL_SOURCE_FILES
     LIST_DIRECTORIES false
+    feeding/src/*.cpp
     soda_grasp/src/*.cpp
     simple_trajectories/src/*.cpp
     voxel/src/*.cpp
@@ -73,7 +74,8 @@ if(CLANG_FORMAT_EXECUTABLE)
     COMMAND ${CLANG_FORMAT_EXECUTABLE} -style=file -i ${ALL_SOURCE_FILES}
     COMMAND ${CMAKE_COMMAND} -E echo "Done."
     DEPENDS ${CLANG_FORMAT_EXECUTABLE}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
 
   add_custom_target(check-format
     COMMAND ${CMAKE_COMMAND} -E echo "Checking code style of"
@@ -82,8 +84,10 @@ if(CLANG_FORMAT_EXECUTABLE)
             ${CLANG_FORMAT_EXECUTABLE} ${ALL_SOURCE_FILES}
     COMMAND ${CMAKE_COMMAND} -E echo "Done."
     DEPENDS ${CLANG_FORMAT_EXECUTABLE}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
 else()
   message(STATUS "Could not find clang-format. Please install "
-      "clang-format to enable automatic code formatting.")
+      "clang-format to enable automatic code formatting."
+  )
 endif()
