@@ -63,7 +63,7 @@ if(CLANG_FORMAT_EXECUTABLE)
     LIST_DIRECTORIES false
     soda_grasp/src/*.cpp
     simple_trajectories/src/*.cpp
-    # TODO: Add feeding files as well once avk/feeding is merged.
+    feeding/src/*.cpp
   )
   list(LENGTH ALL_SOURCE_FILES NUM_SOURCE_FILES)
 
