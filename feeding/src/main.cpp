@@ -189,7 +189,10 @@ int main(int argc, char** argv)
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
-  ada::Ada robot(env, !adaReal, feeding);
+  dart::common::Uri adaUrdfUri{"package://ada_description/robots/ada_with_camera_forque.urdf"};
+  dart::common::Uri adaSrdfUri{"package://ada_description/robots/ada_with_camera_forque.srdf"};
+  std::string endEffectorName = "j2n6s200_forque_end_effector";
+  ada::Ada robot(env, !adaReal, adaUrdfUri, adaSrdfUri, endEffectorName);
   auto robotSkeleton = robot.getMetaSkeleton();
 
   // Load Plate and FootItem in simulation
