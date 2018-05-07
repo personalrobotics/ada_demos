@@ -130,7 +130,7 @@ void moveArmToTSR(
   auto trajectory = robot.planToTSR(
       armSpace,
       armSkeleton,
-      hand->getBodyNode(),
+      hand->getHandBaseBodyNode(),
       goalTSR,
       collisionFreeConstraint,
       maxNumberTrials,
@@ -261,7 +261,7 @@ int main(int argc, char** argv)
       = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<CollisionGroup> armCollisionGroup
       = collisionDetector->createCollisionGroup(
-          armSkeleton.get(), hand->getBodyNode());
+          armSkeleton.get(), hand->getHandBaseBodyNode());
   std::shared_ptr<CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(table.get(), tom.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(
@@ -341,7 +341,7 @@ int main(int argc, char** argv)
     auto intoFoodTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
-        hand->getBodyNode(),
+        hand->getHandBaseBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, 0, -1),
         heightAboveFood,
@@ -367,7 +367,7 @@ int main(int argc, char** argv)
     auto abovePlateTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
-        hand->getBodyNode(),
+        hand->getHandBaseBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, 0, 1),
         heightAbovePlate,
@@ -421,7 +421,7 @@ int main(int argc, char** argv)
     auto toPersonTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
-        hand->getBodyNode(),
+        hand->getHandBaseBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, -1, 0),
         distanceToPerson,
@@ -446,7 +446,7 @@ int main(int argc, char** argv)
     auto toPersonTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
-        hand->getBodyNode(),
+        hand->getHandBaseBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, 1, 0),
         distanceToPerson / 2,
