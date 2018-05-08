@@ -45,9 +45,9 @@ include_directories(${Boost_INCLUDE_DIR})
 # Demos
 #
 
-#add_subdirectory(soda_grasp)
+add_subdirectory(soda_grasp)
 add_subdirectory(simple_trajectories)
-#add_subdirectory(feeding)
+add_subdirectory(feeding)
 
 # ===============================================================================
 # Formatting
@@ -88,4 +88,3 @@ else()
       "clang-format to enable automatic code formatting."
   )
 endif()
-
