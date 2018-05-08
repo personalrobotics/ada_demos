@@ -22,10 +22,8 @@ using aikido::robot::Robot;
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
-dart::common::Uri adaUrdfUri{
-    "package://ada_description/robots/ada.urdf"};
-dart::common::Uri adaSrdfUri{
-    "package://ada_description/robots/ada.srdf"};
+dart::common::Uri adaUrdfUri{"package://ada_description/robots/ada.urdf"};
+dart::common::Uri adaSrdfUri{"package://ada_description/robots/ada.srdf"};
 
 static const double planningTimeout{5.};
 bool adaReal = false;
@@ -47,10 +45,11 @@ Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
   return defaultPose;
 }
 
-void moveArmTo(ada::Ada& robot,
-               const MetaSkeletonStateSpacePtr& armSpace,
-               const MetaSkeletonPtr& armSkeleton,
-               const Eigen::VectorXd& goalPos)
+void moveArmTo(
+    ada::Ada& robot,
+    const MetaSkeletonStateSpacePtr& armSpace,
+    const MetaSkeletonPtr& armSkeleton,
+    const Eigen::VectorXd& goalPos)
 {
   waitForUser("Plan to move hand. Press [Enter] to proceed.");
 
@@ -72,9 +71,10 @@ void moveArmTo(ada::Ada& robot,
   armSpace->convertStateToPositions(state, positions);
   ROS_INFO_STREAM(positions.transpose());
 
-  auto smoothTrajectory = robot.smoothPath(armSkeleton, trajectory.get(), satisfied);
-  aikido::trajectory::TrajectoryPtr timedTrajectory =
-    std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+  auto smoothTrajectory
+      = robot.smoothPath(armSkeleton, trajectory.get(), satisfied);
+  aikido::trajectory::TrajectoryPtr timedTrajectory
+      = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
 
   waitForUser("Press key to move arm to goal");
   auto future = robot.executeTrajectory(timedTrajectory);
@@ -83,17 +83,16 @@ void moveArmTo(ada::Ada& robot,
   getCurrentConfig(robot);
 }
 
-
 int main(int argc, char** argv)
 {
   // Default options for flags
   int target;
 
   po::options_description po_desc("simple_trajectories options");
-  po_desc.add_options()
-    ("help", "Produce help message")
-    ("adareal,h", po::bool_switch(&adaReal)->default_value(false), "Run ADA in real")
-  ;
+  po_desc.add_options()("help", "Produce help message")(
+      "adareal,h",
+      po::bool_switch(&adaReal)->default_value(false),
+      "Run ADA in real");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -110,7 +109,8 @@ int main(int argc, char** argv)
   ros::NodeHandle nh("~");
 
   // Create AIKIDO World
-  aikido::planner::WorldPtr env(new aikido::planner::World("simple_trajectories"));
+  aikido::planner::WorldPtr env(
+      new aikido::planner::World("simple_trajectories"));
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
@@ -144,13 +144,13 @@ int main(int argc, char** argv)
     home[2] = 3.14;
     armSkeleton->setPositions(home);
 
-    auto startState = space->getScopedStateFromMetaSkeleton(robotSkeleton.get());
+    auto startState
+        = space->getScopedStateFromMetaSkeleton(robotSkeleton.get());
 
-    if(!collision->isSatisfied(startState))
+    if (!collision->isSatisfied(startState))
     {
       throw std::runtime_error("Robot is in collison");
     }
-
   }
 
   // Add ADA to the viewer.
@@ -174,7 +174,8 @@ int main(int argc, char** argv)
   /////////////////////////////////////////////////////////////////////////////
 
   auto currentPose = armSkeleton->getPositions();
-  std::cout << "ARM current position:\n" << currentPose.transpose() << std::endl;
+  std::cout << "ARM current position:\n"
+            << currentPose.transpose() << std::endl;
   Eigen::VectorXd movedPose(currentPose);
   movedPose(5) -= 0.5;
 
@@ -191,7 +192,6 @@ int main(int argc, char** argv)
   if (adaReal)
   {
     robot.stopTrajectoryExecutor();
-
   }
   return 0;
 }
