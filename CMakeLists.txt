@@ -32,6 +32,12 @@ include_directories(${aikido_INCLUDE_DIRS})
 find_package(libada REQUIRED)
 include_directories(${libada_INCLUDE_DIRS})
 
+find_package(pr_ordata REQUIRED)
+include_directories(${pr_ordata_INCLUDE_DIRS})
+
+find_package(pr_tsr REQUIRED)
+include_directories(${pr_tsr_INCLUDE_DIRS})
+
 find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
@@ -39,8 +45,9 @@ include_directories(${Boost_INCLUDE_DIR})
 # Demos
 #
 
-# add_subdirectory(soda_handoff)
+add_subdirectory(soda_grasp)
 add_subdirectory(simple_trajectories)
+add_subdirectory(feeding)
 
 # ===============================================================================
 # Formatting
@@ -53,7 +60,10 @@ if(CLANG_FORMAT_EXECUTABLE)
 
   file(GLOB_RECURSE ALL_SOURCE_FILES
     LIST_DIRECTORIES false
-    soda_handoff/src/*.cpp)
+    soda_grasp/src/*.cpp
+    simple_trajectories/src/*.cpp
+    feeding/src/*.cpp
+  )
   list(LENGTH ALL_SOURCE_FILES NUM_SOURCE_FILES)
 
   add_custom_target(format
@@ -61,7 +71,8 @@ if(CLANG_FORMAT_EXECUTABLE)
     COMMAND ${CLANG_FORMAT_EXECUTABLE} -style=file -i ${ALL_SOURCE_FILES}
     COMMAND ${CMAKE_COMMAND} -E echo "Done."
     DEPENDS ${CLANG_FORMAT_EXECUTABLE}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
 
   add_custom_target(check-format
     COMMAND ${CMAKE_COMMAND} -E echo "Checking code style of"
@@ -70,8 +81,11 @@ if(CLANG_FORMAT_EXECUTABLE)
             ${CLANG_FORMAT_EXECUTABLE} ${ALL_SOURCE_FILES}
     COMMAND ${CMAKE_COMMAND} -E echo "Done."
     DEPENDS ${CLANG_FORMAT_EXECUTABLE}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  )
 else()
   message(STATUS "Could not find clang-format. Please install "
-      "clang-format to enable automatic code formatting.")
+      "clang-format to enable automatic code formatting."
+  )
 endif()
+

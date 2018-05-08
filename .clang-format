@@ -47,7 +47,7 @@ ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
 IncludeCategories:
   - Regex:     '^<([a-z|_]+)>' # standard library headers
     Priority:  1
-  - Regex:     '^(<|")libherb/' # libherb headers
+  - Regex:     '^(<|")libada/' # libada headers
     Priority:  3
   - Regex:     '^(<[A-z]+)'    # dependency headers
     Priority:  2
