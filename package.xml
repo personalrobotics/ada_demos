@@ -8,7 +8,7 @@
   <maintainer email="tapo@cs.uw.edu">Tapomayukh Bhattacharjee</maintainer>
 
   <depend>boost</depend>
-  <depend>dart</depend>
+  <depend>dartsim</depend>
   <depend>eigen</depend>
   <depend>aikido</depend>
   <depend>libada</depend>
