@@ -189,9 +189,11 @@ int main(int argc, char** argv)
 
   waitForUser("Press [ENTER] to exit. ");
 
-  if (adaSim)
+  if (!adaSim)
   {
+    std::cout << "Stop trajectory executor" << std::endl;
     robot.stopTrajectoryExecutor();
   }
+  ros::shutdown();
   return 0;
 }
