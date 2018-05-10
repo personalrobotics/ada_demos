@@ -33,8 +33,7 @@ static const int maxNumberTrials{1};
 static const double planningTimeout{5.};
 static const double positionTolerance = 0.005;
 static const double angularTolerance = 0.04;
-bool adaReal = false;
-bool feeding = true;
+bool adaSim = true;
 
 bool waitForUser(const std::string& msg)
 {
@@ -194,7 +193,7 @@ int main(int argc, char** argv)
   dart::common::Uri adaSrdfUri{
       "package://ada_description/robots/ada_with_camera_forque.srdf"};
   std::string endEffectorName = "j2n6s200_forque_end_effector";
-  ada::Ada robot(env, !adaReal, adaUrdfUri, adaSrdfUri, endEffectorName);
+  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
   auto robotSkeleton = robot.getMetaSkeleton();
 
   // Load Plate and FootItem in simulation
