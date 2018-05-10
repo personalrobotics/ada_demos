@@ -260,6 +260,8 @@ int main(int argc, char** argv)
   robot.getWorld()->addSkeleton(tom);
 
   // Setting up collisions
+  foodItem->getRootBodyNode()->setCollidable(false);
+
   CollisionDetectorPtr collisionDetector
       = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<CollisionGroup> armCollisionGroup
