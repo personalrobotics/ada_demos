@@ -98,7 +98,7 @@ int main(int argc, char** argv)
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
-  ada::Ada robot(env, !adaReal, feeding);
+  ada::Ada robot(env, !adaReal);
   auto robotSkeleton = robot.getMetaSkeleton();
 
   // Load Soda Can in simulation
