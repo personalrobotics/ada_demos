@@ -208,7 +208,7 @@ int main(int argc, char** argv)
   ROS_INFO("Loading Plate and FoodItem.");
   const std::string plateURDFUri("package://pr_ordata/data/objects/plate.urdf");
   const std::string tableURDFUri(
-      "package://pr_ordata/data/furniture/table.urdf");
+      "package://pr_ordata/data/furniture/table_feeding.urdf");
   const std::string foodItemURDFUri(
       "package://pr_ordata/data/objects/food_item.urdf");
   const std::string tomURDFUri("package://pr_ordata/data/objects/tom.urdf");
@@ -249,12 +249,12 @@ int main(int argc, char** argv)
   armSkeleton->setPositions(armRelaxedHome);
 
   // Predefined poses
-  Eigen::Isometry3d platePose = createIsometry(0.4, 0.25, 0);
-  // origin is corner of table top
-  Eigen::Isometry3d tablePose = createIsometry(0.925075, 0.3705, -0.735);
+  Eigen::Isometry3d platePose = createIsometry(0.4, 0.25, 0.08);
   Eigen::Isometry3d foodPose = platePose;
-  Eigen::Isometry3d personPose = createIsometry(0.1, -0.77525, 0.502);
-  Eigen::Isometry3d tomPose = createIsometry(0.4, -0.37525, 0.502, 0, 0, M_PI);
+  // origin is corner of table top
+  Eigen::Isometry3d tablePose = createIsometry(0.76, 0.38, -0.735);
+  Eigen::Isometry3d personPose = createIsometry(0.4, -0.2, 0.502);
+  Eigen::Isometry3d tomPose = createIsometry(0.4, -0.2, 0.502, 0, 0, M_PI);
 
   auto plate = loadSkeletonFromURDF(resourceRetriever, plateURDFUri, platePose);
   robot.getWorld()->addSkeleton(plate);
@@ -277,7 +277,7 @@ int main(int argc, char** argv)
       = collisionDetector->createCollisionGroup(
           armSkeleton.get(), hand->getEndEffectorBodyNode());
   std::shared_ptr<CollisionGroup> envCollisionGroup
-      = collisionDetector->createCollisionGroup(table.get(), tom.get());
+      = collisionDetector->createCollisionGroup(table.get(), tom.get(), workspace.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(
       armSpace, armSkeleton, collisionDetector);
   collisionFreeConstraint->addPairwiseCheck(
@@ -356,7 +356,7 @@ int main(int argc, char** argv)
         armSpace,
         armSkeleton,
         hand->getEndEffectorBodyNode(),
-        nullptr,
+        collisionFreeConstraint,
         Eigen::Vector3d(0, 0, -1),
         heightAboveFood,
         planningTimeout,
@@ -414,15 +414,15 @@ int main(int argc, char** argv)
 
   try
   {
-    moveArmToConfiguration(
+    /*moveArmToConfiguration(
         inFrontOfPersonConfig,
         robot,
         armSpace,
         armSkeleton,
         hand,
-        collisionFreeConstraint);
-    // moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand,
-    // collisionFreeConstraint);
+        collisionFreeConstraint);*/
+     moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand,
+       collisionFreeConstraint);
   }
   catch (int e)
   {
@@ -476,15 +476,15 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  moveArmToConfiguration(
+  /*moveArmToConfiguration(
       abovePlateConfig,
       robot,
       armSpace,
       armSkeleton,
       hand,
-      collisionFreeConstraint);
-  // moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
-  // collisionFreeConstraint);
+      collisionFreeConstraint);*/
+  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
+    collisionFreeConstraint);
 
   std::cin.get();
   return 0;
