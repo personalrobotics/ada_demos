@@ -196,18 +196,23 @@ int main(int argc, char** argv)
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
   auto robotSkeleton = robot.getMetaSkeleton();
 
+
+  Eigen::Isometry3d robotPose = createIsometry(0.88, 0.1, 0.05, 0, 0, 3.1415);
+  auto freeJoint = dynamic_cast<dart::dynamics::FreeJoint*>(robotSkeleton->getJoint(0));
+  if (!freeJoint)
+    throw std::runtime_error(
+        "Unable to cast Skeleton's root joint to FreeJoint.");
+  freeJoint->setTransform(robotPose);
+
   // Load Plate and FootItem in simulation
   ROS_INFO("Loading Plate and FoodItem.");
-  const std::string plateName{"plate"};
   const std::string plateURDFUri("package://pr_ordata/data/objects/plate.urdf");
-  const std::string tableName{"table"};
   const std::string tableURDFUri(
       "package://pr_ordata/data/furniture/table.urdf");
-  const std::string foodItemName{"foodItem"};
   const std::string foodItemURDFUri(
       "package://pr_ordata/data/objects/food_item.urdf");
-  const std::string tomName{"tom"};
   const std::string tomURDFUri("package://pr_ordata/data/objects/tom.urdf");
+  const std::string workspaceURDFUri("package://pr_ordata/data/furniture/workspace_feeding_demo.urdf");
 
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
@@ -244,16 +249,19 @@ int main(int argc, char** argv)
   armSkeleton->setPositions(armRelaxedHome);
 
   // Predefined poses
-  Eigen::Isometry3d platePose = createIsometry(0.4, -0.142525, 0.102);
-  Eigen::Isometry3d tablePose = createIsometry(1.1, 0.05, -0.64);
+  Eigen::Isometry3d platePose = createIsometry(0.4, 0.25, 0);
+  // origin is corner of table top
+  Eigen::Isometry3d tablePose = createIsometry(0.925075, 0.3705, -0.735);
   Eigen::Isometry3d foodPose = platePose;
   Eigen::Isometry3d personPose = createIsometry(0.1, -0.77525, 0.502);
-  Eigen::Isometry3d tomPose = createIsometry(0.1, -0.77525, 0.502, 0, 0, M_PI);
+  Eigen::Isometry3d tomPose = createIsometry(0.4, -0.37525, 0.502, 0, 0, M_PI);
 
   auto plate = loadSkeletonFromURDF(resourceRetriever, plateURDFUri, platePose);
   robot.getWorld()->addSkeleton(plate);
   auto table = loadSkeletonFromURDF(resourceRetriever, tableURDFUri, tablePose);
   robot.getWorld()->addSkeleton(table);
+  auto workspace = loadSkeletonFromURDF(resourceRetriever, workspaceURDFUri);
+  robot.getWorld()->addSkeleton(workspace);
   auto foodItem
       = loadSkeletonFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
   robot.getWorld()->addSkeleton(foodItem);
@@ -300,15 +308,15 @@ int main(int argc, char** argv)
   abovePlateTSR.mTw_e.matrix()
       *= hand->getEndEffectorTransform("plate")->matrix();
 
-  moveArmToConfiguration(
+  /*moveArmToConfiguration(
       abovePlateConfig,
       robot,
       armSpace,
       armSkeleton,
       hand,
+      collisionFreeConstraint);*/
+  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
       collisionFreeConstraint);
-  // moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
-  // collisionFreeConstraint);
 
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -348,7 +356,7 @@ int main(int argc, char** argv)
         armSpace,
         armSkeleton,
         hand->getEndEffectorBodyNode(),
-        collisionFreeConstraint,
+        nullptr,
         Eigen::Vector3d(0, 0, -1),
         heightAboveFood,
         planningTimeout,
