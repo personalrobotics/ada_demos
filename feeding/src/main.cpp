@@ -37,7 +37,7 @@ bool adaSim = true;
 
 bool waitForUser(const std::string& msg)
 {
-  ROS_INFO(msg.c_str());
+  ROS_INFO((msg + " Press [ENTER]").c_str());
   char input = ' ';
   std::cin.get(input);
   return input != 'n';
@@ -177,8 +177,28 @@ Eigen::MatrixXd createBwMatrixForTSR(
 
 int main(int argc, char** argv)
 {
+  bool adaReal = false;
+  bool autoContinue = false;
+
   // Default options for flags
-  int target;
+  po::options_description po_desc("simple_trajectories options");
+  po_desc.add_options()("help,h", "Produce help message")  
+      ("adareal,a", po::bool_switch(&adaReal), "Run ADA in real")
+      ("continueAuto,c", po::bool_switch(&autoContinue));
+
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, po_desc), vm);
+  po::notify(vm);
+
+  if (vm.count("help"))
+  {
+    std::cout << po_desc << std::endl;
+    return 0;
+  }
+
+  bool adaSim = !adaReal;
+  std::cout << "Simulation Mode: " << adaSim << std::endl;
+
   ROS_INFO("Starting ROS node.");
   ros::init(argc, argv, "feeding");
   ros::NodeHandle nh("~");
@@ -194,7 +214,16 @@ int main(int argc, char** argv)
       "package://ada_description/robots/ada_with_camera_forque.srdf"};
   std::string endEffectorName = "j2n6s200_forque_end_effector";
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
+
+/* Gilwoos setup
+  TODO(Daniel) remove this later
+  dart::common::Uri adaUrdfUri{"package://ada_description/robots/ada.urdf"};
+  dart::common::Uri adaSrdfUri{"package://ada_description/robots/ada.srdf"};
+  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
+*/
+
   auto robotSkeleton = robot.getMetaSkeleton();
+  auto robotSpace = robot.getStateSpace();
 
 
   Eigen::Isometry3d robotPose = createIsometry(0.88, 0.1, 0.05, 0, 0, 3.1415);
@@ -230,23 +259,27 @@ int main(int argc, char** argv)
 
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);
+  if (!waitForUser("Startup step 1 complete."))
+  {
+    return 0;
+  }
 
   // Predefined configurations
   // ////////////////////////////////////////////////////
   Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
   armRelaxedHome << 0.631769, -2.82569, -1.31347, -1.29491, -0.774963, 1.6772;
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
-  abovePlateConfig << 0.536541, -3.39606, -1.80746, 0.601788, -1.88629,
-      -2.20747;
+  abovePlateConfig << 1.3, 2.9, 4.5, 0.6, -1.9, -2.2;
   Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
-  inFrontOfPersonConfig << 1.09007, -2.97579, -0.563162, -0.907691, 1.09752,
-      -1.47537;
+  inFrontOfPersonConfig << -3.1, 3.8, 1.0, -2.3, 2.0, 2.1;
 
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
   auto hand = robot.getHand();
-  armSkeleton->setPositions(armRelaxedHome);
+
+  if (adaSim)
+    armSkeleton->setPositions(armRelaxedHome);
 
   // Predefined poses
   Eigen::Isometry3d platePose = createIsometry(0.4, 0.25, 0.08);
@@ -283,13 +316,28 @@ int main(int argc, char** argv)
   collisionFreeConstraint->addPairwiseCheck(
       armCollisionGroup, envCollisionGroup);
 
-  if (!waitForUser(
-          "You can view ADA in RViz now. \n Press [ENTER] to proceed:"))
+  if (!adaSim)
+  {
+    std::cout << "Start trajectory executor" << std::endl;
+    robot.startTrajectoryExecutor();
+  }
+
+  auto currentPose = getCurrentConfig(robot);
+
+//   TODO(Daniel) why is the collision check not satisfied?
+//   auto startState
+//     = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
+
+//   aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
+//   if (!collisionFreeConstraint->isSatisfied(startState, &collisionCheckOutcome))
+//   {
+//     throw std::runtime_error("Robot is in collison: " + collisionCheckOutcome.toString());
+//   }
+
+  if (!waitForUser("Startup step 2 complete."))
   {
     return 0;
   }
-
-  auto defaultPose = getCurrentConfig(robot);
 
   // ***** MOVE ABOVE PLATE *****
   double heightAbovePlate = 0.15;
@@ -308,6 +356,11 @@ int main(int argc, char** argv)
   abovePlateTSR.mTw_e.matrix()
       *= hand->getEndEffectorTransform("plate")->matrix();
 
+  ROS_INFO_STREAM("Goal configuration\t" << abovePlateConfig.transpose());
+
+  if (!autoContinue)
+    waitForUser("Move arm to default pose");
+
   /*moveArmToConfiguration(
       abovePlateConfig,
       robot,
@@ -321,7 +374,7 @@ int main(int argc, char** argv)
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
-  double heightAboveFood = 0.07;
+  double heightAboveFood = 0.1;
   double horizontal_tolerance_near_food = 0.002;
   double vertical_tolerance_near_food = 0.002;
 
@@ -341,6 +394,8 @@ int main(int argc, char** argv)
   aikido::constraint::dart::TSR aboveFoodTSR(foodTSR);
   aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood};
 
+  if (!autoContinue)
+    waitForUser("Move arm above food");
   moveArmToTSR(
       aboveFoodTSR,
       robot,
@@ -351,7 +406,8 @@ int main(int argc, char** argv)
 
   try
   {
-    ROS_INFO("planning...");
+    if (!autoContinue)
+        waitForUser("Move arm into food");
     auto intoFoodTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
@@ -375,6 +431,8 @@ int main(int argc, char** argv)
 
   hand->grab(foodItem);
 
+  if (!autoContinue)
+    waitForUser("Move arm above of plate");
   try
   {
     ROS_INFO("planning...");
@@ -412,6 +470,10 @@ int main(int argc, char** argv)
       horizontal_tolerance_near_person, vertical_tolerance_near_person, 0, 0);
   personTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("person")->matrix();
 
+  ROS_INFO_STREAM("Goal configuration\t" << inFrontOfPersonConfig.transpose());
+
+  if (!autoContinue)
+    waitForUser("Move arm to person");
   try
   {
     /*moveArmToConfiguration(
@@ -476,6 +538,9 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  if (!autoContinue)
+      waitForUser("Move arm to plate");
+
   /*moveArmToConfiguration(
       abovePlateConfig,
       robot,
@@ -486,6 +551,13 @@ int main(int argc, char** argv)
   moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
     collisionFreeConstraint);
 
-  std::cin.get();
+  waitForUser("Demo finished.");
+
+  if (!adaSim)
+  {
+    std::cout << "Stop trajectory executor" << std::endl;
+    robot.stopTrajectoryExecutor();
+  }
+  ros::shutdown();
   return 0;
 }
