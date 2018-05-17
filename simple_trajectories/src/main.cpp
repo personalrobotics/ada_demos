@@ -85,14 +85,12 @@ void moveArmTo(
 
 int main(int argc, char** argv)
 {
-  // Default options for flags
-  int target;
+  bool adaReal = true;
 
+  // Default options for flags
   po::options_description po_desc("simple_trajectories options");
-  po_desc.add_options()("help", "Produce help message")(
-      "adasim,h",
-      po::bool_switch(&adaSim)->default_value(true),
-      "Run ADA in sim");
+  po_desc.add_options()("help", "Produce help message")  
+      ("herbreal,h", po::bool_switch(&adaReal), "Run ADA in real");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -104,6 +102,9 @@ int main(int argc, char** argv)
     return 0;
   }
 
+  bool adaSim = !adaReal;
+  std::cout << "Simulation Mode: " << adaSim << std::endl;
+  
   ROS_INFO("Starting ROS node.");
   ros::init(argc, argv, "simple_trajectories");
   ros::NodeHandle nh("~");
@@ -113,7 +114,7 @@ int main(int argc, char** argv)
       new aikido::planner::World("simple_trajectories"));
 
   // Load ADA either in simulation or real based on arguments
-  ROS_INFO("Loading ADA.");
+  ROS_INFO("Loading ADA. ");
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
   auto robotSkeleton = robot.getMetaSkeleton();
 
@@ -157,6 +158,12 @@ int main(int argc, char** argv)
   viewer.setAutoUpdate(true);
   waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
+  if (!adaSim)
+  {
+    std::cout << "Start trajectory executor" << std::endl;
+    robot.startTrajectoryExecutor();
+  }
+
   /////////////////////////////////////////////////////////////////////////////
   //   Move hand
   /////////////////////////////////////////////////////////////////////////////
@@ -178,12 +185,6 @@ int main(int argc, char** argv)
             << currentPose.transpose() << std::endl;
   Eigen::VectorXd movedPose(currentPose);
   movedPose(5) -= 0.5;
-
-  if (!adaSim)
-  {
-    std::cout << "Start trajectory executor" << std::endl;
-    robot.startTrajectoryExecutor();
-  }
 
   moveArmTo(robot, armSpace, armSkeleton, movedPose);
 
