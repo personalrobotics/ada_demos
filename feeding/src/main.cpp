@@ -267,7 +267,7 @@ int main(int argc, char** argv)
   // Predefined configurations
   // ////////////////////////////////////////////////////
   Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
-  armRelaxedHome << 0.631769, -2.82569, -1.31347, -1.29491, -0.774963, 1.6772;
+  armRelaxedHome << 0.631769, -2.82569, 4.96953, -1.29491, -0.774963, 1.6772;
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
   abovePlateConfig << 1.3, 2.9, 4.5, 0.6, -1.9, -2.2;
   Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
