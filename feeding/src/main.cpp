@@ -212,8 +212,8 @@ int main(int argc, char** argv)
       "package://ada_description/robots/ada_with_camera_forque.urdf"};
   dart::common::Uri adaSrdfUri{
       "package://ada_description/robots/ada_with_camera_forque.srdf"};
-//   std::string endEffectorName = "j2n6s200_forque_end_effector";
-  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
+  std::string endEffectorName = "j2n6s200_forque_end_effector";
+  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
 
 
 //   TODO(Daniel) remove this later
@@ -267,7 +267,7 @@ int main(int argc, char** argv)
   // Predefined configurations
   // ////////////////////////////////////////////////////
   Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
-  armRelaxedHome <<  -1.8, -3.38, 4.0, 0.6, -1.9, -2.2;
+  armRelaxedHome <<  0, 3.38, 4.0, 0.6, -1.9, -2.2;
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
   abovePlateConfig << 1.3, -3.38, 4.5, 0.6, -1.9, -2.2;
   Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
@@ -278,11 +278,6 @@ int main(int argc, char** argv)
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
   auto hand = robot.getHand();
 
-  std::cout << robotSkeleton->getPositions().transpose() << std::endl;
-  for(size_t i = 0; i < robotSkeleton->getNumJoints(); ++i)
-  {
-      std::cout << robotSkeleton->getJoint(i)->getName() << " " <<  robotSkeleton->getJoint(i)->getNumDofs() << std::endl;
-  }
   if (adaSim)
     armSkeleton->setPositions(armRelaxedHome);
 
@@ -366,7 +361,8 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("Goal configuration\t" << abovePlateConfig.transpose());
 
   if (!autoContinue)
-    waitForUser("Move arm to default pose");
+    if (!waitForUser("Move arm to default pose"))
+      return 0;
 
   auto startState
     = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
@@ -411,7 +407,8 @@ int main(int argc, char** argv)
   aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood};
 
   if (!autoContinue)
-    waitForUser("Move arm above food");
+    if (!waitForUser("Move arm above food"))
+      return 0;
   moveArmToTSR(
       aboveFoodTSR,
       robot,
@@ -423,7 +420,8 @@ int main(int argc, char** argv)
   try
   {
     if (!autoContinue)
-        waitForUser("Move arm into food");
+      if (!waitForUser("Move arm into food"))
+        return 0;
     auto intoFoodTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
@@ -448,7 +446,8 @@ int main(int argc, char** argv)
   hand->grab(foodItem);
 
   if (!autoContinue)
-    waitForUser("Move arm above of plate");
+    if (!waitForUser("Move arm above of plate"))
+      return 0;
   try
   {
     ROS_INFO("planning...");
@@ -489,7 +488,8 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("Goal configuration\t" << inFrontOfPersonConfig.transpose());
 
   if (!autoContinue)
-    waitForUser("Move arm to person");
+    if (!waitForUser("Move arm to person"))
+      return 0;
   try
   {
     /*moveArmToConfiguration(
@@ -555,7 +555,8 @@ int main(int argc, char** argv)
   }
 
   if (!autoContinue)
-      waitForUser("Move arm to plate");
+      if (!waitForUser("Move arm to plate"))
+        return 0;
 
   /*moveArmToConfiguration(
       abovePlateConfig,
