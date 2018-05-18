@@ -212,26 +212,26 @@ int main(int argc, char** argv)
       "package://ada_description/robots/ada_with_camera_forque.urdf"};
   dart::common::Uri adaSrdfUri{
       "package://ada_description/robots/ada_with_camera_forque.srdf"};
-  std::string endEffectorName = "j2n6s200_forque_end_effector";
-  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
-
-/* Gilwoos setup
-  TODO(Daniel) remove this later
-  dart::common::Uri adaUrdfUri{"package://ada_description/robots/ada.urdf"};
-  dart::common::Uri adaSrdfUri{"package://ada_description/robots/ada.srdf"};
+//   std::string endEffectorName = "j2n6s200_forque_end_effector";
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
-*/
+
+
+//   TODO(Daniel) remove this later
+//   dart::common::Uri adaUrdfUri{"package://ada_description/robots/adaold.urdf"};
+//   dart::common::Uri adaSrdfUri{"package://ada_description/robots/adaold.srdf"};
+//   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
+
 
   auto robotSkeleton = robot.getMetaSkeleton();
   auto robotSpace = robot.getStateSpace();
 
 
   Eigen::Isometry3d robotPose = createIsometry(0.88, 0.1, 0.05, 0, 0, 3.1415);
-  auto freeJoint = dynamic_cast<dart::dynamics::FreeJoint*>(robotSkeleton->getJoint(0));
-  if (!freeJoint)
-    throw std::runtime_error(
-        "Unable to cast Skeleton's root joint to FreeJoint.");
-  freeJoint->setTransform(robotPose);
+//   auto freeJoint = dynamic_cast<dart::dynamics::FreeJoint*>(robotSkeleton->getJoint(0));
+//   if (!freeJoint)
+//     throw std::runtime_error(
+//         "Unable to cast Skeleton's root joint to FreeJoint.");
+//   freeJoint->setTransform(robotPose);
 
   // Load Plate and FootItem in simulation
   ROS_INFO("Loading Plate and FoodItem.");
@@ -267,9 +267,9 @@ int main(int argc, char** argv)
   // Predefined configurations
   // ////////////////////////////////////////////////////
   Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
-  armRelaxedHome << 0.631769, -2.82569, 4.96953, -1.29491, -0.774963, 1.6772;
+  armRelaxedHome <<  -1.8, -3.38, 4.0, 0.6, -1.9, -2.2;
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
-  abovePlateConfig << 1.3, 2.9, 4.5, 0.6, -1.9, -2.2;
+  abovePlateConfig << 1.3, -3.38, 4.5, 0.6, -1.9, -2.2;
   Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
   inFrontOfPersonConfig << -3.1, 3.8, 1.0, -2.3, 2.0, 2.1;
 
@@ -278,22 +278,29 @@ int main(int argc, char** argv)
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
   auto hand = robot.getHand();
 
+  std::cout << robotSkeleton->getPositions().transpose() << std::endl;
+  for(size_t i = 0; i < robotSkeleton->getNumJoints(); ++i)
+  {
+      std::cout << robotSkeleton->getJoint(i)->getName() << " " <<  robotSkeleton->getJoint(i)->getNumDofs() << std::endl;
+  }
   if (adaSim)
     armSkeleton->setPositions(armRelaxedHome);
 
+  std::cout << armSkeleton->getPositions().transpose() << std::endl;
   // Predefined poses
-  Eigen::Isometry3d platePose = createIsometry(0.4, 0.25, 0.08);
+  Eigen::Isometry3d platePose = robotPose.inverse() * createIsometry(0.4, 0.25, 0.08);
   Eigen::Isometry3d foodPose = platePose;
   // origin is corner of table top
-  Eigen::Isometry3d tablePose = createIsometry(0.76, 0.38, -0.735);
-  Eigen::Isometry3d personPose = createIsometry(0.4, -0.2, 0.502);
-  Eigen::Isometry3d tomPose = createIsometry(0.4, -0.2, 0.502, 0, 0, M_PI);
+  Eigen::Isometry3d tablePose = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
+  Eigen::Isometry3d personPose = robotPose.inverse() * createIsometry(0.4, -0.2, 0.502);
+  Eigen::Isometry3d tomPose =  robotPose.inverse() * createIsometry(0.4, -0.2, 0.502, 0, 0, M_PI);
+  Eigen::Isometry3d workspacePose = robotPose.inverse() * createIsometry(0, 0, 0);
 
   auto plate = loadSkeletonFromURDF(resourceRetriever, plateURDFUri, platePose);
   robot.getWorld()->addSkeleton(plate);
   auto table = loadSkeletonFromURDF(resourceRetriever, tableURDFUri, tablePose);
   robot.getWorld()->addSkeleton(table);
-  auto workspace = loadSkeletonFromURDF(resourceRetriever, workspaceURDFUri);
+  auto workspace = loadSkeletonFromURDF(resourceRetriever, workspaceURDFUri, workspacePose);
   robot.getWorld()->addSkeleton(workspace);
   auto foodItem
       = loadSkeletonFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
@@ -313,8 +320,8 @@ int main(int argc, char** argv)
       = collisionDetector->createCollisionGroup(table.get(), tom.get(), workspace.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(
       armSpace, armSkeleton, collisionDetector);
-  collisionFreeConstraint->addPairwiseCheck(
-      armCollisionGroup, envCollisionGroup);
+   collisionFreeConstraint->addPairwiseCheck(
+       armCollisionGroup, envCollisionGroup);
 
   if (!adaSim)
   {
@@ -324,7 +331,7 @@ int main(int argc, char** argv)
 
   auto currentPose = getCurrentConfig(robot);
 
-//   TODO(Daniel) why is the collision check not satisfied?
+// //   TODO(Daniel) why is the collision check not satisfied?
 //   auto startState
 //     = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
 
@@ -361,13 +368,22 @@ int main(int argc, char** argv)
   if (!autoContinue)
     waitForUser("Move arm to default pose");
 
-  /*moveArmToConfiguration(
-      abovePlateConfig,
-      robot,
-      armSpace,
-      armSkeleton,
-      hand,
-      collisionFreeConstraint);*/
+  auto startState
+    = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
+
+  aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
+  if (!collisionFreeConstraint->isSatisfied(startState, &collisionCheckOutcome))
+  {
+    throw std::runtime_error("Robot is in collison: " + collisionCheckOutcome.toString());
+  }
+
+//   moveArmToConfiguration(
+//       abovePlateConfig,
+//       robot,
+//       armSpace,
+//       armSkeleton,
+//       hand,
+//       collisionFreeConstraint);
   moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
       collisionFreeConstraint);
 
@@ -499,7 +515,7 @@ int main(int argc, char** argv)
         armSkeleton,
         hand->getEndEffectorBodyNode(),
         collisionFreeConstraint,
-        Eigen::Vector3d(0, -1, 0),
+        Eigen::Vector3d(0, 1, 0),
         distanceToPerson,
         planningTimeout,
         positionTolerance,
@@ -524,7 +540,7 @@ int main(int argc, char** argv)
         armSkeleton,
         hand->getEndEffectorBodyNode(),
         collisionFreeConstraint,
-        Eigen::Vector3d(0, 1, 0),
+        Eigen::Vector3d(0, -1, 0),
         distanceToPerson / 2,
         planningTimeout,
         positionTolerance,
