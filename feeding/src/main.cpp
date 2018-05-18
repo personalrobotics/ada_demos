@@ -212,8 +212,8 @@ int main(int argc, char** argv)
       "package://ada_description/robots/ada_with_camera_forque.urdf"};
   dart::common::Uri adaSrdfUri{
       "package://ada_description/robots/ada_with_camera_forque.srdf"};
-//   std::string endEffectorName = "j2n6s200_forque_end_effector";
-  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
+   std::string endEffectorName = "j2n6s200_forque_end_effector";
+  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
 
 
 //   TODO(Daniel) remove this later
@@ -267,7 +267,7 @@ int main(int argc, char** argv)
   // Predefined configurations
   // ////////////////////////////////////////////////////
   Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
-  armRelaxedHome <<  -1.8, -3.38, 4.0, 0.6, -1.9, -2.2;
+  armRelaxedHome <<  0, 3.38, 4.0, 0.6, -1.9, -2.2;
   Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
   abovePlateConfig << 1.3, -3.38, 4.5, 0.6, -1.9, -2.2;
   Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
@@ -277,12 +277,7 @@ int main(int argc, char** argv)
   auto armSkeleton = arm->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
   auto hand = robot.getHand();
-
-  std::cout << robotSkeleton->getPositions().transpose() << std::endl;
-  for(size_t i = 0; i < robotSkeleton->getNumJoints(); ++i)
-  {
-      std::cout << robotSkeleton->getJoint(i)->getName() << " " <<  robotSkeleton->getJoint(i)->getNumDofs() << std::endl;
-  }
+  
   if (adaSim)
     armSkeleton->setPositions(armRelaxedHome);
 
@@ -366,7 +361,8 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("Goal configuration\t" << abovePlateConfig.transpose());
 
   if (!autoContinue)
-    waitForUser("Move arm to default pose");
+    if (!waitForUser("Move arm to default pose"))
+      return 0;
 
   auto startState
     = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
@@ -384,11 +380,11 @@ int main(int argc, char** argv)
 //       armSkeleton,
 //       hand,
 //       collisionFreeConstraint);
-  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
-      collisionFreeConstraint);
+//   moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
+//       collisionFreeConstraint);
 
   // ***** GET FOOD TSR *****
-  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  //std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   double heightAboveFood = 0.1;
   double horizontal_tolerance_near_food = 0.002;
@@ -410,8 +406,10 @@ int main(int argc, char** argv)
   aikido::constraint::dart::TSR aboveFoodTSR(foodTSR);
   aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood};
 
-  if (!autoContinue)
-    waitForUser("Move arm above food");
+//   if (!autoContinue)
+//     if (!waitForUser("Move arm above food"))
+//       return 0;
+
   moveArmToTSR(
       aboveFoodTSR,
       robot,
@@ -422,21 +420,22 @@ int main(int argc, char** argv)
 
   try
   {
-    if (!autoContinue)
-        waitForUser("Move arm into food");
-    auto intoFoodTrajectory = robot.planToEndEffectorOffset(
-        armSpace,
-        armSkeleton,
-        hand->getEndEffectorBodyNode(),
-        collisionFreeConstraint,
-        Eigen::Vector3d(0, 0, -1),
-        heightAboveFood,
-        planningTimeout,
-        positionTolerance,
-        angularTolerance);
-    ROS_INFO("executing...");
-    moveArmOnTrajectory(
-        intoFoodTrajectory, robot, armSpace, armSkeleton, false);
+    // if (!autoContinue)
+    //     if (!waitForUser("Move arm into food"))
+    //   return 0;
+    // auto intoFoodTrajectory = robot.planToEndEffectorOffset(
+    //     armSpace,
+    //     armSkeleton,
+    //     hand->getEndEffectorBodyNode(),
+    //     collisionFreeConstraint,
+    //     Eigen::Vector3d(0, 0, -1),
+    //     heightAboveFood,
+    //     planningTimeout,
+    //     positionTolerance,
+    //     angularTolerance);
+    // ROS_INFO("executing...");
+    // // moveArmOnTrajectory(
+    //     intoFoodTrajectory, robot, armSpace, armSkeleton, false);
     ROS_INFO("done");
   }
   catch (int e)
@@ -447,24 +446,25 @@ int main(int argc, char** argv)
 
   hand->grab(foodItem);
 
-  if (!autoContinue)
-    waitForUser("Move arm above of plate");
+//   if (!autoContinue)
+//     if (!waitForUser("Move arm above of plate"))
+//       return 0;
   try
   {
-    ROS_INFO("planning...");
-    auto abovePlateTrajectory = robot.planToEndEffectorOffset(
-        armSpace,
-        armSkeleton,
-        hand->getEndEffectorBodyNode(),
-        collisionFreeConstraint,
-        Eigen::Vector3d(0, 0, 1),
-        heightAbovePlate,
-        planningTimeout,
-        positionTolerance,
-        angularTolerance);
-    ROS_INFO("executing...");
-    moveArmOnTrajectory(
-        abovePlateTrajectory, robot, armSpace, armSkeleton, false);
+    // ROS_INFO("planning...");
+    // auto abovePlateTrajectory = robot.planToEndEffectorOffset(
+    //     armSpace,
+    //     armSkeleton,
+    //     hand->getEndEffectorBodyNode(),
+    //     collisionFreeConstraint,
+    //     Eigen::Vector3d(0, 0, 1),
+    //     heightAbovePlate,
+    //     planningTimeout,
+    //     positionTolerance,
+    //     angularTolerance);
+    // ROS_INFO("executing...");
+    // moveArmOnTrajectory(
+    //     abovePlateTrajectory, robot, armSpace, armSkeleton, false);
   }
   catch (int e)
   {
@@ -489,18 +489,34 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("Goal configuration\t" << inFrontOfPersonConfig.transpose());
 
   if (!autoContinue)
-    waitForUser("Move arm to person");
+    if (!waitForUser("Move arm to person"))
+      return 0;
   try
   {
-    /*moveArmToConfiguration(
-        inFrontOfPersonConfig,
+
+
+  Eigen::VectorXd problematicConfigAbovePlate(Eigen::VectorXd::Ones(6));
+  problematicConfigAbovePlate << -2.69004, 3.70609, 1.91416, -2.6632, -1.61006, 2.79533;
+  Eigen::VectorXd problematicConfigInFrontOfPerson(Eigen::VectorXd::Ones(6));
+  problematicConfigInFrontOfPerson << -2.38442, 4.84593, 4.14001, 2.8848, 2.76311, 0.920899;
+
+  moveArmToConfiguration(
+      problematicConfigAbovePlate,
+      robot,
+      armSpace,
+      armSkeleton,
+      hand,
+      collisionFreeConstraint);
+
+    moveArmToConfiguration(
+        problematicConfigInFrontOfPerson,
         robot,
         armSpace,
         armSkeleton,
         hand,
-        collisionFreeConstraint);*/
-     moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand,
-       collisionFreeConstraint);
+        collisionFreeConstraint);
+    //  moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand,
+    //    collisionFreeConstraint);
   }
   catch (int e)
   {
@@ -508,54 +524,59 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  try
-  {
-    auto toPersonTrajectory = robot.planToEndEffectorOffset(
-        armSpace,
-        armSkeleton,
-        hand->getEndEffectorBodyNode(),
-        collisionFreeConstraint,
-        Eigen::Vector3d(0, 1, 0),
-        distanceToPerson,
-        planningTimeout,
-        positionTolerance,
-        angularTolerance);
-    moveArmOnTrajectory(
-        toPersonTrajectory, robot, armSpace, armSkeleton, false);
-  }
-  catch (int e)
-  {
-    ROS_INFO("caught expection");
-    return 1;
+  while (waitForUser("Again?")) {
+
+    try
+    {
+        auto toPersonTrajectory = robot.planToEndEffectorOffset(
+            armSpace,
+            armSkeleton,
+            hand->getEndEffectorBodyNode(),
+            collisionFreeConstraint,
+            Eigen::Vector3d(0, 1, 0),
+            distanceToPerson,
+            planningTimeout,
+            positionTolerance,
+            angularTolerance);
+        moveArmOnTrajectory(
+            toPersonTrajectory, robot, armSpace, armSkeleton, false);
+    }
+    catch (int e)
+    {
+        ROS_INFO("caught expection");
+        return 1;
+    }
+
+    //   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    //   hand->ungrab();
+    //   robot.getWorld()->removeSkeleton(foodItem);
+
+    try
+    {
+        auto fromPersonTrajectory = robot.planToEndEffectorOffset(
+            armSpace,
+            armSkeleton,
+            hand->getEndEffectorBodyNode(),
+            collisionFreeConstraint,
+            Eigen::Vector3d(0, -1, 0),
+            distanceToPerson,
+            planningTimeout,
+            positionTolerance,
+            angularTolerance);
+        moveArmOnTrajectory(
+            fromPersonTrajectory, robot, armSpace, armSkeleton, false);
+    }
+    catch (int e)
+    {
+        ROS_INFO("caught expection");
+        return 1;
+    }
+
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-  hand->ungrab();
-  robot.getWorld()->removeSkeleton(foodItem);
-
-  try
-  {
-    auto toPersonTrajectory = robot.planToEndEffectorOffset(
-        armSpace,
-        armSkeleton,
-        hand->getEndEffectorBodyNode(),
-        collisionFreeConstraint,
-        Eigen::Vector3d(0, -1, 0),
-        distanceToPerson / 2,
-        planningTimeout,
-        positionTolerance,
-        angularTolerance);
-    moveArmOnTrajectory(
-        toPersonTrajectory, robot, armSpace, armSkeleton, false);
-  }
-  catch (int e)
-  {
-    ROS_INFO("caught expection");
-    return 1;
-  }
-
-  if (!autoContinue)
-      waitForUser("Move arm to plate");
+//   if (!autoContinue)
+//       if (!waitForUser("Move arm to plate"))
+//         return 0;
 
   /*moveArmToConfiguration(
       abovePlateConfig,
@@ -564,8 +585,8 @@ int main(int argc, char** argv)
       armSkeleton,
       hand,
       collisionFreeConstraint);*/
-  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
-    collisionFreeConstraint);
+//   moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
+//     collisionFreeConstraint);
 
   waitForUser("Demo finished.");
 
