@@ -43,7 +43,7 @@ bool waitForUser(const std::string& msg)
   return input != 'n';
 }
 
-Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
+Eigen::Vector6d getCurrentConfig(ada::Ada& robot)
 {
   using namespace Eigen;
   IOFormat CommaInitFmt(
@@ -96,7 +96,7 @@ void moveArmOnTrajectory(
 }
 
 void moveArmToConfiguration(
-    const Eigen::VectorXd& configuration,
+    const Eigen::Vector6d& configuration,
     ada::Ada& robot,
     const MetaSkeletonStateSpacePtr& armSpace,
     const MetaSkeletonPtr& armSkeleton,
@@ -215,23 +215,11 @@ int main(int argc, char** argv)
   std::string endEffectorName = "j2n6s200_forque_end_effector";
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
 
-
-//   TODO(Daniel) remove this later
-//   dart::common::Uri adaUrdfUri{"package://ada_description/robots/adaold.urdf"};
-//   dart::common::Uri adaSrdfUri{"package://ada_description/robots/adaold.srdf"};
-//   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
-
-
   auto robotSkeleton = robot.getMetaSkeleton();
   auto robotSpace = robot.getStateSpace();
 
 
   Eigen::Isometry3d robotPose = createIsometry(0.7, 0.1, 0.05, 0, 0, 3.1415);
-//   auto freeJoint = dynamic_cast<dart::dynamics::FreeJoint*>(robotSkeleton->getJoint(0));
-//   if (!freeJoint)
-//     throw std::runtime_error(
-//         "Unable to cast Skeleton's root joint to FreeJoint.");
-//   freeJoint->setTransform(robotPose);
 
   // Load Plate and FootItem in simulation
   ROS_INFO("Loading Plate and FoodItem.");
@@ -266,11 +254,11 @@ int main(int argc, char** argv)
 
   // Predefined configurations
   // ////////////////////////////////////////////////////
-  Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
+  Eigen::Vector6d armRelaxedHome(Eigen::Vector6d::Ones());
   armRelaxedHome <<  0, 3.38, 4.0, 0.6, -1.9, -2.2;
-  Eigen::VectorXd abovePlateConfig(Eigen::VectorXd::Ones(6));
+  Eigen::Vector6d abovePlateConfig(Eigen::Vector6d::Ones());
   abovePlateConfig << 1.3, -3.38, 4.5, 0.6, -1.9, -2.2;
-  Eigen::VectorXd inFrontOfPersonConfig(Eigen::VectorXd::Ones(6));
+  Eigen::Vector6d inFrontOfPersonConfig(Eigen::Vector6d::Ones());
   inFrontOfPersonConfig << -3.1, 3.8, 1.0, -2.3, 2.0, 2.1;
 
   auto arm = robot.getArm();
@@ -326,7 +314,7 @@ int main(int argc, char** argv)
 
   auto currentPose = getCurrentConfig(robot);
 
-// //   TODO(Daniel) why is the collision check not satisfied?
+// //   TODO(Daniel) why was the collision check not satisfied? Is it ok now?
 //   auto startState
 //     = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
 
