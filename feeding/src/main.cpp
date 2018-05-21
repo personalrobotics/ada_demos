@@ -226,7 +226,7 @@ int main(int argc, char** argv)
   auto robotSpace = robot.getStateSpace();
 
 
-  Eigen::Isometry3d robotPose = createIsometry(0.88, 0.1, 0.05, 0, 0, 3.1415);
+  Eigen::Isometry3d robotPose = createIsometry(0.7, 0.1, 0.05, 0, 0, 3.1415);
 //   auto freeJoint = dynamic_cast<dart::dynamics::FreeJoint*>(robotSkeleton->getJoint(0));
 //   if (!freeJoint)
 //     throw std::runtime_error(
