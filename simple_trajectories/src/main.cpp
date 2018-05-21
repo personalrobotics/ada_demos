@@ -89,8 +89,8 @@ int main(int argc, char** argv)
 
   // Default options for flags
   po::options_description po_desc("simple_trajectories options");
-  po_desc.add_options()("help", "Produce help message")  
-      ("herbreal,h", po::bool_switch(&adaReal), "Run ADA in real");
+  po_desc.add_options()("help", "Produce help message")(
+      "herbreal,h", po::bool_switch(&adaReal), "Run ADA in real");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 
   bool adaSim = !adaReal;
   std::cout << "Simulation Mode: " << adaSim << std::endl;
-  
+
   ROS_INFO("Starting ROS node.");
   ros::init(argc, argv, "simple_trajectories");
   ros::NodeHandle nh("~");

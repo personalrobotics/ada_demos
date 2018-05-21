@@ -182,9 +182,9 @@ int main(int argc, char** argv)
 
   // Default options for flags
   po::options_description po_desc("simple_trajectories options");
-  po_desc.add_options()("help,h", "Produce help message")  
-      ("adareal,a", po::bool_switch(&adaReal), "Run ADA in real")
-      ("continueAuto,c", po::bool_switch(&autoContinue));
+  po_desc.add_options()("help,h", "Produce help message")(
+      "adareal,a", po::bool_switch(&adaReal), "Run ADA in real")(
+      "continueAuto,c", po::bool_switch(&autoContinue));
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -218,7 +218,6 @@ int main(int argc, char** argv)
   auto robotSkeleton = robot.getMetaSkeleton();
   auto robotSpace = robot.getStateSpace();
 
-
   Eigen::Isometry3d robotPose = createIsometry(0.7, 0.1, 0.05, 0, 0, 3.1415);
 
   // Load Plate and FootItem in simulation
@@ -229,7 +228,8 @@ int main(int argc, char** argv)
   const std::string foodItemURDFUri(
       "package://pr_ordata/data/objects/food_item.urdf");
   const std::string tomURDFUri("package://pr_ordata/data/objects/tom.urdf");
-  const std::string workspaceURDFUri("package://pr_ordata/data/furniture/workspace_feeding_demo.urdf");
+  const std::string workspaceURDFUri(
+      "package://pr_ordata/data/furniture/workspace_feeding_demo.urdf");
 
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
@@ -255,7 +255,7 @@ int main(int argc, char** argv)
   // Predefined configurations
   // ////////////////////////////////////////////////////
   Eigen::Vector6d armRelaxedHome(Eigen::Vector6d::Ones());
-  armRelaxedHome <<  0, 3.38, 4.0, 0.6, -1.9, -2.2;
+  armRelaxedHome << 0, 3.38, 4.0, 0.6, -1.9, -2.2;
   Eigen::Vector6d abovePlateConfig(Eigen::Vector6d::Ones());
   abovePlateConfig << 1.3, -3.38, 4.5, 0.6, -1.9, -2.2;
   Eigen::Vector6d inFrontOfPersonConfig(Eigen::Vector6d::Ones());
@@ -271,19 +271,25 @@ int main(int argc, char** argv)
 
   std::cout << armSkeleton->getPositions().transpose() << std::endl;
   // Predefined poses
-  Eigen::Isometry3d platePose = robotPose.inverse() * createIsometry(0.4, 0.25, 0.08);
+  Eigen::Isometry3d platePose
+      = robotPose.inverse() * createIsometry(0.4, 0.25, 0.08);
   Eigen::Isometry3d foodPose = platePose;
   // origin is corner of table top
-  Eigen::Isometry3d tablePose = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
-  Eigen::Isometry3d personPose = robotPose.inverse() * createIsometry(0.4, -0.2, 0.502);
-  Eigen::Isometry3d tomPose =  robotPose.inverse() * createIsometry(0.4, -0.2, 0.502, 0, 0, M_PI);
-  Eigen::Isometry3d workspacePose = robotPose.inverse() * createIsometry(0, 0, 0);
+  Eigen::Isometry3d tablePose
+      = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
+  Eigen::Isometry3d personPose
+      = robotPose.inverse() * createIsometry(0.4, -0.2, 0.502);
+  Eigen::Isometry3d tomPose
+      = robotPose.inverse() * createIsometry(0.4, -0.2, 0.502, 0, 0, M_PI);
+  Eigen::Isometry3d workspacePose
+      = robotPose.inverse() * createIsometry(0, 0, 0);
 
   auto plate = loadSkeletonFromURDF(resourceRetriever, plateURDFUri, platePose);
   robot.getWorld()->addSkeleton(plate);
   auto table = loadSkeletonFromURDF(resourceRetriever, tableURDFUri, tablePose);
   robot.getWorld()->addSkeleton(table);
-  auto workspace = loadSkeletonFromURDF(resourceRetriever, workspaceURDFUri, workspacePose);
+  auto workspace = loadSkeletonFromURDF(
+      resourceRetriever, workspaceURDFUri, workspacePose);
   robot.getWorld()->addSkeleton(workspace);
   auto foodItem
       = loadSkeletonFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
@@ -300,11 +306,12 @@ int main(int argc, char** argv)
       = collisionDetector->createCollisionGroup(
           armSkeleton.get(), hand->getEndEffectorBodyNode());
   std::shared_ptr<CollisionGroup> envCollisionGroup
-      = collisionDetector->createCollisionGroup(table.get(), tom.get(), workspace.get());
+      = collisionDetector->createCollisionGroup(
+          table.get(), tom.get(), workspace.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(
       armSpace, armSkeleton, collisionDetector);
-   collisionFreeConstraint->addPairwiseCheck(
-       armCollisionGroup, envCollisionGroup);
+  collisionFreeConstraint->addPairwiseCheck(
+      armCollisionGroup, envCollisionGroup);
 
   if (!adaSim)
   {
@@ -314,15 +321,17 @@ int main(int argc, char** argv)
 
   auto currentPose = getCurrentConfig(robot);
 
-// //   TODO(Daniel) why was the collision check not satisfied? Is it ok now?
-//   auto startState
-//     = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
+  // //   TODO(Daniel) why was the collision check not satisfied? Is it ok now?
+  //   auto startState
+  //     = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
 
-//   aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
-//   if (!collisionFreeConstraint->isSatisfied(startState, &collisionCheckOutcome))
-//   {
-//     throw std::runtime_error("Robot is in collison: " + collisionCheckOutcome.toString());
-//   }
+  //   aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
+  //   if (!collisionFreeConstraint->isSatisfied(startState,
+  //   &collisionCheckOutcome))
+  //   {
+  //     throw std::runtime_error("Robot is in collison: " +
+  //     collisionCheckOutcome.toString());
+  //   }
 
   if (!waitForUser("Startup step 2 complete."))
   {
@@ -353,22 +362,28 @@ int main(int argc, char** argv)
       return 0;
 
   auto startState
-    = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
+      = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
 
   aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
   if (!collisionFreeConstraint->isSatisfied(startState, &collisionCheckOutcome))
   {
-    throw std::runtime_error("Robot is in collison: " + collisionCheckOutcome.toString());
+    throw std::runtime_error(
+        "Robot is in collison: " + collisionCheckOutcome.toString());
   }
 
-//   moveArmToConfiguration(
-//       abovePlateConfig,
-//       robot,
-//       armSpace,
-//       armSkeleton,
-//       hand,
-//       collisionFreeConstraint);
-  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
+  //   moveArmToConfiguration(
+  //       abovePlateConfig,
+  //       robot,
+  //       armSpace,
+  //       armSkeleton,
+  //       hand,
+  //       collisionFreeConstraint);
+  moveArmToTSR(
+      abovePlateTSR,
+      robot,
+      armSpace,
+      armSkeleton,
+      hand,
       collisionFreeConstraint);
 
   // ***** GET FOOD TSR *****
@@ -487,8 +502,8 @@ int main(int argc, char** argv)
         armSkeleton,
         hand,
         collisionFreeConstraint);*/
-     moveArmToTSR(personTSR, robot, armSpace, armSkeleton, hand,
-       collisionFreeConstraint);
+    moveArmToTSR(
+        personTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
   }
   catch (int e)
   {
@@ -543,8 +558,8 @@ int main(int argc, char** argv)
   }
 
   if (!autoContinue)
-      if (!waitForUser("Move arm to plate"))
-        return 0;
+    if (!waitForUser("Move arm to plate"))
+      return 0;
 
   /*moveArmToConfiguration(
       abovePlateConfig,
@@ -553,8 +568,13 @@ int main(int argc, char** argv)
       armSkeleton,
       hand,
       collisionFreeConstraint);*/
-  moveArmToTSR(abovePlateTSR, robot, armSpace, armSkeleton, hand,
-    collisionFreeConstraint);
+  moveArmToTSR(
+      abovePlateTSR,
+      robot,
+      armSpace,
+      armSkeleton,
+      hand,
+      collisionFreeConstraint);
 
   waitForUser("Demo finished.");
 
