@@ -13,6 +13,8 @@
 #include <dart/utils/urdf/DartLoader.hpp>
 #include <pr_tsr/plate.hpp>
 #include <libada/Ada.hpp>
+#include <aikido/perception/ObjectDatabase.hpp>
+#include <aikido/perception/PoseEstimatorModule.hpp>
 
 namespace po = boost::program_options;
 
@@ -31,6 +33,7 @@ static const std::string baseFrameName("map");
 
 static const int maxNumberTrials{1};
 static const double planningTimeout{5.};
+static const double perceptionTimeout{5.};
 static const double positionTolerance = 0.005;
 static const double angularTolerance = 0.04;
 bool adaSim = true;
@@ -174,6 +177,30 @@ Eigen::MatrixXd createBwMatrixForTSR(
   bw(5, 1) = yawMax;
   return bw;
 }
+
+void perceptFood(ros::NodeHandle nh,
+        std::string detectorTopicName,
+        const std::shared_ptr<aikido::io::CatkinResourceRetriever>
+        resourceRetriever,
+        ada::Ada& robot) {
+
+  std::string detectorDataURI = "test";
+  std::string referenceFrameName = "j2n6s200_link_base";
+
+  aikido::robot::util::getBodyNodeOrThrow(*robot.getMetaSkeleton(), "j2n6s200_link_base");
+
+  return;
+  aikido::perception::PoseEstimatorModule objDetector(
+    nh,
+    detectorTopicName,
+    std::make_shared<aikido::perception::ObjectDatabase>(resourceRetriever, detectorDataURI),
+    resourceRetriever,
+    referenceFrameName,
+    aikido::robot::util::getBodyNodeOrThrow(*robot.getMetaSkeleton(), "j2n6s200_link_base"));
+
+  objDetector.detectObjects(robot.getWorld(), ros::Duration(perceptionTimeout));
+}
+
 
 int main(int argc, char** argv)
 {
@@ -403,6 +430,17 @@ int main(int argc, char** argv)
       -M_PI,
       M_PI);
   foodTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
+
+  // ***** GET FOOD TSR WITH PERCEPTION *****
+
+  std::string detectorTopicName = "/foodDetectorTopic";
+  perceptFood(nh, detectorTopicName, resourceRetriever, robot);
+
+  std::string perceptedFoodName = "perceptedFood";
+  auto perceptedFood = robot.getWorld()->getSkeleton(perceptedFoodName);
+  if (perceptedFood != nullptr) {
+    auto perceptedFoodPose = perceptedFood->getJoint(0)->getChildBodyNode()->getTransform();
+  }
 
   // ***** MOVE ABOVE FOOD, INTO FOOD AND ABOVE PLATE *****
 
