@@ -57,7 +57,7 @@ Eigen::Vector6d getCurrentConfig(ada::Ada& robot)
   return defaultPose;
 }
 
-void moveArmOnTrajectory(
+bool moveArmOnTrajectory(
     TrajectoryPtr trajectory,
     ada::Ada& robot,
     const MetaSkeletonStateSpacePtr& armSpace,
@@ -92,10 +92,16 @@ void moveArmOnTrajectory(
 
   ROS_INFO("executing...");
   auto future = robot.executeTrajectory(timedTrajectory);
-  future.wait();
+  try {
+    future.get();
+  } catch(const std::exception& e) {
+      ROS_INFO_STREAM("trajectory execution failed: " << e.what());
+      return false;
+  }
   ROS_INFO("movement done");
 
   getCurrentConfig(robot);
+  return true;
 }
 
 void moveArmToConfiguration(
