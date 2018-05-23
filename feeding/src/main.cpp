@@ -2,21 +2,21 @@
 #include <iostream>
 #include <thread>
 #include <Eigen/Dense>
+#include <actionlib/client/simple_action_client.h>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/constraint/dart/CollisionFree.hpp>
 #include <aikido/io/util.hpp>
+#include <aikido/perception/ObjectDatabase.hpp>
+#include <aikido/perception/PoseEstimatorModule.hpp>
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/DartLoader.hpp>
-#include <pr_tsr/plate.hpp>
 #include <pr_control_msgs/SetForceTorqueThresholdAction.h>
+#include <pr_tsr/plate.hpp>
 #include <libada/Ada.hpp>
-#include <aikido/perception/ObjectDatabase.hpp>
-#include <aikido/perception/PoseEstimatorModule.hpp>
-#include <actionlib/client/simple_action_client.h>
 
 namespace po = boost::program_options;
 
@@ -26,7 +26,8 @@ using dart::collision::CollisionDetectorPtr;
 using dart::collision::CollisionGroup;
 
 using SetFTThresholdAction = pr_control_msgs::SetForceTorqueThresholdAction;
-using FTThresholdActionClient = actionlib::SimpleActionClient<SetFTThresholdAction>;
+using FTThresholdActionClient
+    = actionlib::SimpleActionClient<SetFTThresholdAction>;
 
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
@@ -100,18 +101,21 @@ bool moveArmOnTrajectory(
   }
 
   auto future = robot.executeTrajectory(timedTrajectory);
-  try {
+  try
+  {
     future.get();
-  } catch(const std::exception& e) {
-      ROS_INFO_STREAM("trajectory execution failed: " << e.what());
-      return false;
+  }
+  catch (const std::exception& e)
+  {
+    ROS_INFO_STREAM("trajectory execution failed: " << e.what());
+    return false;
   }
 
   getCurrentConfig(robot);
   return true;
 }
 
-void moveArmToConfiguration(
+bool moveArmToConfiguration(
     const Eigen::Vector6d& configuration,
     ada::Ada& robot,
     const MetaSkeletonStateSpacePtr& armSpace,
@@ -128,10 +132,10 @@ void moveArmToConfiguration(
       collisionFreeConstraint,
       planningTimeout);
 
-  moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
+  return moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
 }
 
-void moveArmToTSR(
+bool moveArmToTSR(
     aikido::constraint::dart::TSR& tsr,
     ada::Ada& robot,
     const MetaSkeletonStateSpacePtr& armSpace,
@@ -151,7 +155,7 @@ void moveArmToTSR(
       maxNumberTrials,
       planningTimeout);
 
-  moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
+  return moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
 }
 
 Eigen::Isometry3d createIsometry(
@@ -191,55 +195,72 @@ Eigen::MatrixXd createBwMatrixForTSR(
   return bw;
 }
 
-bool setFTThreshold(std::unique_ptr<FTThresholdActionClient>& actionClient, double forceThreshold, double torqueThreshold, double timeout = 5) {
-  if (!actionClient) {return false;}
+bool setFTThreshold(
+    std::unique_ptr<FTThresholdActionClient>& actionClient,
+    double forceThreshold,
+    double torqueThreshold,
+    double timeout = 5)
+{
+  if (!actionClient)
+  {
+    return false;
+  }
   pr_control_msgs::SetForceTorqueThresholdGoal goal;
   goal.force_threshold = forceThreshold;
   goal.torque_threshold = torqueThreshold;
   actionClient->sendGoal(goal);
-  bool finished_before_timeout = actionClient->waitForResult(ros::Duration(5.0));
+  bool finished_before_timeout
+      = actionClient->waitForResult(ros::Duration(5.0));
 
   if (finished_before_timeout)
   {
     actionlib::SimpleClientGoalState state = actionClient->getState();
-    if (state != actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED) {
-        ROS_INFO("F/T Thresholds could not be set: %s",state.toString().c_str());
-        return false;
-    } else {
-        ROS_INFO("F/T Thresholds set successfully");
-        return true;
+    if (state != actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED)
+    {
+      ROS_INFO("F/T Thresholds could not be set: %s", state.toString().c_str());
+      return false;
+    }
+    else
+    {
+      ROS_INFO("F/T Thresholds set successfully");
+      return true;
     }
     return false;
   }
-  else {
+  else
+  {
     ROS_FATAL("F/T Thresholds could not be set: Timeout");
     return false;
   }
 }
 
-void perceiveFood(ros::NodeHandle nh,
-        std::string detectorTopicName,
-        const std::shared_ptr<aikido::io::CatkinResourceRetriever>
+void perceiveFood(
+    ros::NodeHandle nh,
+    std::string detectorTopicName,
+    const std::shared_ptr<aikido::io::CatkinResourceRetriever>
         resourceRetriever,
-        ada::Ada& robot) {
+    ada::Ada& robot)
+{
 
   std::string detectorDataURI = "test";
   std::string referenceFrameName = "j2n6s200_link_base";
 
-  aikido::robot::util::getBodyNodeOrThrow(*robot.getMetaSkeleton(), "j2n6s200_link_base");
+  aikido::robot::util::getBodyNodeOrThrow(
+      *robot.getMetaSkeleton(), "j2n6s200_link_base");
 
   return;
   aikido::perception::PoseEstimatorModule objDetector(
-    nh,
-    detectorTopicName,
-    std::make_shared<aikido::perception::ObjectDatabase>(resourceRetriever, detectorDataURI),
-    resourceRetriever,
-    referenceFrameName,
-    aikido::robot::util::getBodyNodeOrThrow(*robot.getMetaSkeleton(), "j2n6s200_link_base"));
+      nh,
+      detectorTopicName,
+      std::make_shared<aikido::perception::ObjectDatabase>(
+          resourceRetriever, detectorDataURI),
+      resourceRetriever,
+      referenceFrameName,
+      aikido::robot::util::getBodyNodeOrThrow(
+          *robot.getMetaSkeleton(), "j2n6s200_link_base"));
 
   objDetector.detectObjects(robot.getWorld(), ros::Duration(perceptionTimeout));
 }
-
 
 int main(int argc, char** argv)
 {
@@ -320,14 +341,17 @@ int main(int argc, char** argv)
 
   // Start F/T threshold action client
   std::unique_ptr<FTThresholdActionClient> ftThresholdActionClient;
-  if (adaReal) {
-    ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(new FTThresholdActionClient("/move_until_touch_topic_controller/set_forcetorque_threshold/"));
+  if (adaReal)
+  {
+    ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(
+        new FTThresholdActionClient(
+            "/move_until_touch_topic_controller/set_forcetorque_threshold/"));
     ROS_INFO("Waiting for FT Threshold Action Server to start...");
     ftThresholdActionClient->waitForServer();
     ROS_INFO("FT Threshold Action Server started.");
   }
-  setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
-
+  setFTThreshold(
+      ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
 
   // Predefined configurations
   // ////////////////////////////////////////////////////
@@ -394,7 +418,10 @@ int main(int argc, char** argv)
   {
     std::cout << "Start trajectory executor" << std::endl;
     robot.startTrajectoryExecutor();
-    setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
+    setFTThreshold(
+        ftThresholdActionClient,
+        standardForceThreshold,
+        standardTorqueThreshold);
   }
 
   auto currentPose = getCurrentConfig(robot);
@@ -456,13 +483,18 @@ int main(int argc, char** argv)
   //       armSkeleton,
   //       hand,
   //       collisionFreeConstraint);
-  moveArmToTSR(
+  bool successMoveAbovePlate1 = moveArmToTSR(
       abovePlateTSR,
       robot,
       armSpace,
       armSkeleton,
       hand,
       collisionFreeConstraint);
+  if (!successMoveAbovePlate1)
+  {
+    ROS_WARN("Trajectory execution failed. Exiting...");
+    exit(0);
+  }
 
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -489,8 +521,10 @@ int main(int argc, char** argv)
 
   std::string perceptedFoodName = "perceptedFood";
   auto perceptedFood = robot.getWorld()->getSkeleton(perceptedFoodName);
-  if (perceptedFood != nullptr) {
-    auto perceptedFoodPose = perceptedFood->getJoint(0)->getChildBodyNode()->getTransform();
+  if (perceptedFood != nullptr)
+  {
+    auto perceptedFoodPose
+        = perceptedFood->getJoint(0)->getChildBodyNode()->getTransform();
   }
 
   // ***** MOVE ABOVE FOOD, INTO FOOD AND ABOVE PLATE *****
@@ -501,21 +535,29 @@ int main(int argc, char** argv)
   if (!autoContinue)
     if (!waitForUser("Move arm above food"))
       return 0;
-  moveArmToTSR(
+  bool successMoveAboveFood = moveArmToTSR(
       aboveFoodTSR,
       robot,
       armSpace,
       armSkeleton,
       hand,
       collisionFreeConstraint);
+  if (!successMoveAboveFood)
+  {
+    ROS_WARN("Trajectory execution failed. Exiting...");
+    exit(0);
+  }
 
   try
   {
     if (!autoContinue)
       if (!waitForUser("Move arm into food"))
         return 0;
-    
-    setFTThreshold(ftThresholdActionClient, grabFoodForceThreshold, grabFoodTorqueThreshold);
+
+    setFTThreshold(
+        ftThresholdActionClient,
+        grabFoodForceThreshold,
+        grabFoodTorqueThreshold);
     auto intoFoodTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
@@ -528,7 +570,10 @@ int main(int argc, char** argv)
         angularTolerance);
     moveArmOnTrajectory(
         intoFoodTrajectory, robot, armSpace, armSkeleton, false);
-    setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
+    setFTThreshold(
+        ftThresholdActionClient,
+        standardForceThreshold,
+        standardTorqueThreshold);
   }
   catch (int e)
   {
@@ -553,8 +598,13 @@ int main(int argc, char** argv)
         planningTimeout,
         positionTolerance,
         angularTolerance);
-    moveArmOnTrajectory(
+    bool successMoveAbovePlate2 = moveArmOnTrajectory(
         abovePlateTrajectory, robot, armSpace, armSkeleton, false);
+    if (!successMoveAbovePlate2)
+    {
+      ROS_WARN("Trajectory execution failed. Exiting...");
+      exit(0);
+    }
   }
   catch (int e)
   {
@@ -590,8 +640,13 @@ int main(int argc, char** argv)
         armSkeleton,
         hand,
         collisionFreeConstraint);*/
-    moveArmToTSR(
+    bool successMoveToPerson = moveArmToTSR(
         personTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
+    if (!successMoveToPerson)
+    {
+      ROS_WARN("Trajectory execution failed. Exiting...");
+      exit(0);
+    }
   }
   catch (int e)
   {
@@ -601,7 +656,10 @@ int main(int argc, char** argv)
 
   try
   {
-    setFTThreshold(ftThresholdActionClient, feedPersonForceThreshold, feedPersonTorqueThreshold);
+    setFTThreshold(
+        ftThresholdActionClient,
+        feedPersonForceThreshold,
+        feedPersonTorqueThreshold);
     auto toPersonTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
@@ -614,7 +672,10 @@ int main(int argc, char** argv)
         angularTolerance);
     moveArmOnTrajectory(
         toPersonTrajectory, robot, armSpace, armSkeleton, false);
-    setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
+    setFTThreshold(
+        ftThresholdActionClient,
+        standardForceThreshold,
+        standardTorqueThreshold);
   }
   catch (int e)
   {
@@ -638,8 +699,13 @@ int main(int argc, char** argv)
         planningTimeout,
         positionTolerance,
         angularTolerance);
-    moveArmOnTrajectory(
+    bool successMoveAwayFromPerson = moveArmOnTrajectory(
         toPersonTrajectory, robot, armSpace, armSkeleton, false);
+    if (!successMoveAwayFromPerson)
+    {
+      ROS_WARN("Trajectory execution failed. Exiting...");
+      exit(0);
+    }
   }
   catch (int e)
   {
@@ -658,13 +724,18 @@ int main(int argc, char** argv)
       armSkeleton,
       hand,
       collisionFreeConstraint);*/
-  moveArmToTSR(
+  bool successMoveAbovePlate3 = moveArmToTSR(
       abovePlateTSR,
       robot,
       armSpace,
       armSkeleton,
       hand,
       collisionFreeConstraint);
+  if (!successMoveAbovePlate3)
+  {
+    ROS_WARN("Trajectory execution failed. Exiting...");
+    exit(0);
+  }
 
   waitForUser("Demo finished.");
 
