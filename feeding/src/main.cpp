@@ -496,6 +496,8 @@ int main(int argc, char** argv)
     exit(0);
   }
 
+  hand->executePreshape("open").wait();
+
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
@@ -580,6 +582,8 @@ int main(int argc, char** argv)
     ROS_INFO("caught expection");
     return 1;
   }
+
+  hand->executePreshape("closed").wait();
 
   hand->grab(foodItem);
 
@@ -736,6 +740,8 @@ int main(int argc, char** argv)
     ROS_WARN("Trajectory execution failed. Exiting...");
     exit(0);
   }
+
+  hand->executePreshape("open").wait();
 
   waitForUser("Demo finished.");
 
