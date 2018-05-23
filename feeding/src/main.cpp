@@ -203,7 +203,7 @@ bool setFTThreshold(std::unique_ptr<FTThresholdActionClient>& actionClient, doub
   {
     actionlib::SimpleClientGoalState state = actionClient->getState();
     if (state != actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED) {
-        ROS_INFO("F/T Thresholds could not be set: %s",state.toString().c_str());
+        ROS_WARN("F/T Thresholds could not be set: %s",state.toString().c_str());
         return false;
     } else {
         ROS_INFO("F/T Thresholds set successfully");
@@ -212,7 +212,7 @@ bool setFTThreshold(std::unique_ptr<FTThresholdActionClient>& actionClient, doub
     return false;
   }
   else {
-    ROS_FATAL("F/T Thresholds could not be set: Timeout");
+    ROS_WARN("F/T Thresholds could not be set: Timeout");
     return false;
   }
 }
@@ -318,17 +318,6 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  // Start F/T threshold action client
-  std::unique_ptr<FTThresholdActionClient> ftThresholdActionClient;
-  if (adaReal) {
-    ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(new FTThresholdActionClient("/move_until_touch_topic_controller/set_forcetorque_threshold/"));
-    ROS_INFO("Waiting for FT Threshold Action Server to start...");
-    ftThresholdActionClient->waitForServer();
-    ROS_INFO("FT Threshold Action Server started.");
-  }
-  setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
-
-
   // Predefined configurations
   // ////////////////////////////////////////////////////
   Eigen::Vector6d armRelaxedHome(Eigen::Vector6d::Ones());
@@ -394,7 +383,23 @@ int main(int argc, char** argv)
   {
     std::cout << "Start trajectory executor" << std::endl;
     robot.startTrajectoryExecutor();
-    setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
+  }
+
+  // Start F/T threshold action client
+  // Important: do this after starting trajectory executor
+  std::unique_ptr<FTThresholdActionClient> ftThresholdActionClient;
+  if (adaReal) {
+    ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(new FTThresholdActionClient("/move_until_touch_topic_controller/set_forcetorque_threshold/"));
+    ROS_INFO("Waiting for FT Threshold Action Server to start...");
+    ftThresholdActionClient->waitForServer();
+    ROS_INFO("FT Threshold Action Server started.");
+  }
+  bool setFTSuccessful = false;
+  while (!setFTSuccessful) {
+    setFTSuccessful = setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
+    if (setFTSuccessful) {break;}
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    if (!ros::ok()) {exit(0);}
   }
 
   auto currentPose = getCurrentConfig(robot);
