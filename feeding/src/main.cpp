@@ -16,6 +16,7 @@
 #include <libada/Ada.hpp>
 #include <aikido/perception/ObjectDatabase.hpp>
 #include <aikido/perception/PoseEstimatorModule.hpp>
+#include <actionlib/client/simple_action_client.h>
 
 namespace po = boost::program_options;
 
@@ -25,7 +26,7 @@ using dart::collision::CollisionDetectorPtr;
 using dart::collision::CollisionGroup;
 
 using SetFTThresholdAction = pr_control_msgs::SetForceTorqueThresholdAction;
-using FTThresholdActionClient = actionlib::ActionClient<SetFTThresholdAction>;
+using FTThresholdActionClient = actionlib::SimpleActionClient<SetFTThresholdAction>;
 
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
@@ -190,41 +191,33 @@ Eigen::MatrixXd createBwMatrixForTSR(
   return bw;
 }
 
-void setFTThreshold(std::unique_ptr<FTThresholdActionClient>& actionClient, double forceThreshold, double torqueThreshold) {
-    if (!actionClient) {return;}
-    pr_control_msgs::SetForceTorqueThresholdGoal goal;
-    goal.force_threshold = forceThreshold;
-    goal.torque_threshold = torqueThreshold;
-    actionClient->sendGoal(goal);
-}
+bool setFTThreshold(std::unique_ptr<FTThresholdActionClient>& actionClient, double forceThreshold, double torqueThreshold, double timeout = 5) {
+  if (!actionClient) {return false;}
+  pr_control_msgs::SetForceTorqueThresholdGoal goal;
+  goal.force_threshold = forceThreshold;
+  goal.torque_threshold = torqueThreshold;
+  actionClient->sendGoal(goal);
+  bool finished_before_timeout = actionClient->waitForResult(ros::Duration(5.0));
 
-void ftThresholdCallback(FTThresholdActionClient::GoalHandle gh) {
-    ROS_INFO("hey ho");
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));    
-    ROS_INFO_STREAM("callback:  " << gh.getResult()->message << "   " << std::to_string(gh.getResult()->success));
-}
-
-bool setFTThresholdSynchronouos(std::unique_ptr<FTThresholdActionClient>& actionClient, double forceThreshold, double torqueThreshold, double timeout = 5) {
-    if (!actionClient) {return false;}
-    pr_control_msgs::SetForceTorqueThresholdGoal goal;
-    goal.force_threshold = forceThreshold;
-    goal.torque_threshold = torqueThreshold;
-    // FTThresholdActionClient::GoalHandle gh = actionClient->sendGoal(goal, [](FTThresholdActionClient::GoalHandle gh) -> void {
-    //     ROS_INFO_STREAM("callback:  " << gh.getResult()->message << "   " << std::to_string(gh.getResult()->success));
-    // });
-    FTThresholdActionClient::GoalHandle gh = actionClient->sendGoal(goal, &ftThresholdCallback);
-    ROS_INFO_STREAM("1");
-    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    ROS_INFO_STREAM("2");
-    if (!gh.getResult()) {
-        ROS_INFO("nullptr found");
+  if (finished_before_timeout)
+  {
+    actionlib::SimpleClientGoalState state = actionClient->getState();
+    if (state != actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED) {
+        ROS_INFO("F/T Thresholds could not be set: %s",state.toString().c_str());
+        return false;
+    } else {
+        ROS_INFO("F/T Thresholds set successfully");
         return true;
     }
-    ROS_INFO_STREAM("in method:  " << gh.getResult()->message << "   " << std::to_string(gh.getResult()->success));
-    return true;
+    return false;
+  }
+  else {
+    ROS_FATAL("F/T Thresholds could not be set: Timeout");
+    return false;
+  }
 }
 
-void perceptFood(ros::NodeHandle nh,
+void perceiveFood(ros::NodeHandle nh,
         std::string detectorTopicName,
         const std::shared_ptr<aikido::io::CatkinResourceRetriever>
         resourceRetriever,
@@ -328,16 +321,12 @@ int main(int argc, char** argv)
   // Start F/T threshold action client
   std::unique_ptr<FTThresholdActionClient> ftThresholdActionClient;
   if (adaReal) {
-    ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(new FTThresholdActionClient(nh, "/move_until_touch_topic_controller/set_forcetorque_threshold/"));
+    ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(new FTThresholdActionClient("/move_until_touch_topic_controller/set_forcetorque_threshold/"));
     ROS_INFO("Waiting for FT Threshold Action Server to start...");
-    if (ftThresholdActionClient->waitForActionServerToStart(ros::Duration(5))) {
-        ROS_INFO("FT Threshold Action Server started.");
-    } else {
-        ROS_INFO("Couldn't connect to FT Threshold Action Server.");
-    }
-    
+    ftThresholdActionClient->waitForServer();
+    ROS_INFO("FT Threshold Action Server started.");
   }
-  setFTThresholdSynchronouos(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
+  setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
 
 
   // Predefined configurations
@@ -405,7 +394,7 @@ int main(int argc, char** argv)
   {
     std::cout << "Start trajectory executor" << std::endl;
     robot.startTrajectoryExecutor();
-    setFTThresholdSynchronouos(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
+    setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
   }
 
   auto currentPose = getCurrentConfig(robot);
@@ -496,7 +485,7 @@ int main(int argc, char** argv)
   // ***** GET FOOD TSR WITH PERCEPTION *****
 
   std::string detectorTopicName = "/foodDetectorTopic";
-  perceptFood(nh, detectorTopicName, resourceRetriever, robot);
+  perceiveFood(nh, detectorTopicName, resourceRetriever, robot);
 
   std::string perceptedFoodName = "perceptedFood";
   auto perceptedFood = robot.getWorld()->getSkeleton(perceptedFoodName);
@@ -526,7 +515,7 @@ int main(int argc, char** argv)
       if (!waitForUser("Move arm into food"))
         return 0;
     
-    setFTThresholdSynchronouos(ftThresholdActionClient, grabFoodForceThreshold, grabFoodTorqueThreshold);
+    setFTThreshold(ftThresholdActionClient, grabFoodForceThreshold, grabFoodTorqueThreshold);
     auto intoFoodTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
@@ -539,7 +528,7 @@ int main(int argc, char** argv)
         angularTolerance);
     moveArmOnTrajectory(
         intoFoodTrajectory, robot, armSpace, armSkeleton, false);
-    setFTThresholdSynchronouos(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
+    setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
   }
   catch (int e)
   {
@@ -612,7 +601,7 @@ int main(int argc, char** argv)
 
   try
   {
-    setFTThresholdSynchronouos(ftThresholdActionClient, feedPersonForceThreshold, feedPersonTorqueThreshold);
+    setFTThreshold(ftThresholdActionClient, feedPersonForceThreshold, feedPersonTorqueThreshold);
     auto toPersonTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
@@ -625,7 +614,7 @@ int main(int argc, char** argv)
         angularTolerance);
     moveArmOnTrajectory(
         toPersonTrajectory, robot, armSpace, armSkeleton, false);
-    setFTThresholdSynchronouos(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
+    setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
   }
   catch (int e)
   {
