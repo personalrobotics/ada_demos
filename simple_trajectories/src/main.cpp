@@ -26,6 +26,7 @@ dart::common::Uri adaUrdfUri{"package://ada_description/robots/ada.urdf"};
 dart::common::Uri adaSrdfUri{"package://ada_description/robots/ada.srdf"};
 
 static const double planningTimeout{5.};
+static const double maxDistanceBtwValidityChecks{0.01};
 bool adaSim = true;
 
 void waitForUser(const std::string& msg)
@@ -43,6 +44,45 @@ Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
   auto defaultPose = robot.getArm()->getMetaSkeleton()->getPositions();
   ROS_INFO_STREAM("Current configuration" << defaultPose.format(CommaInitFmt));
   return defaultPose;
+}
+
+void moveArmTo(ada::Ada& robot,
+               MetaSkeletonStateSpacePtr armSpace,
+               MetaSkeletonPtr skeleton,
+               const Eigen::VectorXd& viaPos,
+               const Eigen::VectorXd& viaVelocity,
+               const Eigen::VectorXd& goalPos)
+{
+  auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
+
+  double viaTime = 0.0;
+  std::cout << "ARM SPACE DIMENSION: " << armSpace->getDimension() << std::endl;
+  auto trajectory = robot.planMinimumTimeViaConstraint(
+      armSpace, skeleton, goalPos, viaPos, viaVelocity, nullptr, viaTime,
+      planningTimeout, maxDistanceBtwValidityChecks);
+
+  auto viaState = armSpace->createState();
+  Eigen::VectorXd viaVel(armSpace->getDimension());
+  trajectory->evaluate(viaTime, viaState);
+  trajectory->evaluateDerivative(viaTime, 1, viaVel);
+  std::cout << "VALIDATION:";
+  armSpace->print(viaState, std::cout);
+  std::cout << std::endl;
+  std::cout << "VELOCITY:";
+  std::cout << viaVel << std::endl;
+
+  if (!trajectory)
+  {
+    throw std::runtime_error("failed to find a 1.solution");
+  }
+  else
+  {
+    std::cout << "FIND A TRAJECTORY - Duration ";
+    std::cout << trajectory->getDuration() << std::endl;
+  }
+  
+  waitForUser("READY TO EXECUTE");
+  robot.executeTrajectory(std::move(trajectory)).wait();
 }
 
 void moveArmTo(
@@ -137,6 +177,13 @@ int main(int argc, char** argv)
   auto armSkeleton = robot.getArm()->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
 
+  std::cout << "POS UPPER LIMITS:" << armSkeleton->getPositionUpperLimits() << std::endl;
+  std::cout << "POS LOWER LIMITS:" << armSkeleton->getPositionLowerLimits() << std::endl;
+  std::cout << "VEL UPPER LIMITS:" << armSkeleton->getVelocityUpperLimits() << std::endl;
+  std::cout << "VEL LOWER LIMITS:" << armSkeleton->getVelocityLowerLimits() << std::endl;
+  std::cout << "ACC UPPER LIMITS:" << armSkeleton->getAccelerationUpperLimits() << std::endl;
+  std::cout << "ACC LOWER LIMITS:" << armSkeleton->getAccelerationLowerLimits() << std::endl;
+
   if (adaSim)
   {
     Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
@@ -186,6 +233,21 @@ int main(int argc, char** argv)
   }
 
   moveArmTo(robot, armSpace, armSkeleton, movedPose);
+
+  waitForUser("Press key to continue.");
+  Eigen::VectorXd nextMovedPose(movedPose);
+  nextMovedPose(3) -= 0.1;
+  nextMovedPose(4) -= 0.1;
+  Eigen::VectorXd nextViaVelocity(6);
+  nextViaVelocity << 0.0, 0.0, 0.0, 0.4, 0.4, 0.0;
+
+  Eigen::VectorXd goalPose(nextMovedPose);
+  nextMovedPose(3) -= 0.3;
+  nextMovedPose(4) -= 0.3;
+ 
+  ROS_INFO("Starting the kinodynamic testing");
+  moveArmTo(robot, armSpace, armSkeleton, 
+            nextMovedPose, nextViaVelocity, goalPose);  
 
   waitForUser("Press [ENTER] to exit. ");
 
