@@ -292,9 +292,9 @@ int main(int argc, char** argv)
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
   dart::common::Uri adaUrdfUri{
-      "package://ada_description/robots/ada_with_camera_forque.urdf"};
+      "package://ada_description/robots_urdf/ada_with_camera_forque.urdf"};
   dart::common::Uri adaSrdfUri{
-      "package://ada_description/robots/ada_with_camera_forque.srdf"};
+      "package://ada_description/robots_urdf/ada_with_camera_forque.srdf"};
   std::string endEffectorName = "j2n6s200_forque_end_effector";
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
 
