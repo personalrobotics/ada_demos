@@ -412,7 +412,7 @@ int main(int argc, char** argv)
     ROS_INFO("FT Threshold Action Server started.");
   }
   bool setFTSuccessful = false;
-  while (!setFTSuccessful) {
+  while (!setFTSuccessful && adaReal) {
     setFTSuccessful = setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
     if (setFTSuccessful) {break;}
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
