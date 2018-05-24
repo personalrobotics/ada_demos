@@ -292,9 +292,9 @@ int main(int argc, char** argv)
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
   dart::common::Uri adaUrdfUri{
-      "package://ada_description/robots/ada_with_camera_forque.urdf"};
+      "package://ada_description/robots_urdf/ada_with_camera_forque.urdf"};
   dart::common::Uri adaSrdfUri{
-      "package://ada_description/robots/ada_with_camera_forque.srdf"};
+      "package://ada_description/robots_urdf/ada_with_camera_forque.srdf"};
   std::string endEffectorName = "j2n6s200_forque_end_effector";
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
 
@@ -460,6 +460,7 @@ int main(int argc, char** argv)
   if (!autoContinue)
     if (!waitForUser("Move arm to default pose"))
       return 0;
+  if (!ros::ok()) return 0;
 
   auto startState
       = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
@@ -532,6 +533,7 @@ int main(int argc, char** argv)
   if (!autoContinue)
     if (!waitForUser("Move arm above food"))
       return 0;
+  if (!ros::ok()) return 0;
   bool successMoveAboveFood = moveArmToTSR(
       aboveFoodTSR,
       robot,
@@ -550,6 +552,7 @@ int main(int argc, char** argv)
     if (!autoContinue)
       if (!waitForUser("Move arm into food"))
         return 0;
+    if (!ros::ok()) return 0;
 
     setFTThreshold(
         ftThresholdActionClient,
@@ -585,6 +588,7 @@ int main(int argc, char** argv)
   if (!autoContinue)
     if (!waitForUser("Move arm above plate"))
       return 0;
+  if (!ros::ok()) return 0;
   try
   {
     auto abovePlateTrajectory = robot.planToEndEffectorOffset(
@@ -630,6 +634,7 @@ int main(int argc, char** argv)
   if (!autoContinue)
     if (!waitForUser("Move arm to person"))
       return 0;
+  if (!ros::ok()) return 0;
   try
   {
     /*moveArmToConfiguration(
@@ -646,6 +651,8 @@ int main(int argc, char** argv)
       ROS_WARN("Trajectory execution failed. Exiting...");
       exit(0);
     }
+    hand->executePreshape("open").wait();
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
   }
   catch (int e)
   {
@@ -715,6 +722,7 @@ int main(int argc, char** argv)
   if (!autoContinue)
     if (!waitForUser("Move arm to plate"))
       return 0;
+  if (!ros::ok()) return 0;
 
   /*moveArmToConfiguration(
       abovePlateConfig,
