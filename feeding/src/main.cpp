@@ -438,6 +438,9 @@ int main(int argc, char** argv)
     return 0;
   }
 
+
+  hand->executePreshape("closed").wait();
+
   // ***** MOVE ABOVE PLATE *****
   double heightAbovePlate = 0.15;
   double horizontal_tolerance_above_plate = 0.05;
@@ -490,8 +493,6 @@ int main(int argc, char** argv)
     ROS_WARN("Trajectory execution failed. Exiting...");
     exit(0);
   }
-
-  hand->executePreshape("open").wait();
 
   // ***** GET FOOD TSR *****
   std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -577,8 +578,6 @@ int main(int argc, char** argv)
     ROS_INFO("caught expection");
     return 1;
   }
-
-  hand->executePreshape("closed").wait();
 
   hand->grab(foodItem);
 
@@ -735,8 +734,6 @@ int main(int argc, char** argv)
     ROS_WARN("Trajectory execution failed. Exiting...");
     exit(0);
   }
-
-  hand->executePreshape("open").wait();
 
   waitForUser("Demo finished.");
 
