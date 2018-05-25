@@ -387,7 +387,7 @@ int main(int argc, char** argv)
       = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<CollisionGroup> armCollisionGroup
       = collisionDetector->createCollisionGroup(
-          armSkeleton.get(), hand->getEndEffectorBodyNode());
+          robot.getMetaSkeleton().get(), hand->getEndEffectorBodyNode());
   std::shared_ptr<CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
           table.get(), tom.get(), workspace.get());
