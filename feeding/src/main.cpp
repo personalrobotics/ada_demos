@@ -355,15 +355,15 @@ int main(int argc, char** argv)
   std::cout << armSkeleton->getPositions().transpose() << std::endl;
   // Predefined poses
   Eigen::Isometry3d platePose
-      = robotPose.inverse() * createIsometry(0.4, 0.25, 0.04);
+      = robotPose.inverse() * createIsometry(0.3, 0.25, 0.04);
   Eigen::Isometry3d foodPose = platePose;
   // origin is corner of table top
   Eigen::Isometry3d tablePose
       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
   Eigen::Isometry3d personPose
-      = robotPose.inverse() * createIsometry(0.4, -0.2, 0.502);
+      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502);
   Eigen::Isometry3d tomPose
-      = robotPose.inverse() * createIsometry(0.4, -0.2, 0.502, 0, 0, M_PI);
+      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502, 0, 0, M_PI);
   Eigen::Isometry3d workspacePose
       = robotPose.inverse() * createIsometry(0, 0, 0);
 
