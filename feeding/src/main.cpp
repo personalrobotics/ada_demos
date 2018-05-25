@@ -355,7 +355,7 @@ int main(int argc, char** argv)
   std::cout << armSkeleton->getPositions().transpose() << std::endl;
   // Predefined poses
   Eigen::Isometry3d platePose
-      = robotPose.inverse() * createIsometry(0.4, 0.25, 0.08);
+      = robotPose.inverse() * createIsometry(0.4, 0.25, 0.04);
   Eigen::Isometry3d foodPose = platePose;
   // origin is corner of table top
   Eigen::Isometry3d tablePose
@@ -650,7 +650,6 @@ int main(int argc, char** argv)
       ROS_WARN("Trajectory execution failed. Exiting...");
       exit(0);
     }
-    hand->executePreshape("open").wait();
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
   }
   catch (int e)
