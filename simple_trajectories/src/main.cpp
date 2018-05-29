@@ -69,7 +69,7 @@ void moveArmTo(ada::Ada& robot,
   armSpace->print(viaState, std::cout);
   std::cout << std::endl;
   std::cout << "VELOCITY:";
-  std::cout << viaVel << std::endl;
+  std::cout << viaVel.transpose() << std::endl;
 
   if (!trajectory)
   {
@@ -177,18 +177,18 @@ int main(int argc, char** argv)
   auto armSkeleton = robot.getArm()->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
 
-  std::cout << "POS UPPER LIMITS:" << armSkeleton->getPositionUpperLimits() << std::endl;
-  std::cout << "POS LOWER LIMITS:" << armSkeleton->getPositionLowerLimits() << std::endl;
-  std::cout << "VEL UPPER LIMITS:" << armSkeleton->getVelocityUpperLimits() << std::endl;
-  std::cout << "VEL LOWER LIMITS:" << armSkeleton->getVelocityLowerLimits() << std::endl;
-  std::cout << "ACC UPPER LIMITS:" << armSkeleton->getAccelerationUpperLimits() << std::endl;
-  std::cout << "ACC LOWER LIMITS:" << armSkeleton->getAccelerationLowerLimits() << std::endl;
+  std::cout << "POS UPPER LIMITS:" << armSkeleton->getPositionUpperLimits().transpose() << std::endl;
+  std::cout << "POS LOWER LIMITS:" << armSkeleton->getPositionLowerLimits().transpose() << std::endl;
+  std::cout << "VEL UPPER LIMITS:" << armSkeleton->getVelocityUpperLimits().transpose() << std::endl;
+  std::cout << "VEL LOWER LIMITS:" << armSkeleton->getVelocityLowerLimits().transpose() << std::endl;
+  std::cout << "ACC UPPER LIMITS:" << armSkeleton->getAccelerationUpperLimits().transpose() << std::endl;
+  std::cout << "ACC LOWER LIMITS:" << armSkeleton->getAccelerationLowerLimits().transpose() << std::endl;
 
   if (adaSim)
   {
     Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
-    home[1] = 3.14;
-    home[2] = 3.14;
+    home[1] = -3.14;
+    home[2] = -3.14;
     armSkeleton->setPositions(home);
 
     auto startState
@@ -232,22 +232,28 @@ int main(int argc, char** argv)
     robot.startTrajectoryExecutor();
   }
 
-  moveArmTo(robot, armSpace, armSkeleton, movedPose);
+  std::cout << "SIMPLE VALIDATION " << std::endl;
+  std::cout << "[POS]: " << armSkeleton->getPositions().transpose() << std::endl;
+  std::cout << "[UPPER]: " << armSkeleton->getPositionUpperLimits().transpose() << std::endl;
+  std::cout << "[LOWER]: " << armSkeleton->getPositionLowerLimits().transpose() << std::endl;
+  std::cout << "END VALIDATION " << std::endl;
+
+  Eigen::VectorXd startConfig(6);
+  startConfig << 0.1, -3.0, -3.0, 0.0, 0.0, 0.0;
+  moveArmTo(robot, armSpace, armSkeleton, startConfig);
 
   waitForUser("Press key to continue.");
-  Eigen::VectorXd nextMovedPose(movedPose);
-  nextMovedPose(3) -= 0.1;
-  nextMovedPose(4) -= 0.1;
-  Eigen::VectorXd nextViaVelocity(6);
-  nextViaVelocity << 0.0, 0.0, 0.0, 0.4, 0.4, 0.0;
+  Eigen::VectorXd viaConfig(6);
+  viaConfig << 0.1, -2.9, -2.9, 0.1, 0.0, 0.0;
+  Eigen::VectorXd viaVelocity(6);
+  viaVelocity << 0.0, 0.8, 0.8, 0.8, 0.0, 0.0;
 
-  Eigen::VectorXd goalPose(nextMovedPose);
-  nextMovedPose(3) -= 0.3;
-  nextMovedPose(4) -= 0.3;
+  Eigen::VectorXd goalConfig(6);
+  goalConfig << 0.1, -1.0, -1.0, 0.6, 0.0, 0.0;
  
   ROS_INFO("Starting the kinodynamic testing");
   moveArmTo(robot, armSpace, armSkeleton, 
-            nextMovedPose, nextViaVelocity, goalPose);  
+            viaConfig, viaVelocity, goalConfig);  
 
   waitForUser("Press [ENTER] to exit. ");
 
