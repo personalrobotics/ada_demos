@@ -42,12 +42,12 @@ static const double planningTimeout{5.};
 static const double perceptionTimeout{5.};
 static const double positionTolerance = 0.005;
 static const double angularTolerance = 0.04;
-static const double standardForceThreshold = 4;
-static const double standardTorqueThreshold = 4;
-static const double grabFoodForceThreshold = 0.5;
-static const double grabFoodTorqueThreshold = 0.5;
-static const double feedPersonForceThreshold = 0.5;
-static const double feedPersonTorqueThreshold = 0.5;
+static const double standardForceThreshold = 8;
+static const double standardTorqueThreshold = 8;
+static const double grabFoodForceThreshold = 2;
+static const double grabFoodTorqueThreshold = 2;
+static const double feedPersonForceThreshold = 2;
+static const double feedPersonTorqueThreshold = 2;
 
 bool adaSim = true;
 
