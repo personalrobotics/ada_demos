@@ -42,12 +42,12 @@ static const double planningTimeout{5.};
 static const double perceptionTimeout{5.};
 static const double positionTolerance = 0.005;
 static const double angularTolerance = 0.04;
-static const double standardForceThreshold = 4;
-static const double standardTorqueThreshold = 4;
-static const double grabFoodForceThreshold = 0.5;
-static const double grabFoodTorqueThreshold = 0.5;
-static const double feedPersonForceThreshold = 0.5;
-static const double feedPersonTorqueThreshold = 0.5;
+static const double standardForceThreshold = 8;
+static const double standardTorqueThreshold = 8;
+static const double grabFoodForceThreshold = 2;
+static const double grabFoodTorqueThreshold = 2;
+static const double feedPersonForceThreshold = 2;
+static const double feedPersonTorqueThreshold = 2;
 
 bool adaSim = true;
 
@@ -355,15 +355,15 @@ int main(int argc, char** argv)
   std::cout << armSkeleton->getPositions().transpose() << std::endl;
   // Predefined poses
   Eigen::Isometry3d platePose
-      = robotPose.inverse() * createIsometry(0.4, 0.25, 0.04);
+      = robotPose.inverse() * createIsometry(0.3, 0.25, 0.04);
   Eigen::Isometry3d foodPose = platePose;
   // origin is corner of table top
   Eigen::Isometry3d tablePose
       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
   Eigen::Isometry3d personPose
-      = robotPose.inverse() * createIsometry(0.4, -0.2, 0.502);
+      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502);
   Eigen::Isometry3d tomPose
-      = robotPose.inverse() * createIsometry(0.4, -0.2, 0.502, 0, 0, M_PI);
+      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502, 0, 0, M_PI);
   Eigen::Isometry3d workspacePose
       = robotPose.inverse() * createIsometry(0, 0, 0);
 
@@ -387,7 +387,7 @@ int main(int argc, char** argv)
       = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<CollisionGroup> armCollisionGroup
       = collisionDetector->createCollisionGroup(
-          armSkeleton.get(), hand->getEndEffectorBodyNode());
+          robot.getMetaSkeleton().get(), hand->getEndEffectorBodyNode());
   std::shared_ptr<CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
           table.get(), tom.get(), workspace.get());
