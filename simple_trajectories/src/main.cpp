@@ -245,18 +245,18 @@ int main(int argc, char** argv)
   std::cout << "[LOWER]: " << armSkeleton->getPositionLowerLimits().transpose() << std::endl;
   std::cout << "END VALIDATION " << std::endl;
 
-  Eigen::VectorXd startConfig(6);
-  startConfig << 0.1, 3.0, 3.0, 0.0, 0.0, 0.0;
-  moveArmTo(robot, armSpace, armSkeleton, startConfig);
+  moveArmTo(robot, armSpace, armSkeleton, movedPose);
 
   waitForUser("Press key to continue.");
-  Eigen::VectorXd viaConfig(6);
-  viaConfig << 0.1, 2.9, 2.9, 0.1, 0.0, 0.0;
+  Eigen::VectorXd viaConfig(movedPose);
+  viaConfig(1) -= 0.01;
+  viaConfig(2) -= 0.01;
   Eigen::VectorXd viaVelocity(6);
   viaVelocity << 0.0, -0.8, -0.8, 0.8, 0.0, 0.0;
 
-  Eigen::VectorXd goalConfig(6);
-  goalConfig << 0.1, 1.0, 1.0, 0.6, 0.0, 0.0;
+  Eigen::VectorXd goalConfig(movedPose);
+  goalConfig(1) -= 0.1;
+  goalConfig(2) -= 0.1;
  
   ROS_INFO("Starting the kinodynamic testing");
   moveArmTo(robot, armSpace, armSkeleton, 
