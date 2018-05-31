@@ -188,8 +188,7 @@ int main(int argc, char** argv)
   if (adaSim)
   {
     Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
-    home[1] = 3.14;
-    home[2] = 3.14;
+    home << -1.92989, 3.03971, 2.64889, -1.34884, 1.62496, -0.602342;
     armSkeleton->setPositions(home);
 
     auto startState
@@ -252,7 +251,7 @@ int main(int argc, char** argv)
   viaConfig(1) -= 0.01;
   viaConfig(2) -= 0.01;
   Eigen::VectorXd viaVelocity(6);
-  viaVelocity << 0.0, -0.8, -0.8, 0.8, 0.0, 0.0;
+  viaVelocity << 0.0, -0.8, -0.4, 0.8, 0.0, 0.0;
 
   Eigen::VectorXd goalConfig(movedPose);
   goalConfig(1) -= 0.1;
