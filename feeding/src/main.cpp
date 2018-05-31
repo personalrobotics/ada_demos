@@ -365,7 +365,7 @@ int main(int argc, char** argv)
 //   Eigen::Isometry3d tablePose
 //       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
   Eigen::Isometry3d tablePose
-      = robotPose.inverse() * createIsometry(0.76, 0.38, -0.745);
+      = robotPose.inverse() * createIsometry(0.76, 0.38, -0.755);
   Eigen::Isometry3d personPose
       = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502);
   Eigen::Isometry3d tomPose
@@ -427,18 +427,6 @@ int main(int argc, char** argv)
   }
 
   auto currentPose = getCurrentConfig(robot);
-
-  // //   TODO(Daniel) why was the collision check not satisfied? Is it ok now?
-  //   auto startState
-  //     = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
-
-  //   aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
-  //   if (!collisionFreeConstraint->isSatisfied(startState,
-  //   &collisionCheckOutcome))
-  //   {
-  //     throw std::runtime_error("Robot is in collison: " +
-  //     collisionCheckOutcome.toString());
-  //   }
 
   if (!waitForUser("Startup step 2 complete."))
   {
@@ -530,7 +518,7 @@ int main(int argc, char** argv)
 
   // ***** GET FOOD TSR *****
   double heightAboveFood = 0.1;
-  double heightIntoFood = 0.03;
+  double heightIntoFood = adaReal ? 0.03 : 0.0;
   double horizontal_tolerance_near_food = 0.002;
   double vertical_tolerance_near_food = 0.002;
 
