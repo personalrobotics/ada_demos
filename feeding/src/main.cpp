@@ -34,6 +34,9 @@ using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
 using aikido::constraint::dart::TSR;
 using aikido::constraint::dart::CollisionFree;
 using aikido::trajectory::TrajectoryPtr;
+static const std::string foodsDataURI(
+    "package://pr_ordata/data/objects/tag_data_foods.json");
+static const std::string detectorTopicName("/deep_pose/marker_array");
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
@@ -44,8 +47,10 @@ static const double positionTolerance = 0.005;
 static const double angularTolerance = 0.04;
 static const double standardForceThreshold = 8;
 static const double standardTorqueThreshold = 8;
-static const double grabFoodForceThreshold = 2;
+static const double grabFoodForceThreshold = 22;
 static const double grabFoodTorqueThreshold = 2;
+static const double afterGrabForceThreshold = grabFoodForceThreshold + 10;
+static const double afterGrabTorqueThreshold = grabFoodTorqueThreshold + 5;
 static const double feedPersonForceThreshold = 2;
 static const double feedPersonTorqueThreshold = 2;
 
@@ -238,13 +243,12 @@ void perceiveFood(
     ada::Ada& robot)
 {
 
-  std::string detectorDataURI = "test";
+  std::string detectorDataURI = "package://pr_ordata/data/objects/tag_data_foods.json";
   std::string referenceFrameName = "j2n6s200_link_base";
 
   aikido::robot::util::getBodyNodeOrThrow(
       *robot.getMetaSkeleton(), "j2n6s200_link_base");
 
-  return;
   aikido::perception::PoseEstimatorModule objDetector(
       nh,
       detectorTopicName,
@@ -355,11 +359,13 @@ int main(int argc, char** argv)
   std::cout << armSkeleton->getPositions().transpose() << std::endl;
   // Predefined poses
   Eigen::Isometry3d platePose
-      = robotPose.inverse() * createIsometry(0.3, 0.25, 0.04);
+      = robotPose.inverse() * createIsometry(0.3, 0.25, 0.00);
   Eigen::Isometry3d foodPose = platePose;
   // origin is corner of table top
+//   Eigen::Isometry3d tablePose
+//       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
   Eigen::Isometry3d tablePose
-      = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
+      = robotPose.inverse() * createIsometry(0.76, 0.38, -0.745);
   Eigen::Isometry3d personPose
       = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502);
   Eigen::Isometry3d tomPose
@@ -368,7 +374,7 @@ int main(int argc, char** argv)
       = robotPose.inverse() * createIsometry(0, 0, 0);
 
   auto plate = loadSkeletonFromURDF(resourceRetriever, plateURDFUri, platePose);
-  robot.getWorld()->addSkeleton(plate);
+  //robot.getWorld()->addSkeleton(plate);
   auto table = loadSkeletonFromURDF(resourceRetriever, tableURDFUri, tablePose);
   robot.getWorld()->addSkeleton(table);
   auto workspace = loadSkeletonFromURDF(
@@ -376,13 +382,14 @@ int main(int argc, char** argv)
   robot.getWorld()->addSkeleton(workspace);
   auto foodItem
       = loadSkeletonFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
-  robot.getWorld()->addSkeleton(foodItem);
+  if (adaSim) {
+    robot.getWorld()->addSkeleton(foodItem);
+    foodItem->getRootBodyNode()->setCollidable(false);
+  }
   auto tom = loadSkeletonFromURDF(resourceRetriever, tomURDFUri, tomPose);
   robot.getWorld()->addSkeleton(tom);
 
   // Setting up collisions
-  foodItem->getRootBodyNode()->setCollidable(false);
-
   CollisionDetectorPtr collisionDetector
       = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<CollisionGroup> armCollisionGroup
@@ -411,7 +418,7 @@ int main(int argc, char** argv)
     ftThresholdActionClient->waitForServer();
     ROS_INFO("FT Threshold Action Server started.");
   }
-  bool setFTSuccessful = false;
+  bool setFTSuccessful = true;
   while (!setFTSuccessful && adaReal) {
     setFTSuccessful = setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
     if (setFTSuccessful) {break;}
@@ -443,8 +450,8 @@ int main(int argc, char** argv)
 
   // ***** MOVE ABOVE PLATE *****
   double heightAbovePlate = 0.15;
-  double horizontal_tolerance_above_plate = 0.05;
-  double vertical_tolerance_above_plate = 0.03;
+  double horizontal_tolerance_above_plate = 0.005;
+  double vertical_tolerance_above_plate = 0.005;
 
   auto abovePlateTSR = pr_tsr::getDefaultPlateTSR();
   abovePlateTSR.mT0_w = platePose;
@@ -453,8 +460,8 @@ int main(int argc, char** argv)
   abovePlateTSR.mBw = createBwMatrixForTSR(
       horizontal_tolerance_above_plate,
       vertical_tolerance_above_plate,
-      -M_PI,
-      M_PI);
+      0,
+      0);
   abovePlateTSR.mTw_e.matrix()
       *= hand->getEndEffectorTransform("plate")->matrix();
 
@@ -474,6 +481,7 @@ int main(int argc, char** argv)
     throw std::runtime_error(
         "Robot is in collison: " + collisionCheckOutcome.toString());
   }
+  ROS_INFO("Robot is not in collision");
 
   //   moveArmToConfiguration(
   //       abovePlateConfig,
@@ -495,16 +503,40 @@ int main(int argc, char** argv)
     exit(0);
   }
 
-  // ***** GET FOOD TSR *****
-  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
+  // ***** GET FOOD TSR WITH PERCEPTION *****
+  if (adaReal) {
+    if (!autoContinue)
+      if (!waitForUser("Perceive food"))
+        return 0;
+
+    perceiveFood(nh, detectorTopicName, resourceRetriever, robot);
+
+    for (int i=0; i<robot.getWorld()->getNumSkeletons(); i++) {
+        ROS_INFO_STREAM(robot.getWorld()->getSkeleton(i)->getName());
+    }
+
+    std::string perceivedFoodName = "apricot_1";
+    auto perceivedFood = robot.getWorld()->getSkeleton(perceivedFoodName);
+    if (perceivedFood != nullptr)
+    {
+      foodPose.translation() = perceivedFood->getJoint(0)->getChildBodyNode()->getTransform().translation();
+      ROS_INFO_STREAM("perceived x: " << foodPose.translation().x() << ", y: " << foodPose.translation().y() << ", z: " << foodPose.translation().z());
+    } else {
+      throw std::runtime_error("Error when perceiving food");
+    }
+  }
+  
+
+  // ***** GET FOOD TSR *****
   double heightAboveFood = 0.1;
+  double heightIntoFood = 0.03;
   double horizontal_tolerance_near_food = 0.002;
   double vertical_tolerance_near_food = 0.002;
 
   auto foodTSR = pr_tsr::getDefaultPlateTSR();
   foodTSR.mT0_w = foodPose;
-  foodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0.02};
+  foodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
   foodTSR.mBw = createBwMatrixForTSR(
       horizontal_tolerance_near_food,
@@ -513,23 +545,10 @@ int main(int argc, char** argv)
       M_PI);
   foodTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("plate")->matrix();
 
-  // ***** GET FOOD TSR WITH PERCEPTION *****
-
-  std::string detectorTopicName = "/foodDetectorTopic";
-  perceiveFood(nh, detectorTopicName, resourceRetriever, robot);
-
-  std::string perceptedFoodName = "perceptedFood";
-  auto perceptedFood = robot.getWorld()->getSkeleton(perceptedFoodName);
-  if (perceptedFood != nullptr)
-  {
-    auto perceptedFoodPose
-        = perceptedFood->getJoint(0)->getChildBodyNode()->getTransform();
-  }
-
   // ***** MOVE ABOVE FOOD, INTO FOOD AND ABOVE PLATE *****
 
   aikido::constraint::dart::TSR aboveFoodTSR(foodTSR);
-  aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood};
+  aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood - heightIntoFood};
 
   if (!autoContinue)
     if (!waitForUser("Move arm above food"))
@@ -573,16 +592,17 @@ int main(int argc, char** argv)
         intoFoodTrajectory, robot, armSpace, armSkeleton, false);
     setFTThreshold(
         ftThresholdActionClient,
-        standardForceThreshold,
-        standardTorqueThreshold);
+        afterGrabForceThreshold,
+        afterGrabTorqueThreshold);
   }
   catch (int e)
   {
     ROS_INFO("caught expection");
     return 1;
   }
-
-  hand->grab(foodItem);
+  if (adaSim) {
+    hand->grab(foodItem);
+  }
 
   if (!autoContinue)
     if (!waitForUser("Move arm above plate"))
@@ -607,6 +627,10 @@ int main(int argc, char** argv)
       ROS_WARN("Trajectory execution failed. Exiting...");
       exit(0);
     }
+    setFTThreshold(
+        ftThresholdActionClient,
+        standardForceThreshold,
+        standardTorqueThreshold);
   }
   catch (int e)
   {
@@ -688,8 +712,10 @@ int main(int argc, char** argv)
   }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-  hand->ungrab();
-  robot.getWorld()->removeSkeleton(foodItem);
+  if (adaSim) {
+    hand->ungrab();
+    robot.getWorld()->removeSkeleton(foodItem);
+  }
 
   try
   {
