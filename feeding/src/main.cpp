@@ -94,10 +94,8 @@ bool moveArmOnTrajectory(
   aikido::trajectory::TrajectoryPtr timedTrajectory;
   if (smooth)
   {
-    auto smoothTrajectory
-        = robot.smoothPath(armSkeleton, trajectory.get(), testable);
     timedTrajectory
-        = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+        = robot.smoothPath(armSkeleton, trajectory.get(), testable);
   }
   else
   {
@@ -105,7 +103,7 @@ bool moveArmOnTrajectory(
         = std::move(robot.retimePath(armSkeleton, trajectory.get()));
   }
 
-  auto future = robot.executeTrajectory(timedTrajectory);
+  auto future = robot.executeTrajectory(std::move(timedTrajectory));
   try
   {
     future.get();
