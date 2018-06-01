@@ -92,20 +92,23 @@ bool moveArmOnTrajectory(
 
   auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
   aikido::trajectory::TrajectoryPtr timedTrajectory;
-  if (smooth)
-  {
-    auto smoothTrajectory
+  auto smoothTrajectory
         = robot.smoothPath(armSkeleton, trajectory.get(), testable);
-    timedTrajectory
-        = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
-  }
-  else
-  {
-    timedTrajectory
-        = std::move(robot.retimePath(armSkeleton, trajectory.get()));
-  }
+    ROS_INFO("SMOOTHING DONE!");
 
-  auto future = robot.executeTrajectory(timedTrajectory);
+//   if (smooth)
+//   {
+    
+//     // timedTrajectory
+//     //     = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+//   }
+//   else
+//   {
+//     timedTrajectory
+//         = std::move(robot.retimePath(armSkeleton, trajectory.get()));
+//   }
+
+  auto future = robot.executeTrajectory(std::move(smoothTrajectory));
   try
   {
     future.get();
@@ -367,9 +370,9 @@ int main(int argc, char** argv)
   Eigen::Isometry3d tablePose
       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.755);
   Eigen::Isometry3d personPose
-      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502);
+      = robotPose.inverse() * createIsometry(0.3, -0.3, 0.35);
   Eigen::Isometry3d tomPose
-      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502, 0, 0, M_PI);
+      = robotPose.inverse() * createIsometry(0.3, -0.3, 0.35, 0, 0, M_PI);
   Eigen::Isometry3d workspacePose
       = robotPose.inverse() * createIsometry(0, 0, 0);
 
@@ -577,7 +580,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        intoFoodTrajectory, robot, armSpace, armSkeleton, false);
+        intoFoodTrajectory, robot, armSpace, armSkeleton, true);
     setFTThreshold(
         ftThresholdActionClient,
         afterGrabForceThreshold,
@@ -609,7 +612,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     bool successMoveAbovePlate2 = moveArmOnTrajectory(
-        abovePlateTrajectory, robot, armSpace, armSkeleton, false);
+        abovePlateTrajectory, robot, armSpace, armSkeleton, true);
     if (!successMoveAbovePlate2)
     {
       ROS_WARN("Trajectory execution failed. Exiting...");
