@@ -61,16 +61,6 @@ void moveArmTo(ada::Ada& robot,
       armSpace, skeleton, goalPos, viaPos, viaVelocity, nullptr, viaTime,
       planningTimeout, maxDistanceBtwValidityChecks);
 
-  auto viaState = armSpace->createState();
-  Eigen::VectorXd viaVel(armSpace->getDimension());
-  trajectory->evaluate(viaTime, viaState);
-  trajectory->evaluateDerivative(viaTime, 1, viaVel);
-  std::cout << "VALIDATION:";
-  armSpace->print(viaState, std::cout);
-  std::cout << std::endl;
-  std::cout << "VELOCITY:";
-  std::cout << viaVel.transpose() << std::endl;
-
   if (!trajectory)
   {
     throw std::runtime_error("failed to find a 1.solution");
@@ -79,7 +69,82 @@ void moveArmTo(ada::Ada& robot,
   {
     std::cout << "FIND A TRAJECTORY - Duration ";
     std::cout << trajectory->getDuration() << std::endl;
-  }
+ 
+    // evaluate start pose, goal, via
+    Eigen::VectorXd refStatePos = skeleton->getPositions();
+ 
+    auto evalStartState = armSpace->createState();
+    auto evalGoalState = armSpace->createState();
+    auto evalViaState = armSpace->createState();
+    Eigen::VectorXd evalStartPos(armSpace->getDimension());
+    Eigen::VectorXd evalGoalPos(armSpace->getDimension());
+    Eigen::VectorXd evalViaPos(armSpace->getDimension());
+    trajectory->evaluate(trajectory->getStartTime(), evalStartState);
+    trajectory->evaluate(trajectory->getEndTime(), evalGoalState);
+    trajectory->evaluate(viaTime, evalViaState);
+    armSpace->convertStateToPositions(evalStartState, evalStartPos);
+    armSpace->convertStateToPositions(evalGoalState, evalGoalPos);
+    armSpace->convertStateToPositions(evalViaState, evalViaPos);
+    std::cout << "COMPARE START [" << refStatePos.transpose() << "] [";
+    std::cout << evalStartPos.transpose() << "]" << std::endl;
+    std::cout << "COMPARE VIA [" << viaPos.transpose() << "] [";
+    std::cout << evalViaPos.transpose() << "]" << std::endl;
+    std::cout << "COMPARE GOAL [" << goalPos.transpose() << "] [";
+    std::cout << goalPos.transpose() << "]" << std::endl;
+    
+    Eigen::VectorXd evalStartVelocity(armSpace->getDimension());
+    Eigen::VectorXd evalViaVelocity(armSpace->getDimension());
+    Eigen::VectorXd evalGoalVelocity(armSpace->getDimension());
+    trajectory->evaluateDerivative(trajectory->getStartTime(), 1, evalStartVelocity);
+    trajectory->evaluateDerivative(viaTime, 1, evalViaVelocity);
+    trajectory->evaluateDerivative(trajectory->getEndTime(), 1, evalGoalVelocity);
+    std::cout << "START VEL [" << evalStartVelocity.transpose() << "]" << std::endl;
+    std::cout << "VIA VEL [" << viaVelocity.transpose() << "] [";
+    std::cout << evalViaVelocity.transpose() << "]" << std::endl;
+    std::cout << "GOAL VEL [" << evalGoalVelocity.transpose() << "]" << std::endl; 
+    
+    auto positionUpperLimits = armSpace->getProperties().getPositionUpperLimits();
+    auto positionLowerLimits = armSpace->getProperties().getPositionLowerLimits();
+    auto velocityUpperLimits = armSpace->getProperties().getVelocityUpperLimits();
+    auto velocityLowerLimits = armSpace->getProperties().getVelocityLowerLimits();
+    // validate a trajectory
+    for(double t=trajectory->getStartTime(); t<trajectory->getEndTime(); t+=0.01)
+    {
+      // get the position
+      auto tmpState = armSpace->createState();
+      Eigen::VectorXd tmpPos(armSpace->getDimension());
+      trajectory->evaluate(t, tmpState);
+      armSpace->convertStateToPositions(tmpState, tmpPos);
+      
+      // get the velocity
+      Eigen::VectorXd tmpVel(armSpace->getDimension());
+      trajectory->evaluateDerivative(t, 1, tmpVel);
+  
+      for(std::size_t d=0; d < armSpace->getDimension(); d++)
+      {
+        if(tmpPos[d]>positionUpperLimits[d] ||
+           tmpPos[d]<positionLowerLimits[d])
+        {
+          std::cout << "@ " << t << " POS(" << tmpPos[d] << ") ";
+          std::cout << "[" << positionLowerLimits[d] << " , ";
+          std::cout << positionUpperLimits[d] << "]" << std::endl; 
+        }
+        
+        if(tmpVel[d]>velocityUpperLimits[d] ||
+           tmpVel[d]<velocityLowerLimits[d])
+        {
+          std::cout << "@ " << t << " VEL(" << tmpPos[d] << ") ";
+          std::cout << "[" << velocityLowerLimits[d] << " , ";
+          std::cout << velocityUpperLimits[d] << "]" << std::endl; 
+        } 
+      }
+      /*
+      std::cout << "@ " << t;
+      std::cout << " POS: " << tmpPos.transpose();
+      std::cout << " VEL: " << tmpVel.transpose() << std::endl;
+      */
+    }
+  } 
   
   waitForUser("READY TO EXECUTE");
   robot.executeTrajectory(std::move(trajectory)).wait();
@@ -254,8 +319,8 @@ int main(int argc, char** argv)
   viaVelocity << 0.0, -0.8, -0.4, 0.8, 0.0, 0.0;
 
   Eigen::VectorXd goalConfig(movedPose);
-  goalConfig(1) -= 0.1;
-  goalConfig(2) -= 0.1;
+  goalConfig(1) -= 0.01;
+  goalConfig(2) -= 0.01;
  
   ROS_INFO("Starting the kinodynamic testing");
   moveArmTo(robot, armSpace, armSkeleton, 
