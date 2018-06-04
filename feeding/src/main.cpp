@@ -467,13 +467,6 @@ int main(int argc, char** argv)
   }
   ROS_INFO("Robot is not in collision");
 
-  //   moveArmToConfiguration(
-  //       abovePlateConfig,
-  //       robot,
-  //       armSpace,
-  //       armSkeleton,
-  //       hand,
-  //       collisionFreeConstraint);
   bool successMoveAbovePlate1 = moveArmToTSR(
       abovePlateTSR,
       robot,
@@ -578,6 +571,7 @@ int main(int argc, char** argv)
         ftThresholdActionClient,
         afterGrabForceThreshold,
         afterGrabTorqueThreshold);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
   catch (int e)
   {
@@ -644,13 +638,6 @@ int main(int argc, char** argv)
   if (!ros::ok()) return 0;
   try
   {
-    /*moveArmToConfiguration(
-        inFrontOfPersonConfig,
-        robot,
-        armSpace,
-        armSkeleton,
-        hand,
-        collisionFreeConstraint);*/
     bool successMoveToPerson = moveArmToTSR(
         personTSR, robot, armSpace, armSkeleton, hand, collisionFreeConstraint);
     if (!successMoveToPerson)
@@ -658,7 +645,6 @@ int main(int argc, char** argv)
       ROS_WARN("Trajectory execution failed. Exiting...");
       exit(0);
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
   }
   catch (int e)
   {
@@ -695,7 +681,7 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(6000));
   if (adaSim) {
     hand->ungrab();
     robot.getWorld()->removeSkeleton(foodItem);
@@ -709,7 +695,7 @@ int main(int argc, char** argv)
         hand->getEndEffectorBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, -1, 0),
-        distanceToPerson / 2,
+        distanceToPerson,
         planningTimeout,
         positionTolerance,
         angularTolerance);
@@ -732,13 +718,6 @@ int main(int argc, char** argv)
       return 0;
   if (!ros::ok()) return 0;
 
-  /*moveArmToConfiguration(
-      abovePlateConfig,
-      robot,
-      armSpace,
-      armSkeleton,
-      hand,
-      collisionFreeConstraint);*/
   bool successMoveAbovePlate3 = moveArmToTSR(
       abovePlateTSR,
       robot,
