@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include <actionlib/client/simple_action_client.h>
 #include <aikido/constraint/Satisfied.hpp>
+#include <aikido/constraint/TestableIntersection.hpp>
 #include <aikido/constraint/dart/CollisionFree.hpp>
 #include <aikido/io/util.hpp>
 #include <aikido/perception/ObjectDatabase.hpp>
@@ -33,6 +34,7 @@ using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
 using aikido::constraint::dart::TSR;
 using aikido::constraint::dart::CollisionFree;
+using aikido::constraint::TestablePtr;
 using aikido::trajectory::TrajectoryPtr;
 static const std::string foodsDataURI(
     "package://pr_ordata/data/objects/tag_data_foods.json");
@@ -80,7 +82,7 @@ bool moveArmOnTrajectory(
     ada::Ada& robot,
     const MetaSkeletonStateSpacePtr& armSpace,
     const MetaSkeletonPtr& armSkeleton,
-    bool smooth = true)
+    const aikido::constraint::dart::CollisionFreePtr& collisionFreeConstraint)
 {
   // Example for moving to configuration
   //
@@ -90,18 +92,14 @@ bool moveArmOnTrajectory(
     throw std::runtime_error("Failed to find a solution");
   }
 
-  auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
-  aikido::trajectory::TrajectoryPtr timedTrajectory;
-  if (smooth)
-  {
-    timedTrajectory
+  //auto spaceConstraint = std::make_shared<aikido::constraint::Satisfied>(armSpace);
+  std::vector<TestablePtr> constraints;
+  if (collisionFreeConstraint) {
+    constraints.push_back(collisionFreeConstraint);
+  }
+  auto testable = std::make_shared<aikido::constraint::TestableIntersection>(armSpace);
+  aikido::trajectory::TrajectoryPtr timedTrajectory
         = robot.smoothPath(armSkeleton, trajectory.get(), testable);
-  }
-  else
-  {
-    timedTrajectory
-        = std::move(robot.retimePath(armSkeleton, trajectory.get()));
-  }
 
   auto future = robot.executeTrajectory(std::move(timedTrajectory));
   try
@@ -135,7 +133,7 @@ bool moveArmToConfiguration(
       collisionFreeConstraint,
       planningTimeout);
 
-  return moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
+  return moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
 }
 
 bool moveArmToTSR(
@@ -158,7 +156,7 @@ bool moveArmToTSR(
       maxNumberTrials,
       planningTimeout);
 
-  return moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton);
+  return moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
 }
 
 Eigen::Isometry3d createIsometry(
@@ -575,7 +573,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        intoFoodTrajectory, robot, armSpace, armSkeleton, false);
+        intoFoodTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
     setFTThreshold(
         ftThresholdActionClient,
         afterGrabForceThreshold,
@@ -607,7 +605,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     bool successMoveAbovePlate2 = moveArmOnTrajectory(
-        abovePlateTrajectory, robot, armSpace, armSkeleton, false);
+        abovePlateTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
     if (!successMoveAbovePlate2)
     {
       ROS_WARN("Trajectory execution failed. Exiting...");
@@ -685,7 +683,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        toPersonTrajectory, robot, armSpace, armSkeleton, false);
+        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
     setFTThreshold(
         ftThresholdActionClient,
         standardForceThreshold,
@@ -716,7 +714,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     bool successMoveAwayFromPerson = moveArmOnTrajectory(
-        toPersonTrajectory, robot, armSpace, armSkeleton, false);
+        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
     if (!successMoveAwayFromPerson)
     {
       ROS_WARN("Trajectory execution failed. Exiting...");
