@@ -85,12 +85,15 @@ void moveArmTo(ada::Ada& robot,
     armSpace->convertStateToPositions(evalStartState, evalStartPos);
     armSpace->convertStateToPositions(evalGoalState, evalGoalPos);
     armSpace->convertStateToPositions(evalViaState, evalViaPos);
-    std::cout << "COMPARE START [" << refStatePos.transpose() << "] [";
-    std::cout << evalStartPos.transpose() << "]" << std::endl;
-    std::cout << "COMPARE VIA [" << viaPos.transpose() << "] [";
-    std::cout << evalViaPos.transpose() << "]" << std::endl;
-    std::cout << "COMPARE GOAL [" << goalPos.transpose() << "] [";
-    std::cout << goalPos.transpose() << "]" << std::endl;
+    std::cout << "COMPARE START" << std::endl;
+    std::cout << "[" << refStatePos.transpose() << "]" << std::endl;
+    std::cout << "[" << evalStartPos.transpose() << "]" << std::endl;
+    std::cout << "COMPARE VIA" << std::endl;
+    std::cout << "[" << viaPos.transpose() << "]" << std::endl;
+    std::cout << "[" << evalViaPos.transpose() << "]" << std::endl;
+    std::cout << "COMPARE GOAL" << std::endl;
+    std::cout << "[" << goalPos.transpose() << "]" << std::endl;
+    std::cout << "[" << goalPos.transpose() << "]" << std::endl;
     
     Eigen::VectorXd evalStartVelocity(armSpace->getDimension());
     Eigen::VectorXd evalViaVelocity(armSpace->getDimension());
@@ -98,17 +101,20 @@ void moveArmTo(ada::Ada& robot,
     trajectory->evaluateDerivative(trajectory->getStartTime(), 1, evalStartVelocity);
     trajectory->evaluateDerivative(viaTime, 1, evalViaVelocity);
     trajectory->evaluateDerivative(trajectory->getEndTime(), 1, evalGoalVelocity);
-    std::cout << "START VEL [" << evalStartVelocity.transpose() << "]" << std::endl;
-    std::cout << "VIA VEL [" << viaVelocity.transpose() << "] [";
-    std::cout << evalViaVelocity.transpose() << "]" << std::endl;
-    std::cout << "GOAL VEL [" << evalGoalVelocity.transpose() << "]" << std::endl; 
+    std::cout << "START VEL" << std::endl;
+    std::cout << "[" << evalStartVelocity.transpose() << "]" << std::endl;
+    std::cout << "VIA VEL" << std::endl;
+    std::cout << "[" << viaVelocity.transpose() << "]" << std::endl;
+    std::cout << "[" << evalViaVelocity.transpose() << "]" << std::endl;
+    std::cout << "GOAL VEL" << std::endl;
+    std::cout << "[" << evalGoalVelocity.transpose() << "]" << std::endl; 
     
     auto positionUpperLimits = armSpace->getProperties().getPositionUpperLimits();
     auto positionLowerLimits = armSpace->getProperties().getPositionLowerLimits();
     auto velocityUpperLimits = armSpace->getProperties().getVelocityUpperLimits();
     auto velocityLowerLimits = armSpace->getProperties().getVelocityLowerLimits();
     // validate a trajectory
-    for(double t=trajectory->getStartTime(); t<trajectory->getEndTime(); t+=0.01)
+    for(double t=trajectory->getStartTime(); t<trajectory->getEndTime(); t+=0.005)
     {
       // get the position
       auto tmpState = armSpace->createState();
@@ -294,8 +300,10 @@ int main(int argc, char** argv)
   auto currentPose = armSkeleton->getPositions();
   std::cout << "ARM current position:\n"
             << currentPose.transpose() << std::endl;
-  Eigen::VectorXd movedPose(currentPose);
-  movedPose(5) -= 0.5;
+  //Eigen::VectorXd movedPose(currentPose);
+  //movedPose(5) -= 0.5;
+  Eigen::VectorXd movedPose(6);
+  movedPose << -1.92989, 3.02971, 2.63889, -1.34884, 1.62496, -1.10234;
 
   if (!adaSim)
   {
