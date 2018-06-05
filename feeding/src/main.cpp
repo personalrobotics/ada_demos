@@ -82,7 +82,8 @@ bool moveArmOnTrajectory(
     ada::Ada& robot,
     const MetaSkeletonStateSpacePtr& armSpace,
     const MetaSkeletonPtr& armSkeleton,
-    const aikido::constraint::dart::CollisionFreePtr& collisionFreeConstraint)
+    const aikido::constraint::dart::CollisionFreePtr& collisionFreeConstraint,
+    bool smooth = true)
 {
   // Example for moving to configuration
   //
@@ -98,8 +99,20 @@ bool moveArmOnTrajectory(
     constraints.push_back(collisionFreeConstraint);
   }
   auto testable = std::make_shared<aikido::constraint::TestableIntersection>(armSpace, constraints);
-  aikido::trajectory::TrajectoryPtr timedTrajectory
+  
+  aikido::trajectory::TrajectoryPtr timedTrajectory;
+  if (smooth)
+  {
+    auto smoothTrajectory
         = robot.smoothPath(armSkeleton, trajectory.get(), testable);
+    timedTrajectory
+        = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+  }
+  else
+  {
+    timedTrajectory
+        = std::move(robot.retimePath(armSkeleton, trajectory.get()));
+  }
 
   auto future = robot.executeTrajectory(std::move(timedTrajectory));
   try
@@ -566,7 +579,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        intoFoodTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
+        intoFoodTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
     setFTThreshold(
         ftThresholdActionClient,
         afterGrabForceThreshold,
@@ -599,7 +612,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     bool successMoveAbovePlate2 = moveArmOnTrajectory(
-        abovePlateTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
+        abovePlateTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
     if (!successMoveAbovePlate2)
     {
       ROS_WARN("Trajectory execution failed. Exiting...");
@@ -669,7 +682,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
+        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
     setFTThreshold(
         ftThresholdActionClient,
         standardForceThreshold,
@@ -700,7 +713,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     bool successMoveAwayFromPerson = moveArmOnTrajectory(
-        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
+        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
     if (!successMoveAwayFromPerson)
     {
       ROS_WARN("Trajectory execution failed. Exiting...");
