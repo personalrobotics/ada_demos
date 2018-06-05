@@ -97,7 +97,7 @@ bool moveArmOnTrajectory(
   if (collisionFreeConstraint) {
     constraints.push_back(collisionFreeConstraint);
   }
-  auto testable = std::make_shared<aikido::constraint::TestableIntersection>(armSpace);
+  auto testable = std::make_shared<aikido::constraint::TestableIntersection>(armSpace, constraints);
   aikido::trajectory::TrajectoryPtr timedTrajectory
         = robot.smoothPath(armSkeleton, trajectory.get(), testable);
 
