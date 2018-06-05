@@ -376,9 +376,9 @@ int main(int argc, char** argv)
   Eigen::Isometry3d tablePose
       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.755);
   Eigen::Isometry3d personPose
-      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502);
+      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.452);
   Eigen::Isometry3d tomPose
-      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.502, 0, 0, M_PI);
+      = robotPose.inverse() * createIsometry(0.3, -0.2, 0.452, 0, 0, M_PI);
   Eigen::Isometry3d workspacePose
       = robotPose.inverse() * createIsometry(0, 0, 0);
 
