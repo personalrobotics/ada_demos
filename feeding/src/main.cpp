@@ -34,6 +34,7 @@ using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
 using aikido::constraint::dart::TSR;
 using aikido::constraint::dart::CollisionFree;
+using aikido::constraint::ConstTestablePtr;
 using aikido::constraint::TestablePtr;
 using aikido::trajectory::TrajectoryPtr;
 static const std::string foodsDataURI(
@@ -94,7 +95,7 @@ bool moveArmOnTrajectory(
   }
 
   //auto spaceConstraint = std::make_shared<aikido::constraint::Satisfied>(armSpace);
-  std::vector<TestablePtr> constraints;
+  std::vector<ConstTestablePtr> constraints;
   if (collisionFreeConstraint) {
     constraints.push_back(collisionFreeConstraint);
   }
