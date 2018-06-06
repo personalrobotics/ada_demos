@@ -327,8 +327,8 @@ int main(int argc, char** argv)
   viaVelocity << 0.0, -0.8, -0.4, 0.8, 0.0, 0.0;
 
   Eigen::VectorXd goalConfig(movedPose);
-  goalConfig(1) -= 0.01;
-  goalConfig(2) -= 0.01;
+  goalConfig(1) -= 0.02;
+  goalConfig(2) -= 0.02;
  
   ROS_INFO("Starting the kinodynamic testing");
   moveArmTo(robot, armSpace, armSkeleton, 
