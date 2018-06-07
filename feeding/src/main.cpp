@@ -352,7 +352,8 @@ int main(int argc, char** argv)
   // Predefined configurations
   // ////////////////////////////////////////////////////
   Eigen::Vector6d armRelaxedHome(Eigen::Vector6d::Ones());
-  armRelaxedHome << 0, 3.38, 4.0, 0.6, -1.9, -2.2;
+  //armRelaxedHome << 0, 3.38, 4.0, 0.6, -1.9, -2.2;
+  armRelaxedHome << -2.92722, 3.56652, 1.54389, -0.38693, 1.31163, 2.98721;
   Eigen::Vector6d abovePlateConfig(Eigen::Vector6d::Ones());
   abovePlateConfig << 1.3, -3.38, 4.5, 0.6, -1.9, -2.2;
   Eigen::Vector6d inFrontOfPersonConfig(Eigen::Vector6d::Ones());
