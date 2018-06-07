@@ -80,92 +80,6 @@ Eigen::Vector6d getCurrentConfig(ada::Ada& robot)
   return defaultPose;
 }
 
-void printStartAndGoal(const Spline& traj)
-{
-  auto tmpState = traj.getStateSpace()->createState();
-  Eigen::VectorXd tmpPos(traj.getStateSpace()->getDimension());
-  Eigen::VectorXd tmpVel(traj.getStateSpace()->getDimension());
-  
-  traj.evaluate(traj.getStartTime(), tmpState);
-  traj.getStateSpace()->logMap(tmpState, tmpPos);
-  traj.evaluateDerivative(traj.getStartTime(), 1, tmpVel);
-  ROS_INFO_STREAM("AT START TIME " << traj.getStartTime());
-  ROS_INFO_STREAM("POS " << tmpPos.transpose());
-  ROS_INFO_STREAM("VEL " << tmpVel.transpose());
-
-  traj.evaluate(traj.getEndTime(), tmpState);
-  traj.getStateSpace()->logMap(tmpState, tmpPos);
-  traj.evaluateDerivative(traj.getEndTime(), 1, tmpVel);
-  ROS_INFO_STREAM("AT END TIME " << traj.getEndTime());
-  ROS_INFO_STREAM("POS " << tmpPos.transpose());
-  ROS_INFO_STREAM("VEL " << tmpVel.transpose()); 
-}
-
-void printStartAndGoal(const TrajectoryPtr& traj)
-{
-  auto tmpState = traj->getStateSpace()->createState();
-  Eigen::VectorXd tmpPos(traj->getStateSpace()->getDimension());
-  Eigen::VectorXd tmpVel(traj->getStateSpace()->getDimension());
-  
-  traj->evaluate(traj->getStartTime(), tmpState);
-  traj->getStateSpace()->logMap(tmpState, tmpPos);
-  traj->evaluateDerivative(traj->getStartTime(), 1, tmpVel);
-  ROS_INFO_STREAM("AT START TIME " << traj->getStartTime());
-  ROS_INFO_STREAM("POS " << tmpPos.transpose());
-  ROS_INFO_STREAM("VEL " << tmpVel.transpose());
-
-  traj->evaluate(traj->getEndTime(), tmpState);
-  traj->getStateSpace()->logMap(tmpState, tmpPos);
-  traj->evaluateDerivative(traj->getEndTime(), 1, tmpVel);
-  ROS_INFO_STREAM("AT END TIME " << traj->getEndTime());
-  ROS_INFO_STREAM("POS " << tmpPos.transpose());
-  ROS_INFO_STREAM("VEL " << tmpVel.transpose()); 
-}
-
-void validateTimedTrajectory(const MetaSkeletonPtr& armSkeleton,
-                             const Spline& timedTraj,
-                             double timeStep)
-{
-  Eigen::VectorXd velocityLowerLimits = armSkeleton->getVelocityLowerLimits();
-  Eigen::VectorXd velocityUpperLimits = armSkeleton->getVelocityUpperLimits();
-  Eigen::VectorXd positionLowerLimits = armSkeleton->getPositionLowerLimits();
-  Eigen::VectorXd positionUpperLimits = armSkeleton->getPositionUpperLimits();
-  auto stateSpace = timedTraj.getStateSpace();
-  auto tmpState = stateSpace->createState();
-  Eigen::VectorXd tmpPos(stateSpace->getDimension());
-  Eigen::VectorXd tmpVel(stateSpace->getDimension());
-
-  ROS_INFO_STREAM("VALIDATING TIMED TRAJ OF DURATION " << timedTraj.getDuration() << " BY " << timeStep);
-  for(double t=timedTraj.getStartTime(); t<=timedTraj.getEndTime(); t+=timeStep)
-  {
-    timedTraj.evaluate(t, tmpState);
-    stateSpace->logMap(tmpState, tmpPos);
-    timedTraj.evaluateDerivative(t, 1, tmpVel);
-    if( ((tmpPos-positionLowerLimits).array() < 0.0).any() )
-    { 
-      ROS_INFO_STREAM("AT " << t << " POS LESS THAN LOWER LIMITS");
-      ROS_INFO_STREAM("POS " << tmpPos.transpose() );
-    }
-    if( ((tmpPos-positionUpperLimits).array() > 0.0).any() )
-    {
-      ROS_INFO_STREAM("AT " << t << " POS LARGER THAN UPPER LIMITS");
-      ROS_INFO_STREAM("POS " << tmpPos.transpose() );
-    }
-
-    if( ((tmpVel-velocityLowerLimits).array() < 0.0).any() )
-    { 
-      ROS_INFO_STREAM("AT " << t << " VEL LESS THAN LOWER LIMITS");
-      ROS_INFO_STREAM("VEL " << tmpVel.transpose() );
-    }
-    if( ((tmpVel-velocityUpperLimits).array() > 0.0).any() )
-    {
-      ROS_INFO_STREAM("AT " << t << " VEL LARGER THAN UPPER LIMITS");
-      ROS_INFO_STREAM("VEL " << tmpVel.transpose() );
-    }
-  }
-}
-
-
 bool moveArmOnTrajectory(
     TrajectoryPtr trajectory,
     ada::Ada& robot,
@@ -197,28 +111,16 @@ bool moveArmOnTrajectory(
   }
   else
   { 
-    ROS_INFO_STREAM("Using retimeTimeOptimalPath");
-    ROS_INFO_STREAM("Duration is " << trajectory->getDuration());
-    
-    //printStartAndGoal(trajectory);
 
     timedTrajectory
         = std::move(robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
-
-    //auto timedTraj = std::move(robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
-    ROS_INFO_STREAM("FINISH RETIMING");
-    //printStartAndGoal(*timedTraj);
-    //validateTimedTrajectory(armSkeleton, *timedTraj, 0.01);
     
     if(!timedTrajectory)
     {
+      // If using time-optimal retining failed, back to parabolic timing
       timedTrajectory = robot.retimePath(armSkeleton, trajectory.get());
     }
-    //auto timedTraj2 = robot.retimePath(armSkeleton, trajectory.get());
 
-    ROS_INFO_STREAM("After timing, Duration is " << timedTrajectory->getDuration());
-    
-    //ROS_INFO_STREAM("The previous time returns duration " << timedTraj2->getDuration());
   }
 
   auto future = robot.executeTrajectory(std::move(timedTrajectory));
