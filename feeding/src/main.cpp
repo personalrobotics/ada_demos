@@ -792,12 +792,12 @@ int main(int argc, char** argv)
         hand->getEndEffectorBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, 1, 0),
-        distanceToPerson,
+        distanceToPerson * 0.85,    // make sure it doesn't collide with the person
         planningTimeout,
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
+        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, true);
     if (adaReal && !setFTThreshold(
         ftThresholdActionClient,
         standardForceThreshold,
