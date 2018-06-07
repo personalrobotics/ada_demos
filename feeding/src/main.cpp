@@ -747,12 +747,6 @@ int main(int argc, char** argv)
   }
 
   waitForUser("Demo finished.");
-
-  if (!adaSim)
-  {
-    std::cout << "Stop trajectory executor" << std::endl;
-    robot.stopTrajectoryExecutor();
-  }
   ros::shutdown();
   return 0;
 }
