@@ -200,15 +200,15 @@ bool moveArmOnTrajectory(
     ROS_INFO_STREAM("Using retimeTimeOptimalPath");
     ROS_INFO_STREAM("Duration is " << trajectory->getDuration());
     
-    printStartAndGoal(trajectory);
+    //printStartAndGoal(trajectory);
 
     timedTrajectory
         = std::move(robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
 
     auto timedTraj = std::move(robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
     ROS_INFO_STREAM("FINISH RETIMING");
-    printStartAndGoal(*timedTraj);
-    validateTimedTrajectory(armSkeleton, *timedTraj, 0.01);
+    //printStartAndGoal(*timedTraj);
+    //validateTimedTrajectory(armSkeleton, *timedTraj, 0.01);
     
 
     auto timedTraj2 = robot.retimePath(armSkeleton, trajectory.get());
@@ -624,7 +624,7 @@ int main(int argc, char** argv)
 
   // ***** GET FOOD TSR *****
   double heightAboveFood = 0.1;
-  double heightIntoFood = adaReal ? 0.028 : 0.0;
+  double heightIntoFood = adaReal ? -0.02 : 0.0;
   double horizontal_tolerance_near_food = 0.002;
   double vertical_tolerance_near_food = 0.002;
 
@@ -668,7 +668,7 @@ int main(int argc, char** argv)
         return 0;
     if (!ros::ok()) return 0;
 
-    if (!setFTThreshold(
+    if (adaReal && !setFTThreshold(
         ftThresholdActionClient,
         grabFoodForceThreshold,
         grabFoodTorqueThreshold)) {
@@ -686,7 +686,7 @@ int main(int argc, char** argv)
         angularTolerance);
     moveArmOnTrajectory(
         intoFoodTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
-    if (!setFTThreshold(
+    if (adaReal && !setFTThreshold(
         ftThresholdActionClient,
         afterGrabForceThreshold,
         afterGrabTorqueThreshold)) {
@@ -726,7 +726,7 @@ int main(int argc, char** argv)
       ROS_WARN("Trajectory execution failed. Exiting...");
       exit(0);
     }
-    if (!setFTThreshold(
+    if (adaReal && !setFTThreshold(
         ftThresholdActionClient,
         standardForceThreshold,
         standardTorqueThreshold)) {
@@ -777,7 +777,7 @@ int main(int argc, char** argv)
 
   try
   {
-    if (!setFTThreshold(
+    if (adaReal && !setFTThreshold(
         ftThresholdActionClient,
         feedPersonForceThreshold,
         feedPersonTorqueThreshold)) {
@@ -795,7 +795,7 @@ int main(int argc, char** argv)
         angularTolerance);
     moveArmOnTrajectory(
         toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
-    if (!setFTThreshold(
+    if (adaReal && !setFTThreshold(
         ftThresholdActionClient,
         standardForceThreshold,
         standardTorqueThreshold)) {
