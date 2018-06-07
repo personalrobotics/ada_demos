@@ -205,17 +205,20 @@ bool moveArmOnTrajectory(
     timedTrajectory
         = std::move(robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
 
-    auto timedTraj = std::move(robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
+    //auto timedTraj = std::move(robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
     ROS_INFO_STREAM("FINISH RETIMING");
     //printStartAndGoal(*timedTraj);
     //validateTimedTrajectory(armSkeleton, *timedTraj, 0.01);
     
-
-    auto timedTraj2 = robot.retimePath(armSkeleton, trajectory.get());
+    if(!timedTrajectory)
+    {
+      timedTrajectory = robot.retimePath(armSkeleton, trajectory.get());
+    }
+    //auto timedTraj2 = robot.retimePath(armSkeleton, trajectory.get());
 
     ROS_INFO_STREAM("After timing, Duration is " << timedTrajectory->getDuration());
     
-    ROS_INFO_STREAM("The previous time returns duration " << timedTraj2->getDuration());
+    //ROS_INFO_STREAM("The previous time returns duration " << timedTraj2->getDuration());
   }
 
   auto future = robot.executeTrajectory(std::move(timedTrajectory));
