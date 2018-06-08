@@ -94,18 +94,20 @@ bool moveArmOnTrajectory(
     throw std::runtime_error("Failed to find a solution");
   }
 
-  //auto spaceConstraint = std::make_shared<aikido::constraint::Satisfied>(armSpace);
+  // auto spaceConstraint =
+  // std::make_shared<aikido::constraint::Satisfied>(armSpace);
   std::vector<ConstTestablePtr> constraints;
-  if (collisionFreeConstraint) {
+  if (collisionFreeConstraint)
+  {
     constraints.push_back(collisionFreeConstraint);
   }
-  auto testable = std::make_shared<aikido::constraint::TestableIntersection>(armSpace, constraints);
-  
+  auto testable = std::make_shared<aikido::constraint::TestableIntersection>(
+      armSpace, constraints);
+
   aikido::trajectory::TrajectoryPtr timedTrajectory;
   if (smooth)
   {
-    timedTrajectory
-        = robot.smoothPath(armSkeleton, trajectory.get(), testable);
+    timedTrajectory = robot.smoothPath(armSkeleton, trajectory.get(), testable);
   }
   else
   {
@@ -145,7 +147,8 @@ bool moveArmToConfiguration(
       collisionFreeConstraint,
       planningTimeout);
 
-  return moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
+  return moveArmOnTrajectory(
+      trajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
 }
 
 bool moveArmToTSR(
@@ -168,7 +171,8 @@ bool moveArmToTSR(
       maxNumberTrials,
       planningTimeout);
 
-  return moveArmOnTrajectory(trajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
+  return moveArmOnTrajectory(
+      trajectory, robot, armSpace, armSkeleton, collisionFreeConstraint);
 }
 
 Eigen::Isometry3d createIsometry(
@@ -228,16 +232,23 @@ bool setFTThreshold(
   if (finished_before_timeout)
   {
     actionlib::SimpleClientGoalState state = actionClient->getState();
-    if (state != actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED) {
-        ROS_WARN("F/T Thresholds could not be set: %s %s",state.toString().c_str(), actionClient->getResult()->message.c_str());
-        return false;
-    } else {
-        ROS_INFO("F/T Thresholds set successfully");
-        return true;
+    if (state != actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED)
+    {
+      ROS_WARN(
+          "F/T Thresholds could not be set: %s %s",
+          state.toString().c_str(),
+          actionClient->getResult()->message.c_str());
+      return false;
+    }
+    else
+    {
+      ROS_INFO("F/T Thresholds set successfully");
+      return true;
     }
     return false;
   }
-  else {
+  else
+  {
     ROS_WARN("F/T Thresholds could not be set: Timeout");
     return false;
   }
@@ -251,7 +262,8 @@ void perceiveFood(
     ada::Ada& robot)
 {
 
-  std::string detectorDataURI = "package://pr_ordata/data/objects/tag_data_foods.json";
+  std::string detectorDataURI
+      = "package://pr_ordata/data/objects/tag_data_foods.json";
   std::string referenceFrameName = "j2n6s200_link_base";
 
   aikido::robot::util::getBodyNodeOrThrow(
@@ -350,7 +362,7 @@ int main(int argc, char** argv)
   // Predefined configurations
   // ////////////////////////////////////////////////////
   Eigen::Vector6d armRelaxedHome(Eigen::Vector6d::Ones());
-  //armRelaxedHome << 0, 3.38, 4.0, 0.6, -1.9, -2.2;
+  // armRelaxedHome << 0, 3.38, 4.0, 0.6, -1.9, -2.2;
   armRelaxedHome << -2.92722, 3.56652, 1.54389, -0.38693, 1.31163, 2.98721;
   Eigen::Vector6d abovePlateConfig(Eigen::Vector6d::Ones());
   abovePlateConfig << 1.3, -3.38, 4.5, 0.6, -1.9, -2.2;
@@ -371,8 +383,8 @@ int main(int argc, char** argv)
       = robotPose.inverse() * createIsometry(0.3, 0.25, 0.00);
   Eigen::Isometry3d foodPose = platePose;
   // origin is corner of table top
-//   Eigen::Isometry3d tablePose
-//       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
+  //   Eigen::Isometry3d tablePose
+  //       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.735);
   Eigen::Isometry3d tablePose
       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.755);
   Eigen::Isometry3d personPose
@@ -383,7 +395,7 @@ int main(int argc, char** argv)
       = robotPose.inverse() * createIsometry(0, 0, 0);
 
   auto plate = loadSkeletonFromURDF(resourceRetriever, plateURDFUri, platePose);
-  //robot.getWorld()->addSkeleton(plate);
+  // robot.getWorld()->addSkeleton(plate);
   auto table = loadSkeletonFromURDF(resourceRetriever, tableURDFUri, tablePose);
   robot.getWorld()->addSkeleton(table);
   auto workspace = loadSkeletonFromURDF(
@@ -391,7 +403,8 @@ int main(int argc, char** argv)
   robot.getWorld()->addSkeleton(workspace);
   auto foodItem
       = loadSkeletonFromURDF(resourceRetriever, foodItemURDFUri, foodPose);
-  if (adaSim) {
+  if (adaSim)
+  {
     robot.getWorld()->addSkeleton(foodItem);
     foodItem->getRootBodyNode()->setCollidable(false);
   }
@@ -421,18 +434,31 @@ int main(int argc, char** argv)
   // Start F/T threshold action client
   // Important: do this after starting trajectory executor
   std::unique_ptr<FTThresholdActionClient> ftThresholdActionClient;
-  if (adaReal) {
-    ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(new FTThresholdActionClient("/move_until_touch_topic_controller/set_forcetorque_threshold/"));
+  if (adaReal)
+  {
+    ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(
+        new FTThresholdActionClient(
+            "/move_until_touch_topic_controller/set_forcetorque_threshold/"));
     ROS_INFO("Waiting for FT Threshold Action Server to start...");
     ftThresholdActionClient->waitForServer();
     ROS_INFO("FT Threshold Action Server started.");
   }
   bool setFTSuccessful = false;
-  while (!setFTSuccessful && adaReal) {
-    setFTSuccessful = setFTThreshold(ftThresholdActionClient, standardForceThreshold, standardTorqueThreshold);
-    if (setFTSuccessful) {break;}
+  while (!setFTSuccessful && adaReal)
+  {
+    setFTSuccessful = setFTThreshold(
+        ftThresholdActionClient,
+        standardForceThreshold,
+        standardTorqueThreshold);
+    if (setFTSuccessful)
+    {
+      break;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    if (!ros::ok()) {exit(0);}
+    if (!ros::ok())
+    {
+      exit(0);
+    }
   }
 
   auto currentPose = getCurrentConfig(robot);
@@ -441,7 +467,6 @@ int main(int argc, char** argv)
   {
     return 0;
   }
-
 
   hand->executePreshape("closed").wait();
 
@@ -455,10 +480,7 @@ int main(int argc, char** argv)
   abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAbovePlate};
 
   abovePlateTSR.mBw = createBwMatrixForTSR(
-      horizontal_tolerance_above_plate,
-      vertical_tolerance_above_plate,
-      0,
-      0);
+      horizontal_tolerance_above_plate, vertical_tolerance_above_plate, 0, 0);
   abovePlateTSR.mTw_e.matrix()
       *= hand->getEndEffectorTransform("plate")->matrix();
 
@@ -467,7 +489,8 @@ int main(int argc, char** argv)
   if (!autoContinue)
     if (!waitForUser("Move arm to default pose"))
       return 0;
-  if (!ros::ok()) return 0;
+  if (!ros::ok())
+    return 0;
 
   auto startState
       = robotSpace->getScopedStateFromMetaSkeleton(robotSkeleton.get());
@@ -493,30 +516,39 @@ int main(int argc, char** argv)
     exit(0);
   }
 
-
   // ***** GET FOOD TSR WITH PERCEPTION *****
-  if (adaReal) {
+  if (adaReal)
+  {
     if (!autoContinue)
       if (!waitForUser("Perceive food"))
         return 0;
 
     perceiveFood(nh, detectorTopicName, resourceRetriever, robot);
 
-    for (int i=0; i<robot.getWorld()->getNumSkeletons(); i++) {
-        ROS_INFO_STREAM(robot.getWorld()->getSkeleton(i)->getName());
+    for (int i = 0; i < robot.getWorld()->getNumSkeletons(); i++)
+    {
+      ROS_INFO_STREAM(robot.getWorld()->getSkeleton(i)->getName());
     }
 
     std::string perceivedFoodName = "apricot_1";
     auto perceivedFood = robot.getWorld()->getSkeleton(perceivedFoodName);
     if (perceivedFood != nullptr)
     {
-      foodPose.translation() = perceivedFood->getJoint(0)->getChildBodyNode()->getTransform().translation();
-      ROS_INFO_STREAM("perceived x: " << foodPose.translation().x() << ", y: " << foodPose.translation().y() << ", z: " << foodPose.translation().z());
-    } else {
+      foodPose.translation() = perceivedFood->getJoint(0)
+                                   ->getChildBodyNode()
+                                   ->getTransform()
+                                   .translation();
+      ROS_INFO_STREAM(
+          "perceived x: " << foodPose.translation().x() << ", y: "
+                          << foodPose.translation().y()
+                          << ", z: "
+                          << foodPose.translation().z());
+    }
+    else
+    {
       throw std::runtime_error("Error when perceiving food");
     }
   }
-  
 
   // ***** GET FOOD TSR *****
   double heightAboveFood = 0.1;
@@ -538,12 +570,14 @@ int main(int argc, char** argv)
   // ***** MOVE ABOVE FOOD, INTO FOOD AND ABOVE PLATE *****
 
   aikido::constraint::dart::TSR aboveFoodTSR(foodTSR);
-  aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood - heightIntoFood};
+  aboveFoodTSR.mTw_e.translation()
+      = Eigen::Vector3d{0, 0, heightAboveFood - heightIntoFood};
 
   if (!autoContinue)
     if (!waitForUser("Move arm above food"))
       return 0;
-  if (!ros::ok()) return 0;
+  if (!ros::ok())
+    return 0;
   bool successMoveAboveFood = moveArmToTSR(
       aboveFoodTSR,
       robot,
@@ -562,14 +596,16 @@ int main(int argc, char** argv)
     if (!autoContinue)
       if (!waitForUser("Move arm into food"))
         return 0;
-    if (!ros::ok()) return 0;
+    if (!ros::ok())
+      return 0;
 
     if (!setFTThreshold(
-        ftThresholdActionClient,
-        grabFoodForceThreshold,
-        grabFoodTorqueThreshold)) {
-            return -1;
-        }
+            ftThresholdActionClient,
+            grabFoodForceThreshold,
+            grabFoodTorqueThreshold))
+    {
+      return -1;
+    }
     auto intoFoodTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
@@ -581,13 +617,19 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        intoFoodTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
+        intoFoodTrajectory,
+        robot,
+        armSpace,
+        armSkeleton,
+        collisionFreeConstraint,
+        false);
     if (!setFTThreshold(
-        ftThresholdActionClient,
-        afterGrabForceThreshold,
-        afterGrabTorqueThreshold)) {
-            return -1;
-        }
+            ftThresholdActionClient,
+            afterGrabForceThreshold,
+            afterGrabTorqueThreshold))
+    {
+      return -1;
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   }
   catch (int e)
@@ -595,14 +637,16 @@ int main(int argc, char** argv)
     ROS_INFO("caught expection");
     return 1;
   }
-  if (adaSim) {
+  if (adaSim)
+  {
     hand->grab(foodItem);
   }
 
   if (!autoContinue)
     if (!waitForUser("Move arm above plate"))
       return 0;
-  if (!ros::ok()) return 0;
+  if (!ros::ok())
+    return 0;
   try
   {
     auto abovePlateTrajectory = robot.planToEndEffectorOffset(
@@ -616,18 +660,24 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     bool successMoveAbovePlate2 = moveArmOnTrajectory(
-        abovePlateTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
+        abovePlateTrajectory,
+        robot,
+        armSpace,
+        armSkeleton,
+        collisionFreeConstraint,
+        false);
     if (!successMoveAbovePlate2)
     {
       ROS_WARN("Trajectory execution failed. Exiting...");
       exit(0);
     }
     if (!setFTThreshold(
-        ftThresholdActionClient,
-        standardForceThreshold,
-        standardTorqueThreshold)) {
-            return -1;
-        }
+            ftThresholdActionClient,
+            standardForceThreshold,
+            standardTorqueThreshold))
+    {
+      return -1;
+    }
   }
   catch (int e)
   {
@@ -654,7 +704,8 @@ int main(int argc, char** argv)
   if (!autoContinue)
     if (!waitForUser("Move arm to person"))
       return 0;
-  if (!ros::ok()) return 0;
+  if (!ros::ok())
+    return 0;
   try
   {
     bool successMoveToPerson = moveArmToTSR(
@@ -674,11 +725,12 @@ int main(int argc, char** argv)
   try
   {
     if (!setFTThreshold(
-        ftThresholdActionClient,
-        feedPersonForceThreshold,
-        feedPersonTorqueThreshold)) {
-            return -1;
-        }
+            ftThresholdActionClient,
+            feedPersonForceThreshold,
+            feedPersonTorqueThreshold))
+    {
+      return -1;
+    }
     auto toPersonTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
@@ -690,13 +742,19 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
+        toPersonTrajectory,
+        robot,
+        armSpace,
+        armSkeleton,
+        collisionFreeConstraint,
+        false);
     if (!setFTThreshold(
-        ftThresholdActionClient,
-        standardForceThreshold,
-        standardTorqueThreshold)) {
-            return -1;
-        }
+            ftThresholdActionClient,
+            standardForceThreshold,
+            standardTorqueThreshold))
+    {
+      return -1;
+    }
   }
   catch (int e)
   {
@@ -705,7 +763,8 @@ int main(int argc, char** argv)
   }
 
   std::this_thread::sleep_for(std::chrono::milliseconds(6000));
-  if (adaSim) {
+  if (adaSim)
+  {
     hand->ungrab();
     robot.getWorld()->removeSkeleton(foodItem);
   }
@@ -718,12 +777,17 @@ int main(int argc, char** argv)
         hand->getEndEffectorBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, -1, 0),
-        distanceToPerson/2,
+        distanceToPerson / 2,
         planningTimeout,
         positionTolerance,
         angularTolerance);
     bool successMoveAwayFromPerson = moveArmOnTrajectory(
-        fromPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
+        fromPersonTrajectory,
+        robot,
+        armSpace,
+        armSkeleton,
+        collisionFreeConstraint,
+        false);
     if (!successMoveAwayFromPerson)
     {
       ROS_WARN("Trajectory execution failed. Exiting...");
@@ -739,7 +803,8 @@ int main(int argc, char** argv)
   if (!autoContinue)
     if (!waitForUser("Move arm to plate"))
       return 0;
-  if (!ros::ok()) return 0;
+  if (!ros::ok())
+    return 0;
 
   bool successMoveAbovePlate3 = moveArmToTSR(
       abovePlateTSR,
