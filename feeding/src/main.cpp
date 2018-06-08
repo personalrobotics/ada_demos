@@ -541,7 +541,7 @@ int main(int argc, char** argv)
 
   // ***** GET FOOD TSR *****
   double heightAboveFood = 0.1;
-  double heightIntoFood = adaReal ? -0.02 : 0.0;
+  double heightIntoFood = adaReal ?  0.024 : 0.0;
   double horizontal_tolerance_near_food = 0.002;
   double vertical_tolerance_near_food = 0.002;
 
