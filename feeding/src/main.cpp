@@ -61,6 +61,12 @@ static const double feedPersonTorqueThreshold = 2;
 
 bool adaSim = true;
 
+enum TrajectoryPostprocessType {
+    RETIME,
+    SMOOTH,
+    TRYOPTIMALRETIME
+};
+
 bool waitForUser(const std::string& msg)
 {
   ROS_INFO((msg + " Press [ENTER]").c_str());
@@ -86,7 +92,7 @@ bool moveArmOnTrajectory(
     const MetaSkeletonStateSpacePtr& armSpace,
     const MetaSkeletonPtr& armSkeleton,
     const aikido::constraint::dart::CollisionFreePtr& collisionFreeConstraint,
-    bool smooth = true)
+    TrajectoryPostprocessType postprocessType = SMOOTH)
 {
   // Example for moving to configuration
   //
@@ -104,23 +110,29 @@ bool moveArmOnTrajectory(
   auto testable = std::make_shared<aikido::constraint::TestableIntersection>(armSpace, constraints);
   
   aikido::trajectory::TrajectoryPtr timedTrajectory;
-  if (smooth)
-  {
-    timedTrajectory
-        = robot.smoothPath(armSkeleton, trajectory.get(), testable);
-  }
-  else
-  { 
+  switch (postprocessType) {
+      case RETIME:
+        timedTrajectory = robot.retimePath(armSkeleton, trajectory.get());
+        break;
 
-    timedTrajectory
-        = std::move(robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
-    
-    if(!timedTrajectory)
-    {
-      // If using time-optimal retining failed, back to parabolic timing
-      timedTrajectory = robot.retimePath(armSkeleton, trajectory.get());
-    }
+      case SMOOTH:
+        timedTrajectory
+            = robot.smoothPath(armSkeleton, trajectory.get(), testable);
+        break;
 
+      case TRYOPTIMALRETIME:
+        timedTrajectory
+            = std::move(robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
+        
+        if(!timedTrajectory)
+        {
+          // If using time-optimal retining failed, back to parabolic timing
+          timedTrajectory = robot.retimePath(armSkeleton, trajectory.get());
+        }
+        break;
+
+      default:
+        throw std::runtime_error("Feeding demo: Unexpected trajectory post processing type!");
   }
 
   auto future = robot.executeTrajectory(std::move(timedTrajectory));
@@ -590,7 +602,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        intoFoodTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
+        intoFoodTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, RETIME);
     if (adaReal && !setFTThreshold(
         ftThresholdActionClient,
         afterGrabForceThreshold,
@@ -625,7 +637,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     bool successMoveAbovePlate2 = moveArmOnTrajectory(
-        abovePlateTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
+        abovePlateTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, RETIME);
     if (!successMoveAbovePlate2)
     {
       ROS_WARN("Trajectory execution failed. Exiting...");
@@ -699,7 +711,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     moveArmOnTrajectory(
-        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, true);
+        toPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, RETIME);
     if (adaReal && !setFTThreshold(
         ftThresholdActionClient,
         standardForceThreshold,
@@ -732,7 +744,7 @@ int main(int argc, char** argv)
         positionTolerance,
         angularTolerance);
     bool successMoveAwayFromPerson = moveArmOnTrajectory(
-        fromPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, false);
+        fromPersonTrajectory, robot, armSpace, armSkeleton, collisionFreeConstraint, RETIME);
     if (!successMoveAwayFromPerson)
     {
       ROS_WARN("Trajectory execution failed. Exiting...");
