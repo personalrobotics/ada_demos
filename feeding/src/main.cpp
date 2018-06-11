@@ -65,7 +65,6 @@ enum TrajectoryPostprocessType
 {
   RETIME,
   SMOOTH,
-  TRYOPTIMALRETIME
 };
 
 bool waitForUser(const std::string& msg)
@@ -123,17 +122,6 @@ bool moveArmOnTrajectory(
     case SMOOTH:
       timedTrajectory
           = robot.smoothPath(armSkeleton, trajectory.get(), testable);
-      break;
-
-    case TRYOPTIMALRETIME:
-      timedTrajectory = std::move(
-          robot.retimeTimeOptimalPath(armSkeleton, trajectory.get()));
-
-      if (!timedTrajectory)
-      {
-        // If using time-optimal retining failed, back to parabolic timing
-        timedTrajectory = robot.retimePath(armSkeleton, trajectory.get());
-      }
       break;
 
     default:
