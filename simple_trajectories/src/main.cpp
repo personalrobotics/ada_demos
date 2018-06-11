@@ -22,8 +22,10 @@ using aikido::robot::Robot;
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
-dart::common::Uri adaUrdfUri{"package://ada_description/robots_urdf/ada_with_camera.urdf"};
-dart::common::Uri adaSrdfUri{"package://ada_description/robots_urdf/ada_with_camera.srdf"};
+dart::common::Uri adaUrdfUri{
+    "package://ada_description/robots_urdf/ada_with_camera.urdf"};
+dart::common::Uri adaSrdfUri{
+    "package://ada_description/robots_urdf/ada_with_camera.srdf"};
 
 static const double planningTimeout{5.};
 bool adaSim = true;
@@ -149,11 +151,10 @@ int main(int argc, char** argv)
         = space->getScopedStateFromMetaSkeleton(robotSkeleton.get());
 
     aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
-    if (!collision->isSatisfied(startState,
-    &collisionCheckOutcome))
+    if (!collision->isSatisfied(startState, &collisionCheckOutcome))
     {
-      throw std::runtime_error("Robot is in collison: " +
-      collisionCheckOutcome.toString());
+      throw std::runtime_error(
+          "Robot is in collison: " + collisionCheckOutcome.toString());
     }
   }
 
