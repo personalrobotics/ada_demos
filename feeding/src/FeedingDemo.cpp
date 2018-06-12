@@ -6,7 +6,7 @@
 
 namespace feeding {
 
-FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle& nodeHandle) :
+FeedingDemo::FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle) :
   adaReal(adaReal),
   nodeHandle(nodeHandle) {
 
@@ -28,7 +28,7 @@ FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle& nodeHandle) :
 
   Eigen::Isometry3d robotPose = createIsometry(getRosParam<std::vector<double>>("/robotPose", nodeHandle));
 
-  workspace = std::unique_ptr<Workspace>(new Workspace(world, robotPose, nodeHandle));
+  workspace = std::unique_ptr<Workspace>(new Workspace(world, robotPose, adaReal, nodeHandle));
 
   // Setting up collisions
   dart::collision::CollisionDetectorPtr collisionDetector
@@ -65,10 +65,23 @@ void FeedingDemo::closeHand() {
   ada->getHand()->executePreshape("closed").wait();
 }
 
+void FeedingDemo::grabFoodWithForque() {
+  if (!adaReal && workspace->getDefaultFoodItem()) {
+    ada->getHand()->grab(workspace->getDefaultFoodItem());
+  }
+}
+
+void FeedingDemo::ungrabAndDeleteFood() {
+  if (!adaReal && workspace->getDefaultFoodItem()) {
+    ada->getHand()->ungrab();
+    workspace->deleteFood();
+  }
+}
+
 void FeedingDemo::moveAbovePlate() {
   double heightAbovePlate = getRosParam<double>("/heightAbovePlate", nodeHandle);
-  double horizontalToleranceAbovePlate = getRosParam<double>("/horizontalToleranceAbovePlate", nodeHandle);
-  double verticalToleranceAbovePlate = getRosParam<double>("/verticalToleranceAbovePlate", nodeHandle);
+  double horizontalToleranceAbovePlate = getRosParam<double>("/planning/tsr/horizontalToleranceAbovePlate", nodeHandle);
+  double verticalToleranceAbovePlate = getRosParam<double>("/planning/tsr/verticalToleranceAbovePlate", nodeHandle);
 
   auto abovePlateTSR = pr_tsr::getDefaultPlateTSR();
   abovePlateTSR.mT0_w = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
@@ -86,6 +99,97 @@ void FeedingDemo::moveAbovePlate() {
   }
 }
 
+void FeedingDemo::moveAboveFood(Eigen::Isometry3d foodTransform) {
+  double heightAboveFood = getRosParam<double>("/heightAboveFood", nodeHandle);
+  double heightIntoFood = adaReal ? getRosParam<double>("/heightIntoFood", nodeHandle) : 0.0;
+  double horizontalToleranceNearFood = getRosParam<double>("/planning/tsr/horizontalToleranceNearFood", nodeHandle);
+  double verticalToleranceNearFood = getRosParam<double>("/planning/tsr/verticalToleranceNearFood", nodeHandle);
+
+  auto foodTSR = pr_tsr::getDefaultPlateTSR();
+  foodTSR.mT0_w = foodTransform;
+  foodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+
+  foodTSR.mBw = createBwMatrixForTSR(
+      horizontalToleranceNearFood,
+      verticalToleranceNearFood,
+      -M_PI,
+      M_PI);
+  foodTSR.mTw_e.matrix() *= ada->getHand()->getEndEffectorTransform("plate")->matrix();
+
+  aikido::constraint::dart::TSR aboveFoodTSR(foodTSR);
+  aboveFoodTSR.mTw_e.translation()
+      = Eigen::Vector3d{0, 0, heightAboveFood - heightIntoFood};
+
+  bool successfulMove = moveArmToTSR(aboveFoodTSR);
+  if (!successfulMove)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+void FeedingDemo::moveIntoFood() {
+  bool successfulMove = moveWithEndEffectorOffset(
+        Eigen::Vector3d(0, 0, -1),
+        getRosParam<double>("/heightAboveFood", nodeHandle));
+  if (!successfulMove)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+void FeedingDemo::moveOutOfFood() {
+  bool successfulMove = moveWithEndEffectorOffset(
+        Eigen::Vector3d(0, 0, 1),
+        getRosParam<double>("/heightAboveFood", nodeHandle));
+  if (!successfulMove)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+void FeedingDemo::moveInFrontOfPerson() {
+  double distanceToPerson = getRosParam<double>("/distanceToPerson", nodeHandle);
+  double horizontalToleranceNearPerson = getRosParam<double>("/planning/tsr/horizontalToleranceNearPerson", nodeHandle);
+  double verticalToleranceNearPerson = getRosParam<double>("/planning/tsr/verticalToleranceNearPerson", nodeHandle);
+
+  auto personTSR = pr_tsr::getDefaultPlateTSR();
+  Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
+  personPose.translation() = workspace->getTom()->getRootBodyNode()->getWorldTransform().translation();
+  personPose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
+  personTSR.mT0_w = personPose;
+  personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
+
+  personTSR.mBw = createBwMatrixForTSR(
+      horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
+  personTSR.mTw_e.matrix() *= ada->getHand()->getEndEffectorTransform("person")->matrix();
+
+  bool successfulMove = moveArmToTSR(personTSR);
+  if (!successfulMove)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+void FeedingDemo::moveTowardsPerson() {
+  bool successfulMove = moveWithEndEffectorOffset(
+        Eigen::Vector3d(0, 1, 0),
+        getRosParam<double>("/distanceToPerson", nodeHandle) * 0.9);
+  if (!successfulMove)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+void FeedingDemo::moveAwayFromPerson() {
+  bool successfulMove = moveWithEndEffectorOffset(
+        Eigen::Vector3d(0, -1, 0),
+        getRosParam<double>("/distanceToPerson", nodeHandle));
+  if (!successfulMove)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
 bool FeedingDemo::moveArmToTSR(aikido::constraint::dart::TSR& tsr)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
@@ -95,11 +199,27 @@ bool FeedingDemo::moveArmToTSR(aikido::constraint::dart::TSR& tsr)
       ada->getArm()->getMetaSkeleton(),
       ada->getHand()->getEndEffectorBodyNode(),
       goalTSR,
-      collisionFreeConstraint,
-      getRosParam<double>("/planningTimeoutSeconds", nodeHandle),
-      getRosParam<int>("/maxNumberOfTrials", nodeHandle));
+      nullptr,
+      getRosParam<double>("/planning/timeoutSeconds", nodeHandle),
+      getRosParam<int>("/planning/maxNumberOfTrials", nodeHandle));
 
   return moveArmOnTrajectory(trajectory);
+}
+
+bool FeedingDemo::moveWithEndEffectorOffset(Eigen::Vector3d direction, double length)
+{
+  auto trajectory = ada->planToEndEffectorOffset(
+        armSpace,
+        ada->getArm()->getMetaSkeleton(),
+        ada->getHand()->getEndEffectorBodyNode(),
+        collisionFreeConstraint,
+        direction,
+        length,
+        getRosParam<double>("/planning/timeoutSeconds", nodeHandle),
+        getRosParam<double>("/planning/endEffectorOffset/positionTolerance", nodeHandle),
+        getRosParam<double>("/planning/endEffectorOffset/angularTolerance", nodeHandle));
+
+  return moveArmOnTrajectory(trajectory, RETIME);  
 }
 
 bool FeedingDemo::moveArmOnTrajectory(
@@ -108,13 +228,13 @@ bool FeedingDemo::moveArmOnTrajectory(
 {
   if (!trajectory)
   {
-    throw std::runtime_error("Failed to find a solution: Empty trajectory.");
+    return false;
   }
 
   std::vector<aikido::constraint::ConstTestablePtr> constraints;
   if (collisionFreeConstraint)
   {
-    constraints.push_back(collisionFreeConstraint);
+    //constraints.push_back(collisionFreeConstraint);
   }
   auto testable = std::make_shared<aikido::constraint::TestableIntersection>(
       armSpace, constraints);

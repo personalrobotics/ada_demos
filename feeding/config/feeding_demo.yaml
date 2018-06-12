@@ -21,7 +21,21 @@ workspaceEnvironment:
   urdfUri: package://pr_ordata/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0, 0, 0, 0]
 heightAbovePlate: 0.15
-horizontalToleranceAbovePlate: 0.005
-verticalToleranceAbovePlate: 0.005
-maxNumberOfTrials: 3
-planningTimeoutSeconds: 5
+heightAboveFood: 0.1
+heightIntoFood: 0.024
+distanceToPerson: 0.25
+waitMillisecsAtFood: 1000
+waitMillisecsAtPerson: 5000
+planning:
+  maxNumberOfTrials: 1
+  timeoutSeconds: 5
+  tsr:
+    horizontalToleranceAbovePlate: 0.005
+    verticalToleranceAbovePlate: 0.005
+    horizontalToleranceNearFood: 0.002
+    verticalToleranceNearFood: 0.002
+    horizontalToleranceNearPerson: 0.01
+    verticalToleranceNearPerson: 0.005
+  endEffectorOffset:
+    positionTolerance: 0.002
+    angularTolerance: 0.04

@@ -3,6 +3,7 @@
 #include "feeding/util.hpp"
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
+#include <pr_tsr/plate.hpp>
 
 using namespace feeding;
 
@@ -47,6 +48,64 @@ int main(int argc, char** argv) {
 	if (!autoContinueDemo)
 		waitForUser("Move forque above plate"),
 	feedingDemo.moveAbovePlate();
+
+
+	// ===== ABOVE FOOD =====
+	if (!autoContinueDemo)
+		waitForUser("Perceive Food");
+	Eigen::Isometry3d foodTransform;
+	if (adaReal) {
+    // TODO
+		//foodTransform = perception.perceiveFood();
+	} else {
+		foodTransform = feedingDemo.getDefaultFoodTransform();
+	}
+	if (!autoContinueDemo)
+		waitForUser("Move forque above food"),
+	feedingDemo.moveAboveFood(foodTransform);
+
+
+	// ===== INTO FOOD =====
+	if (!autoContinueDemo)
+		waitForUser("Move forque into food"),
+	//ftSensor.setThreshold(GRAB_FOOD_FT_THRESHOLD);
+	feedingDemo.moveIntoFood();
+  std::this_thread::sleep_for(std::chrono::milliseconds(getRosParam<int>("/waitMillisecsAtFood", nodeHandle)));
+	feedingDemo.grabFoodWithForque();
+
+
+	// ===== OUT OF FOOD =====
+	if (!autoContinueDemo)
+		waitForUser("Move forque out of food"),
+	//ftSensor.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
+	feedingDemo.moveOutOfFood();
+	//ftSensor.setThreshold(STANDARD_FT_THRESHOLD);
+
+	// ===== IN FRONT OF PERSON =====
+	if (!autoContinueDemo)
+		waitForUser("Move forque in front of person");
+	feedingDemo.moveInFrontOfPerson();
+
+
+	// ===== TOWARDS PERSON =====
+	if (!autoContinueDemo)
+		waitForUser("Move towards person");
+	//ftSensor.setThreshold(TOWARDS_PERSON_FT_THRESHOLD);
+	feedingDemo.moveTowardsPerson();
+  std::this_thread::sleep_for(std::chrono::milliseconds(getRosParam<int>("/waitMillisecsAtPerson", nodeHandle)));
+	feedingDemo.ungrabAndDeleteFood();
+	//ftSensor.setThreshold(STANDARD_FT_THRESHOLD);
+
+
+	// ===== AWAY FROM PERSON =====
+	feedingDemo.moveAwayFromPerson();
+
+
+	// ===== BACK TO PLATE =====
+	if (!autoContinueDemo)
+		waitForUser("Move back to plate");
+	feedingDemo.moveAbovePlate();
+
 
 	// ===== DONE =====
   	waitForUser("Demo finished.");
