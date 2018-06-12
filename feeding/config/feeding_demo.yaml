@@ -1,0 +1,27 @@
+visualizationName: dart_markers/feeding
+baseFrameName: map
+adaUrdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.urdf
+adaSrdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.srdf
+endEffectorName: j2n6s200_forque_end_effector
+homeConfiguration: [-2.92722, 3.56652, 1.54389, -0.38693, 1.31163, 2.98721]
+robotPose: [0.7, 0.1, 0.05, 0, 0, 3.1415]
+plate:
+  urdfUri: package://pr_ordata/data/objects/plate.urdf
+  pose: [.3, 0.25, 0.00, 0, 0, 0]
+table:
+  urdfUri: package://pr_ordata/data/furniture/table_feeding.urdf
+  pose: [0.76, 0.38, -0.735, 0, 0, 0]
+defaultFoodItem:
+  urdfUri: package://pr_ordata/data/objects/food_item.urdf
+  pose: [.3, 0.25, 0.00, 0, 0, 0]
+tom:
+  urdfUri: package://pr_ordata/data/objects/tom.urdf
+  pose: [0.3, -0.4, 0.412, 0, 0, 3.1415]
+workspaceEnvironment:
+  urdfUri: package://pr_ordata/data/furniture/workspace_feeding_demo.urdf
+  pose: [0, 0, 0, 0, 0, 0]
+heightAbovePlate: 0.15
+horizontalToleranceAbovePlate: 0.005
+verticalToleranceAbovePlate: 0.005
+maxNumberOfTrials: 3
+planningTimeoutSeconds: 5
