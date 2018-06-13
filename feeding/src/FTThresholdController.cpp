@@ -42,10 +42,14 @@ void FTThresholdController::init()
   }
 }
 
-bool FTThresholdController::trySetThreshold(FTThreshold threshold) {
-  try {
+bool FTThresholdController::trySetThreshold(FTThreshold threshold)
+{
+  try
+  {
     setThreshold(threshold);
-  } catch(std::runtime_error) {
+  }
+  catch (std::runtime_error)
+  {
     return false;
   }
   return true;
@@ -103,9 +107,8 @@ void FTThresholdController::setThreshold(FTThreshold threshold)
     if (state != actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED)
     {
       throw std::runtime_error(
-          "F/T Thresholds could not be set: " +
-          state.toString() + ", " +
-          ftThresholdActionClient->getResult()->message);
+          "F/T Thresholds could not be set: " + state.toString() + ", "
+          + ftThresholdActionClient->getResult()->message);
     }
   }
   else

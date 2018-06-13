@@ -23,8 +23,8 @@ FeedingDemo::FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle)
 
   if (!adaReal)
   {
-    auto home
-        = getRosParam<std::vector<double>>("/ada/homeConfiguration", nodeHandle);
+    auto home = getRosParam<std::vector<double>>(
+        "/ada/homeConfiguration", nodeHandle);
     ada->getArm()->getMetaSkeleton()->setPositions(
         Eigen::Vector6d(home.data()));
   }
@@ -143,13 +143,15 @@ void FeedingDemo::moveAbovePlate()
 
 void FeedingDemo::moveAboveFood(Eigen::Isometry3d foodTransform)
 {
-  double heightAboveFood = getRosParam<double>("/feedingDemo/heightAboveFood", nodeHandle);
+  double heightAboveFood
+      = getRosParam<double>("/feedingDemo/heightAboveFood", nodeHandle);
   // If the robot is not simulated, we want to plan the trajectory to move a
   // little further downwards,
   // so that the MoveUntilTouchController can take care of stopping the
   // trajectory.
   double heightIntoFood
-      = adaReal ? getRosParam<double>("/feedingDemo/heightIntoFood", nodeHandle) : 0.0;
+      = adaReal ? getRosParam<double>("/feedingDemo/heightIntoFood", nodeHandle)
+                : 0.0;
   double horizontalToleranceNearFood = getRosParam<double>(
       "/planning/tsr/horizontalToleranceNearFood", nodeHandle);
   double verticalToleranceNearFood = getRosParam<double>(
