@@ -4,7 +4,7 @@ project(feeding)
 add_executable(feeding
   src/main.cpp
   src/FeedingDemo.cpp
-  src/FTSensor.cpp
+  src/FTThresholdController.cpp
   src/Perception.cpp
   src/Workspace.cpp
   src/util.cpp

@@ -39,3 +39,18 @@ planning:
   endEffectorOffset:
     positionTolerance: 0.002
     angularTolerance: 0.04
+ftSensor:
+  controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
+  thresholds:
+    standard:
+      force: 6
+      torque: 2
+    grabFood:
+      force: 25
+      torque: 2
+    afterGrabFood:
+      force: 45
+      torque: 5
+    towardsPerson:
+      force: 2
+      torque: 2

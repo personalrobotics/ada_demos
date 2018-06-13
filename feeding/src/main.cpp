@@ -1,6 +1,7 @@
 
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/util.hpp"
+#include "feeding/FTThresholdController.hpp"
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
 #include <pr_tsr/plate.hpp>
@@ -27,6 +28,8 @@ int main(int argc, char** argv) {
   // start demo
 	FeedingDemo feedingDemo(adaReal, nodeHandle);
 
+  FTThresholdController ftThresholdController(adaReal, false, nodeHandle);
+
 	// visualization
 	aikido::rviz::WorldInteractiveMarkerViewer viewer(
       feedingDemo.getWorld(),
@@ -38,6 +41,8 @@ int main(int argc, char** argv) {
   if (!feedingDemo.isCollisionFree(collisionCheckResult)) {
     throw std::runtime_error(collisionCheckResult);
   }
+
+  ftThresholdController.init();
 	feedingDemo.closeHand();
 
 	if (!autoContinueDemo)
@@ -68,7 +73,7 @@ int main(int argc, char** argv) {
 	// ===== INTO FOOD =====
 	if (!autoContinueDemo)
 		waitForUser("Move forque into food"),
-	//ftSensor.setThreshold(GRAB_FOOD_FT_THRESHOLD);
+	ftThresholdController.setThreshold(GRAB_FOOD_FT_THRESHOLD);
 	feedingDemo.moveIntoFood();
   std::this_thread::sleep_for(std::chrono::milliseconds(getRosParam<int>("/waitMillisecsAtFood", nodeHandle)));
 	feedingDemo.grabFoodWithForque();
@@ -77,9 +82,9 @@ int main(int argc, char** argv) {
 	// ===== OUT OF FOOD =====
 	if (!autoContinueDemo)
 		waitForUser("Move forque out of food"),
-	//ftSensor.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
+	ftThresholdController.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
 	feedingDemo.moveOutOfFood();
-	//ftSensor.setThreshold(STANDARD_FT_THRESHOLD);
+	ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
 
 	// ===== IN FRONT OF PERSON =====
 	if (!autoContinueDemo)
@@ -90,11 +95,11 @@ int main(int argc, char** argv) {
 	// ===== TOWARDS PERSON =====
 	if (!autoContinueDemo)
 		waitForUser("Move towards person");
-	//ftSensor.setThreshold(TOWARDS_PERSON_FT_THRESHOLD);
+	ftThresholdController.setThreshold(TOWARDS_PERSON_FT_THRESHOLD);
 	feedingDemo.moveTowardsPerson();
   std::this_thread::sleep_for(std::chrono::milliseconds(getRosParam<int>("/waitMillisecsAtPerson", nodeHandle)));
 	feedingDemo.ungrabAndDeleteFood();
-	//ftSensor.setThreshold(STANDARD_FT_THRESHOLD);
+	ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
 
 
 	// ===== AWAY FROM PERSON =====
@@ -108,7 +113,7 @@ int main(int argc, char** argv) {
 
 
 	// ===== DONE =====
-  	waitForUser("Demo finished.");
+  waitForUser("Demo finished.");
   ros::shutdown();
   return 0;
 }
