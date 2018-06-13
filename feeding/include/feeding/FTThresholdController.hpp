@@ -17,14 +17,13 @@ enum FTThreshold {
 
 class FTThresholdController {
 
-  bool adaReal;
 	bool useThresholdControl;
   const ros::NodeHandle& nodeHandle;
   std::unique_ptr<actionlib::SimpleActionClient<pr_control_msgs::SetForceTorqueThresholdAction>> ftThresholdActionClient;
 
 public:
 
-  FTThresholdController(bool adaReal, bool useThresholdControl, const ros::NodeHandle& nodeHandle);
+  FTThresholdController(bool useThresholdControl, const ros::NodeHandle& nodeHandle);
 
 	void init();
 

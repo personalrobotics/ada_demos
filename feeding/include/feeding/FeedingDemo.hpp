@@ -21,10 +21,6 @@ class FeedingDemo {
   aikido::planner::WorldPtr world;
 
   std::unique_ptr<ada::Ada> ada;
-  /*aikido::robot::ConcreteManipulatorPtr arm;
-  dart::dynamics::MetaSkeletonPtr armSkeleton;
-  std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace;
-  auto hand = robot.getHand();*/
   std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace;
   std::unique_ptr<Workspace> workspace;
   std::shared_ptr<aikido::constraint::dart::CollisionFree> collisionFreeConstraint;

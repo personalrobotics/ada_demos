@@ -2,6 +2,7 @@
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/util.hpp"
 #include "feeding/FTThresholdController.hpp"
+#include "feeding/Perception.hpp"
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
 #include <pr_tsr/plate.hpp>
@@ -28,7 +29,9 @@ int main(int argc, char** argv) {
   // start demo
 	FeedingDemo feedingDemo(adaReal, nodeHandle);
 
-  FTThresholdController ftThresholdController(adaReal, false, nodeHandle);
+  FTThresholdController ftThresholdController(false, nodeHandle);
+
+  Perception perception(feedingDemo.getWorld(), *feedingDemo.getAda(), nodeHandle);
 
 	// visualization
 	aikido::rviz::WorldInteractiveMarkerViewer viewer(
@@ -60,8 +63,9 @@ int main(int argc, char** argv) {
 		waitForUser("Perceive Food");
 	Eigen::Isometry3d foodTransform;
 	if (adaReal) {
-    // TODO
-		//foodTransform = perception.perceiveFood();
+		 bool perceptionSuccessful = perception.perceiveFood(foodTransform);
+     if (!perceptionSuccessful)
+       throw std::runtime_error("Perception failed");
 	} else {
 		foodTransform = feedingDemo.getDefaultFoodTransform();
 	}

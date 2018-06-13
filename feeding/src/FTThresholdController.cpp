@@ -7,19 +7,19 @@ using FTThresholdActionClient
 
 namespace feeding {
 
-FTThresholdController::FTThresholdController(bool adaReal, bool useThresholdControl, const ros::NodeHandle& nodeHandle) : adaReal(adaReal), useThresholdControl(useThresholdControl), nodeHandle(nodeHandle) {
-  if (adaReal && useThresholdControl) {
-    std::string controllerThresholdTopic = getRosParam<std::string>("ftSensor/controllerFTThresholdTopic", nodeHandle);
-    ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(
-        new FTThresholdActionClient(controllerThresholdTopic));
-    ROS_INFO("Waiting for FT Threshold Action Server to start...");
-    ftThresholdActionClient->waitForServer();
-    ROS_INFO("FT Threshold Action Server started.");
-  }
+FTThresholdController::FTThresholdController(bool useThresholdControl, const ros::NodeHandle& nodeHandle) : useThresholdControl(useThresholdControl), nodeHandle(nodeHandle) {
+  if (!useThresholdControl) return;
+
+  std::string controllerThresholdTopic = getRosParam<std::string>("ftSensor/controllerFTThresholdTopic", nodeHandle);
+  ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(
+    new FTThresholdActionClient(controllerThresholdTopic));
+  ROS_INFO("Waiting for FT Threshold Action Server to start...");
+  ftThresholdActionClient->waitForServer();
+  ROS_INFO("FT Threshold Action Server started.");
 }
 
 void FTThresholdController::init() {
-  if (!adaReal || !useThresholdControl) return;
+  if (!useThresholdControl) return;
 
   bool setFTSuccessful = false;
   while (!setFTSuccessful)
@@ -35,7 +35,7 @@ void FTThresholdController::init() {
 }
 
 bool FTThresholdController::setThreshold(FTThreshold threshold) {
-  if (!adaReal || !useThresholdControl) return true;
+  if (!useThresholdControl) return true;
   double forceThreshold = 0;
   double torqueThreshold = 0;
 

@@ -54,3 +54,8 @@ ftSensor:
     towardsPerson:
       force: 2
       torque: 2
+perception:
+  detectorDataUri: package://pr_ordata/data/objects/tag_data_foods.json
+  detectorTopicName: /deep_pose/marker_array
+  referenceFrameName: j2n6s200_link_base
+  timeoutSeconds: 5
