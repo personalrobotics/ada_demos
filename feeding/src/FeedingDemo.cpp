@@ -232,7 +232,7 @@ bool FeedingDemo::moveArmOnTrajectory(
 {
   if (!trajectory)
   {
-    return false;
+    throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
   }
 
   std::vector<aikido::constraint::ConstTestablePtr> constraints;

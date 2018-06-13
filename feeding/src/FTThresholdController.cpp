@@ -34,7 +34,7 @@ void FTThresholdController::init() {
   }
 }
 
-bool FTThresholdController::setThreshold(FTThreshold threshold) {
+void FTThresholdController::setThreshold(FTThreshold threshold) {
   if (!useThresholdControl) return true;
   double forceThreshold = 0;
   double torqueThreshold = 0;
@@ -72,23 +72,15 @@ bool FTThresholdController::setThreshold(FTThreshold threshold) {
     actionlib::SimpleClientGoalState state = ftThresholdActionClient->getState();
     if (state != actionlib::SimpleClientGoalState::StateEnum::SUCCEEDED)
     {
-      ROS_WARN(
+      throw std::runtime_error(
           "F/T Thresholds could not be set: %s %s",
           state.toString().c_str(),
           ftThresholdActionClient->getResult()->message.c_str());
-      return false;
     }
-    else
-    {
-      ROS_INFO("F/T Thresholds set successfully");
-      return true;
-    }
-    return false;
   }
   else
   {
-    ROS_WARN("F/T Thresholds could not be set: Timeout");
-    return false;
+    throw std::runtime_error("F/T Thresholds could not be set: Timeout");
   }
 }
 

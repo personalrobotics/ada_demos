@@ -15,6 +15,8 @@ enum FTThreshold {
 	TOWARDS_PERSON_FT_THRESHOLD
 };
 
+/// The FTThresholdController configures the MoveUntilTouchController's thresholds.
+/// When those thresholds are exceeded, the controller stops the movement.
 class FTThresholdController {
 
 	bool useThresholdControl;
@@ -23,11 +25,19 @@ class FTThresholdController {
 
 public:
 
+	/// Constructor.
+	/// With useThresholdControl you can turn this whole objects on and off.
+	/// Useful if you don't use the MoveUntilTouchController and don't need to set these thresholds
   FTThresholdController(bool useThresholdControl, const ros::NodeHandle& nodeHandle);
 
+	/// Needs to be called before setting the first thresholds.
+	/// Blocks until the threshold could be set successfully.
+	/// Can be aborted with Ctrl-C.
 	void init();
 
-	bool setThreshold(FTThreshold);
+	/// Sets the MoveUntilTouchControllers Thresholds accordingly.
+	/// Throws a runtime_error if we useThresholdControl and we are unable to set the thresholds.
+	void setThreshold(FTThreshold);
 
 };
 
