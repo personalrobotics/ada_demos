@@ -10,7 +10,7 @@ namespace feeding {
 FTThresholdController::FTThresholdController(bool useThresholdControl, const ros::NodeHandle& nodeHandle) : useThresholdControl(useThresholdControl), nodeHandle(nodeHandle) {
   if (!useThresholdControl) return;
 
-  std::string controllerThresholdTopic = getRosParam<std::string>("ftSensor/controllerFTThresholdTopic", nodeHandle);
+  std::string controllerThresholdTopic = getRosParam<std::string>("/ftSensor/controllerFTThresholdTopic", nodeHandle);
   ftThresholdActionClient = std::unique_ptr<FTThresholdActionClient>(
     new FTThresholdActionClient(controllerThresholdTopic));
   ROS_INFO("Waiting for FT Threshold Action Server to start...");

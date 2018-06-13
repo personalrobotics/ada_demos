@@ -42,7 +42,12 @@ FeedingDemo::FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle) :
   collisionFreeConstraint = std::make_shared<aikido::constraint::dart::CollisionFree>(
       armSpace, ada->getArm()->getMetaSkeleton(), collisionDetector);
   collisionFreeConstraint->addPairwiseCheck(
-      armCollisionGroup, envCollisionGroup);    
+      armCollisionGroup, envCollisionGroup);  
+
+  if (adaReal)
+  {
+    ada->startTrajectoryExecutor();
+  }  
 }
 
 bool FeedingDemo::isCollisionFree(std::string& result) {
@@ -55,6 +60,13 @@ bool FeedingDemo::isCollisionFree(std::string& result) {
   }
   result = "Robot is not in collision";
   return true;
+}
+
+void FeedingDemo::printRobotConfiguration() {
+  Eigen::IOFormat CommaInitFmt(
+      Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", " << ", ";");
+  auto defaultPose = ada->getArm()->getMetaSkeleton()->getPositions();
+  ROS_INFO_STREAM("Current configuration" << defaultPose.format(CommaInitFmt));
 }
 
 void FeedingDemo::openHand() {
@@ -131,10 +143,6 @@ void FeedingDemo::moveIntoFood() {
   bool successfulMove = moveWithEndEffectorOffset(
         Eigen::Vector3d(0, 0, -1),
         getRosParam<double>("/heightAboveFood", nodeHandle));
-  if (!successfulMove)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
 }
 
 void FeedingDemo::moveOutOfFood() {
@@ -174,10 +182,6 @@ void FeedingDemo::moveTowardsPerson() {
   bool successfulMove = moveWithEndEffectorOffset(
         Eigen::Vector3d(0, 1, 0),
         getRosParam<double>("/distanceToPerson", nodeHandle) * 0.9);
-  if (!successfulMove)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
 }
 
 void FeedingDemo::moveAwayFromPerson() {
@@ -199,7 +203,7 @@ bool FeedingDemo::moveArmToTSR(aikido::constraint::dart::TSR& tsr)
       ada->getArm()->getMetaSkeleton(),
       ada->getHand()->getEndEffectorBodyNode(),
       goalTSR,
-      nullptr,
+      collisionFreeConstraint,
       getRosParam<double>("/planning/timeoutSeconds", nodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", nodeHandle));
 
@@ -234,7 +238,7 @@ bool FeedingDemo::moveArmOnTrajectory(
   std::vector<aikido::constraint::ConstTestablePtr> constraints;
   if (collisionFreeConstraint)
   {
-    //constraints.push_back(collisionFreeConstraint);
+    constraints.push_back(collisionFreeConstraint);
   }
   auto testable = std::make_shared<aikido::constraint::TestableIntersection>(
       armSpace, constraints);

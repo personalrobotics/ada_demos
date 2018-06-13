@@ -34,6 +34,7 @@ public:
   Eigen::Isometry3d getDefaultFoodTransform() {return workspace->getDefaultFoodItem()->getRootBodyNode()->getWorldTransform();}
 
   bool isCollisionFree(std::string& result);
+  void printRobotConfiguration();
 
   void openHand();
   void closeHand();

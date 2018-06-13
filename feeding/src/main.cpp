@@ -27,9 +27,9 @@ int main(int argc, char** argv) {
   ros::NodeHandle nodeHandle("~");
 
   // start demo
-	FeedingDemo feedingDemo(adaReal, nodeHandle);
+  FeedingDemo feedingDemo(adaReal, nodeHandle);
 
-  FTThresholdController ftThresholdController(false, nodeHandle);
+  FTThresholdController ftThresholdController(adaReal, nodeHandle);
 
   Perception perception(feedingDemo.getWorld(), *feedingDemo.getAda(), nodeHandle);
 
@@ -94,6 +94,7 @@ int main(int argc, char** argv) {
 	if (!autoContinueDemo)
 		waitForUser("Move forque in front of person");
 	feedingDemo.moveInFrontOfPerson();
+    feedingDemo.printRobotConfiguration();
 
 
 	// ===== TOWARDS PERSON =====
@@ -101,7 +102,7 @@ int main(int argc, char** argv) {
 		waitForUser("Move towards person");
 	ftThresholdController.setThreshold(TOWARDS_PERSON_FT_THRESHOLD);
 	feedingDemo.moveTowardsPerson();
-  std::this_thread::sleep_for(std::chrono::milliseconds(getRosParam<int>("/waitMillisecsAtPerson", nodeHandle)));
+    std::this_thread::sleep_for(std::chrono::milliseconds(getRosParam<int>("/waitMillisecsAtPerson", nodeHandle)));
 	feedingDemo.ungrabAndDeleteFood();
 	ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
 
