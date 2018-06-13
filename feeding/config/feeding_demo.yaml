@@ -1,10 +1,29 @@
-visualizationName: dart_markers/feeding
-baseFrameName: map
-adaUrdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.urdf
-adaSrdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.srdf
-endEffectorName: j2n6s200_forque_end_effector
-homeConfiguration: [-2.92722, 3.56652, 1.54389, -0.38693, 1.31163, 2.98721]
-robotPose: [0.7, 0.1, 0.05, 0, 0, 3.1415]
+# Configuration file for the feeding demo
+#
+# If not otherwise specified:
+#     All units are metric.
+#     This means all forces and torques are also in N and Nm.
+#     All distances are in m.
+#     All rotations are in radians.
+#     All robot configurations specify 6 joint angles in a list
+#     All transform use the format [x,y,z,rx,ry,rz] of positions and rotations in a list.
+# 
+
+
+# Visualization parameters
+visualization:
+  topicName: dart_markers/feeding
+  baseFrameName: map
+
+# Robot parameters
+ada:
+  urdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.urdf
+  srdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.srdf
+  endEffectorName: j2n6s200_forque_end_effector
+  homeConfiguration: [-2.92722, 3.56652, 1.54389, -0.38693, 1.31163, 2.98721]
+  baseFramePose: [0.7, 0.1, 0.05, 0, 0, 3.1415]
+
+# Workspace parameters
 plate:
   urdfUri: package://pr_ordata/data/objects/plate.urdf
   pose: [.3, 0.25, -0.01, 0, 0, 0]
@@ -20,12 +39,17 @@ tom:
 workspaceEnvironment:
   urdfUri: package://pr_ordata/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0, 0, 0, 0]
-heightAbovePlate: 0.15
-heightAboveFood: 0.1
-heightIntoFood: 0.024
-distanceToPerson: 0.25
-waitMillisecsAtFood: 1000
-waitMillisecsAtPerson: 5000
+
+# Feeding demo movement parameters
+feedingDemo:
+  heightAbovePlate: 0.15
+  heightAboveFood: 0.1
+  heightIntoFood: 0.024
+  distanceToPerson: 0.25
+  waitMillisecsAtFood: 1000
+  waitMillisecsAtPerson: 5000
+
+# Planning parameters
 planning:
   maxNumberOfTrials: 1
   timeoutSeconds: 5
@@ -39,6 +63,8 @@ planning:
   endEffectorOffset:
     positionTolerance: 0.002
     angularTolerance: 0.04
+
+# Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
   thresholds:
@@ -54,6 +80,8 @@ ftSensor:
     towardsPerson:
       force: 2
       torque: 2
+
+# Perception parameters
 perception:
   detectorDataUri: package://pr_ordata/data/objects/tag_data_foods.json
   detectorTopicName: /deep_pose/marker_array

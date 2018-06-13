@@ -49,8 +49,8 @@ int main(int argc, char** argv)
   // visualization
   aikido::rviz::WorldInteractiveMarkerViewer viewer(
       feedingDemo.getWorld(),
-      getRosParam<std::string>("/visualizationName", nodeHandle),
-      getRosParam<std::string>("/baseFrameName", nodeHandle));
+      getRosParam<std::string>("/visualization/topicName", nodeHandle),
+      getRosParam<std::string>("/visualization/baseFrameName", nodeHandle));
   viewer.setAutoUpdate(true);
 
   std::string collisionCheckResult;
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
   feedingDemo.moveIntoFood();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
-          getRosParam<int>("/waitMillisecsAtFood", nodeHandle)));
+          getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
   feedingDemo.grabFoodWithForque();
 
   // ===== OUT OF FOOD =====
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
   feedingDemo.moveTowardsPerson();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
-          getRosParam<int>("/waitMillisecsAtPerson", nodeHandle)));
+          getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
   feedingDemo.ungrabAndDeleteFood();
   ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
 

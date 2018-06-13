@@ -15,22 +15,22 @@ FeedingDemo::FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle)
       new ada::Ada(
           world,
           !adaReal,
-          getRosParam<std::string>("/adaUrdfUri", nodeHandle),
-          getRosParam<std::string>("/adaSrdfUri", nodeHandle),
-          getRosParam<std::string>("/endEffectorName", nodeHandle)));
+          getRosParam<std::string>("/ada/urdfUri", nodeHandle),
+          getRosParam<std::string>("/ada/srdfUri", nodeHandle),
+          getRosParam<std::string>("/ada/endEffectorName", nodeHandle)));
   armSpace = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
       ada->getArm()->getMetaSkeleton().get());
 
   if (!adaReal)
   {
     auto home
-        = getRosParam<std::vector<double>>("/homeConfiguration", nodeHandle);
+        = getRosParam<std::vector<double>>("/ada/homeConfiguration", nodeHandle);
     ada->getArm()->getMetaSkeleton()->setPositions(
         Eigen::Vector6d(home.data()));
   }
 
   Eigen::Isometry3d robotPose = createIsometry(
-      getRosParam<std::vector<double>>("/robotPose", nodeHandle));
+      getRosParam<std::vector<double>>("/ada/baseFramePose", nodeHandle));
 
   workspace = std::unique_ptr<Workspace>(
       new Workspace(world, robotPose, adaReal, nodeHandle));
@@ -118,7 +118,7 @@ void FeedingDemo::ungrabAndDeleteFood()
 void FeedingDemo::moveAbovePlate()
 {
   double heightAbovePlate
-      = getRosParam<double>("/heightAbovePlate", nodeHandle);
+      = getRosParam<double>("/feedingDemo/heightAbovePlate", nodeHandle);
   double horizontalToleranceAbovePlate = getRosParam<double>(
       "/planning/tsr/horizontalToleranceAbovePlate", nodeHandle);
   double verticalToleranceAbovePlate = getRosParam<double>(
@@ -143,13 +143,13 @@ void FeedingDemo::moveAbovePlate()
 
 void FeedingDemo::moveAboveFood(Eigen::Isometry3d foodTransform)
 {
-  double heightAboveFood = getRosParam<double>("/heightAboveFood", nodeHandle);
+  double heightAboveFood = getRosParam<double>("/feedingDemo/heightAboveFood", nodeHandle);
   // If the robot is not simulated, we want to plan the trajectory to move a
   // little further downwards,
   // so that the MoveUntilTouchController can take care of stopping the
   // trajectory.
   double heightIntoFood
-      = adaReal ? getRosParam<double>("/heightIntoFood", nodeHandle) : 0.0;
+      = adaReal ? getRosParam<double>("/feedingDemo/heightIntoFood", nodeHandle) : 0.0;
   double horizontalToleranceNearFood = getRosParam<double>(
       "/planning/tsr/horizontalToleranceNearFood", nodeHandle);
   double verticalToleranceNearFood = getRosParam<double>(
@@ -179,7 +179,7 @@ void FeedingDemo::moveIntoFood()
 {
   bool successfulMove = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, 0, -1),
-      getRosParam<double>("/heightAboveFood", nodeHandle));
+      getRosParam<double>("/feedingDemo/heightAboveFood", nodeHandle));
   // successfulMove might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }
@@ -188,7 +188,7 @@ void FeedingDemo::moveOutOfFood()
 {
   bool successfulMove = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, 0, 1),
-      getRosParam<double>("/heightAboveFood", nodeHandle));
+      getRosParam<double>("/feedingDemo/heightAboveFood", nodeHandle));
   if (!successfulMove)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -198,7 +198,7 @@ void FeedingDemo::moveOutOfFood()
 void FeedingDemo::moveInFrontOfPerson()
 {
   double distanceToPerson
-      = getRosParam<double>("/distanceToPerson", nodeHandle);
+      = getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle);
   double horizontalToleranceNearPerson = getRosParam<double>(
       "/planning/tsr/horizontalToleranceNearPerson", nodeHandle);
   double verticalToleranceNearPerson = getRosParam<double>(
@@ -231,14 +231,14 @@ void FeedingDemo::moveTowardsPerson()
 {
   bool successfulMove = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, 1, 0),
-      getRosParam<double>("/distanceToPerson", nodeHandle) * 0.9);
+      getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle) * 0.9);
 }
 
 void FeedingDemo::moveAwayFromPerson()
 {
   bool successfulMove = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, -1, 0),
-      getRosParam<double>("/distanceToPerson", nodeHandle));
+      getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle));
   if (!successfulMove)
   {
     throw std::runtime_error("Trajectory execution failed");
