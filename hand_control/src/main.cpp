@@ -106,6 +106,7 @@ int main(int argc, char** argv)
 
   if (adaSim)
   {
+    // sets the arm to a default position so that we can easily operate the hand
     Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
     home[1] = 3.14;
     home[2] = 3.14;
