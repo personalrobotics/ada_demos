@@ -33,8 +33,7 @@ static const int maxNumberTrials{1};
 static const double planningTimeout{5.};
 static const double positionTolerance = 0.005;
 static const double angularTolerance = 0.04;
-bool adaReal = false;
-bool feeding = true;
+bool adaSim = true;
 
 bool waitForUser(const std::string& msg)
 {
@@ -130,7 +129,7 @@ void moveArmToTSR(
   auto trajectory = robot.planToTSR(
       armSpace,
       armSkeleton,
-      hand->getBodyNode(),
+      hand->getEndEffectorBodyNode(),
       goalTSR,
       collisionFreeConstraint,
       maxNumberTrials,
@@ -189,7 +188,12 @@ int main(int argc, char** argv)
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
-  ada::Ada robot(env, !adaReal, feeding);
+  dart::common::Uri adaUrdfUri{
+      "package://ada_description/robots/ada_with_camera_forque.urdf"};
+  dart::common::Uri adaSrdfUri{
+      "package://ada_description/robots/ada_with_camera_forque.srdf"};
+  std::string endEffectorName = "j2n6s200_forque_end_effector";
+  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, endEffectorName);
   auto robotSkeleton = robot.getMetaSkeleton();
 
   // Load Plate and FootItem in simulation
@@ -257,11 +261,13 @@ int main(int argc, char** argv)
   robot.getWorld()->addSkeleton(tom);
 
   // Setting up collisions
+  foodItem->getRootBodyNode()->setCollidable(false);
+
   CollisionDetectorPtr collisionDetector
       = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<CollisionGroup> armCollisionGroup
       = collisionDetector->createCollisionGroup(
-          armSkeleton.get(), hand->getBodyNode());
+          armSkeleton.get(), hand->getEndEffectorBodyNode());
   std::shared_ptr<CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(table.get(), tom.get());
   auto collisionFreeConstraint = std::make_shared<CollisionFree>(
@@ -341,7 +347,7 @@ int main(int argc, char** argv)
     auto intoFoodTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
-        hand->getBodyNode(),
+        hand->getEndEffectorBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, 0, -1),
         heightAboveFood,
@@ -367,7 +373,7 @@ int main(int argc, char** argv)
     auto abovePlateTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
-        hand->getBodyNode(),
+        hand->getEndEffectorBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, 0, 1),
         heightAbovePlate,
@@ -421,7 +427,7 @@ int main(int argc, char** argv)
     auto toPersonTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
-        hand->getBodyNode(),
+        hand->getEndEffectorBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, -1, 0),
         distanceToPerson,
@@ -446,7 +452,7 @@ int main(int argc, char** argv)
     auto toPersonTrajectory = robot.planToEndEffectorOffset(
         armSpace,
         armSkeleton,
-        hand->getBodyNode(),
+        hand->getEndEffectorBodyNode(),
         collisionFreeConstraint,
         Eigen::Vector3d(0, 1, 0),
         distanceToPerson / 2,

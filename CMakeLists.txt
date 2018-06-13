@@ -27,7 +27,6 @@ find_package(aikido 0.0.2 REQUIRED
     rviz
     statespace
 )
-
 include_directories(${aikido_INCLUDE_DIRS})
 
 find_package(libada REQUIRED)
@@ -46,7 +45,7 @@ include_directories(${Boost_INCLUDE_DIR})
 # Demos
 #
 
-add_subdirectory(soda_grasp)
+#add_subdirectory(soda_grasp)
 add_subdirectory(simple_trajectories)
 add_subdirectory(feeding)
 add_subdirectory(voxel)
