@@ -62,12 +62,13 @@ int main(int argc, char** argv)
   ftThresholdController.init();
   feedingDemo.closeHand();
 
-  if (!autoContinueDemo)
-    waitForUser("Startup complete.");
+  waitForUser("Startup complete.");
 
   // ===== ABOVE PLATE =====
-  if (!autoContinueDemo)
-    waitForUser("Move forque above plate"), feedingDemo.moveAbovePlate();
+  if (!autoContinueDemo) {
+    waitForUser("Move forque above plate");
+  }
+  feedingDemo.moveAbovePlate();
 
   // ===== ABOVE FOOD =====
   if (!autoContinueDemo)
@@ -83,14 +84,16 @@ int main(int argc, char** argv)
   {
     foodTransform = feedingDemo.getDefaultFoodTransform();
   }
-  if (!autoContinueDemo)
-    waitForUser("Move forque above food"),
-        feedingDemo.moveAboveFood(foodTransform);
+  if (!autoContinueDemo) {
+    waitForUser("Move forque above food");
+  }
+  feedingDemo.moveAboveFood(foodTransform);
 
   // ===== INTO FOOD =====
-  if (!autoContinueDemo)
-    waitForUser("Move forque into food"),
-        ftThresholdController.setThreshold(GRAB_FOOD_FT_THRESHOLD);
+  if (!autoContinueDemo) {
+    waitForUser("Move forque into food");
+  }
+  ftThresholdController.setThreshold(GRAB_FOOD_FT_THRESHOLD);
   feedingDemo.moveIntoFood();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
@@ -98,21 +101,24 @@ int main(int argc, char** argv)
   feedingDemo.grabFoodWithForque();
 
   // ===== OUT OF FOOD =====
-  if (!autoContinueDemo)
-    waitForUser("Move forque out of food"),
-        ftThresholdController.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
+  if (!autoContinueDemo) {
+    waitForUser("Move forque out of food");
+  }
+  ftThresholdController.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
   feedingDemo.moveOutOfFood();
   ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
 
   // ===== IN FRONT OF PERSON =====
-  if (!autoContinueDemo)
+  if (!autoContinueDemo) {
     waitForUser("Move forque in front of person");
+  }
   feedingDemo.moveInFrontOfPerson();
   feedingDemo.printRobotConfiguration();
 
   // ===== TOWARDS PERSON =====
-  if (!autoContinueDemo)
+  if (!autoContinueDemo) {
     waitForUser("Move towards person");
+  }
   ftThresholdController.setThreshold(TOWARDS_PERSON_FT_THRESHOLD);
   feedingDemo.moveTowardsPerson();
   std::this_thread::sleep_for(
@@ -125,8 +131,9 @@ int main(int argc, char** argv)
   feedingDemo.moveAwayFromPerson();
 
   // ===== BACK TO PLATE =====
-  if (!autoContinueDemo)
+  if (!autoContinueDemo) {
     waitForUser("Move back to plate");
+  }
   feedingDemo.moveAbovePlate();
 
   // ===== DONE =====

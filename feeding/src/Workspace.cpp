@@ -11,13 +11,13 @@ Workspace::Workspace(
     const ros::NodeHandle& nodeHandle)
   : world(world)
 {
-
+/*
   addToWorld(plate, "plate", robotPose, nodeHandle);
   addToWorld(table, "table", robotPose, nodeHandle);
   addToWorld(tom, "tom", robotPose, nodeHandle);
   addToWorld(
       workspaceEnvironment, "workspaceEnvironment", robotPose, nodeHandle);
-
+*/
   if (!adaReal)
   {
     addToWorld(defaultFoodItem, "defaultFoodItem", robotPose, nodeHandle);
