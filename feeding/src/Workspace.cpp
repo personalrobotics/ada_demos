@@ -6,8 +6,6 @@ namespace feeding {
 
 Workspace::Workspace(aikido::planner::WorldPtr& world, const Eigen::Isometry3d& robotPose, bool adaReal, const ros::NodeHandle& nodeHandle) : world(world) {
 
-  ROS_INFO("Loading Workspace");
-
   addToWorld(plate, "plate", robotPose, nodeHandle);
   addToWorld(table, "table", robotPose, nodeHandle);
   addToWorld(tom, "tom", robotPose, nodeHandle);

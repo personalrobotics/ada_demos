@@ -17,7 +17,7 @@ using namespace feeding;
 /// The FTThresholdController sets the thresholds in the MoveUntilTouchController
 /// The Perception object can perceive food.
 /// 
-/// Then the demo is run step-by-step.
+/// Then the demo is run step by step.
 ///
 int main(int argc, char** argv) {
 

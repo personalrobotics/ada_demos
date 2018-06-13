@@ -113,6 +113,8 @@ void FeedingDemo::moveAbovePlate() {
 
 void FeedingDemo::moveAboveFood(Eigen::Isometry3d foodTransform) {
   double heightAboveFood = getRosParam<double>("/heightAboveFood", nodeHandle);
+  // If the robot is not simulated, we want to plan the trajectory to move a little further downwards,
+  // so that the MoveUntilTouchController can take care of stopping the trajectory.
   double heightIntoFood = adaReal ? getRosParam<double>("/heightIntoFood", nodeHandle) : 0.0;
   double horizontalToleranceNearFood = getRosParam<double>("/planning/tsr/horizontalToleranceNearFood", nodeHandle);
   double verticalToleranceNearFood = getRosParam<double>("/planning/tsr/verticalToleranceNearFood", nodeHandle);
@@ -143,6 +145,8 @@ void FeedingDemo::moveIntoFood() {
   bool successfulMove = moveWithEndEffectorOffset(
         Eigen::Vector3d(0, 0, -1),
         getRosParam<double>("/heightAboveFood", nodeHandle));
+  // successfulMove might be false because the forque hit the food
+  // along the way and the trajectory was aborted
 }
 
 void FeedingDemo::moveOutOfFood() {

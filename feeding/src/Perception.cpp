@@ -26,6 +26,7 @@ Perception::Perception(aikido::planner::WorldPtr world, ada::Ada& ada, ros::Node
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform) {
   objDetector->detectObjects(world, ros::Duration(getRosParam<double>("/perception/timeoutSeconds", nodeHandle)));
 
+  // just choose one for now
   std::string perceivedFoodName = "apricot_1";
     auto perceivedFood = world->getSkeleton(perceivedFoodName);
     if (perceivedFood != nullptr)
