@@ -1,27 +1,29 @@
 
-#include "feeding/FeedingDemo.hpp"
-#include "feeding/util.hpp"
-#include "feeding/FTThresholdController.hpp"
-#include "feeding/Perception.hpp"
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
-#include <ros/ros.h>
 #include <pr_tsr/plate.hpp>
+#include <ros/ros.h>
+#include "feeding/FTThresholdController.hpp"
+#include "feeding/FeedingDemo.hpp"
+#include "feeding/Perception.hpp"
+#include "feeding/util.hpp"
 
 using namespace feeding;
 
-/// 
+///
 /// OVERVIEW OF FEEDING DEMO CODE
-/// 
+///
 /// First, everything is initalized.
 /// The FeedingDemo object is responsible for robot and the workspace.
-/// The FTThresholdController sets the thresholds in the MoveUntilTouchController
+/// The FTThresholdController sets the thresholds in the
+/// MoveUntilTouchController
 /// The Perception object can perceive food.
-/// 
+///
 /// Then the demo is run step by step.
 ///
-int main(int argc, char** argv) {
+int main(int argc, char** argv)
+{
 
-	// ===== STARTUP =====
+  // ===== STARTUP =====
 
   // Is the real robot used or simulation?
   bool adaReal = false;
@@ -32,7 +34,7 @@ int main(int argc, char** argv) {
   handleArguments(argc, argv, adaReal, autoContinueDemo);
   ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
-	// start node
+  // start node
   ros::init(argc, argv, "feeding");
   ros::NodeHandle nodeHandle("~");
 
@@ -41,93 +43,93 @@ int main(int argc, char** argv) {
 
   FTThresholdController ftThresholdController(adaReal, nodeHandle);
 
-  Perception perception(feedingDemo.getWorld(), *feedingDemo.getAda(), nodeHandle);
+  Perception perception(
+      feedingDemo.getWorld(), *feedingDemo.getAda(), nodeHandle);
 
-	// visualization
-	aikido::rviz::WorldInteractiveMarkerViewer viewer(
+  // visualization
+  aikido::rviz::WorldInteractiveMarkerViewer viewer(
       feedingDemo.getWorld(),
       getRosParam<std::string>("/visualizationName", nodeHandle),
       getRosParam<std::string>("/baseFrameName", nodeHandle));
-	viewer.setAutoUpdate(true);
+  viewer.setAutoUpdate(true);
 
   std::string collisionCheckResult;
-  if (!feedingDemo.isCollisionFree(collisionCheckResult)) {
+  if (!feedingDemo.isCollisionFree(collisionCheckResult))
+  {
     throw std::runtime_error(collisionCheckResult);
   }
 
   ftThresholdController.init();
-	feedingDemo.closeHand();
+  feedingDemo.closeHand();
 
-	if (!autoContinueDemo)
-		waitForUser("Startup complete.");
+  if (!autoContinueDemo)
+    waitForUser("Startup complete.");
 
+  // ===== ABOVE PLATE =====
+  if (!autoContinueDemo)
+    waitForUser("Move forque above plate"), feedingDemo.moveAbovePlate();
 
-	// ===== ABOVE PLATE =====
-	if (!autoContinueDemo)
-		waitForUser("Move forque above plate"),
-	feedingDemo.moveAbovePlate();
+  // ===== ABOVE FOOD =====
+  if (!autoContinueDemo)
+    waitForUser("Perceive Food");
+  Eigen::Isometry3d foodTransform;
+  if (adaReal)
+  {
+    bool perceptionSuccessful = perception.perceiveFood(foodTransform);
+    if (!perceptionSuccessful)
+      throw std::runtime_error("Perception failed");
+  }
+  else
+  {
+    foodTransform = feedingDemo.getDefaultFoodTransform();
+  }
+  if (!autoContinueDemo)
+    waitForUser("Move forque above food"),
+        feedingDemo.moveAboveFood(foodTransform);
 
+  // ===== INTO FOOD =====
+  if (!autoContinueDemo)
+    waitForUser("Move forque into food"),
+        ftThresholdController.setThreshold(GRAB_FOOD_FT_THRESHOLD);
+  feedingDemo.moveIntoFood();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(
+          getRosParam<int>("/waitMillisecsAtFood", nodeHandle)));
+  feedingDemo.grabFoodWithForque();
 
-	// ===== ABOVE FOOD =====
-	if (!autoContinueDemo)
-		waitForUser("Perceive Food");
-	Eigen::Isometry3d foodTransform;
-	if (adaReal) {
-		 bool perceptionSuccessful = perception.perceiveFood(foodTransform);
-     if (!perceptionSuccessful)
-       throw std::runtime_error("Perception failed");
-	} else {
-		foodTransform = feedingDemo.getDefaultFoodTransform();
-	}
-	if (!autoContinueDemo)
-		waitForUser("Move forque above food"),
-	feedingDemo.moveAboveFood(foodTransform);
+  // ===== OUT OF FOOD =====
+  if (!autoContinueDemo)
+    waitForUser("Move forque out of food"),
+        ftThresholdController.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
+  feedingDemo.moveOutOfFood();
+  ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
 
+  // ===== IN FRONT OF PERSON =====
+  if (!autoContinueDemo)
+    waitForUser("Move forque in front of person");
+  feedingDemo.moveInFrontOfPerson();
+  feedingDemo.printRobotConfiguration();
 
-	// ===== INTO FOOD =====
-	if (!autoContinueDemo)
-		waitForUser("Move forque into food"),
-	ftThresholdController.setThreshold(GRAB_FOOD_FT_THRESHOLD);
-	feedingDemo.moveIntoFood();
-  std::this_thread::sleep_for(std::chrono::milliseconds(getRosParam<int>("/waitMillisecsAtFood", nodeHandle)));
-	feedingDemo.grabFoodWithForque();
+  // ===== TOWARDS PERSON =====
+  if (!autoContinueDemo)
+    waitForUser("Move towards person");
+  ftThresholdController.setThreshold(TOWARDS_PERSON_FT_THRESHOLD);
+  feedingDemo.moveTowardsPerson();
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(
+          getRosParam<int>("/waitMillisecsAtPerson", nodeHandle)));
+  feedingDemo.ungrabAndDeleteFood();
+  ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
 
+  // ===== AWAY FROM PERSON =====
+  feedingDemo.moveAwayFromPerson();
 
-	// ===== OUT OF FOOD =====
-	if (!autoContinueDemo)
-		waitForUser("Move forque out of food"),
-	ftThresholdController.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
-	feedingDemo.moveOutOfFood();
-	ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
+  // ===== BACK TO PLATE =====
+  if (!autoContinueDemo)
+    waitForUser("Move back to plate");
+  feedingDemo.moveAbovePlate();
 
-	// ===== IN FRONT OF PERSON =====
-	if (!autoContinueDemo)
-		waitForUser("Move forque in front of person");
-	feedingDemo.moveInFrontOfPerson();
-    feedingDemo.printRobotConfiguration();
-
-
-	// ===== TOWARDS PERSON =====
-	if (!autoContinueDemo)
-		waitForUser("Move towards person");
-	ftThresholdController.setThreshold(TOWARDS_PERSON_FT_THRESHOLD);
-	feedingDemo.moveTowardsPerson();
-    std::this_thread::sleep_for(std::chrono::milliseconds(getRosParam<int>("/waitMillisecsAtPerson", nodeHandle)));
-	feedingDemo.ungrabAndDeleteFood();
-	ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
-
-
-	// ===== AWAY FROM PERSON =====
-	feedingDemo.moveAwayFromPerson();
-
-
-	// ===== BACK TO PLATE =====
-	if (!autoContinueDemo)
-		waitForUser("Move back to plate");
-	feedingDemo.moveAbovePlate();
-
-
-	// ===== DONE =====
+  // ===== DONE =====
   waitForUser("Demo finished.");
   ros::shutdown();
   return 0;

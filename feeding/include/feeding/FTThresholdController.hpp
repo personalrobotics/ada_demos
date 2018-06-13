@@ -39,6 +39,9 @@ public:
 	/// Throws a runtime_error if we useThresholdControl and we are unable to set the thresholds.
 	void setThreshold(FTThreshold);
 
+	/// Sets the MoveUntilTouchControllers Thresholds accordingly.
+	/// Returns whether the thresholds were set successfully.
+	bool trySetThreshold(FTThreshold);
 };
 
 }

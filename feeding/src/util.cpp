@@ -1,11 +1,12 @@
 #include "feeding/util.hpp"
 
-
 namespace po = boost::program_options;
 
 namespace feeding {
 
-void handleArguments(int argc, char** argv, bool& adaReal, bool& autoContinueDemo) {
+void handleArguments(
+    int argc, char** argv, bool& adaReal, bool& autoContinueDemo)
+{
   // Default options for flags
   po::options_description po_desc("simple_trajectories options");
   po_desc.add_options()("help,h", "Produce help message")(
@@ -28,18 +29,14 @@ void waitForUser(const std::string& msg)
   ROS_INFO((msg + " Press [ENTER]").c_str());
   char input = ' ';
   std::cin.get(input);
-  if (input == 'n') {
+  if (input == 'n')
+  {
     exit(0);
   }
 }
 
 Eigen::Isometry3d createIsometry(
-    double x,
-    double y,
-    double z,
-    double roll,
-    double pitch,
-    double yaw)
+    double x, double y, double z, double roll, double pitch, double yaw)
 {
   Eigen::Isometry3d isometry = Eigen::Isometry3d::Identity();
   isometry.translation() = Eigen::Vector3d(x, y, z);
@@ -52,8 +49,12 @@ Eigen::Isometry3d createIsometry(
   return isometry;
 }
 
-Eigen::Isometry3d createIsometry(std::vector<double> vec) {
-  if (vec.size() < 6) {throw std::runtime_error("Vector size to small: " + vec.size());}
+Eigen::Isometry3d createIsometry(std::vector<double> vec)
+{
+  if (vec.size() < 6)
+  {
+    throw std::runtime_error("Vector size to small: " + vec.size());
+  }
   return createIsometry(vec[0], vec[1], vec[2], vec[3], vec[4], vec[5]);
 }
 
@@ -74,5 +75,4 @@ Eigen::MatrixXd createBwMatrixForTSR(
   bw(5, 1) = yawMax;
   return bw;
 }
-
 }
