@@ -38,7 +38,8 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
           getRosParam<double>("/perception/timeoutSeconds", nodeHandle)));
 
   // just choose one for now
-  std::string perceivedFoodName = "apricot_1";
+  std::string perceivedFoodName
+      = getRosParam<std::string>("/perception/foodName", nodeHandle);
   auto perceivedFood = world->getSkeleton(perceivedFoodName);
   if (perceivedFood != nullptr)
   {

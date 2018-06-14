@@ -62,13 +62,13 @@ int main(int argc, char** argv)
   ftThresholdController.init();
   feedingDemo.closeHand();
 
-
   waitForUser("Startup complete.");
 
   feedingDemo.moveToStartConfiguration();
 
   // ===== ABOVE PLATE =====
-  if (!autoContinueDemo) {
+  if (!autoContinueDemo)
+  {
     waitForUser("Move forque above plate");
   }
   feedingDemo.moveAbovePlate();
@@ -87,13 +87,15 @@ int main(int argc, char** argv)
   {
     foodTransform = feedingDemo.getDefaultFoodTransform();
   }
-  if (!autoContinueDemo) {
+  if (!autoContinueDemo)
+  {
     waitForUser("Move forque above food");
   }
   feedingDemo.moveAboveFood(foodTransform);
 
   // ===== INTO FOOD =====
-  if (!autoContinueDemo) {
+  if (!autoContinueDemo)
+  {
     waitForUser("Move forque into food");
   }
   ftThresholdController.setThreshold(GRAB_FOOD_FT_THRESHOLD);
@@ -104,7 +106,8 @@ int main(int argc, char** argv)
   feedingDemo.grabFoodWithForque();
 
   // ===== OUT OF FOOD =====
-  if (!autoContinueDemo) {
+  if (!autoContinueDemo)
+  {
     waitForUser("Move forque out of food");
   }
   ftThresholdController.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
@@ -112,13 +115,15 @@ int main(int argc, char** argv)
   ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
 
   // ===== IN FRONT OF PERSON =====
-  if (!autoContinueDemo) {
+  if (!autoContinueDemo)
+  {
     waitForUser("Move forque in front of person");
   }
   feedingDemo.moveInFrontOfPerson();
 
   // ===== TOWARDS PERSON =====
-  if (!autoContinueDemo) {
+  if (!autoContinueDemo)
+  {
     waitForUser("Move towards person");
   }
   ftThresholdController.setThreshold(TOWARDS_PERSON_FT_THRESHOLD);
@@ -133,7 +138,8 @@ int main(int argc, char** argv)
   feedingDemo.moveAwayFromPerson();
 
   // ===== BACK TO PLATE =====
-  if (!autoContinueDemo) {
+  if (!autoContinueDemo)
+  {
     waitForUser("Move back to plate");
   }
   feedingDemo.moveAbovePlate();
