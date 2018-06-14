@@ -34,7 +34,7 @@ table:
 defaultFoodItem:
   urdfUri: package://pr_ordata/data/objects/food_item.urdf
   pose: [.3, 0.25, 0.00, 0, 0, 0]
-tom:
+tom: # the mannequin
   urdfUri: package://pr_ordata/data/objects/tom.urdf
   pose: [0.3, -0.4, 0.412, 0, 0, 3.1415]
 workspaceEnvironment:
@@ -45,10 +45,10 @@ workspaceEnvironment:
 feedingDemo:
   heightAbovePlate: 0.15
   heightAboveFood: 0.1
-  heightIntoFood: 0.024
+  heightIntoFood: 0.024         # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
-  waitMillisecsAtFood: 1000
-  waitMillisecsAtPerson: 5000
+  waitMillisecsAtFood: 1000     # short pause when skewering the food
+  waitMillisecsAtPerson: 5000   # long pause so person can take a bite
 
 # Planning parameters
 planning:
@@ -69,16 +69,16 @@ planning:
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
   thresholds:
-    standard:
+    standard:       # used when no other thresholds are specified
       force: 6
       torque: 2
-    grabFood:
+    grabFood:       # active when going down to grab the food
       force: 25
       torque: 2
-    afterGrabFood:
+    afterGrabFood:  # active when going up after food has been grabbed
       force: 45
       torque: 5
-    towardsPerson:
+    towardsPerson:  # active when the robot is moving towards the person
       force: 2
       torque: 2
 
@@ -88,3 +88,4 @@ perception:
   detectorTopicName: /deep_pose/marker_array
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
+  foodName: apricot_1

@@ -104,8 +104,7 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  bool adaSim = !adaReal;
-  std::cout << "Simulation Mode: " << adaSim << std::endl;
+  std::cout << "Simulation Mode: " << (!adaReal) << std::endl;
 
   ROS_INFO("Starting ROS node.");
   ros::init(argc, argv, "simple_trajectories");
@@ -117,7 +116,7 @@ int main(int argc, char** argv)
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA. ");
-  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
+  ada::Ada robot(env, !adaReal, adaUrdfUri, adaSrdfUri);
   auto robotSkeleton = robot.getMetaSkeleton();
 
   // Start Visualization Topic
@@ -140,7 +139,7 @@ int main(int argc, char** argv)
   auto armSkeleton = robot.getArm()->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
 
-  if (adaSim)
+  if (!adaReal)
   {
     Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
     home[1] = 3.14;
@@ -162,7 +161,7 @@ int main(int argc, char** argv)
   viewer.setAutoUpdate(true);
   waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
-  if (!adaSim)
+  if (adaReal)
   {
     std::cout << "Start trajectory executor" << std::endl;
     robot.startTrajectoryExecutor();
@@ -193,12 +192,6 @@ int main(int argc, char** argv)
   moveArmTo(robot, armSpace, armSkeleton, movedPose);
 
   waitForUser("Press [ENTER] to exit. ");
-
-  if (!adaSim)
-  {
-    std::cout << "Stop trajectory executor" << std::endl;
-    robot.stopTrajectoryExecutor();
-  }
   ros::shutdown();
   return 0;
 }

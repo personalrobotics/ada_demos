@@ -107,13 +107,16 @@ void FeedingDemo::ungrabAndDeleteFood()
   }
 }
 
-void FeedingDemo::moveToStartConfiguration() {
-  auto home = getRosParam<std::vector<double>>(
-      "/ada/homeConfiguration", nodeHandle);
+void FeedingDemo::moveToStartConfiguration()
+{
+  auto home
+      = getRosParam<std::vector<double>>("/ada/homeConfiguration", nodeHandle);
   if (adaReal)
   {
     moveArmToConfiguration(Eigen::Vector6d(home.data()));
-  } else {
+  }
+  else
+  {
     ada->getArm()->getMetaSkeleton()->setPositions(
         Eigen::Vector6d(home.data()));
   }
@@ -138,8 +141,8 @@ void FeedingDemo::moveAbovePlate()
   abovePlateTSR.mTw_e.matrix()
       *= ada->getHand()->getEndEffectorTransform("plate")->matrix();
 
-  bool successfulMove = moveArmToTSR(abovePlateTSR);
-  if (!successfulMove)
+  bool trajectoryCompleted = moveArmToTSR(abovePlateTSR);
+  if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
   }
@@ -174,8 +177,8 @@ void FeedingDemo::moveAboveFood(Eigen::Isometry3d foodTransform)
   aboveFoodTSR.mTw_e.translation()
       = Eigen::Vector3d{0, 0, heightAboveFood - heightIntoFood};
 
-  bool successfulMove = moveArmToTSR(aboveFoodTSR);
-  if (!successfulMove)
+  bool trajectoryCompleted = moveArmToTSR(aboveFoodTSR);
+  if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
   }
@@ -183,10 +186,10 @@ void FeedingDemo::moveAboveFood(Eigen::Isometry3d foodTransform)
 
 void FeedingDemo::moveIntoFood()
 {
-  bool successfulMove = moveWithEndEffectorOffset(
+  bool trajectoryCompleted = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, 0, -1),
       getRosParam<double>("/feedingDemo/heightAboveFood", nodeHandle));
-  // successfulMove might be false because the forque hit the food
+  // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }
 
@@ -204,10 +207,10 @@ bool FeedingDemo::moveTowardsFood(Eigen::Isometry3d foodTransform, double height
 
 void FeedingDemo::moveOutOfFood()
 {
-  bool successfulMove = moveWithEndEffectorOffset(
+  bool trajectoryCompleted = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, 0, 1),
       getRosParam<double>("/feedingDemo/heightAboveFood", nodeHandle));
-  if (!successfulMove)
+  if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
   }
@@ -238,8 +241,8 @@ void FeedingDemo::moveInFrontOfPerson()
   personTSR.mTw_e.matrix()
       *= ada->getHand()->getEndEffectorTransform("person")->matrix();
 
-  bool successfulMove = moveArmToTSR(personTSR);
-  if (!successfulMove)
+  bool trajectoryCompleted = moveArmToTSR(personTSR);
+  if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
   }
@@ -247,17 +250,17 @@ void FeedingDemo::moveInFrontOfPerson()
 
 void FeedingDemo::moveTowardsPerson()
 {
-  bool successfulMove = moveWithEndEffectorOffset(
+  bool trajectoryCompleted = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, 1, 0),
       getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle) * 0.9);
 }
 
 void FeedingDemo::moveAwayFromPerson()
 {
-  bool successfulMove = moveWithEndEffectorOffset(
+  bool trajectoryCompleted = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, -1, 0),
       getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle) * 0.7);
-  if (!successfulMove)
+  if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
   }
@@ -298,8 +301,9 @@ bool FeedingDemo::moveWithEndEffectorOffset(
   return moveArmOnTrajectory(trajectory, RETIME);
 }
 
-bool FeedingDemo::moveArmToConfiguration(Eigen::Vector6d configuration) {
-    auto trajectory = ada->planToConfiguration(
+bool FeedingDemo::moveArmToConfiguration(Eigen::Vector6d configuration)
+{
+  auto trajectory = ada->planToConfiguration(
       armSpace,
       ada->getArm()->getMetaSkeleton(),
       configuration,
