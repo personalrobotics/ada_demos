@@ -82,12 +82,6 @@ void FTThresholdController::setThreshold(FTThreshold threshold)
       torqueThreshold = getRosParam<double>(
           "/ftSensor/thresholds/afterGrabFood/torque", nodeHandle);
       break;
-    case TOWARDS_PERSON_FT_THRESHOLD:
-      forceThreshold = getRosParam<double>(
-          "/ftSensor/thresholds/towardsPerson/force", nodeHandle);
-      torqueThreshold = getRosParam<double>(
-          "/ftSensor/thresholds/towardsPerson/torque", nodeHandle);
-      break;
     default:
       throw std::runtime_error(
           "Unknown F/T Threshold type: " + std::to_string(threshold));

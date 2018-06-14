@@ -126,13 +126,11 @@ int main(int argc, char** argv)
   {
     waitForUser("Move towards person");
   }
-  ftThresholdController.setThreshold(TOWARDS_PERSON_FT_THRESHOLD);
   feedingDemo.moveTowardsPerson();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
           getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
   feedingDemo.ungrabAndDeleteFood();
-  ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
 
   // ===== AWAY FROM PERSON =====
   feedingDemo.moveAwayFromPerson();
