@@ -47,7 +47,7 @@ feedingDemo:
   heightAboveFood: 0.1
   heightIntoFood: 0.024         # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
-  waitMillisecsAtFood: 1000     # short pause when skewering the food
+  waitMillisecsAtFood: 1000     # short pause after skewering the food
   waitMillisecsAtPerson: 5000   # long pause so person can take a bite
 
 # Planning parameters
@@ -70,7 +70,7 @@ ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 6
+      force: 2
       torque: 2
     grabFood:       # active when going down to grab the food
       force: 25
@@ -78,9 +78,6 @@ ftSensor:
     afterGrabFood:  # active when going up after food has been grabbed
       force: 45
       torque: 5
-    towardsPerson:  # active when the robot is moving towards the person
-      force: 2
-      torque: 2
 
 # Perception parameters
 perception:

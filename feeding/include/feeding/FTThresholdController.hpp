@@ -11,8 +11,7 @@ namespace feeding {
 enum FTThreshold {
 	STANDARD_FT_THRESHOLD,
 	GRAB_FOOD_FT_THRESHOLD,
-	AFTER_GRAB_FOOD_FT_THRESHOLD,
-	TOWARDS_PERSON_FT_THRESHOLD
+	AFTER_GRAB_FOOD_FT_THRESHOLD
 };
 
 /// The FTThresholdController configures the MoveUntilTouchController's thresholds.
