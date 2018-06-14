@@ -62,7 +62,10 @@ int main(int argc, char** argv)
   ftThresholdController.init();
   feedingDemo.closeHand();
 
+
   waitForUser("Startup complete.");
+
+  feedingDemo.moveToStartConfiguration();
 
   // ===== ABOVE PLATE =====
   if (!autoContinueDemo) {
@@ -113,7 +116,6 @@ int main(int argc, char** argv)
     waitForUser("Move forque in front of person");
   }
   feedingDemo.moveInFrontOfPerson();
-  feedingDemo.printRobotConfiguration();
 
   // ===== TOWARDS PERSON =====
   if (!autoContinueDemo) {

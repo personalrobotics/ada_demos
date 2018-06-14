@@ -56,6 +56,7 @@ public:
   void ungrabAndDeleteFood();
 
   /// Convenience functions to move the robot in the feeding demo.
+  void moveToStartConfiguration();
   void moveAbovePlate();
   void moveAboveFood(Eigen::Isometry3d foodTransform);
   void moveIntoFood();
@@ -69,6 +70,7 @@ public:
   /// Throws a runtime_error if they couldn't find a trajectory.
   bool moveArmToTSR(aikido::constraint::dart::TSR& tsr);
   bool moveWithEndEffectorOffset(Eigen::Vector3d direction, double length);
+  bool moveArmToConfiguration(Eigen::Vector6d configuration);
 
   /// Postprocesses and executes a trjectory.
   /// Throws runtime_error if the trajectory is empty.

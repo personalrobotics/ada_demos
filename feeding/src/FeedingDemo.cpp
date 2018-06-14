@@ -21,14 +21,6 @@ FeedingDemo::FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle)
   armSpace = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
       ada->getArm()->getMetaSkeleton().get());
 
-  if (!adaReal)
-  {
-    auto home = getRosParam<std::vector<double>>(
-        "/ada/homeConfiguration", nodeHandle);
-    ada->getArm()->getMetaSkeleton()->setPositions(
-        Eigen::Vector6d(home.data()));
-  }
-
   Eigen::Isometry3d robotPose = createIsometry(
       getRosParam<std::vector<double>>("/ada/baseFramePose", nodeHandle));
 
@@ -112,6 +104,18 @@ void FeedingDemo::ungrabAndDeleteFood()
   {
     ada->getHand()->ungrab();
     workspace->deleteFood();
+  }
+}
+
+void FeedingDemo::moveToStartConfiguration() {
+  auto home = getRosParam<std::vector<double>>(
+      "/ada/homeConfiguration", nodeHandle);
+  if (adaReal)
+  {
+    moveArmToConfiguration(Eigen::Vector6d(home.data()));
+  } else {
+    ada->getArm()->getMetaSkeleton()->setPositions(
+        Eigen::Vector6d(home.data()));
   }
 }
 
@@ -240,7 +244,7 @@ void FeedingDemo::moveAwayFromPerson()
 {
   bool successfulMove = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, -1, 0),
-      getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle));
+      getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle) * 0.7);
   if (!successfulMove)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -280,6 +284,17 @@ bool FeedingDemo::moveWithEndEffectorOffset(
           "/planning/endEffectorOffset/angularTolerance", nodeHandle));
 
   return moveArmOnTrajectory(trajectory, RETIME);
+}
+
+bool FeedingDemo::moveArmToConfiguration(Eigen::Vector6d configuration) {
+    auto trajectory = ada->planToConfiguration(
+      armSpace,
+      ada->getArm()->getMetaSkeleton(),
+      configuration,
+      collisionFreeConstraint,
+      getRosParam<double>("/planning/timeoutSeconds", nodeHandle));
+
+  return moveArmOnTrajectory(trajectory, SMOOTH);
 }
 
 bool FeedingDemo::moveArmOnTrajectory(
