@@ -23,7 +23,7 @@ public:
   /// Gets food items from active perception ros nodes and adds their new MetaSkeletons to the aikido world.
   /// If a food item is found, the foodTransform is assigned.
   /// Returns if a food item was found.
-  bool perceiveFood(Eigen::Isometry3d& foodTransform);
+  bool perceiveFoodClosest(Eigen::Isometry3d& foodTransform, Eigen::Isometry3d forqueTip);
 
 };
 

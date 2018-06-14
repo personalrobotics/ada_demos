@@ -30,28 +30,43 @@ Perception::Perception(
               *ada.getMetaSkeleton(), referenceFrameName)));
 }
 
-bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
+bool Perception::perceiveFoodClosest(Eigen::Isometry3d& foodTransform, Eigen::Isometry3d forqueTip)
 {
   objDetector->detectObjects(
       world,
       ros::Duration(
           getRosParam<double>("/perception/timeoutSeconds", nodeHandle)));
 
-  // just choose one for now
-  std::string perceivedFoodName = "apricot_1";
-  auto perceivedFood = world->getSkeleton(perceivedFoodName);
-  if (perceivedFood != nullptr)
-  {
-    foodTransform = Eigen::Isometry3d::Identity();
-    foodTransform.translation() = perceivedFood->getJoint(0)
-                                      ->getChildBodyNode()
-                                      ->getTransform()
-                                      .translation();
-    return true;
+  // choose apricot closest to forque end effector
+  std::vector<dart::dynamics::MetaSkeletonPtr> skeletons;
+  for (int i=0; i<world->getNumSkeletons(); i++) {
+    dart::dynamics::MetaSkeletonPtr skeleton = world->getSkeleton(i);
+    if (skeleton->getName().find("apricot") == 0) {
+      skeletons.push_back(skeleton);
+    }
   }
-  else
-  {
-    return false;
+
+  if (skeletons.empty()) {
+      return false;
   }
+
+  dart::dynamics::MetaSkeletonPtr closestSkeleton = nullptr;
+  double closestDistance;
+  for (auto& skeleton : skeletons) {
+    if (skeleton->getNumBodyNodes() == 0) {continue;}
+    double distance = (skeleton->getBodyNode(0)->getWorldTransform().translation() - forqueTip.translation()).norm();
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestSkeleton = skeleton;
+    }
+  }
+
+  if (!closestSkeleton) {
+      return false;
+  }
+
+  foodTransform = closestSkeleton->getBodyNode(0)->getWorldTransform();
+  return true;
 }
+
 }

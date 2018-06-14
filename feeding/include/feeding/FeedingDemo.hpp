@@ -40,6 +40,14 @@ public:
   std::unique_ptr<Workspace>& getWorkspace() {return workspace;}
   std::unique_ptr<ada::Ada>& getAda() {return ada;}
   Eigen::Isometry3d getDefaultFoodTransform() {return workspace->getDefaultFoodItem()->getRootBodyNode()->getWorldTransform();}
+  Eigen::Isometry3d getForqueTipTransform() {
+    std::string forqueTipName = getRosParam<std::string>("/ada/endEffectorName", nodeHandle);
+    return ada->getMetaSkeleton()->getBodyNode(forqueTipName)->getWorldTransform();
+  }
+  Eigen::Isometry3d getCameraLensTransform() {
+    std::string cameraLensName = getRosParam<std::string>("/ada/cameraLensFrame", nodeHandle);
+    return ada->getMetaSkeleton()->getBodyNode(cameraLensName)->getWorldTransform();
+  }
 
   /// Checks robot and workspace collisions.
   /// the result string information about collisions.
@@ -59,6 +67,7 @@ public:
   void moveToStartConfiguration();
   void moveAbovePlate();
   void moveAboveFood(Eigen::Isometry3d foodTransform);
+  bool moveTowardsFood(Eigen::Isometry3d foodTransform, double height);
   void moveIntoFood();
   void moveOutOfFood();
   void moveInFrontOfPerson();

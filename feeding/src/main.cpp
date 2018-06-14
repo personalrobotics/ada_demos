@@ -79,7 +79,7 @@ int main(int argc, char** argv)
   Eigen::Isometry3d foodTransform;
   if (adaReal)
   {
-    bool perceptionSuccessful = perception.perceiveFood(foodTransform);
+    bool perceptionSuccessful = perception.perceiveFoodClosest(foodTransform, feedingDemo.getForqueTipTransform());
     if (!perceptionSuccessful)
       throw std::runtime_error("Perception failed");
   }
@@ -97,7 +97,21 @@ int main(int argc, char** argv)
     waitForUser("Move forque into food");
   }
   ftThresholdController.setThreshold(GRAB_FOOD_FT_THRESHOLD);
-  feedingDemo.moveIntoFood();
+  // successively move into food
+  if (!adaReal) {
+		feedingDemo.moveIntoFood();
+	} else {
+		if (!perception.perceiveFoodClosest(foodTransform, feedingDemo.getForqueTipTransform())) {
+			throw std::runtime_error("Perception failed");
+		}
+		feedingDemo.moveTowardsFood(foodTransform, 0.05);
+		if (!perception.perceiveFoodClosest(foodTransform, feedingDemo.getForqueTipTransform())) {
+			throw std::runtime_error("Perception failed");
+		}
+		feedingDemo.moveTowardsFood(foodTransform, 0);
+	}
+
+	// done with moving
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
           getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));

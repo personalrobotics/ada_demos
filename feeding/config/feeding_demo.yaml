@@ -20,6 +20,7 @@ ada:
   urdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.urdf
   srdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.srdf
   endEffectorName: j2n6s200_forque_end_effector
+  cameraLensFrame: camera_color_optical_frame
   homeConfiguration: [3.357, 3.56652, 1.54389, -0.38693, 1.31163, 2.98721]
   baseFramePose: [0.7, 0.1, 0.05, 0, 0, 3.1415]
 

@@ -190,6 +190,18 @@ void FeedingDemo::moveIntoFood()
   // along the way and the trajectory was aborted
 }
 
+bool FeedingDemo::moveTowardsFood(Eigen::Isometry3d foodTransform, double height) {
+    Eigen::Isometry3d currentForqueTipTransform = getForqueTipTransform();
+    Eigen::Isometry3d targetForqueTipTransform = foodTransform;
+    targetForqueTipTransform.translation().z() = height;
+
+    Eigen::Vector3d direction = targetForqueTipTransform.translation() - currentForqueTipTransform.translation();
+    bool successfulMove = moveWithEndEffectorOffset(
+        direction,
+        direction.norm());
+    return successfulMove;
+}
+
 void FeedingDemo::moveOutOfFood()
 {
   bool successfulMove = moveWithEndEffectorOffset(
