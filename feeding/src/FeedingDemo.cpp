@@ -36,9 +36,9 @@ FeedingDemo::FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle)
           ada->getHand()->getEndEffectorBodyNode());
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
-          /*workspace->getTable().get(),
+          workspace->getTable().get(),
           workspace->getTom().get(),
-          workspace->getWorkspaceEnvironment().get()*/);
+          workspace->getWorkspaceEnvironment().get());
   collisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
           armSpace, ada->getArm()->getMetaSkeleton(), collisionDetector);
