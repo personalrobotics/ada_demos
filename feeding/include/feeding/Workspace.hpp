@@ -12,7 +12,7 @@ namespace feeding {
 class Workspace {
 
   aikido::planner::WorldPtr& world;
-  dart::dynamics::SkeletonPtr plate, table, workspaceEnvironment, defaultFoodItem, tom;
+  dart::dynamics::SkeletonPtr plate, table, workspaceEnvironment, defaultFoodItem, tom, wheelchair;
 
   void addToWorld(dart::dynamics::SkeletonPtr& skeleton, std::string name, const Eigen::Isometry3d& robotPose, const ros::NodeHandle& nodeHandle);
 
@@ -29,6 +29,7 @@ public:
   dart::dynamics::SkeletonPtr getWorkspaceEnvironment() const {return workspaceEnvironment;}
   dart::dynamics::SkeletonPtr getDefaultFoodItem() const {return defaultFoodItem;}
   dart::dynamics::SkeletonPtr getTom() const {return tom;}
+  dart::dynamics::SkeletonPtr getWheelchair() const {return wheelchair;}
 
   void deleteFood();
 };

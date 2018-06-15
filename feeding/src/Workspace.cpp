@@ -17,6 +17,7 @@ Workspace::Workspace(
   addToWorld(tom, "tom", robotPose, nodeHandle);
   addToWorld(
       workspaceEnvironment, "workspaceEnvironment", robotPose, nodeHandle);
+  addToWorld(wheelchair, "wheelchair", Eigen::Isometry3d::Identity(), nodeHandle);
 
   if (!adaReal)
   {
