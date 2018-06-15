@@ -38,7 +38,8 @@ FeedingDemo::FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle)
       = collisionDetector->createCollisionGroup(
           workspace->getTable().get(),
           workspace->getTom().get(),
-          workspace->getWorkspaceEnvironment().get());
+          workspace->getWorkspaceEnvironment().get(),
+          workspace->getWheelchair().get());
   collisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
           armSpace, ada->getArm()->getMetaSkeleton(), collisionDetector);
@@ -113,12 +114,17 @@ void FeedingDemo::moveToStartConfiguration()
       = getRosParam<std::vector<double>>("/ada/homeConfiguration", nodeHandle);
   if (adaReal)
   {
-    moveArmToConfiguration(Eigen::Vector6d(home.data()));
+    //moveArmToConfiguration(Eigen::Vector6d(home.data()));
   }
   else
   {
+      auto oldHome
+      = getRosParam<std::vector<double>>("/ada/oldHomeConfiguration", nodeHandle);
     ada->getArm()->getMetaSkeleton()->setPositions(
-        Eigen::Vector6d(home.data()));
+        Eigen::Vector6d(oldHome.data()));
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(4000));
+    moveArmToConfiguration(Eigen::Vector6d(home.data()));
   }
 }
 
