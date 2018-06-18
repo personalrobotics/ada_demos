@@ -255,7 +255,7 @@ int main(int argc, char** argv)
   if (adaSim)
   {
     Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
-    home << -1.92989, 3.03971, 2.64889, -1.34884, 1.62496, -0.602342;
+    home <<  -1.7833, 3.37821, 1.67694, -1.48822, 0.751753, 1.1297;
     armSkeleton->setPositions(home);
 
     auto startState
@@ -285,9 +285,7 @@ int main(int argc, char** argv)
   auto future = hand->executePreshape("closed");
   future.wait();
 
-  waitForUser("Open Hand.\n Press [ENTER] to proceed:");
-  future = hand->executePreshape("open");
-  future.wait();
+
 
   /////////////////////////////////////////////////////////////////////////////
   //   Trajectory execution
@@ -328,6 +326,11 @@ int main(int argc, char** argv)
   ROS_INFO("Starting the kinodynamic testing");
   moveArmTo(robot, armSpace, armSkeleton, 
             viaConfig, viaVelocity, goalConfig);  
+
+
+  waitForUser("Open Hand.\n Press [ENTER] to proceed:");
+  future = hand->executePreshape("open");
+  future.wait();
 
 
   waitForUser("Press [ENTER] to exit. ");
