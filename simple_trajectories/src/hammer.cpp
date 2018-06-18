@@ -317,9 +317,8 @@ int main(int argc, char** argv)
 
   waitForUser("Press key to continue.");
   Eigen::VectorXd viaConfig(movedPose);
-  viaConfig(1) -= 0.01;
-  viaConfig(2) -= 0.01;
   Eigen::VectorXd viaVelocity(6);
+  viaConfig << -1.86727, 4.00172, 2.74529, -0.57672, 1.66878, -0.0733088;
   viaVelocity << 0.0, -0.8, -0.4, 0.8, 0.0, 0.0;
 
   Eigen::VectorXd goalConfig(movedPose);
