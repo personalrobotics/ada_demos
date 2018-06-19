@@ -21,20 +21,13 @@ enum FTThreshold
 class FTThresholdController
 {
 
-  bool useThresholdControl;
-  const ros::NodeHandle& nodeHandle;
-  std::unique_ptr<actionlib::
-                      SimpleActionClient<pr_control_msgs::
-                                             SetForceTorqueThresholdAction>>
-      ftThresholdActionClient;
-
 public:
   /// Constructor.
   /// With useThresholdControl you can turn this whole objects on and off.
   /// Useful if you don't use the MoveUntilTouchController and don't need to set
   /// these thresholds
   FTThresholdController(
-      bool useThresholdControl, const ros::NodeHandle& nodeHandle);
+      bool useThresholdControl, ros::NodeHandle nodeHandle);
 
   /// Needs to be called before setting the first thresholds.
   /// Blocks until the threshold could be set successfully.
@@ -49,6 +42,15 @@ public:
   /// Sets the MoveUntilTouchControllers Thresholds accordingly.
   /// Returns whether the thresholds were set successfully.
   bool trySetThreshold(FTThreshold);
+
+private:
+
+  bool useThresholdControl;
+  ros::NodeHandle nodeHandle;
+  std::unique_ptr<actionlib::
+                      SimpleActionClient<pr_control_msgs::
+                                             SetForceTorqueThresholdAction>>
+      ftThresholdActionClient;
 };
 }
 

@@ -14,10 +14,6 @@ namespace feeding {
 class Perception
 {
 
-  aikido::planner::WorldPtr world;
-  ros::NodeHandle& nodeHandle;
-  std::unique_ptr<aikido::perception::PoseEstimatorModule> objDetector;
-
 public:
   Perception(
       aikido::planner::WorldPtr world,
@@ -29,6 +25,13 @@ public:
   /// If a food item is found, the foodTransform is assigned.
   /// Returns if a food item was found.
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
+
+  private:
+
+  aikido::planner::WorldPtr world;
+  ros::NodeHandle& nodeHandle;
+  std::unique_ptr<aikido::perception::PoseEstimatorModule> objDetector;
+  
 };
 }
 

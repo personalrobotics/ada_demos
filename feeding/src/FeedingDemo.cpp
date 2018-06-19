@@ -5,7 +5,7 @@
 
 namespace feeding {
 
-FeedingDemo::FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle)
+FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle)
   : adaReal(adaReal), nodeHandle(nodeHandle)
 {
 
@@ -50,6 +50,26 @@ FeedingDemo::FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle)
     ada->startTrajectoryExecutor();
   }
 }
+
+
+  aikido::planner::WorldPtr FeedingDemo::getWorld()
+  {
+    return world;
+  }
+  std::unique_ptr<Workspace>& FeedingDemo::getWorkspace()
+  {
+    return workspace;
+  }
+  std::unique_ptr<ada::Ada>& FeedingDemo::getAda()
+  {
+    return ada;
+  }
+  Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
+  {
+    return workspace->getDefaultFoodItem()
+        ->getRootBodyNode()
+        ->getWorldTransform();
+  }
 
 bool FeedingDemo::isCollisionFree(std::string& result)
 {
@@ -148,7 +168,7 @@ void FeedingDemo::moveAbovePlate()
   }
 }
 
-void FeedingDemo::moveAboveFood(Eigen::Isometry3d foodTransform)
+void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
 {
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", nodeHandle);
@@ -254,7 +274,7 @@ void FeedingDemo::moveAwayFromPerson()
   }
 }
 
-bool FeedingDemo::moveArmToTSR(aikido::constraint::dart::TSR& tsr)
+bool FeedingDemo::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
 
@@ -271,7 +291,7 @@ bool FeedingDemo::moveArmToTSR(aikido::constraint::dart::TSR& tsr)
 }
 
 bool FeedingDemo::moveWithEndEffectorOffset(
-    Eigen::Vector3d direction, double length)
+    const Eigen::Vector3d& direction, double length)
 {
   auto trajectory = ada->planToEndEffectorOffset(
       armSpace,
@@ -289,7 +309,7 @@ bool FeedingDemo::moveWithEndEffectorOffset(
   return moveArmOnTrajectory(trajectory, RETIME);
 }
 
-bool FeedingDemo::moveArmToConfiguration(Eigen::Vector6d configuration)
+bool FeedingDemo::moveArmToConfiguration(const Eigen::Vector6d& configuration)
 {
   auto trajectory = ada->planToConfiguration(
       armSpace,

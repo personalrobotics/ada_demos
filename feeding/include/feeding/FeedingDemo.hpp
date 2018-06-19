@@ -26,40 +26,17 @@ enum TrajectoryPostprocessType
 class FeedingDemo
 {
 
-  bool adaReal;
-  const ros::NodeHandle& nodeHandle;
-  aikido::planner::WorldPtr world;
-
-  std::unique_ptr<ada::Ada> ada;
-  std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace;
-  std::unique_ptr<Workspace> workspace;
-  std::shared_ptr<aikido::constraint::dart::CollisionFree>
-      collisionFreeConstraint;
-
 public:
-  FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle);
+  FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle);
 
-  aikido::planner::WorldPtr getWorld()
-  {
-    return world;
-  }
-  std::unique_ptr<Workspace>& getWorkspace()
-  {
-    return workspace;
-  }
-  std::unique_ptr<ada::Ada>& getAda()
-  {
-    return ada;
-  }
-  Eigen::Isometry3d getDefaultFoodTransform()
-  {
-    return workspace->getDefaultFoodItem()
-        ->getRootBodyNode()
-        ->getWorldTransform();
-  }
+  aikido::planner::WorldPtr getWorld();
+  std::unique_ptr<Workspace>& getWorkspace();
+  std::unique_ptr<ada::Ada>& getAda();
+
+  Eigen::Isometry3d getDefaultFoodTransform();
 
   /// Checks robot and workspace collisions.
-  /// the result string information about collisions.
+  /// the result string is filled with information about collisions.
   bool isCollisionFree(std::string& result);
 
   void printRobotConfiguration();
@@ -75,7 +52,7 @@ public:
   /// Convenience functions to move the robot in the feeding demo.
   void moveToStartConfiguration();
   void moveAbovePlate();
-  void moveAboveFood(Eigen::Isometry3d foodTransform);
+  void moveAboveFood(const Eigen::Isometry3d& foodTransform);
   void moveIntoFood();
   void moveOutOfFood();
   void moveInFrontOfPerson();
@@ -85,15 +62,28 @@ public:
   /// General functions for robot movement.
   /// They return a bool if the movement could be completed successfully.
   /// Throws a runtime_error if they couldn't find a trajectory.
-  bool moveArmToTSR(aikido::constraint::dart::TSR& tsr);
-  bool moveWithEndEffectorOffset(Eigen::Vector3d direction, double length);
-  bool moveArmToConfiguration(Eigen::Vector6d configuration);
+  bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr);
+  bool moveWithEndEffectorOffset(const Eigen::Vector3d& direction, double length);
+  bool moveArmToConfiguration(const Eigen::Vector6d& configuration);
 
   /// Postprocesses and executes a trjectory.
   /// Throws runtime_error if the trajectory is empty.
   bool moveArmOnTrajectory(
       aikido::trajectory::TrajectoryPtr trajectory,
       TrajectoryPostprocessType postprocessType = SMOOTH);
+
+private:
+
+  bool adaReal;
+  ros::NodeHandle nodeHandle;
+  aikido::planner::WorldPtr world;
+
+  std::unique_ptr<ada::Ada> ada;
+  std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace;
+  std::unique_ptr<Workspace> workspace;
+  std::shared_ptr<aikido::constraint::dart::CollisionFree>
+      collisionFreeConstraint;
+
 };
 }
 
