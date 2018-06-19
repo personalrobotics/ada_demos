@@ -31,9 +31,9 @@ int main(int argc, char** argv)
   ada::Ada ada(
       world,
       !adaReal,
-      "package://ada_description/robots_urdf/ada_with_camera_forque.urdf",
-      "package://ada_description/robots_urdf/ada_with_camera_forque.srdf",
-      "j2n6s200_forque_end_effector");
+      "package://ada_description/robots_urdf/ada_with_camera.urdf",
+      "package://ada_description/robots_urdf/ada_with_camera.srdf",
+      "j2n6s200_finger_tips");
   auto armSpace = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
       ada.getArm()->getMetaSkeleton().get());
   Eigen::Isometry3d robotPose = createIsometry(0.7, -0.1, -0.28, 0, 0, 3.1415);
@@ -80,9 +80,14 @@ int main(int argc, char** argv)
       "dart_markers/cameraCalibration",
       "map");
   viewer.setAutoUpdate(true);
-  auto frame1 = viewer.addFrame(ada.getMetaSkeleton()->getBodyNode("j2n6s200_forque_end_effector"));
+  auto frame1 = viewer.addFrame(ada.getMetaSkeleton()->getBodyNode("j2n6s200_end_effector"), 0.02, 0.002);
+  auto frame2 = viewer.addFrame(ada.getMetaSkeleton()->getBodyNode("j2n6s200_finger_tips"), 0.02, 0.002);
 
   waitForUser("Startup complete.");
+
+  ada.getHand()->executePreshape("closed").wait();
+
+  waitForUser("Move to initial position");
 
   // ===== CALIBRATION PROCEDURE =====
   auto firstTSR = getCalibrationTSR(
@@ -109,7 +114,7 @@ int main(int argc, char** argv)
   }
   for (int i= 20; i<=56; i++) {
     double angle = 0.1745*i;
-    auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(.425 + sin(angle)*0.05, 0.15 - cos(angle)*0.05, 0.03, 3.98, 0, angle));
+    auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(.425 + sin(angle)*0.2, 0.15 - cos(angle)*0.2, 0.1, 3.98, 0, angle));
     if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
     {
       ROS_INFO_STREAM("Fail: Step " << i);
