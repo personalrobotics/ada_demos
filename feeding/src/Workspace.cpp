@@ -8,7 +8,7 @@ Workspace::Workspace(
     aikido::planner::WorldPtr& world,
     const Eigen::Isometry3d& robotPose,
     bool adaReal,
-    const ros::NodeHandle& nodeHandle)
+    ros::NodeHandle nodeHandle)
   : world(world)
 {
 
@@ -28,9 +28,9 @@ Workspace::Workspace(
 
 void Workspace::addToWorld(
     dart::dynamics::SkeletonPtr& skeleton,
-    std::string name,
+    const std::string& name,
     const Eigen::Isometry3d& robotPose,
-    const ros::NodeHandle& nodeHandle)
+    ros::NodeHandle nodeHandle)
 {
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
@@ -50,5 +50,35 @@ void Workspace::deleteFood()
   {
     world->removeSkeleton(defaultFoodItem);
   }
+}
+
+dart::dynamics::ConstSkeletonPtr Workspace::getPlate() const
+{
+  return plate;
+}
+
+dart::dynamics::ConstSkeletonPtr Workspace::getTable() const
+{
+  return table;
+}
+
+dart::dynamics::ConstSkeletonPtr Workspace::getWorkspaceEnvironment() const
+{
+  return workspaceEnvironment;
+}
+
+dart::dynamics::SkeletonPtr Workspace::getDefaultFoodItem() const
+{
+  return defaultFoodItem;
+}
+
+dart::dynamics::ConstSkeletonPtr Workspace::getTom() const
+{
+  return tom;
+}
+
+dart::dynamics::ConstSkeletonPtr Workspace::getWheelchair() const
+{
+  return wheelchair;
 }
 }
