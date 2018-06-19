@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 
   // ===== CALIBRATION PROCEDURE =====
   auto firstTSR = getCalibrationTSR(
-    robotPose.inverse() * createIsometry(.425, 0.15, 0.005, 3.1415, 0, 0)
+    robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0)
   );
   //auto frame2 = viewer.addTSRMarker(firstTSR, 20);
 
