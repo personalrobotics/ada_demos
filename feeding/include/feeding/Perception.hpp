@@ -26,12 +26,10 @@ public:
   /// Returns if a food item was found.
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
-  private:
-
+private:
   aikido::planner::WorldPtr world;
   ros::NodeHandle& nodeHandle;
   std::unique_ptr<aikido::perception::PoseEstimatorModule> objDetector;
-  
 };
 }
 

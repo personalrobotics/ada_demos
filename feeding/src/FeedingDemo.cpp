@@ -51,25 +51,24 @@ FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle)
   }
 }
 
-
-  aikido::planner::WorldPtr FeedingDemo::getWorld()
-  {
-    return world;
-  }
-  std::unique_ptr<Workspace>& FeedingDemo::getWorkspace()
-  {
-    return workspace;
-  }
-  std::unique_ptr<ada::Ada>& FeedingDemo::getAda()
-  {
-    return ada;
-  }
-  Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
-  {
-    return workspace->getDefaultFoodItem()
-        ->getRootBodyNode()
-        ->getWorldTransform();
-  }
+aikido::planner::WorldPtr FeedingDemo::getWorld()
+{
+  return world;
+}
+std::unique_ptr<Workspace>& FeedingDemo::getWorkspace()
+{
+  return workspace;
+}
+std::unique_ptr<ada::Ada>& FeedingDemo::getAda()
+{
+  return ada;
+}
+Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
+{
+  return workspace->getDefaultFoodItem()
+      ->getRootBodyNode()
+      ->getWorldTransform();
+}
 
 bool FeedingDemo::isCollisionFree(std::string& result)
 {

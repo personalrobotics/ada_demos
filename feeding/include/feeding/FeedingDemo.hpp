@@ -63,7 +63,8 @@ public:
   /// They return a bool if the movement could be completed successfully.
   /// Throws a runtime_error if they couldn't find a trajectory.
   bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr);
-  bool moveWithEndEffectorOffset(const Eigen::Vector3d& direction, double length);
+  bool moveWithEndEffectorOffset(
+      const Eigen::Vector3d& direction, double length);
   bool moveArmToConfiguration(const Eigen::Vector6d& configuration);
 
   /// Postprocesses and executes a trjectory.
@@ -73,7 +74,6 @@ public:
       TrajectoryPostprocessType postprocessType = SMOOTH);
 
 private:
-
   bool adaReal;
   ros::NodeHandle nodeHandle;
   aikido::planner::WorldPtr world;
@@ -83,7 +83,6 @@ private:
   std::unique_ptr<Workspace> workspace;
   std::shared_ptr<aikido::constraint::dart::CollisionFree>
       collisionFreeConstraint;
-
 };
 }
 

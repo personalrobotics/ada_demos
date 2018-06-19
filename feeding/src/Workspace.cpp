@@ -51,31 +51,28 @@ void Workspace::deleteFood()
   }
 }
 
+dart::dynamics::ConstSkeletonPtr Workspace::getPlate() const
+{
+  return plate;
+}
 
+dart::dynamics::ConstSkeletonPtr Workspace::getTable() const
+{
+  return table;
+}
 
-  dart::dynamics::ConstSkeletonPtr Workspace::getPlate() const
-  {
-    return plate;
-  }
-  
-  dart::dynamics::ConstSkeletonPtr Workspace::getTable() const
-  {
-    return table;
-  }
+dart::dynamics::ConstSkeletonPtr Workspace::getWorkspaceEnvironment() const
+{
+  return workspaceEnvironment;
+}
 
-  dart::dynamics::ConstSkeletonPtr Workspace::getWorkspaceEnvironment() const
-  {
-    return workspaceEnvironment;
-  }
+dart::dynamics::SkeletonPtr Workspace::getDefaultFoodItem() const
+{
+  return defaultFoodItem;
+}
 
-  dart::dynamics::SkeletonPtr Workspace::getDefaultFoodItem() const
-  {
-    return defaultFoodItem;
-  }
-
-  dart::dynamics::ConstSkeletonPtr Workspace::getTom() const
-  {
-    return tom;
-  }
-
+dart::dynamics::ConstSkeletonPtr Workspace::getTom() const
+{
+  return tom;
+}
 }

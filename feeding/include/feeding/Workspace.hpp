@@ -33,8 +33,7 @@ public:
 
   void deleteFood();
 
-  private:
-
+private:
   aikido::planner::WorldPtr& world;
   dart::dynamics::SkeletonPtr plate, table, workspaceEnvironment,
       defaultFoodItem, tom;
@@ -44,7 +43,6 @@ public:
       const std::string& name,
       const Eigen::Isometry3d& robotPose,
       ros::NodeHandle nodeHandle);
-      
 };
 }
 

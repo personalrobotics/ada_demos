@@ -26,8 +26,7 @@ public:
   /// With useThresholdControl you can turn this whole objects on and off.
   /// Useful if you don't use the MoveUntilTouchController and don't need to set
   /// these thresholds
-  FTThresholdController(
-      bool useThresholdControl, ros::NodeHandle nodeHandle);
+  FTThresholdController(bool useThresholdControl, ros::NodeHandle nodeHandle);
 
   /// Needs to be called before setting the first thresholds.
   /// Blocks until the threshold could be set successfully.
@@ -44,7 +43,6 @@ public:
   bool trySetThreshold(FTThreshold);
 
 private:
-
   bool useThresholdControl;
   ros::NodeHandle nodeHandle;
   std::unique_ptr<actionlib::

@@ -11,7 +11,8 @@ namespace feeding {
 /// deals with the arguments supplied to the executable.
 /// argc and argv are the typical parameters of main(..)
 /// adaReal is true when the robot is used and not the simulation
-/// autoContinueDemo is true when the demo continues to the next step without asking for confirmation
+/// autoContinueDemo is true when the demo continues to the next step without
+/// asking for confirmation
 void handleArguments(
     int argc, char** argv, bool& adaReal, bool& autoContinueDemo);
 
