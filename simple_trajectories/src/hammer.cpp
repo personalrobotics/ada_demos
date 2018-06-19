@@ -25,7 +25,7 @@ static const std::string baseFrameName("map");
 dart::common::Uri adaUrdfUri{"package://ada_description/robots_urdf/ada.urdf"};
 dart::common::Uri adaSrdfUri{"package://ada_description/robots_urdf/ada.srdf"};
 
-static const double planningTimeout{10.};
+static const double planningTimeout{15.};
 static const double maxDistanceBtwValidityChecks{0.01};
 bool adaSim = true;
 
