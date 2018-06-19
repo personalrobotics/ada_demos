@@ -59,9 +59,9 @@ planning:
   timeoutSeconds: 5
   tsr:
     horizontalToleranceAbovePlate: 0.005
-    verticalToleranceAbovePlate: 0.005
+    verticalToleranceAbovePlate: 0.002
     horizontalToleranceNearFood: 0.002
-    verticalToleranceNearFood: 0.002
+    verticalToleranceNearFood: 0.001
     horizontalToleranceNearPerson: 0.01
     verticalToleranceNearPerson: 0.005
   endEffectorOffset:

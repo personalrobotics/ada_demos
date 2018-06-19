@@ -8,7 +8,7 @@ using FTThresholdActionClient
 namespace feeding {
 
 FTThresholdController::FTThresholdController(
-    bool useThresholdControl, const ros::NodeHandle& nodeHandle)
+    bool useThresholdControl, ros::NodeHandle nodeHandle)
   : useThresholdControl(useThresholdControl), nodeHandle(nodeHandle)
 {
   if (!useThresholdControl)
