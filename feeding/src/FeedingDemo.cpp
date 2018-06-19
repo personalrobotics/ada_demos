@@ -183,16 +183,12 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
   double verticalToleranceNearFood = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearFood", nodeHandle);
 
-  auto foodTSR = pr_tsr::getDefaultPlateTSR();
-  foodTSR.mT0_w = foodTransform;
-  foodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
-
-  foodTSR.mBw = createBwMatrixForTSR(
+  aikido::constraint::dart::TSR aboveFoodTSR;
+  aboveFoodTSR.mT0_w = foodTransform;
+  aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, -M_PI, M_PI);
-  foodTSR.mTw_e.matrix()
+  aboveFoodTSR.mTw_e.matrix()
       *= ada->getHand()->getEndEffectorTransform("plate")->matrix();
-
-  aikido::constraint::dart::TSR aboveFoodTSR(foodTSR);
   aboveFoodTSR.mTw_e.translation()
       = Eigen::Vector3d{0, 0, heightAboveFood - heightIntoFood};
 
@@ -232,7 +228,7 @@ void FeedingDemo::moveInFrontOfPerson()
   double verticalToleranceNearPerson = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearPerson", nodeHandle);
 
-  auto personTSR = pr_tsr::getDefaultPlateTSR();
+  aikido::constraint::dart::TSR personTSR;
   Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
   personPose.translation() = workspace->getTom()
                                  ->getRootBodyNode()
