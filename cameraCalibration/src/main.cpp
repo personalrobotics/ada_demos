@@ -7,6 +7,9 @@
 #include <aikido/io/CatkinResourceRetriever.hpp>
 #include <aikido/io/util.hpp>
 #include "cameraCalibration/util.hpp"
+#include "cameraCalibration/Perception.hpp"
+
+using namespace cameraCalibration;
 
 int main(int argc, char** argv)
 {
@@ -74,6 +77,8 @@ int main(int argc, char** argv)
     ada.startTrajectoryExecutor();
   }
 
+  Perception perception(nodeHandle);
+
   // visualization
   aikido::rviz::WorldInteractiveMarkerViewer viewer(
       world,
@@ -110,6 +115,7 @@ int main(int argc, char** argv)
       ROS_INFO_STREAM("Fail: Step " << i);
     } else {
       ROS_INFO_STREAM("Success: Step " << i);
+      perception.getTargetTransformInCameraLensFrame();
     }
   }
   for (int i= 20; i<=56; i++) {
