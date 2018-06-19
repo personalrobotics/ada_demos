@@ -8,6 +8,8 @@
 #include <pr_tsr/plate.hpp>
 #include <libada/Ada.hpp>
 
+namespace cameraCalibration {
+
 /// deals with the arguments supplied to the executable.
 void handleArguments(int argc, char** argv, bool& adaReal, bool& autoContinueDemo);
 
@@ -58,5 +60,7 @@ bool moveArmOnTrajectory(
     ada::Ada& ada,
     std::shared_ptr<aikido::constraint::dart::CollisionFree> collisionFreeConstraint,
     std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace);
+
+}
 
 #endif

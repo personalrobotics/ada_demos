@@ -4,6 +4,7 @@ project(cameraCalibration)
 add_executable(cameraCalibration
   src/main.cpp
   src/util.cpp
+  src/Perception.cpp
 )
 
 include_directories(include)

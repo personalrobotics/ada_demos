@@ -3,6 +3,9 @@
 
 namespace po = boost::program_options;
 
+
+namespace cameraCalibration {
+
 void handleArguments(
     int argc, char** argv, bool& adaReal, bool& autoContinueDemo)
 {
@@ -144,4 +147,6 @@ bool moveArmOnTrajectory(
     return false;
   }
   return true;
+}
+
 }

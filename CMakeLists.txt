@@ -3,7 +3,7 @@ project(ada_demos)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-find_package(catkin)
+find_package(catkin REQUIRED COMPONENTS tf tf_conversions)
 catkin_package(
   INCLUDE_DIRS feeding/include
   LIBRARIES feeding
@@ -12,6 +12,10 @@ catkin_package(
 # ===============================================================================
 # Dependencies
 #
+
+find_package(tf_conversions REQUIRED)
+include_directories(${tf_conversions_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 
 find_package(DART REQUIRED)
 include_directories(${DART_INCLUDE_DIRS})
@@ -71,6 +75,7 @@ if(CLANG_FORMAT_EXECUTABLE)
     soda_grasp/src/*.cpp
     simple_trajectories/src/*.cpp
     feeding/src/*.cpp
+    feeding/include/*.hpp
   )
   list(LENGTH ALL_SOURCE_FILES NUM_SOURCE_FILES)
 
