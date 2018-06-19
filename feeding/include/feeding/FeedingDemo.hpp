@@ -1,9 +1,9 @@
 #ifndef FEEDING_DEMO_HPP
 #define FEEDING_DEMO_HPP
 
+#include <aikido/planner/World.hpp>
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
-#include <aikido/planner/World.hpp>
 #include "feeding/Workspace.hpp"
 
 namespace feeding {
@@ -17,12 +17,14 @@ enum TrajectoryPostprocessType
 /// The FeedingDemo class is responsible for
 /// - The robot (loading + control)
 /// - The workspace
-/// 
+///
 /// It contains not only generalized functions, for example moveArmToTSR(...),
 /// but also some functions that are very specialized for the feeding demo,
-/// like moveInFrontOfPerson(). It uses the robot, workspace info and ros parameters
+/// like moveInFrontOfPerson(). It uses the robot, workspace info and ros
+/// parameters
 /// to accomplish these tasks.
-class FeedingDemo {
+class FeedingDemo
+{
 
   bool adaReal;
   const ros::NodeHandle& nodeHandle;
@@ -31,15 +33,30 @@ class FeedingDemo {
   std::unique_ptr<ada::Ada> ada;
   std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace;
   std::unique_ptr<Workspace> workspace;
-  std::shared_ptr<aikido::constraint::dart::CollisionFree> collisionFreeConstraint;
+  std::shared_ptr<aikido::constraint::dart::CollisionFree>
+      collisionFreeConstraint;
 
 public:
   FeedingDemo(bool adaReal, const ros::NodeHandle& nodeHandle);
 
-  aikido::planner::WorldPtr getWorld() {return world;}
-  std::unique_ptr<Workspace>& getWorkspace() {return workspace;}
-  std::unique_ptr<ada::Ada>& getAda() {return ada;}
-  Eigen::Isometry3d getDefaultFoodTransform() {return workspace->getDefaultFoodItem()->getRootBodyNode()->getWorldTransform();}
+  aikido::planner::WorldPtr getWorld()
+  {
+    return world;
+  }
+  std::unique_ptr<Workspace>& getWorkspace()
+  {
+    return workspace;
+  }
+  std::unique_ptr<ada::Ada>& getAda()
+  {
+    return ada;
+  }
+  Eigen::Isometry3d getDefaultFoodTransform()
+  {
+    return workspace->getDefaultFoodItem()
+        ->getRootBodyNode()
+        ->getWorldTransform();
+  }
 
   /// Checks robot and workspace collisions.
   /// the result string information about collisions.
@@ -75,11 +92,9 @@ public:
   /// Postprocesses and executes a trjectory.
   /// Throws runtime_error if the trajectory is empty.
   bool moveArmOnTrajectory(
-    aikido::trajectory::TrajectoryPtr trajectory,
-    TrajectoryPostprocessType postprocessType = SMOOTH);
-
+      aikido::trajectory::TrajectoryPtr trajectory,
+      TrajectoryPostprocessType postprocessType = SMOOTH);
 };
-
 }
 
 #endif
