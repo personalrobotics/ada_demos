@@ -25,7 +25,7 @@ static const std::string baseFrameName("map");
 dart::common::Uri adaUrdfUri{"package://ada_description/robots_urdf/ada.urdf"};
 dart::common::Uri adaSrdfUri{"package://ada_description/robots_urdf/ada.srdf"};
 
-static const double planningTimeout{5.};
+static const double planningTimeout{10.};
 static const double maxDistanceBtwValidityChecks{0.01};
 bool adaSim = true;
 
@@ -113,6 +113,9 @@ void moveArmTo(ada::Ada& robot,
     auto positionLowerLimits = armSpace->getProperties().getPositionLowerLimits();
     auto velocityUpperLimits = armSpace->getProperties().getVelocityUpperLimits();
     auto velocityLowerLimits = armSpace->getProperties().getVelocityLowerLimits();
+
+    double tolerance = 1e-2;
+
     // validate a trajectory
     for(double t=trajectory->getStartTime(); t<trajectory->getEndTime(); t+=0.005)
     {
@@ -128,18 +131,18 @@ void moveArmTo(ada::Ada& robot,
   
       for(std::size_t d=0; d < armSpace->getDimension(); d++)
       {
-        if(tmpPos[d]>positionUpperLimits[d] ||
-           tmpPos[d]<positionLowerLimits[d])
+        if(tmpPos[d]>positionUpperLimits[d]+tolerance ||
+           tmpPos[d]<positionLowerLimits[d]-tolerance)
         {
-          std::cout << "@ " << t << " POS(" << tmpPos[d] << ") ";
+          std::cout << d << "@ " << t << " POS(" << tmpPos[d] << ") ";
           std::cout << "[" << positionLowerLimits[d] << " , ";
           std::cout << positionUpperLimits[d] << "]" << std::endl; 
         }
         
-        if(tmpVel[d]>velocityUpperLimits[d] ||
-           tmpVel[d]<velocityLowerLimits[d])
+        if(tmpVel[d]>velocityUpperLimits[d]+tolerance ||
+           tmpVel[d]<velocityLowerLimits[d]-tolerance)
         {
-          std::cout << "@ " << t << " VEL(" << tmpPos[d] << ") ";
+          std::cout << d << "@ " << t << " VEL(" << tmpVel[d] << ") ";
           std::cout << "[" << velocityLowerLimits[d] << " , ";
           std::cout << velocityUpperLimits[d] << "]" << std::endl; 
         } 
@@ -297,7 +300,7 @@ int main(int argc, char** argv)
   //Eigen::VectorXd movedPose(currentPose);
   //movedPose(5) -= 0.5;
   Eigen::VectorXd movedPose(6);
-  movedPose << -1.92989, 3.02971, 2.63889, -1.34884, 1.62496, -1.10234;
+  movedPose << -1.92989, 3.02971, 2.74529, -0.57672, 1.66878, -0.0733088;
 
   if (!adaSim)
   {
@@ -316,12 +319,12 @@ int main(int argc, char** argv)
   waitForUser("Press key to continue.");
   Eigen::VectorXd viaConfig(movedPose);
   Eigen::VectorXd viaVelocity(6);
-  viaConfig << -1.86727, 4.00172, 2.74529, -0.57672, 1.66878, -0.0733088;
-  viaVelocity << 0.0, -0.8, -0.4, 0.8, 0.0, 0.0;
+  viaConfig << -1.92989, 4.00172, 2.74529, -0.57672, 1.66878, -0.0733088;
+  viaVelocity << 0.0, -0.1, -0.01, 0.0, 0.0, 0.0;
 
   Eigen::VectorXd goalConfig(movedPose);
-  goalConfig(1) -= 0.02;
-  goalConfig(2) -= 0.02;
+  goalConfig(1) -= 0.4;
+  goalConfig(2) -= 0.1;
  
   ROS_INFO("Starting the kinodynamic testing");
   moveArmTo(robot, armSpace, armSkeleton, 
