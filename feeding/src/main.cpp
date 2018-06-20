@@ -2,7 +2,7 @@
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
-#include "feeding/FTThresholdController.hpp"
+#include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
@@ -41,7 +41,7 @@ int main(int argc, char** argv)
   // start demo
   FeedingDemo feedingDemo(adaReal, nodeHandle);
 
-  FTThresholdController ftThresholdController(adaReal, nodeHandle);
+  FTThresholdHelper ftThresholdHelper(adaReal, nodeHandle);
 
   Perception perception(
       feedingDemo.getWorld(), *feedingDemo.getAda(), nodeHandle);
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
     throw std::runtime_error(collisionCheckResult);
   }
 
-  ftThresholdController.init();
+  ftThresholdHelper.init();
   feedingDemo.closeHand();
 
   waitForUser("Startup complete.");
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
   {
     waitForUser("Move forque into food");
   }
-  ftThresholdController.setThreshold(GRAB_FOOD_FT_THRESHOLD);
+  ftThresholdHelper.setThreshold(GRAB_FOOD_FT_THRESHOLD);
   feedingDemo.moveIntoFood();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
@@ -110,9 +110,9 @@ int main(int argc, char** argv)
   {
     waitForUser("Move forque out of food");
   }
-  ftThresholdController.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
+  ftThresholdHelper.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
   feedingDemo.moveOutOfFood();
-  ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
+  ftThresholdHelper.setThreshold(STANDARD_FT_THRESHOLD);
 
   // ===== IN FRONT OF PERSON =====
   if (!autoContinueDemo)
