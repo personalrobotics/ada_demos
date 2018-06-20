@@ -308,7 +308,7 @@ bool FeedingDemo::moveWithEndEffectorOffset(
       getRosParam<double>(
           "/planning/endEffectorOffset/angularTolerance", nodeHandle));
 
-  return moveArmOnTrajectory(trajectory, RETIME);
+  return moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
 }
 
 bool FeedingDemo::moveArmToConfiguration(const Eigen::Vector6d& configuration)
@@ -355,8 +355,8 @@ bool FeedingDemo::moveArmOnTrajectory(
 
     case TRYOPTIMALRETIME:
     {
-      Eigen::VectorXd velocityLimits = ada->getMetaSkeleton()->getVelocityUpperLimits();
-      Eigen::VectorXd accelerationLimits = ada->getMetaSkeleton()->getAccelerationUpperLimits();
+      Eigen::VectorXd velocityLimits = ada->getArm()->getMetaSkeleton()->getVelocityUpperLimits();
+      Eigen::VectorXd accelerationLimits = ada->getArm()->getMetaSkeleton()->getAccelerationUpperLimits();
       double maxDeviation = 1e-2;
       double timeStep = 0.1;
       auto retimer
