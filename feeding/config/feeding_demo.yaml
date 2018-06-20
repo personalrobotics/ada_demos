@@ -27,10 +27,10 @@ ada:
 # Workspace parameters
 plate:
   urdfUri: package://pr_ordata/data/objects/plate.urdf
-  pose: [.425, 0.15, -0.01, 0, 0, 0]
+  pose: [.425, 0.15, 0.0, 0, 0, 0]
 table:
   urdfUri: package://pr_ordata/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.745, 0, 0, 0]
+  pose: [0.76, 0.38, -0.735, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_ordata/data/objects/food_item.urdf
   pose: [.425, 0.15, 0.00, 0, 0, 0]
@@ -46,9 +46,9 @@ wheelchair:
 
 # Feeding demo movement parameters
 feedingDemo:
-  heightAbovePlate: 0.10
-  heightAboveFood: 0.08
-  heightIntoFood: 0.024         # the real robot plans *below* the food. This parameter specifies how far
+  heightAbovePlate: 0.09
+  heightAboveFood: 0.07
+  heightIntoFood: 0.0           # the real robot plans *below* the food. This parameter specifies how far (0.024)
   distanceToPerson: 0.25
   waitMillisecsAtFood: 1000     # short pause after skewering the food
   waitMillisecsAtPerson: 5000   # long pause so person can take a bite
