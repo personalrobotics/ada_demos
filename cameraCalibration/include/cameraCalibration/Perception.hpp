@@ -6,17 +6,20 @@
 #include <ros/ros.h>
 
 namespace cameraCalibration {
-  
+
 
 class Perception {
 
 public:
-
-  Perception(ros::NodeHandle nodeHandle);
+  Perception(
+      ros::NodeHandle nodeHandle,
+      std::string markerTopic);
 
   Eigen::Isometry3d getTargetTransformInCameraLensFrame() const;
 
 private:
+  ros::NodeHandle mNodeHandle;
+  std::string mMarkerTopic;
 
 };
 
