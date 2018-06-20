@@ -37,7 +37,7 @@ int main(int argc, char** argv)
       !adaReal,
       "package://ada_description/robots_urdf/ada_with_camera.urdf",
       "package://ada_description/robots_urdf/ada_with_camera.srdf",
-      "j2n6s200_finger_tips");
+      "j2n6s200_hand_tip");
   auto armSpace = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
       ada.getArm()->getMetaSkeleton().get());
   Eigen::Isometry3d robotPose = createIsometry(0.7, -0.1, -0.28, 0, 0, 3.1415);
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
       "map");
   viewer.setAutoUpdate(true);
   auto frame1 = viewer.addFrame(ada.getMetaSkeleton()->getBodyNode("j2n6s200_end_effector"), 0.02, 0.002);
-  auto frame2 = viewer.addFrame(ada.getMetaSkeleton()->getBodyNode("j2n6s200_finger_tips"), 0.02, 0.002);
+  auto frame2 = viewer.addFrame(ada.getMetaSkeleton()->getBodyNode("j2n6s200_hand_tip"), 0.02, 0.002);
 
   waitForUser("Startup complete.");
 
