@@ -23,7 +23,7 @@ void waitForUser(const std::string& msg);
 /// Loads and returns a ros parameter.
 /// Throws a runtime_error if the parameter is not set.
 template <class T>
-T getRosParam(const std::string& paramName, ros::NodeHandle nh)
+T getRosParam(const std::string& paramName, const ros::NodeHandle& nh)
 {
   T value;
   if (!nh.getParam(paramName, value))
