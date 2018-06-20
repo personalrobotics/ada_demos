@@ -99,9 +99,8 @@ int main(int argc, char** argv)
   waitForUser("Move to initial position");
 
   // ===== CALIBRATION PROCEDURE =====
-  auto firstTSR = getCalibrationTSR(
-    robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0)
-  );
+  Eigen::Isometry3d targetPointPose = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
+  auto firstTSR = getCalibrationTSR(targetPointPose);
   //auto frame2 = viewer.addTSRMarker(firstTSR, 20);
 
   if (!moveArmToTSR(firstTSR, ada, collisionFreeConstraint, armSpace))
@@ -136,6 +135,15 @@ int main(int argc, char** argv)
       targetPointsInCameraLensFrame.push_back(perception.getTargetTransformInCameraLensFrame());
       cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
     }
+  }
+
+  // ===== CALCULATE CALIBRATION =====
+  std::vector<Eigen::Isometry3d> differences;
+  for (int i=0; i<targetPointsInCameraLensFrame.size(); i++) {
+    Eigen::Isometry3d cameraLensPointInWorldFrame2 = targetPointsInCameraLensFrame[i].inverse() * targetPointPose;
+    Eigen::Isometry3d difference = cameraLensPointsInWorldFrame[i] * cameraLensPointInWorldFrame2.inverse();
+    differences.push_back(difference);
+    printPose(difference);
   }
 
   // ===== DONE =====
