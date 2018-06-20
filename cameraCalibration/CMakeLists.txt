@@ -10,6 +10,7 @@ add_executable(cameraCalibration
 include_directories(include)
 
 target_link_libraries(cameraCalibration
+  ${catkin_LIBRARIES}
   ${DART_LIBRARIES}
   ${aikido_LIBRARIES}
   ${Boost_LIBRARIES}

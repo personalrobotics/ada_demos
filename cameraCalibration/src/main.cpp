@@ -4,7 +4,6 @@
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
 #include <tf/transform_listener.h>
-#include <tf_conversions/tf_eigen.h>
 #include <aikido/planner/World.hpp>
 #include <aikido/io/CatkinResourceRetriever.hpp>
 #include <aikido/io/util.hpp>
@@ -121,18 +120,8 @@ int main(int argc, char** argv)
     } else {
       ROS_INFO_STREAM("Success: Step " << i);
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      tf::StampedTransform tfStampedTransform;
-      try{
-        tfListener.lookupTransform("/camera_color_optical_frame", "/map",  
-                                 ros::Time(0), tfStampedTransform);
-      }
-      catch (tf::TransformException ex){
-        throw std::runtime_error("Failed to get TF Transform: " + std::string(ex.what()));
-      }
       targetPointsInCameraLensFrame.push_back(perception.getTargetTransformInCameraLensFrame());
-      Eigen::Isometry3d cameraLensPointInWorldFrame;
-      //tf::transformTFToEigen(tfStampedTransform, cameraLensPointInWorldFrame);
-      cameraLensPointsInWorldFrame.push_back(cameraLensPointInWorldFrame);
+      cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
     }
   }
   for (int i= 20; i<=56; i++) {
@@ -143,6 +132,9 @@ int main(int argc, char** argv)
       ROS_INFO_STREAM("Fail: Step " << i);
     } else {
       ROS_INFO_STREAM("Success: Step " << i);
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      targetPointsInCameraLensFrame.push_back(perception.getTargetTransformInCameraLensFrame());
+      cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
     }
   }
 

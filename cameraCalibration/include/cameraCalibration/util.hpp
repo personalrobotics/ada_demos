@@ -6,6 +6,7 @@
 #include <iostream>
 #include <Eigen/Dense>
 #include <pr_tsr/plate.hpp>
+#include <tf/transform_listener.h>
 #include <libada/Ada.hpp>
 
 namespace cameraCalibration {
@@ -61,6 +62,10 @@ bool moveArmOnTrajectory(
     std::shared_ptr<aikido::constraint::dart::CollisionFree> collisionFreeConstraint,
     std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace);
 
-}
+void printPose(const Eigen::Isometry3d& pose);
 
+
+Eigen::Isometry3d getCameraLensInWorldFrame(tf::TransformListener& tfListener);
+
+}
 #endif

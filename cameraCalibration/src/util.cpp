@@ -1,5 +1,6 @@
 #include "cameraCalibration/util.hpp"
 #include <aikido/constraint/TestableIntersection.hpp>
+#include <tf_conversions/tf_eigen.h>
 
 namespace po = boost::program_options;
 
@@ -147,6 +148,29 @@ bool moveArmOnTrajectory(
     return false;
   }
   return true;
+}
+
+void printPose(const Eigen::Isometry3d& pose)
+{
+  double x1 = pose.translation().x();
+  Eigen::Quaterniond quat(pose.linear());
+  ROS_INFO_STREAM("(" << pose.translation().x() << ", " << pose.translation().y() << ", " << pose.translation().z() << "), (" <<
+    quat.w() << ", " << quat.x() << ", " << quat.y() << ", " << quat.z() << ")"
+  );
+}
+
+Eigen::Isometry3d getCameraLensInWorldFrame(tf::TransformListener& tfListener) {
+  tf::StampedTransform tfStampedTransform;
+  try{
+    tfListener.lookupTransform("/camera_color_optical_frame", "/map",  
+                            ros::Time(0), tfStampedTransform);
+  }
+  catch (tf::TransformException ex){
+    throw std::runtime_error("Failed to get TF Transform: " + std::string(ex.what()));
+  }
+  Eigen::Isometry3d cameraLensPointInWorldFrame;
+  tf::transformTFToEigen(tfStampedTransform, cameraLensPointInWorldFrame);
+  return cameraLensPointInWorldFrame;
 }
 
 }
