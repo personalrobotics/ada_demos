@@ -12,6 +12,7 @@ enum TrajectoryPostprocessType
 {
   RETIME,
   SMOOTH,
+  TRYOPTIMALRETIME
 };
 
 /// The FeedingDemo class is responsible for

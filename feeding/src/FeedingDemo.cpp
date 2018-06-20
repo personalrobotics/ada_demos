@@ -1,5 +1,6 @@
 #include "feeding/FeedingDemo.hpp"
 #include <aikido/constraint/TestableIntersection.hpp>
+#include <aikido/planner/kinodynamic/KinodynamicTimer.hpp>
 #include <pr_tsr/plate.hpp>
 #include "feeding/util.hpp"
 
@@ -351,6 +352,35 @@ bool FeedingDemo::moveArmOnTrajectory(
       timedTrajectory = ada->smoothPath(
           ada->getArm()->getMetaSkeleton(), trajectory.get(), testable);
       break;
+
+    case TRYOPTIMALRETIME:
+    {
+      Eigen::VectorXd velocityLimits = ada->getMetaSkeleton()->getVelocityUpperLimits();
+      Eigen::VectorXd accelerationLimits = ada->getMetaSkeleton()->getAccelerationUpperLimits();
+      double maxDeviation = 1e-2;
+      double timeStep = 0.1;
+      auto retimer
+          = std::make_shared<aikido::planner::kinodynamic::KinodynamicTimer>(velocityLimits, accelerationLimits, maxDeviation, timeStep);
+
+      auto interpolated = dynamic_cast<const aikido::trajectory::Interpolated*>(trajectory.get());
+      if (interpolated) {
+        timedTrajectory = retimer->postprocess(*interpolated, *(ada->cloneRNG().get()));
+      } else {
+        auto spline = dynamic_cast<const aikido::trajectory::Spline*>(trajectory.get());
+        if (spline) {
+            timedTrajectory = retimer->postprocess(*spline, *(ada->cloneRNG().get()));
+        } else {
+          throw std::invalid_argument("Path should be either Spline or Interpolated.");
+        }
+      }
+
+      if (!timedTrajectory)
+      {
+        // If using time-optimal retining failed, back to parabolic timing
+        timedTrajectory = ada->retimePath(ada->getArm()->getMetaSkeleton(), trajectory.get());
+      }
+      break;
+    }
 
     default:
       throw std::runtime_error(
