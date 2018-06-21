@@ -367,8 +367,8 @@ bool FeedingDemo::moveArmOnTrajectory(
     {
       Eigen::VectorXd velocityLimits = ada->getArm()->getMetaSkeleton()->getVelocityUpperLimits();
       Eigen::VectorXd accelerationLimits = ada->getArm()->getMetaSkeleton()->getAccelerationUpperLimits();
-      double maxDeviation = 1e-2;
-      double timeStep = 0.1;
+      double maxDeviation = 100;
+      double timeStep = 0.01;
       auto retimer
           = std::make_shared<aikido::planner::kinodynamic::KinodynamicTimer>(velocityLimits, accelerationLimits, maxDeviation, timeStep);
 
@@ -386,9 +386,13 @@ bool FeedingDemo::moveArmOnTrajectory(
 
       if (!timedTrajectory)
       {
+        ROS_ERROR("Optimal retiming failed");
         // If using time-optimal retining failed, back to parabolic timing
         timedTrajectory = ada->retimePath(ada->getArm()->getMetaSkeleton(), trajectory.get());
+      } else {
+          ROS_ERROR("Optimal retiming successful");
       }
+
       break;
     }
 
