@@ -1,10 +1,8 @@
-#ifndef FTTHRESHOLDCONTROLLER_H
-#define FTTHRESHOLDCONTROLLER_H
+#ifndef FTTHRESHOLDHELPER_H
+#define FTTHRESHOLDHELPER_H
 
-#include <actionlib/client/simple_action_client.h>
-#include <pr_control_msgs/SetForceTorqueThresholdAction.h>
 #include <ros/ros.h>
-#include "feeding/util.hpp"
+#include <rewd_controllers/FTThresholdClient.hpp>
 
 namespace feeding {
 
@@ -15,18 +13,18 @@ enum FTThreshold
   AFTER_GRAB_FOOD_FT_THRESHOLD
 };
 
-/// The FTThresholdController configures the MoveUntilTouchController's
+/// The FTThresholdHelper configures the MoveUntilTouchController's
 /// thresholds.
 /// When those thresholds are exceeded, the controller stops the movement.
-class FTThresholdController
+class FTThresholdHelper
 {
 
 public:
   /// Constructor.
-  /// With useThresholdControl you can turn this whole objects on and off.
+  /// With useThresholdControl you can turn this whole object on and off.
   /// Useful if you don't use the MoveUntilTouchController and don't need to set
   /// these thresholds
-  FTThresholdController(bool useThresholdControl, ros::NodeHandle nodeHandle);
+  FTThresholdHelper(bool useThresholdControl, ros::NodeHandle nodeHandle);
 
   /// Needs to be called before setting the first thresholds.
   /// Blocks until the threshold could be set successfully.
@@ -45,10 +43,10 @@ public:
 private:
   bool useThresholdControl;
   ros::NodeHandle nodeHandle;
-  std::unique_ptr<actionlib::
-                      SimpleActionClient<pr_control_msgs::
-                                             SetForceTorqueThresholdAction>>
-      ftThresholdActionClient;
+
+  std::unique_ptr<rewd_controllers::FTThresholdClient> ftThresholdClient;
+
+  std::pair<double, double> getThresholdValues(FTThreshold threshold);
 };
 }
 

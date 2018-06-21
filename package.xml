@@ -12,6 +12,7 @@
   <depend>eigen</depend>
   <depend>aikido</depend>
   <depend>libada</depend>
+  <depend>rewd_controllers</depend>
 
   <depend>ada_description</depend>
   <depend>pr_ordata</depend>

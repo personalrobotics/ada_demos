@@ -4,7 +4,7 @@ project(feeding)
 add_executable(feeding
   src/main.cpp
   src/FeedingDemo.cpp
-  src/FTThresholdController.cpp
+  src/FTThresholdHelper.cpp
   src/Perception.cpp
   src/Workspace.cpp
   src/util.cpp
@@ -16,6 +16,7 @@ target_link_libraries(feeding
   ${DART_LIBRARIES}
   ${aikido_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${rewd_controllers_LIBRARIES}
   libada)
 
 install(TARGETS feeding RUNTIME DESTINATION bin)

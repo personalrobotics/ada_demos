@@ -29,6 +29,7 @@ class FeedingDemo
 
 public:
   FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle);
+  ~FeedingDemo();
 
   aikido::planner::WorldPtr getWorld();
   std::unique_ptr<Workspace>& getWorkspace();
