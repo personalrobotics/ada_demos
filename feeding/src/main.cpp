@@ -41,7 +41,7 @@ int main(int argc, char** argv)
   // start demo
   FeedingDemo feedingDemo(adaReal, nodeHandle);
 
-  FTThresholdHelper ftThresholdHelper(adaReal, nodeHandle);
+  FTThresholdHelper ftThresholdHelper(false, nodeHandle);
 
   Perception perception(
       feedingDemo.getWorld(), *feedingDemo.getAda(), nodeHandle);
@@ -62,20 +62,20 @@ int main(int argc, char** argv)
   ftThresholdHelper.init();
   feedingDemo.closeHand();
 
-  waitForUser("Startup complete.");
+  if (!waitForUser("Startup complete.")) {return 0;}
 
   feedingDemo.moveToStartConfiguration();
 
   // ===== ABOVE PLATE =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque above plate");
+    if (!waitForUser("Move forque above plate")) {return 0;}
   }
   feedingDemo.moveAbovePlate();
 
   // ===== ABOVE FOOD =====
   if (!autoContinueDemo)
-    waitForUser("Perceive Food");
+    if (!waitForUser("Perceive Food")) {return 0;}
   Eigen::Isometry3d foodTransform;
   if (adaReal)
   {
@@ -89,14 +89,14 @@ int main(int argc, char** argv)
   }
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque above food");
+    if (!waitForUser("Move forque above food")) {return 0;}
   }
   feedingDemo.moveAboveFood(foodTransform);
 
   // ===== INTO FOOD =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque into food");
+    if (!waitForUser("Move forque into food")) {return 0;}
   }
   ftThresholdHelper.setThreshold(GRAB_FOOD_FT_THRESHOLD);
   feedingDemo.moveIntoFood();
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
   // ===== OUT OF FOOD =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque out of food");
+    if (!waitForUser("Move forque out of food")) {return 0;}
   }
   ftThresholdHelper.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
   feedingDemo.moveOutOfFood();
@@ -117,14 +117,14 @@ int main(int argc, char** argv)
   // ===== IN FRONT OF PERSON =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque in front of person");
+    if (!waitForUser("Move forque in front of person")) {return 0;}
   }
   feedingDemo.moveInFrontOfPerson();
 
   // ===== TOWARDS PERSON =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move towards person");
+    if (!waitForUser("Move towards person")) {return 0;}
   }
   feedingDemo.moveTowardsPerson();
   std::this_thread::sleep_for(
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
   // ===== BACK TO PLATE =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move back to plate");
+    if (!waitForUser("Move back to plate")) {return 0;}
   }
   feedingDemo.moveAbovePlate();
 
