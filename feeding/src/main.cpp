@@ -171,6 +171,5 @@ int main(int argc, char** argv)
 
   // ===== DONE =====
   waitForUser("Demo finished.");
-  ros::shutdown();
   return 0;
 }
