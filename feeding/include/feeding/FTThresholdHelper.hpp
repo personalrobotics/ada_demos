@@ -1,8 +1,8 @@
 #ifndef FTTHRESHOLDHELPER_H
 #define FTTHRESHOLDHELPER_H
 
-#include <ros/ros.h>
 #include <rewd_controllers/FTThresholdClient.hpp>
+#include <ros/ros.h>
 
 namespace feeding {
 
