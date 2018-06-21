@@ -57,7 +57,8 @@ FeedingDemo::~FeedingDemo()
 {
   if (adaReal)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    // wait for a bit so controller actually stops moving
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     ada->stopTrajectoryExecutor();
   }
 }
