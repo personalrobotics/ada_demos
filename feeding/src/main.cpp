@@ -41,7 +41,7 @@ int main(int argc, char** argv)
   // start demo
   FeedingDemo feedingDemo(adaReal, nodeHandle);
 
-  FTThresholdHelper ftThresholdHelper(false, nodeHandle);
+  FTThresholdHelper ftThresholdHelper(adaReal, nodeHandle);
 
   Perception perception(
       feedingDemo.getWorld(), *feedingDemo.getAda(), nodeHandle);
