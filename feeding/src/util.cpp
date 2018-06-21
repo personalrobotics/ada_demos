@@ -25,15 +25,12 @@ void handleArguments(
   }
 }
 
-void waitForUser(const std::string& msg)
+bool waitForUser(const std::string& msg)
 {
   ROS_INFO((msg + " Press [ENTER]").c_str());
   char input = ' ';
   std::cin.get(input);
-  if (input == 'n')
-  {
-    exit(0);
-  }
+  return input != 'n';
 }
 
 Eigen::Isometry3d createIsometry(

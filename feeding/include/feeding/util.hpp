@@ -18,8 +18,8 @@ void handleArguments(
     int argc, char** argv, bool& adaReal, bool& autoContinueDemo, bool& useFTSensing);
 
 /// Displays a message and waits for the user to press the enter key
-/// If the user enters "n", this method will exit the program.
-void waitForUser(const std::string& msg);
+/// If the user enters "n", this method returns false
+bool waitForUser(const std::string& msg);
 
 /// Loads and returns a ros parameter.
 /// Throws a runtime_error if the parameter is not set.

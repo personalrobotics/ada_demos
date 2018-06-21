@@ -55,6 +55,15 @@ FeedingDemo::FeedingDemo(bool adaReal, bool useFTSensing, ros::NodeHandle nodeHa
   }
 }
 
+FeedingDemo::~FeedingDemo() {
+  if (adaReal)
+  {
+    std::this_thread::sleep_for(
+      std::chrono::milliseconds(1000));
+    ada->stopTrajectoryExecutor();
+  }
+}
+
 aikido::planner::WorldPtr FeedingDemo::getWorld()
 {
   return world;
