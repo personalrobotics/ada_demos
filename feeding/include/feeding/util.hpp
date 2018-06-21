@@ -12,9 +12,10 @@ namespace feeding {
 /// argc and argv are the typical parameters of main(..)
 /// adaReal is true when the robot is used and not the simulation
 /// autoContinueDemo is true when the demo continues to the next step without
+/// useFTSensing turns the FTSensor and the MoveUntilTouchController on and off
 /// asking for confirmation
 void handleArguments(
-    int argc, char** argv, bool& adaReal, bool& autoContinueDemo);
+    int argc, char** argv, bool& adaReal, bool& autoContinueDemo, bool& useFTSensing);
 
 /// Displays a message and waits for the user to press the enter key
 /// If the user enters "n", this method will exit the program.
