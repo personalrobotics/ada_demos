@@ -78,7 +78,11 @@ int main(int argc, char** argv)
     ada.startTrajectoryExecutor();
   }
 
-  Perception perception(nodeHandle, "/camera/color/image_raw/compressed");
+  Perception perception(
+      nodeHandle,
+      "/camera/color/image_raw/compressed",
+      "/camera/color/camera_info",
+      true, 5, 4, 1.5);
   tf::TransformListener tfListener;
   std::vector<Eigen::Isometry3d> targetPointsInCameraLensFrame;
   std::vector<Eigen::Isometry3d> cameraLensPointsInWorldFrame;
