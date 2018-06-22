@@ -5,7 +5,7 @@
 namespace feeding {
 
 Perception::Perception(
-    aikido::planner::WorldPtr world, ada::Ada& ada, ros::NodeHandle& nodeHandle)
+    aikido::planner::WorldPtr world, dart::dynamics::ConstMetaSkeletonPtr adasMetaSkeleton, ros::NodeHandle nodeHandle)
   : world(world), nodeHandle(nodeHandle)
 {
   std::string detectorDataURI
@@ -27,7 +27,7 @@ Perception::Perception(
           resourceRetriever,
           referenceFrameName,
           aikido::robot::util::getBodyNodeOrThrow(
-              *ada.getMetaSkeleton(), referenceFrameName)));
+              *adasMetaSkeleton, referenceFrameName)));
 }
 
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)

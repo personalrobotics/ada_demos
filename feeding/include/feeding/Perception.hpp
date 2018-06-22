@@ -1,5 +1,5 @@
-#ifndef PERCEPTION_H
-#define PERCEPTION_H
+#ifndef FEEDING_PERCEPTION_H_
+#define FEEDING_PERCEPTION_H_
 
 #include <Eigen/Dense>
 #include <aikido/perception/PoseEstimatorModule.hpp>
@@ -10,15 +10,17 @@ namespace feeding {
 
 /// The Perception class is responsible for everything that has to do with the
 /// camera.
-/// It adds perceived objects to the aikido world.
+/// Currently, this means that it calls the detectObjects function in aikido,
+/// which adds some objects to the aikido world. The Perception class is also
+/// responsible for dealing with those objects.
 class Perception
 {
 
 public:
   Perception(
       aikido::planner::WorldPtr world,
-      ada::Ada& ada,
-      ros::NodeHandle& nodeHandle);
+      dart::dynamics::ConstMetaSkeletonPtr adasMetaSkeleton,
+      ros::NodeHandle nodeHandle);
 
   /// Gets food items from active perception ros nodes and adds their new
   /// MetaSkeletons to the aikido world.
@@ -29,7 +31,7 @@ public:
 private:
   aikido::planner::WorldPtr world;
   ros::NodeHandle& nodeHandle;
-  std::unique_ptr<aikido::perception::PoseEstimatorModule> objDetector;
+  aikido::perception::UniqueConstPoseEstimatorModulePtr objDetector;
 };
 }
 

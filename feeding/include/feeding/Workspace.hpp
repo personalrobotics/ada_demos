@@ -1,5 +1,5 @@
-#ifndef WORKSPACE_H
-#define WORKSPACE_H
+#ifndef FEEDING_WORKSPACE_H_
+#define FEEDING_WORKSPACE_H_
 
 #include <aikido/planner/World.hpp>
 #include <feeding/util.hpp>
@@ -19,7 +19,7 @@ public:
   /// Since the robotPose needs to be in the origin of the aikido world,
   /// the placement of all objects depends on the robotPose on the table.
   Workspace(
-      aikido::planner::WorldPtr& world,
+      aikido::planner::WorldPtr world,
       const Eigen::Isometry3d& robotPose,
       bool adaReal,
       ros::NodeHandle nodeHandle);

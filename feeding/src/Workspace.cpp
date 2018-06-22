@@ -5,7 +5,7 @@
 namespace feeding {
 
 Workspace::Workspace(
-    aikido::planner::WorldPtr& world,
+    aikido::planner::WorldPtr world,
     const Eigen::Isometry3d& robotPose,
     bool adaReal,
     ros::NodeHandle nodeHandle)

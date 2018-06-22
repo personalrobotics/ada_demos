@@ -1,5 +1,5 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef FEEDING_UTIL_H_
+#define FEEDING_UTIL_H_
 
 #include <iostream>
 #include <Eigen/Dense>

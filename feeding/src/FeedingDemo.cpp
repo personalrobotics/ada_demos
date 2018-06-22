@@ -65,14 +65,16 @@ aikido::planner::WorldPtr FeedingDemo::getWorld()
 {
   return world;
 }
-std::unique_ptr<Workspace>& FeedingDemo::getWorkspace()
+Workspace& FeedingDemo::getWorkspace()
 {
   return workspace;
 }
-std::unique_ptr<ada::Ada>& FeedingDemo::getAda()
+
+ada::Ada& FeedingDemo::getAda()
 {
   return ada;
 }
+
 Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
 {
   return workspace->getDefaultFoodItem()

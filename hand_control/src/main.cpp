@@ -48,7 +48,7 @@ Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
 int main(int argc, char** argv)
 {
   bool adaReal = true;
-  bool open = true;
+  bool openHand = true;
   bool close = true;
 
   // Default options for flags

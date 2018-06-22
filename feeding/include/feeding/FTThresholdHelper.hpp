@@ -1,5 +1,5 @@
-#ifndef FTTHRESHOLDHELPER_H
-#define FTTHRESHOLDHELPER_H
+#ifndef FEEDING_FTTHRESHOLDHELPER_H_
+#define FEEDING_FTTHRESHOLDHELPER_H_
 
 #include <rewd_controllers/FTThresholdClient.hpp>
 #include <ros/ros.h>

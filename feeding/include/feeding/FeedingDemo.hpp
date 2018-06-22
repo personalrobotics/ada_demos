@@ -1,5 +1,5 @@
-#ifndef FEEDING_DEMO_HPP
-#define FEEDING_DEMO_HPP
+#ifndef FEEDING_FEEDINGDEMO_HPP_
+#define FEEDING_FEEDINGDEMO_HPP_
 
 #include <aikido/planner/World.hpp>
 #include <ros/ros.h>
@@ -31,8 +31,8 @@ public:
   ~FeedingDemo();
 
   aikido::planner::WorldPtr getWorld();
-  std::unique_ptr<Workspace>& getWorkspace();
-  std::unique_ptr<ada::Ada>& getAda();
+  Workspace& getWorkspace();
+  ada::Ada& getAda();
 
   Eigen::Isometry3d getDefaultFoodTransform();
 
@@ -80,10 +80,9 @@ private:
   aikido::planner::WorldPtr world;
 
   std::unique_ptr<ada::Ada> ada;
-  std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace;
+  MetaSkeletonStateSpacePtr armSpace;
   std::unique_ptr<Workspace> workspace;
-  std::shared_ptr<aikido::constraint::dart::CollisionFree>
-      collisionFreeConstraint;
+  CollisionFreePtr collisionFreeConstraint;
 };
 }
 
