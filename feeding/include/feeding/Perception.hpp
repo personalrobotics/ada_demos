@@ -19,7 +19,7 @@ class Perception
 public:
   Perception(
       aikido::planner::WorldPtr world,
-      dart::dynamics::ConstMetaSkeletonPtr adasMetaSkeleton,
+      dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
       ros::NodeHandle nodeHandle);
 
   /// Gets food items from active perception ros nodes and adds their new
@@ -31,7 +31,7 @@ public:
 private:
   aikido::planner::WorldPtr world;
   ros::NodeHandle& nodeHandle;
-  aikido::perception::UniqueConstPoseEstimatorModulePtr objDetector;
+  std::unique_ptr<aikido::perception::PoseEstimatorModule> objDetector;
 };
 }
 

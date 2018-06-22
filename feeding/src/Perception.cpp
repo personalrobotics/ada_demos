@@ -5,7 +5,9 @@
 namespace feeding {
 
 Perception::Perception(
-    aikido::planner::WorldPtr world, dart::dynamics::ConstMetaSkeletonPtr adasMetaSkeleton, ros::NodeHandle nodeHandle)
+    aikido::planner::WorldPtr world,
+    dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
+    ros::NodeHandle nodeHandle)
   : world(world), nodeHandle(nodeHandle)
 {
   std::string detectorDataURI

@@ -80,9 +80,9 @@ private:
   aikido::planner::WorldPtr world;
 
   std::unique_ptr<ada::Ada> ada;
-  MetaSkeletonStateSpacePtr armSpace;
+  aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace;
   std::unique_ptr<Workspace> workspace;
-  CollisionFreePtr collisionFreeConstraint;
+  aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint;
 };
 }
 
