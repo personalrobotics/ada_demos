@@ -44,7 +44,9 @@ int main(int argc, char** argv)
   FTThresholdHelper ftThresholdHelper(adaReal, nodeHandle);
 
   Perception perception(
-      feedingDemo.getWorld(), feedingDemo.getAda().getMetaSkeleton(), nodeHandle);
+      feedingDemo.getWorld(),
+      feedingDemo.getAda().getMetaSkeleton(),
+      nodeHandle);
 
   // visualization
   aikido::rviz::WorldInteractiveMarkerViewer viewer(

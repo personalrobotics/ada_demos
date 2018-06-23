@@ -1,5 +1,5 @@
-#include "feeding/Perception.hpp"
 #include <aikido/perception/ObjectDatabase.hpp>
+#include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
 
 namespace feeding {

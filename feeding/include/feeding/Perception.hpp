@@ -17,6 +17,12 @@ class Perception
 {
 
 public:
+
+  /// Constructor
+  /// Mainly sets up the objDetector
+  /// param[in] world The aikido world.
+  /// param[in] adasMetaSkeleton Ada's MetaSkeleton.
+  /// \param[in] nodeHandle Handle to the ros node.
   Perception(
       aikido::planner::WorldPtr world,
       dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
@@ -24,8 +30,8 @@ public:
 
   /// Gets food items from active perception ros nodes and adds their new
   /// MetaSkeletons to the aikido world.
-  /// If a food item is found, the foodTransform is assigned.
-  /// Returns if a food item was found.
+  /// \param[out] foodTransform the transform of a food item that has been found.
+  /// \return True if a food item was found.
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
 private:
