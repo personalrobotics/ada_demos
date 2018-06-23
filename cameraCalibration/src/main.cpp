@@ -3,6 +3,7 @@
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
+#include <dart/dynamics/Frame.hpp>
 #include <tf/transform_listener.h>
 #include <aikido/planner/World.hpp>
 #include <aikido/io/CatkinResourceRetriever.hpp>
@@ -125,6 +126,8 @@ int main(int argc, char** argv)
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       targetPointsInCameraLensFrame.push_back(perception.getTargetTransformInCameraLensFrame());
       cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
+      //dart::dynamics::SimpleFrame simpleFrame(dart::dynamics::Frame::World(), "some_frame", cameraLens);
+      //frameMarkers.push_back(viewer.addFrame(&simpleFrame, 0.5, 0.1));
     }
   }
   for (int i= 20; i<=56; i++) {
@@ -138,6 +141,7 @@ int main(int argc, char** argv)
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       targetPointsInCameraLensFrame.push_back(perception.getTargetTransformInCameraLensFrame());
       cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
+      frameMarkers.push_back(viewer.addFrame(&simpleFrame, 0.5, 0.1));
     }
   }
 
