@@ -42,6 +42,9 @@ include_directories(${aikido_INCLUDE_DIRS})
 find_package(libada REQUIRED)
 include_directories(${libada_INCLUDE_DIRS})
 
+find_package(rewd_controllers REQUIRED)
+include_directories(${rewd_controllers_INCLUDE_DIRS})
+
 find_package(pr_ordata REQUIRED)
 include_directories(${pr_ordata_INCLUDE_DIRS})
 
@@ -75,7 +78,7 @@ if(CLANG_FORMAT_EXECUTABLE)
     soda_grasp/src/*.cpp
     simple_trajectories/src/*.cpp
     feeding/src/*.cpp
-    feeding/include/*.hpp
+    feeding/include/feeding/*.hpp
   )
   list(LENGTH ALL_SOURCE_FILES NUM_SOURCE_FILES)
 

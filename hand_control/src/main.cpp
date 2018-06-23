@@ -47,16 +47,21 @@ Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
 
 int main(int argc, char** argv)
 {
+  // program should run on the real robot, not in simulation
   bool adaReal = true;
-  bool open = true;
-  bool close = true;
+
+  // program should open the hand
+  bool openHand = true;
+
+  // program should close the hand
+  bool closeHand = true;
 
   // Default options for flags
   po::options_description po_desc("hand_control options");
   po_desc.add_options()("help,h", "Produce help message")(
       "adareal,a", po::bool_switch(&adaReal), "Run ADA in real")(
-      "open,o", po::bool_switch(&open), "Open hand")(
-      "close,c", po::bool_switch(&close), "Close hand");
+      "open,o", po::bool_switch(&openHand), "Open hand")(
+      "close,c", po::bool_switch(&closeHand), "Close hand");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -69,7 +74,7 @@ int main(int argc, char** argv)
   }
 
   bool adaSim = !adaReal;
-  std::cout << "Simulation Mode: " << adaSim << std::endl;
+  ROS_INFO_STREAM("Simulation Mode: " << adaSim);
 
   ROS_INFO("Starting ROS node.");
   ros::init(argc, argv, "simple_trajectories");
@@ -133,19 +138,19 @@ int main(int argc, char** argv)
   // Move hand
   auto hand = robot.getArm()->getHand();
 
-  if (close) {
+  if (closeHand) {
     waitForUser("Close Hand.\n Press [ENTER] to proceed:");
     auto future = hand->executePreshape("closed");
     future.wait();
   }
 
-  if (open) {
+  if (openHand) {
     waitForUser("Open Hand.\n Press [ENTER] to proceed:");
     auto future = hand->executePreshape("open");
     future.wait();
   }
 
-  if (!open && !close) {
+  if (!openHand && !closeHand) {
     ROS_WARN("You didn't specify what to do! Use -o or -c as parameters.");
   }
 
@@ -153,7 +158,7 @@ int main(int argc, char** argv)
 
   if (!adaSim)
   {
-    std::cout << "Stop trajectory executor" << std::endl;
+    ROS_INFO("Stop trajectory executor");
     robot.stopTrajectoryExecutor();
   }
   ros::shutdown();

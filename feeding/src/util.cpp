@@ -4,6 +4,7 @@ namespace po = boost::program_options;
 
 namespace feeding {
 
+//==============================================================================
 void handleArguments(
     int argc, char** argv, bool& adaReal, bool& autoContinueDemo)
 {
@@ -24,17 +25,16 @@ void handleArguments(
   }
 }
 
-void waitForUser(const std::string& msg)
+//==============================================================================
+bool waitForUser(const std::string& msg)
 {
   ROS_INFO((msg + " Press [ENTER]").c_str());
   char input = ' ';
   std::cin.get(input);
-  if (input == 'n')
-  {
-    exit(0);
-  }
+  return input != 'n';
 }
 
+//==============================================================================
 Eigen::Isometry3d createIsometry(
     double x, double y, double z, double roll, double pitch, double yaw)
 {
@@ -49,6 +49,7 @@ Eigen::Isometry3d createIsometry(
   return isometry;
 }
 
+//==============================================================================
 Eigen::Isometry3d createIsometry(std::vector<double> vec)
 {
   if (vec.size() < 6)
@@ -58,6 +59,7 @@ Eigen::Isometry3d createIsometry(std::vector<double> vec)
   return createIsometry(vec[0], vec[1], vec[2], vec[3], vec[4], vec[5]);
 }
 
+//==============================================================================
 Eigen::MatrixXd createBwMatrixForTSR(
     double horizontalTolerance,
     double verticalTolerance,

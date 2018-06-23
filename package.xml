@@ -13,6 +13,7 @@
   <depend>aikido</depend>
   <depend>libada</depend>
   <depend>tf_conversions</depend>
+  <depend>rewd_controllers</depend>
 
   <depend>ada_description</depend>
   <depend>pr_ordata</depend>

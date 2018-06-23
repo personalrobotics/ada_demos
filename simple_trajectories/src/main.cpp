@@ -115,7 +115,7 @@ int main(int argc, char** argv)
       new aikido::planner::World("simple_trajectories"));
 
   // Load ADA either in simulation or real based on arguments
-  ROS_INFO("Loading ADA. ");
+  ROS_INFO("Loading ADA.");
   ada::Ada robot(env, !adaReal, adaUrdfUri, adaSrdfUri);
   auto robotSkeleton = robot.getMetaSkeleton();
 
@@ -163,7 +163,7 @@ int main(int argc, char** argv)
 
   if (adaReal)
   {
-    std::cout << "Start trajectory executor" << std::endl;
+    ROS_INFO("Start trajectory executor");
     robot.startTrajectoryExecutor();
   }
 
