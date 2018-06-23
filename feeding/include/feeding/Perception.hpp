@@ -17,7 +17,6 @@ class Perception
 {
 
 public:
-
   /// Constructor
   /// Mainly sets up the objDetector
   /// param[in] world The aikido world.
@@ -30,7 +29,8 @@ public:
 
   /// Gets food items from active perception ros nodes and adds their new
   /// MetaSkeletons to the aikido world.
-  /// \param[out] foodTransform the transform of a food item that has been found.
+  /// \param[out] foodTransform the transform of a food item that has been
+  /// found.
   /// \return True if a food item was found.
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 

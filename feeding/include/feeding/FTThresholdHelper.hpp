@@ -22,7 +22,8 @@ class FTThresholdHelper
 public:
   /// Constructor.
   /// \param[in] useThresholdControl You can turn this whole object on and off.
-  /// Useful if you don't use the MoveUntilTouchController and don't need to set these thresholds.
+  /// Useful if you don't use the MoveUntilTouchController and don't need to set
+  /// these thresholds.
   /// \param[in] nodeHandle Handle of the ros node.
   FTThresholdHelper(bool useThresholdControl, ros::NodeHandle nodeHandle);
 

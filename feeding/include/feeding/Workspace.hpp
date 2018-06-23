@@ -31,7 +31,7 @@ public:
 
   /// Gets the plate
   dart::dynamics::ConstSkeletonPtr getPlate() const;
-  
+
   /// Gets the table
   dart::dynamics::ConstSkeletonPtr getTable() const;
 
@@ -55,8 +55,10 @@ private:
   dart::dynamics::SkeletonPtr defaultFoodItem;
   dart::dynamics::SkeletonPtr tom;
 
-  /// Takes a skeleton pointer, fills it with a new skeleton and adds that to the world.
-  /// \param[out] skeleton The skeleton pointer where we want to store the loaded skeleton.
+  /// Takes a skeleton pointer, fills it with a new skeleton and adds that to
+  /// the world.
+  /// \param[out] skeleton The skeleton pointer where we want to store the
+  /// loaded skeleton.
   /// \param[in] name The name of the object that should be loaded.
   /// \param[in] robotPose The pose of the robot relative to the workspace.
   /// \param[in] nodeHandle Handle of the ros node.

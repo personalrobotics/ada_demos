@@ -11,7 +11,8 @@ namespace feeding {
 /// deals with the arguments supplied to the executable.
 /// /param[in] argc and argv are the typical parameters of main(..)
 /// /param[out] adaReal is true when the robot is used and not the simulation
-/// /param[out] autoContinueDemo is true when the demo continues to the next step without
+/// /param[out] autoContinueDemo is true when the demo continues to the next
+/// step without
 /// asking for confirmation
 void handleArguments(
     int argc, char** argv, bool& adaReal, bool& autoContinueDemo);
@@ -52,7 +53,8 @@ Eigen::Isometry3d createIsometry(
 
 /// Convenience function to create an Eigen Isometry3D based on position and
 /// rotation.
-/// \param[in] vec Positi and rotation in a vector like this: [x,y,z,roll,pitch,yaw]
+/// \param[in] vec Positi and rotation in a vector like this:
+/// [x,y,z,roll,pitch,yaw]
 /// \return The transform.
 Eigen::Isometry3d createIsometry(std::vector<double> vec);
 

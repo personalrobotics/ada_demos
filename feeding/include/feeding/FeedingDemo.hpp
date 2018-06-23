@@ -27,10 +27,10 @@ class FeedingDemo
 {
 
 public:
-
   /// Constructor for the Feeding Demo.
   /// Takes care of setting up the robot and the workspace
-  /// \param[in] adaReal True if the real robot is used, false it's running in simulation.
+  /// \param[in] adaReal True if the real robot is used, false it's running in
+  /// simulation.
   /// \param[in] nodeHandle Handle of the ros node.
   FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle);
 
@@ -70,18 +70,22 @@ public:
   /// Detach food from forque and remove it from the aikido world.
   void ungrabAndDeleteFood();
 
-  /// Moves the robot to the start configuration as defined in the ros parameter.
+  /// Moves the robot to the start configuration as defined in the ros
+  /// parameter.
   void moveToStartConfiguration();
 
   /// Moves the forque above the plate.
   void moveAbovePlate();
 
-  /// Moves the forque above the food item using the values in the ros parameters.
-  /// \param[in] foodTransform the transform of the food which the robot should move over.
+  /// Moves the forque above the food item using the values in the ros
+  /// parameters.
+  /// \param[in] foodTransform the transform of the food which the robot should
+  /// move over.
   void moveAboveFood(const Eigen::Isometry3d& foodTransform);
 
   /// Moves the forque downwards into the food.
-  /// This function does not throw an exception if the trajectory is aborted, because we expect that.
+  /// This function does not throw an exception if the trajectory is aborted,
+  /// because we expect that.
   void moveIntoFood();
 
   /// Moves the forque upwards above the food.
@@ -91,7 +95,8 @@ public:
   void moveInFrontOfPerson();
 
   /// Moves the forque towards the person.
-  /// This function does not throw an exception if the trajectory is aborted, because we expect that.
+  /// This function does not throw an exception if the trajectory is aborted,
+  /// because we expect that.
   void moveTowardsPerson();
 
   /// Moves the forque away from the person.
