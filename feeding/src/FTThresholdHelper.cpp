@@ -4,6 +4,7 @@
 
 namespace feeding {
 
+//==============================================================================
 FTThresholdHelper::FTThresholdHelper(
     bool useThresholdControl, ros::NodeHandle nodeHandle)
   : useThresholdControl(useThresholdControl), nodeHandle(nodeHandle)
@@ -18,6 +19,7 @@ FTThresholdHelper::FTThresholdHelper(
           nodeHandle));
 }
 
+//==============================================================================
 void FTThresholdHelper::init()
 {
   if (!useThresholdControl)
@@ -28,6 +30,7 @@ void FTThresholdHelper::init()
       thresholdPair.first, thresholdPair.second);
 }
 
+//==============================================================================
 bool FTThresholdHelper::trySetThreshold(FTThreshold threshold)
 {
   if (!useThresholdControl)
@@ -38,6 +41,7 @@ bool FTThresholdHelper::trySetThreshold(FTThreshold threshold)
       thresholdPair.first, thresholdPair.second);
 }
 
+//==============================================================================
 void FTThresholdHelper::setThreshold(FTThreshold threshold)
 {
   if (!useThresholdControl)
@@ -48,6 +52,7 @@ void FTThresholdHelper::setThreshold(FTThreshold threshold)
       thresholdPair.first, thresholdPair.second);
 }
 
+//==============================================================================
 std::pair<double, double> FTThresholdHelper::getThresholdValues(
     FTThreshold threshold)
 {

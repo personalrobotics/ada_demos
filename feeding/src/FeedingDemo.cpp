@@ -5,6 +5,7 @@
 
 namespace feeding {
 
+//==============================================================================
 FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle)
   : adaReal(adaReal), nodeHandle(nodeHandle)
 {
@@ -51,6 +52,7 @@ FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle)
   }
 }
 
+//==============================================================================
 FeedingDemo::~FeedingDemo()
 {
   if (adaReal)
@@ -61,20 +63,25 @@ FeedingDemo::~FeedingDemo()
   }
 }
 
+//==============================================================================
 aikido::planner::WorldPtr FeedingDemo::getWorld()
 {
   return world;
 }
+
+//==============================================================================
 Workspace& FeedingDemo::getWorkspace()
 {
   return *workspace;
 }
 
+//==============================================================================
 ada::Ada& FeedingDemo::getAda()
 {
   return *ada;
 }
 
+//==============================================================================
 Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
 {
   return workspace->getDefaultFoodItem()
@@ -82,6 +89,7 @@ Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
       ->getWorldTransform();
 }
 
+//==============================================================================
 bool FeedingDemo::isCollisionFree(std::string& result)
 {
   auto robotState = ada->getStateSpace()->getScopedStateFromMetaSkeleton(
@@ -96,6 +104,7 @@ bool FeedingDemo::isCollisionFree(std::string& result)
   return true;
 }
 
+//==============================================================================
 void FeedingDemo::printRobotConfiguration()
 {
   Eigen::IOFormat CommaInitFmt(
@@ -111,16 +120,19 @@ void FeedingDemo::printRobotConfiguration()
   ROS_INFO_STREAM("Current configuration" << defaultPose.format(CommaInitFmt));
 }
 
+//==============================================================================
 void FeedingDemo::openHand()
 {
   ada->getHand()->executePreshape("open").wait();
 }
 
+//==============================================================================
 void FeedingDemo::closeHand()
 {
   ada->getHand()->executePreshape("closed").wait();
 }
 
+//==============================================================================
 void FeedingDemo::grabFoodWithForque()
 {
   if (!adaReal && workspace->getDefaultFoodItem())
@@ -129,6 +141,7 @@ void FeedingDemo::grabFoodWithForque()
   }
 }
 
+//==============================================================================
 void FeedingDemo::ungrabAndDeleteFood()
 {
   if (!adaReal && workspace->getDefaultFoodItem())
@@ -138,6 +151,7 @@ void FeedingDemo::ungrabAndDeleteFood()
   }
 }
 
+//==============================================================================
 void FeedingDemo::moveToStartConfiguration()
 {
   auto home
@@ -153,6 +167,7 @@ void FeedingDemo::moveToStartConfiguration()
   }
 }
 
+//==============================================================================
 void FeedingDemo::moveAbovePlate()
 {
   double heightAbovePlate
@@ -179,6 +194,7 @@ void FeedingDemo::moveAbovePlate()
   }
 }
 
+//==============================================================================
 void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
 {
   double heightAboveFood
@@ -211,6 +227,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
   }
 }
 
+//==============================================================================
 void FeedingDemo::moveIntoFood()
 {
   bool trajectoryCompleted = moveWithEndEffectorOffset(
@@ -220,6 +237,7 @@ void FeedingDemo::moveIntoFood()
   // along the way and the trajectory was aborted
 }
 
+//==============================================================================
 void FeedingDemo::moveOutOfFood()
 {
   bool trajectoryCompleted = moveWithEndEffectorOffset(
@@ -231,6 +249,7 @@ void FeedingDemo::moveOutOfFood()
   }
 }
 
+//==============================================================================
 void FeedingDemo::moveInFrontOfPerson()
 {
   double distanceToPerson
@@ -263,6 +282,7 @@ void FeedingDemo::moveInFrontOfPerson()
   }
 }
 
+//==============================================================================
 void FeedingDemo::moveTowardsPerson()
 {
   bool trajectoryCompleted = moveWithEndEffectorOffset(
@@ -270,6 +290,7 @@ void FeedingDemo::moveTowardsPerson()
       getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle) * 0.9);
 }
 
+//==============================================================================
 void FeedingDemo::moveAwayFromPerson()
 {
   bool trajectoryCompleted = moveWithEndEffectorOffset(
@@ -281,6 +302,7 @@ void FeedingDemo::moveAwayFromPerson()
   }
 }
 
+//==============================================================================
 bool FeedingDemo::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
@@ -297,6 +319,7 @@ bool FeedingDemo::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
   return moveArmOnTrajectory(trajectory);
 }
 
+//==============================================================================
 bool FeedingDemo::moveWithEndEffectorOffset(
     const Eigen::Vector3d& direction, double length)
 {
@@ -316,6 +339,7 @@ bool FeedingDemo::moveWithEndEffectorOffset(
   return moveArmOnTrajectory(trajectory, RETIME);
 }
 
+//==============================================================================
 bool FeedingDemo::moveArmToConfiguration(const Eigen::Vector6d& configuration)
 {
   auto trajectory = ada->planToConfiguration(
@@ -328,6 +352,7 @@ bool FeedingDemo::moveArmToConfiguration(const Eigen::Vector6d& configuration)
   return moveArmOnTrajectory(trajectory, SMOOTH);
 }
 
+//==============================================================================
 bool FeedingDemo::moveArmOnTrajectory(
     aikido::trajectory::TrajectoryPtr trajectory,
     TrajectoryPostprocessType postprocessType)

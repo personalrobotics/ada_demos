@@ -22,7 +22,7 @@ public:
   /// Mainly sets up the objDetector
   /// param[in] world The aikido world.
   /// param[in] adasMetaSkeleton Ada's MetaSkeleton.
-  /// \param[in] nodeHandle Handle to the ros node.
+  /// \param[in] nodeHandle Handle of the ros node.
   Perception(
       aikido::planner::WorldPtr world,
       dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,

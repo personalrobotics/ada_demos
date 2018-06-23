@@ -4,6 +4,7 @@
 
 namespace feeding {
 
+//==============================================================================
 Perception::Perception(
     aikido::planner::WorldPtr world,
     dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
@@ -32,6 +33,7 @@ Perception::Perception(
               *adasMetaSkeleton, referenceFrameName)));
 }
 
+//==============================================================================
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 {
   objDetector->detectObjects(

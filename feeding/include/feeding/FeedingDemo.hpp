@@ -31,7 +31,7 @@ public:
   /// Constructor for the Feeding Demo.
   /// Takes care of setting up the robot and the workspace
   /// \param[in] adaReal True if the real robot is used, false it's running in simulation.
-  /// \param[in] nodeHandle Handle to the ros node.
+  /// \param[in] nodeHandle Handle of the ros node.
   FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle);
 
   /// Destructor for the Feeding Demo.

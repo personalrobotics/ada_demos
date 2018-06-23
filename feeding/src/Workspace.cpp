@@ -4,6 +4,7 @@
 
 namespace feeding {
 
+//==============================================================================
 Workspace::Workspace(
     aikido::planner::WorldPtr world,
     const Eigen::Isometry3d& robotPose,
@@ -25,6 +26,7 @@ Workspace::Workspace(
   }
 }
 
+//==============================================================================
 void Workspace::addToWorld(
     dart::dynamics::SkeletonPtr& skeleton,
     const std::string& name,
@@ -43,6 +45,7 @@ void Workspace::addToWorld(
   world->addSkeleton(skeleton);
 }
 
+//==============================================================================
 void Workspace::deleteFood()
 {
   if (defaultFoodItem)
@@ -51,26 +54,31 @@ void Workspace::deleteFood()
   }
 }
 
+//==============================================================================
 dart::dynamics::ConstSkeletonPtr Workspace::getPlate() const
 {
   return plate;
 }
 
+//==============================================================================
 dart::dynamics::ConstSkeletonPtr Workspace::getTable() const
 {
   return table;
 }
 
+//==============================================================================
 dart::dynamics::ConstSkeletonPtr Workspace::getWorkspaceEnvironment() const
 {
   return workspaceEnvironment;
 }
 
+//==============================================================================
 dart::dynamics::SkeletonPtr Workspace::getDefaultFoodItem() const
 {
   return defaultFoodItem;
 }
 
+//==============================================================================
 dart::dynamics::ConstSkeletonPtr Workspace::getTom() const
 {
   return tom;
