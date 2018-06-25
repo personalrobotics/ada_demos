@@ -82,7 +82,7 @@ int main(int argc, char** argv)
       nodeHandle,
       "/camera/color/image_raw/compressed",
       "/camera/color/camera_info",
-      true, 5, 4, 1.5);
+      true, 9, 7, 1.2111);
   tf::TransformListener tfListener;
   std::vector<Eigen::Isometry3d> targetPointsInCameraLensFrame;
   std::vector<Eigen::Isometry3d> cameraLensPointsInWorldFrame;
@@ -114,19 +114,19 @@ int main(int argc, char** argv)
   waitForUser("Step 1 complete.");
 
 
-  for (int i= 20; i<=56; i++) {
-    double angle = 0.1745*i;
-    auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(.425 + sin(angle)*0.1, 0.15 - cos(angle)*0.1, 0.05, 3.58, 0, angle));
-    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
-    {
-      ROS_INFO_STREAM("Fail: Step " << i);
-    } else {
-      ROS_INFO_STREAM("Success: Step " << i);
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      targetPointsInCameraLensFrame.push_back(perception.getTargetTransformInCameraLensFrame());
-      cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
-    }
-  }
+  // for (int i= 20; i<=56; i++) {
+  //   double angle = 0.1745*i;
+  //   auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(.425 + sin(angle)*0.1, 0.15 - cos(angle)*0.1, 0.05, 3.58, 0, angle));
+  //   if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+  //   {
+  //     ROS_INFO_STREAM("Fail: Step " << i);
+  //   } else {
+  //     ROS_INFO_STREAM("Success: Step " << i);
+  //     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  //     targetPointsInCameraLensFrame.push_back(perception.getTargetTransformInCameraLensFrame());
+  //     cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
+  //   }
+  // }
   for (int i= 20; i<=56; i++) {
     double angle = 0.1745*i;
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(.425 + sin(angle)*0.2, 0.15 - cos(angle)*0.2, 0.1, 3.98, 0, angle));
@@ -135,9 +135,12 @@ int main(int argc, char** argv)
       ROS_INFO_STREAM("Fail: Step " << i);
     } else {
       ROS_INFO_STREAM("Success: Step " << i);
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      targetPointsInCameraLensFrame.push_back(perception.getTargetTransformInCameraLensFrame());
-      cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+      Eigen::Isometry3d perceivedTargetPoint;
+      if (perception.getTargetTransformInCameraLensFrame(perceivedTargetPoint)) {
+        targetPointsInCameraLensFrame.push_back(perceivedTargetPoint);
+        cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
+      }
     }
   }
 

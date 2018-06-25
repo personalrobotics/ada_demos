@@ -87,7 +87,7 @@ void Perception::receiveImageMessage(cv_bridge::CvImagePtr cv_ptr)
 }
 
 //=============================================================================
-Eigen::Isometry3d Perception::getTargetTransformInCameraLensFrame()
+bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transform)
 {
   Eigen::Isometry3d rstMat = Eigen::Isometry3d::Identity();
 
@@ -98,7 +98,7 @@ Eigen::Isometry3d Perception::getTargetTransformInCameraLensFrame()
   if (cv_ptr == nullptr)
   {
     ROS_ERROR("Failed to load image");
-    return rstMat;
+    return false;
   }
 
   cv::Size patternsize(mPatternSizeWidth, mPatternSizeHeight);
@@ -111,7 +111,7 @@ Eigen::Isometry3d Perception::getTargetTransformInCameraLensFrame()
   if (!found)
   {
     ROS_ERROR("Could not find chessboard corners");
-    return rstMat;
+    return false;
   }
 
   std::vector<cv::Point3f> cb_p3ds;
@@ -153,7 +153,8 @@ Eigen::Isometry3d Perception::getTargetTransformInCameraLensFrame()
   // cv::imshow("view", image);
   // cv::waitKey(0);
 
-  return rstMat;
+  transform = rstMat;
+  return true;
 }
 
 } // namespace cameraCalibration

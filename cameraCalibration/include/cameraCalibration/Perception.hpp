@@ -28,7 +28,7 @@ public:
       int patternSizeHeight,
       float squareSize);
 
-  Eigen::Isometry3d getTargetTransformInCameraLensFrame();
+  bool getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transform);
 
   void receiveImageMessage(cv_bridge::CvImagePtr cv_ptr);
 
