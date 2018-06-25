@@ -2,7 +2,7 @@
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
-#include "feeding/FTThresholdController.hpp"
+#include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
@@ -41,10 +41,12 @@ int main(int argc, char** argv)
   // start demo
   FeedingDemo feedingDemo(adaReal, nodeHandle);
 
-  FTThresholdController ftThresholdController(false, nodeHandle);
+  FTThresholdHelper ftThresholdHelper(adaReal, nodeHandle);
 
   Perception perception(
-      feedingDemo.getWorld(), *feedingDemo.getAda(), nodeHandle);
+      feedingDemo.getWorld(),
+      feedingDemo.getAda().getMetaSkeleton(),
+      nodeHandle);
 
   // visualization
   aikido::rviz::WorldInteractiveMarkerViewer viewer(
@@ -59,23 +61,32 @@ int main(int argc, char** argv)
     throw std::runtime_error(collisionCheckResult);
   }
 
-  ftThresholdController.init();
+  ftThresholdHelper.init();
   feedingDemo.closeHand();
 
-  waitForUser("Startup complete.");
+  if (!waitForUser("Startup complete."))
+  {
+    return 0;
+  }
 
   feedingDemo.moveToStartConfiguration();
 
   // ===== ABOVE PLATE =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque above plate");
+    if (!waitForUser("Move forque above plate"))
+    {
+      return 0;
+    }
   }
   feedingDemo.moveAbovePlate();
 
   // ===== ABOVE FOOD =====
   if (!autoContinueDemo)
-    waitForUser("Perceive Food");
+    if (!waitForUser("Perceive Food"))
+    {
+      return 0;
+    }
   Eigen::Isometry3d foodTransform;
   if (adaReal)
   {
@@ -89,16 +100,22 @@ int main(int argc, char** argv)
   }
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque above food");
+    if (!waitForUser("Move forque above food"))
+    {
+      return 0;
+    }
   }
   feedingDemo.moveAboveFood(foodTransform);
 
   // ===== INTO FOOD =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque into food");
+    if (!waitForUser("Move forque into food"))
+    {
+      return 0;
+    }
   }
-  ftThresholdController.setThreshold(GRAB_FOOD_FT_THRESHOLD);
+  ftThresholdHelper.setThreshold(GRAB_FOOD_FT_THRESHOLD);
   feedingDemo.moveIntoFood();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
@@ -108,23 +125,32 @@ int main(int argc, char** argv)
   // ===== OUT OF FOOD =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque out of food");
+    if (!waitForUser("Move forque out of food"))
+    {
+      return 0;
+    }
   }
-  ftThresholdController.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
+  ftThresholdHelper.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
   feedingDemo.moveOutOfFood();
-  ftThresholdController.setThreshold(STANDARD_FT_THRESHOLD);
+  ftThresholdHelper.setThreshold(STANDARD_FT_THRESHOLD);
 
   // ===== IN FRONT OF PERSON =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move forque in front of person");
+    if (!waitForUser("Move forque in front of person"))
+    {
+      return 0;
+    }
   }
   feedingDemo.moveInFrontOfPerson();
 
   // ===== TOWARDS PERSON =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move towards person");
+    if (!waitForUser("Move towards person"))
+    {
+      return 0;
+    }
   }
   feedingDemo.moveTowardsPerson();
   std::this_thread::sleep_for(
@@ -138,12 +164,14 @@ int main(int argc, char** argv)
   // ===== BACK TO PLATE =====
   if (!autoContinueDemo)
   {
-    waitForUser("Move back to plate");
+    if (!waitForUser("Move back to plate"))
+    {
+      return 0;
+    }
   }
   feedingDemo.moveAbovePlate();
 
   // ===== DONE =====
   waitForUser("Demo finished.");
-  ros::shutdown();
   return 0;
 }

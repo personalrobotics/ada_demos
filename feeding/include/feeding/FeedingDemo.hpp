@@ -1,5 +1,5 @@
-#ifndef FEEDING_DEMO_HPP
-#define FEEDING_DEMO_HPP
+#ifndef FEEDING_FEEDINGDEMO_HPP_
+#define FEEDING_FEEDINGDEMO_HPP_
 
 #include <aikido/planner/World.hpp>
 #include <ros/ros.h>
@@ -27,48 +27,100 @@ class FeedingDemo
 {
 
 public:
+  /// Constructor for the Feeding Demo.
+  /// Takes care of setting up the robot and the workspace
+  /// \param[in] adaReal True if the real robot is used, false it's running in
+  /// simulation.
+  /// \param[in] nodeHandle Handle of the ros node.
   FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle);
 
-  aikido::planner::WorldPtr getWorld();
-  std::unique_ptr<Workspace>& getWorkspace();
-  std::unique_ptr<ada::Ada>& getAda();
+  /// Destructor for the Feeding Demo.
+  /// Also shuts down the trajectory controllers.
+  ~FeedingDemo();
 
+  /// Gets the aikido world
+  aikido::planner::WorldPtr getWorld();
+
+  /// Gets the workspace
+  Workspace& getWorkspace();
+
+  /// Gets Ada
+  ada::Ada& getAda();
+
+  /// Gets the transform of the default food object (defined in Workspace)
   Eigen::Isometry3d getDefaultFoodTransform();
 
   /// Checks robot and workspace collisions.
-  /// the result string is filled with information about collisions.
+  /// \param[out] result Contains reason for collision.
+  /// \return True if no collision was detected.
   bool isCollisionFree(std::string& result);
 
+  /// Prints the configuration of the robot joints.
   void printRobotConfiguration();
 
-  /// Controlling the hand only.
+  /// Opens Ada's hand
   void openHand();
+
+  /// Closes Ada's hand
   void closeHand();
 
-  /// Convencience functions to simulate food-forque interaction.
+  /// Attach food to forque
   void grabFoodWithForque();
+
+  /// Detach food from forque and remove it from the aikido world.
   void ungrabAndDeleteFood();
 
-  /// Convenience functions to move the robot in the feeding demo.
+  /// Moves the robot to the start configuration as defined in the ros
+  /// parameter.
   void moveToStartConfiguration();
+
+  /// Moves the forque above the plate.
   void moveAbovePlate();
+
+  /// Moves the forque above the food item using the values in the ros
+  /// parameters.
+  /// \param[in] foodTransform the transform of the food which the robot should
+  /// move over.
   void moveAboveFood(const Eigen::Isometry3d& foodTransform);
+
+  /// Moves the forque downwards into the food.
+  /// This function does not throw an exception if the trajectory is aborted,
+  /// because we expect that.
   void moveIntoFood();
+
+  /// Moves the forque upwards above the food.
   void moveOutOfFood();
+
+  /// Moves the forque to a position ready to approach the person.
   void moveInFrontOfPerson();
+
+  /// Moves the forque towards the person.
+  /// This function does not throw an exception if the trajectory is aborted,
+  /// because we expect that.
   void moveTowardsPerson();
+
+  /// Moves the forque away from the person.
   void moveAwayFromPerson();
 
-  /// General functions for robot movement.
-  /// They return a bool if the movement could be completed successfully.
-  /// Throws a runtime_error if they couldn't find a trajectory.
+  /// Moves the end effector to a TSR.
+  /// Throws a runtime_error if no trajectory could be found.
+  /// \return True if the trajectory was completed successfully.
   bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr);
+
+  /// Moves the end effector along a certain position offset.
+  /// Throws a runtime_error if no trajectory could be found.
+  /// \return True if the trajectory was completed successfully.
   bool moveWithEndEffectorOffset(
       const Eigen::Vector3d& direction, double length);
+
+  /// Moves the robot to a configuration.
+  /// Throws a runtime_error if no trajectory could be found.
+  /// \return True if the trajectory was completed successfully.
   bool moveArmToConfiguration(const Eigen::Vector6d& configuration);
 
   /// Postprocesses and executes a trjectory.
   /// Throws runtime_error if the trajectory is empty.
+  /// \return True if the trajectory was completed successfully.
   bool moveArmOnTrajectory(
       aikido::trajectory::TrajectoryPtr trajectory,
       TrajectoryPostprocessType postprocessType = SMOOTH);
@@ -79,10 +131,9 @@ private:
   aikido::planner::WorldPtr world;
 
   std::unique_ptr<ada::Ada> ada;
-  std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace;
+  aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace;
   std::unique_ptr<Workspace> workspace;
-  std::shared_ptr<aikido::constraint::dart::CollisionFree>
-      collisionFreeConstraint;
+  aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint;
 };
 }
 
