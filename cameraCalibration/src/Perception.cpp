@@ -123,7 +123,7 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
   {
     for (int hi=0; hi<patternsize.height; hi++)
     {
-      cb_p3ds.push_back(cv::Point3f(mSquareSize * wi, mSquareSize * hi, 0));
+      cb_p3ds.push_back(cv::Point3f(mSquareSize * (wi - patternsize.width/2.0), mSquareSize * (hi - patternsize.height/2.0), 0));
     }
   }
 
