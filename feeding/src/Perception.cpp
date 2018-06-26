@@ -48,9 +48,8 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
   if (perceivedFood != nullptr)
   {
     foodTransform = Eigen::Isometry3d::Identity();
-    foodTransform.translation() = perceivedFood->getJoint(0)
-                                      ->getChildBodyNode()
-                                      ->getTransform()
+    foodTransform.translation() = perceivedFood->getBodyNode(0)
+                                      ->getWorldTransform()
                                       .translation();
     return true;
   }

@@ -1,5 +1,5 @@
-#ifndef FEEDING_FTTHRESHOLDHELPER_H_
-#define FEEDING_FTTHRESHOLDHELPER_H_
+#ifndef FEEDING_FTTHRESHOLDHELPER_HPP_
+#define FEEDING_FTTHRESHOLDHELPER_HPP_
 
 #include <rewd_controllers/FTThresholdClient.hpp>
 #include <ros/ros.h>
@@ -38,7 +38,7 @@ public:
   void setThreshold(FTThreshold);
 
   /// Sets the MoveUntilTouchControllers Thresholds accordingly.
-  /// /return True if the thresholds were set successfully.
+  /// \return True if the thresholds were set successfully.
   bool trySetThreshold(FTThreshold);
 
 private:

@@ -38,7 +38,7 @@ FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle)
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
           workspace->getTable().get(),
-          workspace->getTom().get(),
+          workspace->getPerson().get(),
           workspace->getWorkspaceEnvironment().get());
   collisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
@@ -261,7 +261,7 @@ void FeedingDemo::moveInFrontOfPerson()
 
   aikido::constraint::dart::TSR personTSR;
   Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = workspace->getTom()
+  personPose.translation() = workspace->getPerson()
                                  ->getRootBodyNode()
                                  ->getWorldTransform()
                                  .translation();

@@ -1,5 +1,5 @@
-#ifndef FEEDING_WORKSPACE_H_
-#define FEEDING_WORKSPACE_H_
+#ifndef FEEDING_WORKSPACE_HPP_
+#define FEEDING_WORKSPACE_HPP_
 
 #include <aikido/planner/World.hpp>
 #include <feeding/util.hpp>
@@ -42,18 +42,22 @@ public:
   dart::dynamics::SkeletonPtr getDefaultFoodItem() const;
 
   /// Gets the mannequin
-  dart::dynamics::ConstSkeletonPtr getTom() const;
+  dart::dynamics::ConstSkeletonPtr getPerson() const;
 
   /// Removes the default food item from the world.
   void deleteFood();
 
 private:
-  aikido::planner::WorldPtr& world;
+
+  ros::NodeHandle nodeHandle;
+
+  aikido::planner::WorldPtr world;
+
   dart::dynamics::SkeletonPtr plate;
   dart::dynamics::SkeletonPtr table;
   dart::dynamics::SkeletonPtr workspaceEnvironment;
   dart::dynamics::SkeletonPtr defaultFoodItem;
-  dart::dynamics::SkeletonPtr tom;
+  dart::dynamics::SkeletonPtr person;
 
   /// Takes a skeleton pointer, fills it with a new skeleton and adds that to
   /// the world.
@@ -65,8 +69,7 @@ private:
   void addToWorld(
       dart::dynamics::SkeletonPtr& skeleton,
       const std::string& name,
-      const Eigen::Isometry3d& robotPose,
-      ros::NodeHandle nodeHandle);
+      const Eigen::Isometry3d& robotPose);
 };
 }
 

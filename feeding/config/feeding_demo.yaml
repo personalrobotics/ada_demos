@@ -33,7 +33,7 @@ table:
 defaultFoodItem:
   urdfUri: package://pr_ordata/data/objects/food_item.urdf
   pose: [.3, 0.25, 0.00, 0, 0, 0]
-tom: # the mannequin
+person: # the mannequin
   urdfUri: package://pr_ordata/data/objects/tom.urdf
   pose: [0.3, -0.4, 0.412, 0, 0, 3.1415]
 workspaceEnvironment:

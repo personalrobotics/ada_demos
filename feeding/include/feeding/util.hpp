@@ -1,5 +1,5 @@
-#ifndef FEEDING_UTIL_H_
-#define FEEDING_UTIL_H_
+#ifndef FEEDING_UTIL_HPP_
+#define FEEDING_UTIL_HPP_
 
 #include <iostream>
 #include <Eigen/Dense>
@@ -8,12 +8,11 @@
 
 namespace feeding {
 
-/// deals with the arguments supplied to the executable.
-/// /param[in] argc and argv are the typical parameters of main(..)
-/// /param[out] adaReal is true when the robot is used and not the simulation
-/// /param[out] autoContinueDemo is true when the demo continues to the next
-/// step without
-/// asking for confirmation
+/// Deals with the arguments supplied to the executable.
+/// \param[in] argc and argv are the typical parameters of main(..)
+/// \param[out] adaReal is true when the robot is used and not the simulation
+/// \param[out] autoContinueDemo is true when the demo continues to the next
+/// step without asking for confirmation
 void handleArguments(
     int argc, char** argv, bool& adaReal, bool& autoContinueDemo);
 
