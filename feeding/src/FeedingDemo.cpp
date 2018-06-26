@@ -144,7 +144,7 @@ void FeedingDemo::grabFoodWithForque()
 //==============================================================================
 void FeedingDemo::ungrabAndDeleteFood()
 {
-  if (!adaReal && workspace->getDefaultFoodItem())
+  if (!adaReal)
   {
     ada->getHand()->ungrab();
     workspace->deleteFood();

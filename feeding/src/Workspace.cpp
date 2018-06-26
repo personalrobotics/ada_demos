@@ -47,10 +47,7 @@ void Workspace::addToWorld(
 //==============================================================================
 void Workspace::deleteFood()
 {
-  if (defaultFoodItem)
-  {
-    world->removeSkeleton(defaultFoodItem);
-  }
+  world->removeSkeleton(defaultFoodItem);
 }
 
 //==============================================================================
