@@ -16,8 +16,7 @@ Workspace::Workspace(
   addToWorld(plate, "plate", robotPose);
   addToWorld(table, "table", robotPose);
   addToWorld(person, "person", robotPose);
-  addToWorld(
-      workspaceEnvironment, "workspaceEnvironment", robotPose);
+  addToWorld(workspaceEnvironment, "workspaceEnvironment", robotPose);
 
   if (!adaReal)
   {

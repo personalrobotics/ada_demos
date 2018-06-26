@@ -48,7 +48,6 @@ public:
   void deleteFood();
 
 private:
-
   ros::NodeHandle nodeHandle;
 
   aikido::planner::WorldPtr world;
