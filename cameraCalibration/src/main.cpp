@@ -13,6 +13,44 @@
 
 using namespace cameraCalibration;
 
+bool tryPerceivePoint(
+        std::string frameName,
+        Perception& perception,
+        tf::TransformListener& tfListener,
+        aikido::rviz::WorldInteractiveMarkerViewer& viewer,
+        std::vector<Eigen::Isometry3d>& targetPointsInCameraLensFrame,
+        std::vector<Eigen::Isometry3d>& cameraLensPointsInWorldFrame,
+        std::vector<dart::dynamics::SimpleFramePtr>& frames,
+        std::vector<aikido::rviz::FrameMarkerPtr>& frameMarkers) {
+
+  Eigen::Isometry3d perceivedTargetPoint;
+  if (perception.getTargetTransformInCameraLensFrame(perceivedTargetPoint))
+  {
+    targetPointsInCameraLensFrame.push_back(perceivedTargetPoint);
+    cameraLensPointsInWorldFrame.push_back(
+        getCameraLensInWorldFrame(tfListener));
+
+    Eigen::Isometry3d cameraLensTransform = getCameraLensInWorldFrame(tfListener);
+    dart::dynamics::SimpleFramePtr cameraFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "camLens_" + frameName, cameraLensTransform);
+    frames.push_back(cameraFrame);
+    frameMarkers.push_back(viewer.addFrame(cameraFrame.get(), 0.07, 0.007));
+
+    Eigen::Isometry3d targetPointTransform = getCameraLensInWorldFrame(tfListener) * perceivedTargetPoint;
+    dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "perceivedTarget_" + frameName, targetPointTransform);
+    frames.push_back(targetFrame);
+    frameMarkers.push_back(viewer.addFrame(targetFrame.get(), 0.07, 0.007));
+
+    // Eigen::Isometry3d cameraLensPerceivedTransform = perceivedTargetPoint.inverse();
+    // dart::dynamics::SimpleFramePtr cameraFramePerceived = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "cameralensperceived_cirlce2_" + std::to_string(i), cameraLensPerceivedTransform);
+    // frames.push_back(cameraFramePerceived);
+    // frameMarkers.push_back(viewer.addFrame(cameraFramePerceived.get(), 0.07, 0.007));
+
+    //std::cout << cameraLensTransform.matrix() << std::endl;
+    return true;
+  }
+  return false;
+}
+
 int main(int argc, char** argv)
 {
 
@@ -96,7 +134,7 @@ int main(int argc, char** argv)
       true,
       9,
       7,
-      1.2111);
+      0.012111);
   tf::TransformListener tfListener;
   std::vector<Eigen::Isometry3d> targetPointsInCameraLensFrame;
   std::vector<Eigen::Isometry3d> cameraLensPointsInWorldFrame;
@@ -131,20 +169,27 @@ int main(int argc, char** argv)
   std::vector<dart::dynamics::SimpleFramePtr> frames;
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
-  // for (int i= 20; i<=56; i++) {
-  //   double angle = 0.1745*i;
-  //   auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(.425 +
-  //   sin(angle)*0.1, 0.15 - cos(angle)*0.1, 0.05, 3.58, 0, angle)); if
-  //   (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
-  //   {
-  //     ROS_INFO_STREAM("Fail: Step " << i);
-  //   } else {
-  //     ROS_INFO_STREAM("Success: Step " << i);
-  //     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  //     targetPointsInCameraLensFrame.push_back(perception.getTargetTransformInCameraLensFrame());
-  //     cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
-  //   }
-  // }
+  for (int i= 20; i<=56; i++) {
+    double angle = 0.1745*i;
+    auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
+      0.425 + sin(angle)*0.1 + cos(angle)*-0.05,
+      0.15 - cos(angle)*0.1 + sin(angle)*-0.05,
+      0.05, 3.58, 0, angle)); if
+    (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+    {
+      ROS_INFO_STREAM("Fail: Step " << i);
+    } else {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+      if (tryPerceivePoint("circle1_step" + std::to_string(i),
+            perception, tfListener, viewer,
+            targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
+            frames, frameMarkers)) {
+        ROS_INFO_STREAM("Success: Step " << i);
+      } else {
+        ROS_INFO_STREAM("Perception fail: Step " << i);
+      }
+    }
+  }
 
   for (int i = 20; i <= 56; i++)
   {
@@ -164,19 +209,14 @@ int main(int argc, char** argv)
     }
     else
     {
-      ROS_INFO_STREAM("Success: Step " << i);
       std::this_thread::sleep_for(std::chrono::milliseconds(1500));
-      Eigen::Isometry3d perceivedTargetPoint;
-      if (perception.getTargetTransformInCameraLensFrame(perceivedTargetPoint))
-      {
-        targetPointsInCameraLensFrame.push_back(perceivedTargetPoint);
-        cameraLensPointsInWorldFrame.push_back(
-            getCameraLensInWorldFrame(tfListener));
-
-        Eigen::Isometry3d cameraLensTransform = getCameraLensInWorldFrame(tfListener) * perceivedTargetPoint;
-        dart::dynamics::SimpleFramePtr simpleFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "some_frame", cameraLensTransform);
-        frames.push_back(simpleFrame);
-        frameMarkers.push_back(viewer.addFrame(simpleFrame.get(), 0.5, 0.1));
+      if (tryPerceivePoint("circle2_step" + std::to_string(i),
+            perception, tfListener, viewer,
+            targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
+            frames, frameMarkers)) {
+        ROS_INFO_STREAM("Success: Step " << i);
+      } else {
+        ROS_INFO_STREAM("Perception fail: Step " << i);
       }
     }
   }
@@ -193,7 +233,14 @@ int main(int argc, char** argv)
     printPose(difference);
   }
 
+
   // ===== DONE =====
+  if (adaReal)
+  {
+    ada.startTrajectoryExecutor();
+  }
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
   waitForUser("Calibration finished.");
   ros::shutdown();
   return 0;

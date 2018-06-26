@@ -146,7 +146,7 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
     rstMat(ri, 3) = cb_tvec.at<double>(ri);
   }
 
-  std::cout << rstMat.matrix() << std::endl;
+  //std::cout << rstMat.matrix() << std::endl;
 
   // cv::drawChessboardCorners(image, patternsize, cv::Mat(corners), found);
 

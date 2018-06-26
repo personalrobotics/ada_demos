@@ -162,7 +162,7 @@ void printPose(const Eigen::Isometry3d& pose)
 Eigen::Isometry3d getCameraLensInWorldFrame(tf::TransformListener& tfListener) {
   tf::StampedTransform tfStampedTransform;
   try{
-    tfListener.lookupTransform("/camera_color_optical_frame", "/map",  
+    tfListener.lookupTransform("/map", "/camera_color_optical_frame",
                             ros::Time(0), tfStampedTransform);
   }
   catch (tf::TransformException ex){
