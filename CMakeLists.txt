@@ -3,6 +3,12 @@ project(ada_demos)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+find_package(catkin)
+catkin_package(
+  INCLUDE_DIRS feeding/include
+  LIBRARIES feeding
+  )
+
 # ===============================================================================
 # Dependencies
 #
@@ -32,6 +38,9 @@ include_directories(${aikido_INCLUDE_DIRS})
 find_package(libada REQUIRED)
 include_directories(${libada_INCLUDE_DIRS})
 
+find_package(rewd_controllers REQUIRED)
+include_directories(${rewd_controllers_INCLUDE_DIRS})
+
 find_package(pr_ordata REQUIRED)
 include_directories(${pr_ordata_INCLUDE_DIRS})
 
@@ -47,6 +56,7 @@ include_directories(${Boost_INCLUDE_DIR})
 
 #add_subdirectory(soda_grasp)
 add_subdirectory(simple_trajectories)
+add_subdirectory(hand_control)
 add_subdirectory(feeding)
 
 # ===============================================================================
@@ -63,6 +73,7 @@ if(CLANG_FORMAT_EXECUTABLE)
     soda_grasp/src/*.cpp
     simple_trajectories/src/*.cpp
     feeding/src/*.cpp
+    feeding/include/feeding/*.hpp
   )
   list(LENGTH ALL_SOURCE_FILES NUM_SOURCE_FILES)
 
