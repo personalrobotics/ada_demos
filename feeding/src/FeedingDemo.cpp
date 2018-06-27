@@ -297,7 +297,7 @@ void FeedingDemo::moveAwayFromPerson()
 {
   bool trajectoryCompleted = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, -1, 0),
-      getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle) * 0.7);
+      getRosParam<double>("/feedingDemo/distanceFromPerson", nodeHandle));
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
