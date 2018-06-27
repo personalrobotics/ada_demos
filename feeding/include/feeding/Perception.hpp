@@ -1,5 +1,5 @@
-#ifndef FEEDING_PERCEPTION_H_
-#define FEEDING_PERCEPTION_H_
+#ifndef FEEDING_PERCEPTION_HPP_
+#define FEEDING_PERCEPTION_HPP_
 
 #include <Eigen/Dense>
 #include <aikido/perception/PoseEstimatorModule.hpp>
@@ -19,8 +19,8 @@ class Perception
 public:
   /// Constructor
   /// Mainly sets up the objDetector
-  /// param[in] world The aikido world.
-  /// param[in] adasMetaSkeleton Ada's MetaSkeleton.
+  /// \param[in] world The aikido world.
+  /// \param[in] adasMetaSkeleton Ada's MetaSkeleton.
   /// \param[in] nodeHandle Handle of the ros node.
   Perception(
       aikido::planner::WorldPtr world,
