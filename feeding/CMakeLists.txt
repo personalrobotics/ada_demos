@@ -8,6 +8,8 @@ add_executable(feeding
   src/Perception.cpp
   src/Workspace.cpp
   src/util.cpp
+  src/GoalPoseControllerBase.cpp
+  src/GoalPoseController.cpp
 )
 
 include_directories(include)

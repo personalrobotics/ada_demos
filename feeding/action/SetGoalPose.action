@@ -1,0 +1,7 @@
+geometry_msgs/Pose goal_pose
+std_msgs/Float32 linear_velocity
+---
+bool success
+string message
+---
+# no feedback

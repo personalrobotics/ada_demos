@@ -3,10 +3,31 @@ project(ada_demos)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-find_package(catkin)
+find_package(catkin REQUIRED COMPONENTS
+  actionlib_msgs
+  geometry_msgs
+  std_msgs
+)
+
+add_action_files(
+  DIRECTORY feeding/action
+  FILES
+    SetGoalPose.action
+)
+
+generate_messages(DEPENDENCIES
+  actionlib_msgs
+  geometry_msgs
+  std_msgs
+)
+
 catkin_package(
   INCLUDE_DIRS feeding/include
   LIBRARIES feeding
+  CATKIN_DEPENDS
+    actionlib_msgs
+    geometry_msgs
+    std_msgs
   )
 
 # ===============================================================================
