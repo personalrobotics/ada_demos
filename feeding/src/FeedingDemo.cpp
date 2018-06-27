@@ -59,7 +59,7 @@ FeedingDemo::~FeedingDemo()
   if (adaReal)
   {
     // wait for a bit so controller actually stops moving
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     ada->stopTrajectoryExecutor();
   }
 }
@@ -159,17 +159,13 @@ void FeedingDemo::moveToStartConfiguration()
       = getRosParam<std::vector<double>>("/ada/homeConfiguration", nodeHandle);
   if (adaReal)
   {
-    //moveArmToConfiguration(Eigen::Vector6d(home.data()));
+    // We decided to not move to an initial configuration for now
+    // moveArmToConfiguration(Eigen::Vector6d(home.data()));
   }
   else
   {
-      auto oldHome
-      = getRosParam<std::vector<double>>("/ada/oldHomeConfiguration", nodeHandle);
     ada->getArm()->getMetaSkeleton()->setPositions(
-        Eigen::Vector6d(oldHome.data()));
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(4000));
-    moveArmToConfiguration(Eigen::Vector6d(home.data()));
+        Eigen::Vector6d(home.data()));
   }
 }
 
@@ -301,7 +297,7 @@ void FeedingDemo::moveAwayFromPerson()
 {
   bool trajectoryCompleted = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, -1, 0),
-      getRosParam<double>("/feedingDemo/distanceToPerson", nodeHandle) * 0.7);
+      getRosParam<double>("/feedingDemo/distanceFromPerson", nodeHandle));
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
