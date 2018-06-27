@@ -16,10 +16,8 @@ Workspace::Workspace(
   addToWorld(plate, "plate", robotPose);
   addToWorld(table, "table", robotPose);
   addToWorld(person, "person", robotPose);
-  addToWorld(
-      workspaceEnvironment, "workspaceEnvironment", robotPose);
+  addToWorld(workspaceEnvironment, "workspaceEnvironment", robotPose);
   addToWorld(wheelchair, "wheelchair", Eigen::Isometry3d::Identity());
-
 
   if (!adaReal)
   {

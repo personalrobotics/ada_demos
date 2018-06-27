@@ -159,16 +159,15 @@ void FeedingDemo::moveToStartConfiguration()
       = getRosParam<std::vector<double>>("/ada/homeConfiguration", nodeHandle);
   if (adaReal)
   {
-    //moveArmToConfiguration(Eigen::Vector6d(home.data()));
+    // moveArmToConfiguration(Eigen::Vector6d(home.data()));
   }
   else
   {
-      auto oldHome
-      = getRosParam<std::vector<double>>("/ada/oldHomeConfiguration", nodeHandle);
+    auto oldHome = getRosParam<std::vector<double>>(
+        "/ada/oldHomeConfiguration", nodeHandle);
     ada->getArm()->getMetaSkeleton()->setPositions(
         Eigen::Vector6d(oldHome.data()));
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(4000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(4000));
     moveArmToConfiguration(Eigen::Vector6d(home.data()));
   }
 }
