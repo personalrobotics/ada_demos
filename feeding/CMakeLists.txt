@@ -10,6 +10,7 @@ add_executable(feeding
   src/util.cpp
   src/GoalPoseControllerBase.cpp
   src/GoalPoseController.cpp
+  src/GoalPoseExecutor.cpp
 )
 
 include_directories(include)

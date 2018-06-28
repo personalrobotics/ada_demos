@@ -239,6 +239,12 @@ void GoalPoseControllerBase::goalCallback(GoalHandle goalHandle)
   const auto goal = goalHandle.getGoal();
   ROS_INFO_STREAM("Received trajectory '"
                   << goalHandle.getGoalID().id);
+
+  // set the goal pose and linear velocity
+  
+  // create a trajectory from the current pose to the goal pose
+
+  // time the trajectory as the reference 
 }
 
 
