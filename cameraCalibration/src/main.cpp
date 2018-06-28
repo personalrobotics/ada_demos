@@ -37,23 +37,23 @@ bool tryPerceivePoint(
     ROS_INFO_STREAM("actual distance: " << actualTargetPoint.translation().norm());
 
     targetPointsInCameraLensFrame.push_back(perceivedPointToCamera);
-    cameraLensPointsInWorldFrame.push_back(
-        getCameraLensInWorldFrame(tfListener));
+    cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
 
     Eigen::Isometry3d cameraLensTransform = getCameraLensInWorldFrame(tfListener);
     dart::dynamics::SimpleFramePtr cameraFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "camLens_" + frameName, cameraLensTransform);
     frames.push_back(cameraFrame);
     frameMarkers.push_back(cameraLensViewer.addFrame(cameraFrame.get(), 0.07, 0.007));
 
-    Eigen::Isometry3d targetPointTransform = getCameraLensInWorldFrame(tfListener) * perceivedPointToCamera.inverse();
+    
+    Eigen::Isometry3d targetPointTransform = getCameraLensInWorldFrame(tfListener) * perceivedPointToCamera;
     dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "perceivedTarget_" + frameName, targetPointTransform);
     frames.push_back(targetFrame);
     frameMarkers.push_back(targetPointViewer.addFrame(targetFrame.get(), 0.07, 0.007));
 
-    // Eigen::Isometry3d cameraLensPerceivedTransform = perceivedPointToCamera.inverse();
-    // dart::dynamics::SimpleFramePtr cameraFramePerceived = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "cameralensperceived_cirlce2_" + std::to_string(i), cameraLensPerceivedTransform);
-    // frames.push_back(cameraFramePerceived);
-    // frameMarkers.push_back(viewer.addFrame(cameraFramePerceived.get(), 0.07, 0.007));
+    Eigen::Isometry3d perceivedCameraTransform = targetPointPose * perceivedPointToCamera.inverse();
+    dart::dynamics::SimpleFramePtr pereceivedCameraFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "perceivedCamLens_" + frameName, perceivedCameraTransform);
+    frames.push_back(pereceivedCameraFrame);
+    frameMarkers.push_back(targetPointViewer.addFrame(pereceivedCameraFrame.get(), 0.07, 0.007));
 
     //std::cout << cameraLensTransform.matrix() << std::endl;
     return true;
@@ -143,8 +143,8 @@ int main(int argc, char** argv)
       "/camera/color/camera_info",
       true,
       9,
-      7,
-      0.012111);
+      6,
+      0.01065);
   tf::TransformListener tfListener;
   std::vector<Eigen::Isometry3d> targetPointsInCameraLensFrame;
   std::vector<Eigen::Isometry3d> cameraLensPointsInWorldFrame;
@@ -174,10 +174,11 @@ int main(int argc, char** argv)
   // ===== CALIBRATION PROCEDURE =====
   Eigen::Isometry3d targetPointPose
       = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
-  auto firstTSR = getCalibrationTSR(targetPointPose);
-  // auto frame2 = viewer.addTSRMarker(firstTSR, 20);
+  auto targetTSR = getCalibrationTSR(targetPointPose);
+  dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "targetFrame", targetPointPose);
+  auto targetFrameMarker = viewer.addFrame(targetFrame.get(), 0.2, 0.02);
 
-  if (!moveArmToTSR(firstTSR, ada, collisionFreeConstraint, armSpace))
+  if (!moveArmToTSR(targetTSR, ada, collisionFreeConstraint, armSpace))
   {
     throw std::runtime_error("Trajectory execution failed");
   }
@@ -187,7 +188,7 @@ int main(int argc, char** argv)
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
 
-  for (int i= 20; i<=56; i++) {
+  for (int i= 20; i<=56; i+=3) {
     double angle = 0.1745*i;
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
       0.425 + sin(angle)*0.1 + cos(angle)*-0.05,
@@ -209,14 +210,14 @@ int main(int argc, char** argv)
     }
   }
 
-  for (int i = 20; i <= 56; i++)
+  for (int i = 20; i <= 56; i+=3)
   {
     double angle = 0.1745 * i;
     auto tsr = getCalibrationTSR(
         robotPose.inverse()
         * createIsometry(
-              .425 + sin(angle) * 0.2,
-              0.15 - cos(angle) * 0.2,
+              .425 + sin(angle) * 0.2 + cos(angle)*-0.05,
+              0.15 - cos(angle) * 0.2 + sin(angle)*-0.05,
               0.1,
               3.98,
               0,
@@ -244,7 +245,7 @@ int main(int argc, char** argv)
   for (int i = 0; i < targetPointsInCameraLensFrame.size(); i++)
   {
     Eigen::Isometry3d cameraLensPointInWorldFrame2
-        = targetPointsInCameraLensFrame[i].inverse() * targetPointPose;
+        = targetPointPose * targetPointsInCameraLensFrame[i].inverse();
     Eigen::Isometry3d difference = cameraLensPointsInWorldFrame[i]
                                    * cameraLensPointInWorldFrame2.inverse();
     differences.push_back(difference);
@@ -252,14 +253,24 @@ int main(int argc, char** argv)
   }
 
 
+  waitForUser("Move back to center");
+
+  if (!moveArmToTSR(targetTSR, ada, collisionFreeConstraint, armSpace))
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+
   // ===== DONE =====
   if (adaReal)
   {
     ada.stopTrajectoryExecutor();
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
   waitForUser("Calibration finished.");
+  waitForUser("Really exit?");
+  waitForUser("Are you sure?");
   ros::shutdown();
   return 0;
 }

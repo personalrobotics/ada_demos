@@ -120,9 +120,9 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
   cv::Mat cb_tvec;
   cv::Mat cb_rmat;
 
-  for (int wi=0; wi<patternsize.width; wi++)
+  for (int hi=0; hi<patternsize.height; hi++)
   {
-    for (int hi=0; hi<patternsize.height; hi++)
+    for (int wi=0; wi<patternsize.width; wi++)
     {
       cb_p3ds.push_back(cv::Point3f(mSquareSize * (wi - (patternsize.width-1.0)/2.0), mSquareSize * (hi - (patternsize.height-1.0)/2.0), 0));
     }
@@ -165,10 +165,11 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
   cv::drawChessboardCorners(image, patternsize, cv::Mat(corners), found);
 
   cv::imshow("view", image);
-  cv::waitKey(0);
+  //cv::waitKey(0);
 
   transform = rstMat;
   return true;
 }
+
 
 } // namespace cameraCalibration
