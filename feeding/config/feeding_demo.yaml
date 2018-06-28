@@ -20,7 +20,6 @@ ada:
   urdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.urdf
   srdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.srdf
   endEffectorName: j2n6s200_forque_end_effector
-  oldHomeConfiguration: [2.857, 2.86652, 1.84389, 3.38693, -1.31163, -2.98721]
   homeConfiguration: [3.89015, 3.34645, 2.28738, -1.39666, 2.96761, 2.49281]
   baseFramePose: [0.7, -0.1, -0.28, 0, 0, 3.1415] # -0.28
 
@@ -34,7 +33,7 @@ table:
 defaultFoodItem:
   urdfUri: package://pr_ordata/data/objects/food_item.urdf
   pose: [.425, 0.15, 0.00, 0, 0, 0]
-tom: # the mannequin
+person: # the mannequin
   urdfUri: package://pr_ordata/data/objects/tom.urdf
   pose: [0.425, -0.45, 0.462, 0, 0, 3.1415]
 workspaceEnvironment:
@@ -48,8 +47,9 @@ wheelchair:
 feedingDemo:
   heightAbovePlate: 0.09
   heightAboveFood: 0.07
-  heightIntoFood: 0.0           # the real robot plans *below* the food. This parameter specifies how far (0.024)
+  heightIntoFood: 0.0           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
+  distanceFromPerson: 0.15
   waitMillisecsAtFood: 1000     # short pause after skewering the food
   waitMillisecsAtPerson: 5000   # long pause so person can take a bite
 

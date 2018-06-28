@@ -10,19 +10,18 @@ Workspace::Workspace(
     const Eigen::Isometry3d& robotPose,
     bool adaReal,
     ros::NodeHandle nodeHandle)
-  : world(world)
+  : nodeHandle(nodeHandle), world(world)
 {
 
-  addToWorld(plate, "plate", robotPose, nodeHandle);
-  addToWorld(table, "table", robotPose, nodeHandle);
-  addToWorld(tom, "tom", robotPose, nodeHandle);
-  addToWorld(
-      workspaceEnvironment, "workspaceEnvironment", robotPose, nodeHandle);
-  addToWorld(wheelchair, "wheelchair", Eigen::Isometry3d::Identity(), nodeHandle);
+  addToWorld(plate, "plate", robotPose);
+  addToWorld(table, "table", robotPose);
+  addToWorld(person, "person", robotPose);
+  addToWorld(workspaceEnvironment, "workspaceEnvironment", robotPose);
+  addToWorld(wheelchair, "wheelchair", Eigen::Isometry3d::Identity());
 
   if (!adaReal)
   {
-    addToWorld(defaultFoodItem, "defaultFoodItem", robotPose, nodeHandle);
+    addToWorld(defaultFoodItem, "defaultFoodItem", robotPose);
     defaultFoodItem->getRootBodyNode()->setCollidable(false);
   }
 }
@@ -31,8 +30,7 @@ Workspace::Workspace(
 void Workspace::addToWorld(
     dart::dynamics::SkeletonPtr& skeleton,
     const std::string& name,
-    const Eigen::Isometry3d& robotPose,
-    ros::NodeHandle nodeHandle)
+    const Eigen::Isometry3d& robotPose)
 {
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
@@ -49,10 +47,7 @@ void Workspace::addToWorld(
 //==============================================================================
 void Workspace::deleteFood()
 {
-  if (defaultFoodItem)
-  {
-    world->removeSkeleton(defaultFoodItem);
-  }
+  world->removeSkeleton(defaultFoodItem);
 }
 
 //==============================================================================
@@ -80,9 +75,9 @@ dart::dynamics::SkeletonPtr Workspace::getDefaultFoodItem() const
 }
 
 //==============================================================================
-dart::dynamics::ConstSkeletonPtr Workspace::getTom() const
+dart::dynamics::ConstSkeletonPtr Workspace::getPerson() const
 {
-  return tom;
+  return person;
 }
 
 dart::dynamics::ConstSkeletonPtr Workspace::getWheelchair() const
