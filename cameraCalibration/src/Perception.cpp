@@ -115,6 +115,7 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
   }
 
   std::vector<cv::Point3f> cb_p3ds;
+  std::vector<int> inliers;
   cv::Mat cb_rvec;
   cv::Mat cb_tvec;
   cv::Mat cb_rmat;
@@ -123,7 +124,7 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
   {
     for (int hi=0; hi<patternsize.height; hi++)
     {
-      cb_p3ds.push_back(cv::Point3f(mSquareSize * (wi - patternsize.width/2.0), mSquareSize * (hi - patternsize.height/2.0), 0));
+      cb_p3ds.push_back(cv::Point3f(mSquareSize * (wi - (patternsize.width-1.0)/2.0), mSquareSize * (hi - (patternsize.height-1.0)/2.0), 0));
     }
   }
 
@@ -133,7 +134,17 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
       mCameraModel.intrinsicMatrix(),
       mCameraModel.distortionCoeffs(),
       cb_rvec,
-      cb_tvec);
+      cb_tvec,
+      false,
+      100,
+      8.0,
+      0.99,
+      inliers);
+
+  std::cout << "inliers: " << inliers.size() << std::endl;
+
+  std::vector<cv::Point2f> imagePoints;
+  cv::projectPoints(cb_p3ds, cb_rvec, cb_tvec, mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
 
   cv::Rodrigues(cb_rvec, cb_rmat);
 
@@ -148,10 +159,13 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
 
   //std::cout << rstMat.matrix() << std::endl;
 
-  // cv::drawChessboardCorners(image, patternsize, cv::Mat(corners), found);
+  for (auto point : imagePoints) {
+    cv::circle(image, point, 3, cv::Scalar(50, 255, 70, 255), 5);
+  }
+  cv::drawChessboardCorners(image, patternsize, cv::Mat(corners), found);
 
-  // cv::imshow("view", image);
-  // cv::waitKey(0);
+  cv::imshow("view", image);
+  cv::waitKey(0);
 
   transform = rstMat;
   return true;

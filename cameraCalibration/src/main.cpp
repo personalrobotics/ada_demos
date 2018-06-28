@@ -24,12 +24,19 @@ bool tryPerceivePoint(
         std::vector<dart::dynamics::SimpleFramePtr>& frames,
         std::vector<aikido::rviz::FrameMarkerPtr>& frameMarkers) {
 
-  Eigen::Isometry3d perceivedTargetPoint;
-  if (perception.getTargetTransformInCameraLensFrame(perceivedTargetPoint))
+  Eigen::Isometry3d perceivedPointToCamera;
+  if (perception.getTargetTransformInCameraLensFrame(perceivedPointToCamera))
   {
-    ROS_INFO_STREAM("perceived distance: " << perceivedTargetPoint.translation().norm());
 
-    targetPointsInCameraLensFrame.push_back(perceivedTargetPoint);
+
+    Eigen::Isometry3d robotPose = createIsometry(0.7, -0.1, -0.28, 0, 0, 3.1415);
+    Eigen::Isometry3d targetPointPose
+          = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
+    Eigen::Isometry3d actualTargetPoint = getCameraLensInWorldFrame(tfListener).inverse() * targetPointPose;
+    ROS_INFO_STREAM("perceived distance: " << perceivedPointToCamera.translation().norm());
+    ROS_INFO_STREAM("actual distance: " << actualTargetPoint.translation().norm());
+
+    targetPointsInCameraLensFrame.push_back(perceivedPointToCamera);
     cameraLensPointsInWorldFrame.push_back(
         getCameraLensInWorldFrame(tfListener));
 
@@ -38,12 +45,12 @@ bool tryPerceivePoint(
     frames.push_back(cameraFrame);
     frameMarkers.push_back(cameraLensViewer.addFrame(cameraFrame.get(), 0.07, 0.007));
 
-    Eigen::Isometry3d targetPointTransform = getCameraLensInWorldFrame(tfListener) * perceivedTargetPoint;
+    Eigen::Isometry3d targetPointTransform = getCameraLensInWorldFrame(tfListener) * perceivedPointToCamera.inverse();
     dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "perceivedTarget_" + frameName, targetPointTransform);
     frames.push_back(targetFrame);
     frameMarkers.push_back(targetPointViewer.addFrame(targetFrame.get(), 0.07, 0.007));
 
-    // Eigen::Isometry3d cameraLensPerceivedTransform = perceivedTargetPoint.inverse();
+    // Eigen::Isometry3d cameraLensPerceivedTransform = perceivedPointToCamera.inverse();
     // dart::dynamics::SimpleFramePtr cameraFramePerceived = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "cameralensperceived_cirlce2_" + std::to_string(i), cameraLensPerceivedTransform);
     // frames.push_back(cameraFramePerceived);
     // frameMarkers.push_back(viewer.addFrame(cameraFramePerceived.get(), 0.07, 0.007));
