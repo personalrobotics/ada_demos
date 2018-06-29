@@ -24,27 +24,27 @@ bool tryPerceivePoint(
         std::vector<dart::dynamics::SimpleFramePtr>& frames,
         std::vector<aikido::rviz::FrameMarkerPtr>& frameMarkers) {
 
-  Eigen::Isometry3d perceivedPointToCamera;
-  if (perception.getTargetTransformInCameraLensFrame(perceivedPointToCamera))
+  Eigen::Isometry3d robotPose = createIsometry(0.7, -0.1, -0.28, 0, 0, 3.1415);
+  Eigen::Isometry3d targetPointPose
+        = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
+
+  Eigen::Isometry3d worldToCam = getCameraLensInWorldFrame(tfListener);
+  Eigen::Isometry3d targetToWorld = targetPointPose;
+
+  Eigen::Isometry3d cameraOffset;
+  if (perception.recordView(targetToWorld, worldToCam))
   {
+      ROS_INFO_STREAM("camera offset distance: " << cameraOffset.translation().norm());
 
-
-    Eigen::Isometry3d robotPose = createIsometry(0.7, -0.1, -0.28, 0, 0, 3.1415);
-    Eigen::Isometry3d targetPointPose
-          = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
-    Eigen::Isometry3d actualTargetPoint = getCameraLensInWorldFrame(tfListener).inverse() * targetPointPose;
-    ROS_INFO_STREAM("perceived distance: " << perceivedPointToCamera.translation().norm());
-    ROS_INFO_STREAM("actual distance: " << actualTargetPoint.translation().norm());
-
-    targetPointsInCameraLensFrame.push_back(perceivedPointToCamera);
-    cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
+    //targetPointsInCameraLensFrame.push_back(perceivedPointToCamera);
+    //cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
 
     Eigen::Isometry3d cameraLensTransform = getCameraLensInWorldFrame(tfListener);
     dart::dynamics::SimpleFramePtr cameraFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "camLens_" + frameName, cameraLensTransform);
     frames.push_back(cameraFrame);
     frameMarkers.push_back(cameraLensViewer.addFrame(cameraFrame.get(), 0.07, 0.007));
 
-    
+    /*
     Eigen::Isometry3d targetPointTransform = getCameraLensInWorldFrame(tfListener) * perceivedPointToCamera;
     dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "perceivedTarget_" + frameName, targetPointTransform);
     frames.push_back(targetFrame);
@@ -53,7 +53,7 @@ bool tryPerceivePoint(
     Eigen::Isometry3d perceivedCameraTransform = targetPointPose * perceivedPointToCamera.inverse();
     dart::dynamics::SimpleFramePtr pereceivedCameraFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "perceivedCamLens_" + frameName, perceivedCameraTransform);
     frames.push_back(pereceivedCameraFrame);
-    frameMarkers.push_back(targetPointViewer.addFrame(pereceivedCameraFrame.get(), 0.07, 0.007));
+    frameMarkers.push_back(targetPointViewer.addFrame(pereceivedCameraFrame.get(), 0.07, 0.007));*/
 
     //std::cout << cameraLensTransform.matrix() << std::endl;
     return true;
@@ -188,7 +188,7 @@ int main(int argc, char** argv)
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
 
-  for (int i= 20; i<=56; i+=3) {
+  for (int i= 20; i<=23; i+=3) {
     double angle = 0.1745*i;
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
       0.425 + sin(angle)*0.1 + cos(angle)*-0.05,
@@ -210,37 +210,38 @@ int main(int argc, char** argv)
     }
   }
 
-  for (int i = 20; i <= 56; i+=3)
-  {
-    double angle = 0.1745 * i;
-    auto tsr = getCalibrationTSR(
-        robotPose.inverse()
-        * createIsometry(
-              .425 + sin(angle) * 0.2 + cos(angle)*-0.05,
-              0.15 - cos(angle) * 0.2 + sin(angle)*-0.05,
-              0.1,
-              3.98,
-              0,
-              angle));
-    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
-    {
-      ROS_INFO_STREAM("Fail: Step " << i);
-    }
-    else
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-      if (tryPerceivePoint("circle2_step" + std::to_string(i),
-            perception, tfListener, cameraLensViewer, targetPointViewer,
-            targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
-            frames, frameMarkers)) {
-        ROS_INFO_STREAM("Success: Step " << i);
-      } else {
-        ROS_INFO_STREAM("Perception fail: Step " << i);
-      }
-    }
-  }
+//   for (int i = 20; i <= 56; i+=3)
+//   {
+//     double angle = 0.1745 * i;
+//     auto tsr = getCalibrationTSR(
+//         robotPose.inverse()
+//         * createIsometry(
+//               .425 + sin(angle) * 0.2 + cos(angle)*-0.05,
+//               0.15 - cos(angle) * 0.2 + sin(angle)*-0.05,
+//               0.1,
+//               3.98,
+//               0,
+//               angle));
+//     if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+//     {
+//       ROS_INFO_STREAM("Fail: Step " << i);
+//     }
+//     else
+//     {
+//       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//       if (tryPerceivePoint("circle2_step" + std::to_string(i),
+//             perception, tfListener, cameraLensViewer, targetPointViewer,
+//             targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
+//             frames, frameMarkers)) {
+//         ROS_INFO_STREAM("Success: Step " << i);
+//       } else {
+//         ROS_INFO_STREAM("Perception fail: Step " << i);
+//       }
+//     }
+//   }
 
   // ===== CALCULATE CALIBRATION =====
+  /*
   std::vector<Eigen::Isometry3d> differences;
   for (int i = 0; i < targetPointsInCameraLensFrame.size(); i++)
   {
@@ -250,7 +251,9 @@ int main(int argc, char** argv)
                                    * cameraLensPointInWorldFrame2.inverse();
     differences.push_back(difference);
     printPose(difference);
-  }
+  }*/
+
+  perception.getCameraOffsetFromStoredViews();
 
 
   waitForUser("Move back to center");

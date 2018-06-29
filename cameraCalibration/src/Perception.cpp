@@ -86,6 +86,7 @@ void Perception::receiveImageMessage(cv_bridge::CvImagePtr cv_ptr)
   }
 }
 
+/*
 //=============================================================================
 bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transform)
 {
@@ -169,7 +170,210 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
 
   transform = rstMat;
   return true;
+}*/
+
+bool Perception::getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToCam)
+{
+  Eigen::Isometry3d rstMat = Eigen::Isometry3d::Identity();
+
+  receiveCameraInfo();
+
+  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
+  receiveImageMessage(cv_ptr);
+  if (cv_ptr == nullptr)
+  {
+    ROS_ERROR("Failed to load image");
+    return false;
+  }
+
+  cv::Size patternsize(mPatternSizeWidth, mPatternSizeHeight);
+  cv::Mat image = cv_ptr->image;
+  std::vector<cv::Point2f> currentCorners;
+
+  bool found = cv::findChessboardCorners(
+      image, patternsize, currentCorners,
+      cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK);
+  if (!found)
+  {
+    ROS_ERROR("Could not find chessboard corners");
+    return false;
+  }
+
+  std::vector<Eigen::Translation3d> currentModelPoints;
+
+  for (int hi=0; hi<patternsize.height; hi++)
+  {
+    for (int wi=0; wi<patternsize.width; wi++)
+    {
+      Eigen::Translation3d point(
+        mSquareSize * (wi - (patternsize.width-1.0)/2.0),
+        mSquareSize * (hi - (patternsize.height-1.0)/2.0),
+        0
+      );
+      currentModelPoints.push_back(Eigen::Translation3d((worldToCam.inverse() * targetToWorld * point).translation()));
+    }
+  }
+
+  std::vector<cv::Point3f> cb_p3ds;
+  for (auto& point : currentModelPoints) {
+    cb_p3ds.push_back(cv::Point3f(point.x(), point.y(), point.z()));
+  }
+  std::vector<int> inliers;
+  cv::Mat cb_rvec;
+  cv::Mat cb_tvec;
+  cv::Mat cb_rmat;
+
+  cv::solvePnPRansac(
+      cb_p3ds,
+      currentCorners,
+      mCameraModel.intrinsicMatrix(),
+      mCameraModel.distortionCoeffs(),
+      cb_rvec,
+      cb_tvec,
+      false,
+      100,
+      8.0,
+      0.99,
+      inliers);
+
+  std::cout << "inliers: " << inliers.size() << std::endl;
+
+  cv::Mat rvec_identity = (cv::Mat_<double>(3, 3) << (1, 0, 0, 0, 1, 0, 0, 0, 1));
+  cv::Mat tvec_identity = (cv::Mat_<double>(3, 1) << (0, 0, 0));
+  std::vector<cv::Point2f> imagePoints;
+  cv::projectPoints(cb_p3ds, rvec_identity, tvec_identity, mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
+
+  cv::Rodrigues(cb_rvec, cb_rmat);
+
+  for (int ri=0; ri<3; ri++)
+  {
+    for (int ci=0; ci<3; ci++)
+    {
+      rstMat(ri, ci) = cb_rmat.at<double>(ri, ci);
+    }
+    rstMat(ri, 3) = cb_tvec.at<double>(ri);
+  }
+
+  std::cout << rstMat.matrix() << std::endl;
+
+  for (auto point : imagePoints) {
+    cv::circle(image, point, 3, cv::Scalar(50, 255, 70, 255), 5);
+  }
+  cv::drawChessboardCorners(image, patternsize, cv::Mat(currentCorners), found);
+
+  cv::imshow("view", image);
+  cv::waitKey(0);
+
+  transform = rstMat;
+  return true;
 }
 
+
+
+
+bool Perception::recordView(const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToCam)
+{
+  std::cout << "targetToWorld: " << std::endl << targetToWorld.matrix() << std::endl;
+  std::cout << "worldToCam: " << std::endl << worldToCam.matrix() << std::endl;
+
+  receiveCameraInfo();
+
+  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
+  receiveImageMessage(cv_ptr);
+  if (cv_ptr == nullptr)
+  {
+    ROS_ERROR("Failed to load image");
+    return false;
+  }
+
+  cv::Size patternsize(mPatternSizeWidth, mPatternSizeHeight);
+  cv::Mat image = cv_ptr->image;
+
+  std::vector<cv::Point2f> newCorners;
+  bool found = cv::findChessboardCorners(
+      image, patternsize, newCorners,
+      cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK);
+  if (!found)
+  {
+    ROS_ERROR("Could not find chessboard corners");
+    return false;
+  }
+
+  corners.insert(corners.end(), newCorners.begin(), newCorners.end());
+
+
+  for (int hi=0; hi<patternsize.height; hi++)
+  {
+    for (int wi=0; wi<patternsize.width; wi++)
+    {
+      Eigen::Translation3d point(
+        mSquareSize * (wi - (patternsize.width-1.0)/2.0),
+        mSquareSize * (hi - (patternsize.height-1.0)/2.0),
+        0
+      );
+      Eigen::Translation3d transformedPoint((worldToCam.inverse() * targetToWorld * point).translation());
+      modelPoints.push_back(cv::Point3f(transformedPoint.x(), transformedPoint.y(), transformedPoint.z()));
+    }
+  }
+
+  return true;
+}
+
+Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews() {
+  receiveCameraInfo();
+  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
+  receiveImageMessage(cv_ptr);
+  if (cv_ptr == nullptr)
+  {
+    ROS_ERROR("Failed to load image");
+    return Eigen::Isometry3d::Identity();
+  }
+  cv::Mat image = cv_ptr->image;
+
+
+  Eigen::Isometry3d rstMat = Eigen::Isometry3d::Identity();
+  std::vector<int> inliers;
+  cv::Mat cb_rvec;
+  cv::Mat cb_tvec;
+  cv::Mat cb_rmat;
+
+  cv::solvePnP(
+      modelPoints,
+      corners,
+      mCameraModel.intrinsicMatrix(),
+      mCameraModel.distortionCoeffs(),
+      cb_rvec,
+      cb_tvec,
+      false);
+
+  std::cout << "inliers: " << inliers.size() << std::endl;
+
+  std::vector<cv::Point2f> imagePoints;
+  cv::projectPoints(modelPoints, cb_rvec, cb_tvec, mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
+
+  cv::Rodrigues(cb_rvec, cb_rmat);
+
+  for (int ri=0; ri<3; ri++)
+  {
+    for (int ci=0; ci<3; ci++)
+    {
+      rstMat(ri, ci) = cb_rmat.at<double>(ri, ci);
+    }
+    rstMat(ri, 3) = cb_tvec.at<double>(ri);
+  }
+
+  std::cout << "final matrix: " << std::endl << rstMat.inverse().matrix() << std::endl;
+
+  for (auto point : imagePoints) {
+    cv::circle(image, point, 3, cv::Scalar(50, 255, 70, 255), 5);
+  }
+  for (auto corner : corners) {
+    cv::circle(image, corner, 1, cv::Scalar(255, 0, 0, 255), 3);
+  }
+  cv::imshow("view", image);
+  cv::waitKey(0);
+
+  return rstMat;
+}
 
 } // namespace cameraCalibration

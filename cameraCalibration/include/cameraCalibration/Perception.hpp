@@ -28,7 +28,13 @@ public:
       int patternSizeHeight,
       float squareSize);
 
-  bool getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transform);
+  //bool getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transform);
+
+  bool getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToCam);
+
+  bool recordView(const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToCam);
+
+  Eigen::Isometry3d getCameraOffsetFromStoredViews();
 
   void receiveImageMessage(cv_bridge::CvImagePtr cv_ptr);
 
@@ -44,6 +50,9 @@ private:
   float mSquareSize;
 
   image_geometry::PinholeCameraModel mCameraModel;
+
+  std::vector<cv::Point3f> modelPoints;
+  std::vector<cv::Point2f> corners;
 };
 
 } // namespace cameraCalibration
