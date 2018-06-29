@@ -31,13 +31,15 @@ protected:
   Eigen::Isometry3d mGoalPose;
   void transitionCallback(GoalHandle handle);
 
-private:
+  void nonRealtimeCallback(const ros::TimerEvent& event);
 
+private:
 
   ::ros::NodeHandle mNode;
   ::ros::CallbackQueue mCallbackQueue;
   GoalPoseActionClient mClient;
   GoalHandle mGoalHandle;
+  ::ros::Timer mNonRealtimeTimer;
 
   std::chrono::milliseconds mConnectionTimeout;
   std::chrono::milliseconds mConnectionPollingPeriod;
