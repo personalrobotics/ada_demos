@@ -24,16 +24,20 @@ public:
   std::future<void> execute(const Eigen::Isometry3d& goalPose);
 
 protected:
-  double mLinearVelocity; 
-  Eigen::Isometry3d mGoalPose;
-
-private:
   using GoalPoseActionClient = actionlib::ActionClient<ada_demos::SetGoalPoseAction>;
   using GoalHandle = GoalPoseActionClient::GoalHandle;
+
+  double mLinearVelocity; 
+  Eigen::Isometry3d mGoalPose;
+  void transitionCallback(GoalHandle handle);
+
+private:
+
 
   ::ros::NodeHandle mNode;
   ::ros::CallbackQueue mCallbackQueue;
   GoalPoseActionClient mClient;
+  GoalHandle mGoalHandle;
 
   std::chrono::milliseconds mConnectionTimeout;
   std::chrono::milliseconds mConnectionPollingPeriod;
