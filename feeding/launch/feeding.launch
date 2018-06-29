@@ -1,6 +1,0 @@
-<launch>
-
-   <!-- load parameters -->
-   <rosparam file="$(find ada_demos)/feeding/config/feeding_demo.yaml" command="load" />
-
-</launch>

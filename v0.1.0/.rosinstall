@@ -1,0 +1,8 @@
+- git: {local-name: ada_demos, uri: 'https://github.com/personalrobotics/ada_demos.git', version: 163692816835f992010b75d72f73fb86d7915cb1}
+- git: {local-name: ada_description, uri: 'https://github.com/personalrobotics/ada_description.git', version: 96bd3b0e8efba02d4967205f974ffb197b3a742e}
+- git: {local-name: aikido, uri: 'https://github.com/personalrobotics/aikido.git', version: 6343de7e3babe18db613916b2ee5bb71d9f7b453}
+- git: {local-name: libada, uri: 'https://github.com/personalrobotics/libada.git', version: 6374d618cc08fff8685cc908866c7780180a9c90}
+- git: {local-name: pr_ordata, uri: 'https://github.com/personalrobotics/pr_ordata.git', version: 6340465411d20b97fa0bacbcbfdb6262fbada159}
+- git: {local-name: pr_tsr, uri: 'https://github.com/personalrobotics/pr_tsr.git', version: 4fd9064a2c62e62363a92bb3ed2dec7fedf8adc8}
+- git: {local-name: rviz, uri: 'https://github.com/ros-visualization/rviz.git', version:
+8b41bdb5ca1c31bf05792cde756f2bc13a6f0d39}
