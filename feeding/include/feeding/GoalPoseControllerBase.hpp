@@ -75,6 +75,7 @@ protected:
    */
   virtual bool shouldStopExecution(std::string& reason);
 
+  aikido::trajectory::SplinePtr createTrajectory(Eigen::Isometry3d& goalPose);
 private:
   /** \brief Contains all data needed to execute the currently
    * requested trajectory. Shared between real time and non-real
@@ -142,9 +143,8 @@ private:
   ros::Timer mNonRealtimeTimer;
 
   std::vector<GoalHandle> mCancelRequests;
-  std::mutex mCancelRequestsMutex;
   std::deque<TrajectoryContextPtr> mNewTrajectoryRequests;
-  std::mutex mNewTrajectoryRequestsMutex;
+  std::mutex mNewGoalPoseRequestsMutex;
 
   // TODO: It would be better to use std::atomic<std::shared_ptr<T>> here.
   // However, this is not fully implemented in GCC 4.8.4, shipped with Ubuntu

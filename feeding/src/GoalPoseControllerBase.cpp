@@ -237,16 +237,36 @@ void GoalPoseControllerBase::updateStep(const ros::Time& time,
 void GoalPoseControllerBase::goalCallback(GoalHandle goalHandle)
 {
   const auto goal = goalHandle.getGoal();
-  ROS_INFO_STREAM("Received trajectory '"
+  ROS_INFO_STREAM("Received trajectory "
                   << goalHandle.getGoalID().id);
 
+  Eigen::Isometry3d goalPose;
   // set the goal pose and linear velocity
+  // use tf::poseTFToEigen to isometry3d
   
   // create a trajectory from the current pose to the goal pose
+  auto trajectory = createTrajectory(goalPose);
 
   // time the trajectory as the reference 
+  const auto newContext = std::make_shared<TrajectoryContext>();
+  newContext->mStartTime = ros::Time::now();
+  newContext->mTrajectory = trajectory;
+  newContext->mGoalHandle = goalHandle;
+
+  std::lock_guard<std::mutex> newGoalLock{mNewGoalPoseRequestsMutex};
+  mCurrentTrajectory.set(newContext);
+
+  
 }
 
+//=============================================================================
+aikido::trajectory::SplinePtr GoalPoseControllerBase::createTrajectory(
+    Eigen::Isometry3d& goalPose)
+{
+  // create a trajectory in the metaSkeleton state space 
+  // from the current configuration to a goal configuration defined by goal pose
+  return nullptr;
+}
 
 //=============================================================================
 void GoalPoseControllerBase::nonRealtimeCallback(
