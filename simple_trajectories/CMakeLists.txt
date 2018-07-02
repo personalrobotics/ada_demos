@@ -21,3 +21,4 @@ target_link_libraries(load_trajectories
   libada)
 
 install(TARGETS simple_trajectories RUNTIME DESTINATION bin)
+install(TARGETS load_trajectories RUNTIME DESTINATION bin)

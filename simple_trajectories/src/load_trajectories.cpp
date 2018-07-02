@@ -58,9 +58,9 @@ std::unique_ptr<aikido::trajectory::Spline> getTrajectoryFromFile(std::string fi
   double timeStep;
   std::vector<Eigen::Vector6d> stateSeq, velocitySeq;
   std::vector<double> timeSeq;
-  while(in.read_row(timeStep, stateVec[0], stateVec[1], stateVec[2], stateVec[3], 
-                    stateVec[4], stateVec[5], velocityVec[0], velocityVec[1],
-                    velocityVec[2], velocityVec[3], velocityVec[4], velocityVec[5]))
+  while(in.read_row(timeStep, stateVec[0], velocityVec[0], stateVec[1], velocityVec[1],
+                    stateVec[2], velocityVec[2], stateVec[3], velocityVec[3],
+                    stateVec[4], velocityVec[4], stateVec[5], velocityVec[5]))
   {
     timeSeq.push_back(timeStep);
     stateSeq.push_back(stateVec);
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA. ");
 
-  std::size_t robotNum = 4;
+  std::size_t robotNum = 1;
   std::vector<std::shared_ptr<ada::Ada>> robots;
   std::vector<aikido::statespace::dart::MetaSkeletonStateSpacePtr> armSpaces;
   for(std::size_t i=0;i<robotNum;i++)
