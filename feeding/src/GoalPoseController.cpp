@@ -23,6 +23,7 @@ bool GoalPoseController::init(hardware_interface::RobotHW* robot,
 //=============================================================================
 void GoalPoseController::starting(const ros::Time& time)
 {
+  std::cout << "GoalPoseController::starting" << std::endl;
   startController(time);
 }
 
@@ -36,6 +37,7 @@ void GoalPoseController::stopping(const ros::Time& time)
 void GoalPoseController::update(const ros::Time& time,
                                        const ros::Duration& period)
 {
+  std::cout << "GoalPoseController::update" << std::endl;
   updateStep(time, period);
 }
 
