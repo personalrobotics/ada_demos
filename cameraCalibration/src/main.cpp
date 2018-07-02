@@ -28,18 +28,18 @@ bool tryPerceivePoint(
   Eigen::Isometry3d targetPointPose
         = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
 
-  Eigen::Isometry3d worldToCam = getCameraLensInWorldFrame(tfListener);
+  Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
   Eigen::Isometry3d targetToWorld = targetPointPose;
 
   Eigen::Isometry3d cameraOffset;
-  if (perception.recordView(targetToWorld, worldToCam))
+  if (perception.recordView(targetToWorld, worldToJoule))
   {
       ROS_INFO_STREAM("camera offset distance: " << cameraOffset.translation().norm());
 
     //targetPointsInCameraLensFrame.push_back(perceivedPointToCamera);
     //cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
 
-    Eigen::Isometry3d cameraLensTransform = getCameraLensInWorldFrame(tfListener);
+    Eigen::Isometry3d cameraLensTransform = getWorldToJoule(tfListener).inverse();
     dart::dynamics::SimpleFramePtr cameraFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "camLens_" + frameName, cameraLensTransform);
     frames.push_back(cameraFrame);
     frameMarkers.push_back(cameraLensViewer.addFrame(cameraFrame.get(), 0.07, 0.007));
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
       = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
   auto targetTSR = getCalibrationTSR(targetPointPose);
   dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "targetFrame", targetPointPose);
-  auto targetFrameMarker = viewer.addFrame(targetFrame.get(), 0.2, 0.02);
+  auto targetFrameMarker = viewer.addFrame(targetFrame.get(), 0.07, 0.007);
 
   if (!moveArmToTSR(targetTSR, ada, collisionFreeConstraint, armSpace))
   {
@@ -188,7 +188,7 @@ int main(int argc, char** argv)
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
 
-  for (int i= 20; i<=23; i+=3) {
+  for (int i= 20; i<=56; i+=1) {
     double angle = 0.1745*i;
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
       0.425 + sin(angle)*0.1 + cos(angle)*-0.05,
@@ -210,35 +210,35 @@ int main(int argc, char** argv)
     }
   }
 
-//   for (int i = 20; i <= 56; i+=3)
-//   {
-//     double angle = 0.1745 * i;
-//     auto tsr = getCalibrationTSR(
-//         robotPose.inverse()
-//         * createIsometry(
-//               .425 + sin(angle) * 0.2 + cos(angle)*-0.05,
-//               0.15 - cos(angle) * 0.2 + sin(angle)*-0.05,
-//               0.1,
-//               3.98,
-//               0,
-//               angle));
-//     if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
-//     {
-//       ROS_INFO_STREAM("Fail: Step " << i);
-//     }
-//     else
-//     {
-//       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//       if (tryPerceivePoint("circle2_step" + std::to_string(i),
-//             perception, tfListener, cameraLensViewer, targetPointViewer,
-//             targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
-//             frames, frameMarkers)) {
-//         ROS_INFO_STREAM("Success: Step " << i);
-//       } else {
-//         ROS_INFO_STREAM("Perception fail: Step " << i);
-//       }
-//     }
-//   }
+  for (int i = 20; i <= 56; i+=1)
+  {
+    double angle = 0.1745 * i;
+    auto tsr = getCalibrationTSR(
+        robotPose.inverse()
+        * createIsometry(
+              .425 + sin(angle) * 0.2 + cos(angle)*-0.05,
+              0.15 - cos(angle) * 0.2 + sin(angle)*-0.05,
+              0.1,
+              3.98,
+              0,
+              angle));
+    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+    {
+      ROS_INFO_STREAM("Fail: Step " << i);
+    }
+    else
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      if (tryPerceivePoint("circle2_step" + std::to_string(i),
+            perception, tfListener, cameraLensViewer, targetPointViewer,
+            targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
+            frames, frameMarkers)) {
+        ROS_INFO_STREAM("Success: Step " << i);
+      } else {
+        ROS_INFO_STREAM("Perception fail: Step " << i);
+      }
+    }
+  }
 
   // ===== CALCULATE CALIBRATION =====
   /*
@@ -253,7 +253,7 @@ int main(int argc, char** argv)
     printPose(difference);
   }*/
 
-  perception.getCameraOffsetFromStoredViews();
+  perception.getCameraOffsetFromStoredViews(getCameraToOptical(tfListener));
 
 
   waitForUser("Move back to center");

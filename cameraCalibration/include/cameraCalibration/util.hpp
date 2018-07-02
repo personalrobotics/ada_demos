@@ -65,7 +65,9 @@ bool moveArmOnTrajectory(
 void printPose(const Eigen::Isometry3d& pose);
 
 
-Eigen::Isometry3d getCameraLensInWorldFrame(tf::TransformListener& tfListener);
+Eigen::Isometry3d getWorldToJoule(tf::TransformListener& tfListener);
+
+Eigen::Isometry3d getCameraToOptical(tf::TransformListener& tfListener);
 
 }
 #endif

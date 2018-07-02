@@ -172,7 +172,7 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
   return true;
 }*/
 
-bool Perception::getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToCam)
+bool Perception::getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToJoule)
 {
   Eigen::Isometry3d rstMat = Eigen::Isometry3d::Identity();
 
@@ -210,7 +210,7 @@ bool Perception::getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isom
         mSquareSize * (hi - (patternsize.height-1.0)/2.0),
         0
       );
-      currentModelPoints.push_back(Eigen::Translation3d((worldToCam.inverse() * targetToWorld * point).translation()));
+      currentModelPoints.push_back(Eigen::Translation3d((worldToJoule * targetToWorld * point).translation()));
     }
   }
 
@@ -271,10 +271,11 @@ bool Perception::getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isom
 
 
 
-bool Perception::recordView(const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToCam)
+bool Perception::recordView(const Eigen::Isometry3d& targetToWorld,
+                            const Eigen::Isometry3d& worldToJoule)
 {
   std::cout << "targetToWorld: " << std::endl << targetToWorld.matrix() << std::endl;
-  std::cout << "worldToCam: " << std::endl << worldToCam.matrix() << std::endl;
+  std::cout << "worldToJoule: " << std::endl << worldToJoule.matrix() << std::endl;
 
   receiveCameraInfo();
 
@@ -311,7 +312,7 @@ bool Perception::recordView(const Eigen::Isometry3d& targetToWorld, const Eigen:
         mSquareSize * (hi - (patternsize.height-1.0)/2.0),
         0
       );
-      Eigen::Translation3d transformedPoint((worldToCam.inverse() * targetToWorld * point).translation());
+      Eigen::Translation3d transformedPoint((worldToJoule * targetToWorld * point).translation());
       modelPoints.push_back(cv::Point3f(transformedPoint.x(), transformedPoint.y(), transformedPoint.z()));
     }
   }
@@ -319,7 +320,7 @@ bool Perception::recordView(const Eigen::Isometry3d& targetToWorld, const Eigen:
   return true;
 }
 
-Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews() {
+Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews(const Eigen::Isometry3d& cameraToOptical) {
   receiveCameraInfo();
   cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
   receiveImageMessage(cv_ptr);
@@ -331,7 +332,6 @@ Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews() {
   cv::Mat image = cv_ptr->image;
 
 
-  Eigen::Isometry3d rstMat = Eigen::Isometry3d::Identity();
   std::vector<int> inliers;
   cv::Mat cb_rvec;
   cv::Mat cb_tvec;
@@ -353,16 +353,16 @@ Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews() {
 
   cv::Rodrigues(cb_rvec, cb_rmat);
 
+  Eigen::Isometry3d jouleToOptical = Eigen::Isometry3d::Identity();
   for (int ri=0; ri<3; ri++)
   {
     for (int ci=0; ci<3; ci++)
     {
-      rstMat(ri, ci) = cb_rmat.at<double>(ri, ci);
+      jouleToOptical(ri, ci) = cb_rmat.at<double>(ri, ci);
     }
-    rstMat(ri, 3) = cb_tvec.at<double>(ri);
+    jouleToOptical(ri, 3) = cb_tvec.at<double>(ri);
   }
 
-  std::cout << "final matrix: " << std::endl << rstMat.inverse().matrix() << std::endl;
 
   for (auto point : imagePoints) {
     cv::circle(image, point, 3, cv::Scalar(50, 255, 70, 255), 5);
@@ -373,7 +373,13 @@ Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews() {
   cv::imshow("view", image);
   cv::waitKey(0);
 
-  return rstMat;
+  Eigen::Isometry3d cameraToJoule = jouleToOptical.inverse() * cameraToOptical;
+  std::cout << "final matrix: " << std::endl << cameraToJoule.matrix() << std::endl;
+
+  Eigen::Vector3d eulerAngles = cameraToJoule.linear().eulerAngles(2, 1, 0);
+  std::cout << "yaw: " << eulerAngles.x() << ", pitch: " << eulerAngles.y() << ", roll: " << eulerAngles.z() << std::endl;
+
+  return cameraToJoule;
 }
 
 } // namespace cameraCalibration

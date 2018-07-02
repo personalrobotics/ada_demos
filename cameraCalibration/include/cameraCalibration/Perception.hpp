@@ -30,11 +30,11 @@ public:
 
   //bool getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transform);
 
-  bool getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToCam);
+  bool getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToJoule);
 
-  bool recordView(const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToCam);
+  bool recordView(const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToJoule);
 
-  Eigen::Isometry3d getCameraOffsetFromStoredViews();
+  Eigen::Isometry3d getCameraOffsetFromStoredViews(const Eigen::Isometry3d& cameraToOptical);
 
   void receiveImageMessage(cv_bridge::CvImagePtr cv_ptr);
 
