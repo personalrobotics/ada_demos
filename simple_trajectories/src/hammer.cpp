@@ -320,7 +320,7 @@ int main(int argc, char** argv)
   Eigen::VectorXd viaConfig(movedPose);
   Eigen::VectorXd viaVelocity(6);
   viaConfig << -1.92989, 4.00172, 2.74529, -0.57672, 1.66878, -0.0733088;
-  viaVelocity << 0.0, -0.1, -0.01, 0.0, 0.0, 0.0;
+  viaVelocity << 0.0, -0.8, -0.01, 0.0, 0.0, 0.0;
 
   Eigen::VectorXd goalConfig(movedPose);
   goalConfig(1) -= 0.4;

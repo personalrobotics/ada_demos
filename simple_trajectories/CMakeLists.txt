@@ -11,4 +11,13 @@ target_link_libraries(simple_trajectories
   ${Boost_LIBRARIES}
   libada)
 
+add_executable(load_trajectories
+  src/load_trajectories.cpp)
+
+target_link_libraries(load_trajectories
+  ${DART_LIBRARIES}
+  ${aikido_LIBRARIES}
+  ${Boost_LIBRARIES}
+  libada)
+
 install(TARGETS simple_trajectories RUNTIME DESTINATION bin)

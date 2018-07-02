@@ -1,13 +1,14 @@
 #include <chrono>
 #include <iostream>
 #include <Eigen/Dense>
+#include <boost/program_options.hpp>
+#include <dart/dart.hpp>
+#include <dart/utils/urdf/DartLoader.hpp>
+#include <aikido/common/Spline.hpp>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
-#include <boost/program_options.hpp>
-#include <dart/dart.hpp>
-#include <dart/utils/urdf/DartLoader.hpp>
 #include <libada/Ada.hpp>
 #include "csv.h"
 
@@ -47,11 +48,12 @@ Eigen::VectorXd getCurrentConfig(ada::Ada& robot)
   return defaultPose;
 }
 
-aikido::trajectory::SplinePtr getTrajectoryFromFile(std::string filename,
-    const statespace::dart::MetaSkeletonStateSpacePtr& metaSkeletonStateSpace)
+std::unique_ptr<aikido::trajectory::Spline> getTrajectoryFromFile(std::string filename,
+    const aikido::statespace::dart::MetaSkeletonStateSpacePtr& metaSkeletonStateSpace)
 {
+  std::size_t dimension = metaSkeletonStateSpace->getDimension();
   io::CSVReader<13> in(filename);
-  in.read_header(io::ignore_extra_column);
+  //in.read_header(io::ignore_extra_column);
   Eigen::Vector6d stateVec, velocityVec;
   double timeStep;
   std::vector<Eigen::Vector6d> stateSeq, velocitySeq;
@@ -69,8 +71,11 @@ aikido::trajectory::SplinePtr getTrajectoryFromFile(std::string filename,
       metaSkeletonStateSpace);
   auto segmentStartState = metaSkeletonStateSpace->createState();
   
+  using CubicSplineProblem
+      = aikido::common::SplineProblem<double, int, 4, Eigen::Dynamic, 2>;
+
   Eigen::VectorXd zeroPosition = Eigen::VectorXd::Zero(dimension);
-  for (std::size_t i = 0; i < points.size() - 1; i++)
+  for (std::size_t i = 0; i < stateSeq.size() - 1; i++)
   {
     Eigen::VectorXd positionCurr = stateSeq[i];
     Eigen::VectorXd velocityCurr = velocitySeq[i];
@@ -140,7 +145,7 @@ void moveArmTo(
 
 int main(int argc, char** argv)
 {
-  bool adaReal = true;
+  bool adaReal = false;
 
   // Default options for flags
   po::options_description po_desc("simple_trajectories options");
@@ -170,8 +175,20 @@ int main(int argc, char** argv)
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA. ");
-  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
-  auto robotSkeleton = robot.getMetaSkeleton();
+
+  std::size_t robotNum = 4;
+  std::vector<std::shared_ptr<ada::Ada>> robots;
+  std::vector<aikido::statespace::dart::MetaSkeletonStateSpacePtr> armSpaces;
+  for(std::size_t i=0;i<robotNum;i++)
+  {
+    std::shared_ptr<ada::Ada> robot = std::make_shared<ada::Ada>(env, adaSim, adaUrdfUri, adaSrdfUri);
+    robots.push_back(robot);
+
+    auto armSkeleton = robot->getArm()->getMetaSkeleton();
+    auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
+
+    armSpaces.push_back(armSpace);
+  }
 
   // Start Visualization Topic
   static const std::string execTopicName = topicName + "/simple_trajectories";
@@ -184,110 +201,23 @@ int main(int argc, char** argv)
   aikido::rviz::WorldInteractiveMarkerViewer viewer(
       env, execTopicName, baseFrameName);
 
-  auto space = robot.getStateSpace();
-  auto collision = robot.getSelfCollisionConstraint(space, robotSkeleton);
-
-  dart::dynamics::MetaSkeletonPtr metaSkeleton = robot.getMetaSkeleton();
-  auto metaSpace = std::make_shared<MetaSkeletonStateSpace>(metaSkeleton.get());
-
-  auto armSkeleton = robot.getArm()->getMetaSkeleton();
-  auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
-
-  std::cout << "POS UPPER LIMITS:" << armSkeleton->getPositionUpperLimits().transpose() << std::endl;
-  std::cout << "POS LOWER LIMITS:" << armSkeleton->getPositionLowerLimits().transpose() << std::endl;
-  std::cout << "VEL UPPER LIMITS:" << armSkeleton->getVelocityUpperLimits().transpose() << std::endl;
-  std::cout << "VEL LOWER LIMITS:" << armSkeleton->getVelocityLowerLimits().transpose() << std::endl;
-  std::cout << "ACC UPPER LIMITS:" << armSkeleton->getAccelerationUpperLimits().transpose() << std::endl;
-  std::cout << "ACC LOWER LIMITS:" << armSkeleton->getAccelerationLowerLimits().transpose() << std::endl;
-
-  if (adaSim)
-  {
-    Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
-    home <<  -1.7833, 3.37821, 1.67694, -1.48822, 0.751753, 1.1297;
-    armSkeleton->setPositions(home);
-
-    auto startState
-        = space->getScopedStateFromMetaSkeleton(robotSkeleton.get());
-
-    if (!collision->isSatisfied(startState))
-    {
-      throw std::runtime_error("Robot is in collison");
-    }
-  }
-
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);
   waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
-  if (!adaSim)
+  std::string filenamePrefix = "FIRSTHALF";
+  std::stringstream ss;
+  for(std::size_t i=0; i<robotNum; i++)
   {
-    std::cout << "Start trajectory executor" << std::endl;
-    robot.startTrajectoryExecutor();
-  }
+    ss.clear();
+    ss << filenamePrefix << "_" << i << ".txt";
+    std::string filename = ss.str();
+    auto traj = getTrajectoryFromFile(filename, armSpaces[i]);
+    auto future = robots[i]->executeTrajectory(std::move(traj));
+  }  
 
-  /////////////////////////////////////////////////////////////////////////////
-  //   Move hand
-  /////////////////////////////////////////////////////////////////////////////
-  auto hand = robot.getArm()->getHand();
-  waitForUser("Close Hand.\n Press [ENTER] to proceed:");
-  auto future = hand->executePreshape("closed");
-  future.wait();
+  waitForUser("Wait for trajectory execution. \n Press [ENTER] after completion.");
 
-
-
-  /////////////////////////////////////////////////////////////////////////////
-  //   Trajectory execution
-  /////////////////////////////////////////////////////////////////////////////
-
-  auto currentPose = armSkeleton->getPositions();
-  std::cout << "ARM current position:\n"
-            << currentPose.transpose() << std::endl;
-  //Eigen::VectorXd movedPose(currentPose);
-  //movedPose(5) -= 0.5;
-  Eigen::VectorXd movedPose(6);
-  movedPose << -1.92989, 3.02971, 2.74529, -0.57672, 1.66878, -0.0733088;
-
-  if (!adaSim)
-  {
-    std::cout << "Start trajectory executor" << std::endl;
-    robot.startTrajectoryExecutor();
-  }
-
-  std::cout << "SIMPLE VALIDATION " << std::endl;
-  std::cout << "[POS]: " << armSkeleton->getPositions().transpose() << std::endl;
-  std::cout << "[UPPER]: " << armSkeleton->getPositionUpperLimits().transpose() << std::endl;
-  std::cout << "[LOWER]: " << armSkeleton->getPositionLowerLimits().transpose() << std::endl;
-  std::cout << "END VALIDATION " << std::endl;
-
-  moveArmTo(robot, armSpace, armSkeleton, movedPose);
-
-  waitForUser("Press key to continue.");
-  Eigen::VectorXd viaConfig(movedPose);
-  Eigen::VectorXd viaVelocity(6);
-  viaConfig << -1.92989, 4.00172, 2.74529, -0.57672, 1.66878, -0.0733088;
-  viaVelocity << 0.0, -0.1, -0.01, 0.0, 0.0, 0.0;
-
-  Eigen::VectorXd goalConfig(movedPose);
-  goalConfig(1) -= 0.4;
-  goalConfig(2) -= 0.1;
- 
-  ROS_INFO("Starting the kinodynamic testing");
-  moveArmTo(robot, armSpace, armSkeleton, 
-            viaConfig, viaVelocity, goalConfig);  
-
-
-  waitForUser("Open Hand.\n Press [ENTER] to proceed:");
-  future = hand->executePreshape("open");
-  future.wait();
-
-
-  waitForUser("Press [ENTER] to exit. ");
-
-  if (!adaSim)
-  {
-    std::cout << "Stop trajectory executor" << std::endl;
-    robot.stopTrajectoryExecutor();
-  }
   ros::shutdown();
   return 0;
 }
