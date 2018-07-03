@@ -1,8 +1,8 @@
-#ifndef FTTHRESHOLDHELPER_H
-#define FTTHRESHOLDHELPER_H
+#ifndef FEEDING_FTTHRESHOLDHELPER_HPP_
+#define FEEDING_FTTHRESHOLDHELPER_HPP_
 
-#include <ros/ros.h>
 #include <rewd_controllers/FTThresholdClient.hpp>
+#include <ros/ros.h>
 
 namespace feeding {
 
@@ -21,9 +21,10 @@ class FTThresholdHelper
 
 public:
   /// Constructor.
-  /// With useThresholdControl you can turn this whole object on and off.
+  /// \param[in] useThresholdControl You can turn this whole object on and off.
   /// Useful if you don't use the MoveUntilTouchController and don't need to set
-  /// these thresholds
+  /// these thresholds.
+  /// \param[in] nodeHandle Handle of the ros node.
   FTThresholdHelper(bool useThresholdControl, ros::NodeHandle nodeHandle);
 
   /// Needs to be called before setting the first thresholds.
@@ -37,7 +38,7 @@ public:
   void setThreshold(FTThreshold);
 
   /// Sets the MoveUntilTouchControllers Thresholds accordingly.
-  /// Returns whether the thresholds were set successfully.
+  /// \return True if the thresholds were set successfully.
   bool trySetThreshold(FTThreshold);
 
 private:

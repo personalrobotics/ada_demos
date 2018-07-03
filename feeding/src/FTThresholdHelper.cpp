@@ -1,50 +1,61 @@
 #include "feeding/FTThresholdHelper.hpp"
-#include "feeding/util.hpp"
 #include <thread>
+#include "feeding/util.hpp"
 
 namespace feeding {
 
+//==============================================================================
 FTThresholdHelper::FTThresholdHelper(
     bool useThresholdControl, ros::NodeHandle nodeHandle)
-  : useThresholdControl(useThresholdControl),
-    nodeHandle(nodeHandle)
+  : useThresholdControl(useThresholdControl), nodeHandle(nodeHandle)
 {
   if (!useThresholdControl)
     return;
 
-  ftThresholdClient = std::unique_ptr<rewd_controllers::FTThresholdClient>(new rewd_controllers::FTThresholdClient(getRosParam<std::string>("/ftSensor/controllerFTThresholdTopic", nodeHandle), nodeHandle));
+  ftThresholdClient = std::unique_ptr<rewd_controllers::FTThresholdClient>(
+      new rewd_controllers::FTThresholdClient(
+          getRosParam<std::string>(
+              "/ftSensor/controllerFTThresholdTopic", nodeHandle),
+          nodeHandle));
 }
 
+//==============================================================================
 void FTThresholdHelper::init()
 {
   if (!useThresholdControl)
     return;
 
   auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
-  ftThresholdClient->trySetThresholdRepeatedly(thresholdPair.first, thresholdPair.second);
+  ftThresholdClient->trySetThresholdRepeatedly(
+      thresholdPair.first, thresholdPair.second);
 }
 
+//==============================================================================
 bool FTThresholdHelper::trySetThreshold(FTThreshold threshold)
 {
   if (!useThresholdControl)
     return true;
 
   auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
-  return ftThresholdClient->trySetThreshold(thresholdPair.first, thresholdPair.second);
+  return ftThresholdClient->trySetThreshold(
+      thresholdPair.first, thresholdPair.second);
 }
 
+//==============================================================================
 void FTThresholdHelper::setThreshold(FTThreshold threshold)
 {
   if (!useThresholdControl)
     return;
-    
-  auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
-  return ftThresholdClient->setThreshold(thresholdPair.first, thresholdPair.second);
 
-  
+  auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
+  return ftThresholdClient->setThreshold(
+      thresholdPair.first, thresholdPair.second);
 }
 
-std::pair<double, double> FTThresholdHelper::getThresholdValues(FTThreshold threshold) {
+//==============================================================================
+std::pair<double, double> FTThresholdHelper::getThresholdValues(
+    FTThreshold threshold)
+{
   double forceThreshold = 0;
   double torqueThreshold = 0;
   switch (threshold)
@@ -73,5 +84,4 @@ std::pair<double, double> FTThresholdHelper::getThresholdValues(FTThreshold thre
   }
   return std::pair<double, double>(forceThreshold, torqueThreshold);
 }
-
 }
