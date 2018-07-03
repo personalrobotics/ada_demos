@@ -181,14 +181,24 @@ int main(int argc, char** argv)
   std::vector<aikido::statespace::dart::MetaSkeletonStateSpacePtr> armSpaces;
   for(std::size_t i=0;i<robotNum;i++)
   {
-    std::shared_ptr<ada::Ada> robot = std::make_shared<ada::Ada>(env, adaSim, adaUrdfUri, adaSrdfUri);
-    robots.push_back(robot);
+    auto robo = std::make_shared<ada::Ada>(env, adaSim, adaUrdfUri, adaSrdfUri);
+    robots.push_back(robo);
 
-    auto armSkeleton = robot->getArm()->getMetaSkeleton();
+    auto armSkeleton = robo->getArm()->getMetaSkeleton();
     auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
 
     armSpaces.push_back(armSpace);
   }
+
+  std::cout << "SKELETON NUM " << env->getNumSkeletons() << std::endl;
+
+  /*
+  Eigen::Vector6d pos1, pos2;
+  pos1 << 0.1, 0.2, 0.3, 0.4, 0.5, 0.6;
+  pos2 << 0.6, 0.5, 0.4, 0.3, 0.2, 0.1;
+  robots[0]->getArm()->getMetaSkeleton()->setPositions(pos1);
+  robots[1]->getArm()->getMetaSkeleton()->setPositions(pos2);
+  */
 
   // Start Visualization Topic
   static const std::string execTopicName = topicName + "/simple_trajectories";
@@ -207,6 +217,7 @@ int main(int argc, char** argv)
 
   std::string filenamePrefix = "FIRSTHALF";
   std::stringstream ss;
+  
   for(std::size_t i=0; i<robotNum; i++)
   {
     ss.str("");
