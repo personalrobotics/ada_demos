@@ -176,7 +176,7 @@ int main(int argc, char** argv)
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA. ");
 
-  std::size_t robotNum = 1;
+  std::size_t robotNum = 2;
   std::vector<std::shared_ptr<ada::Ada>> robots;
   std::vector<aikido::statespace::dart::MetaSkeletonStateSpacePtr> armSpaces;
   for(std::size_t i=0;i<robotNum;i++)
@@ -209,11 +209,13 @@ int main(int argc, char** argv)
   std::stringstream ss;
   for(std::size_t i=0; i<robotNum; i++)
   {
-    ss.clear();
+    ss.str("");
     ss << filenamePrefix << "_" << i << ".txt";
     std::string filename = ss.str();
+    std::cout << "LOADING " << filename << std::endl;
     auto traj = getTrajectoryFromFile(filename, armSpaces[i]);
     auto future = robots[i]->executeTrajectory(std::move(traj));
+    std::cout << "executed trajectory " << i << std::endl;
   }  
 
   waitForUser("Wait for trajectory execution. \n Press [ENTER] after completion.");
