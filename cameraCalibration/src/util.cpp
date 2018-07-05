@@ -122,6 +122,7 @@ bool moveArmOnTrajectory(
 {
   if (!trajectory)
   {
+    ROS_WARN("Trajectory execution failed: Empty trajectory.");
     return false;
     //throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
   }

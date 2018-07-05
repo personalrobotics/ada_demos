@@ -85,9 +85,9 @@ int main(int argc, char** argv)
   ada::Ada ada(
       world,
       !adaReal,
-      "package://ada_description/robots_urdf/ada_with_camera.urdf",
-      "package://ada_description/robots_urdf/ada_with_camera.srdf",
-      "j2n6s200_hand_tip");
+      "package://ada_description/robots_urdf/ada_with_camera_forque.urdf",
+      "package://ada_description/robots_urdf/ada_with_camera_forque.srdf",
+      "j2n6s200_forque_end_effector");
   auto armSpace
       = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
           ada.getArm()->getMetaSkeleton().get());
@@ -171,6 +171,72 @@ int main(int argc, char** argv)
 
   waitForUser("Move to initial position");
 
+
+  // ===== PRECISION TEST =====
+
+  Eigen::Isometry3d targetPointPose
+      = robotPose.inverse() * createIsometry(.425, 0.15, 0.08, 3.1415, 0, 0);
+  auto targetTSR = getCalibrationTSR(targetPointPose);
+  dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "targetFrame", targetPointPose);
+  auto targetFrameMarker = viewer.addFrame(targetFrame.get(), 0.07, 0.007);
+
+  if (!moveArmToTSR(targetTSR, ada, collisionFreeConstraint, armSpace))
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+  waitForUser("Step 1 complete.");
+
+
+  Eigen::Isometry3d checkerboardCornerFromCamera;
+  dart::dynamics::SimpleFramePtr cornerFrame;
+  aikido::rviz::FrameMarkerPtr cornerFrameMarker;
+  if (perception.getCheckerboardCorner(checkerboardCornerFromCamera)) {
+    ROS_INFO_STREAM(checkerboardCornerFromCamera.matrix());
+    ROS_INFO_STREAM("camera to optical inverse: " << std::endl << getCameraToOptical(tfListener).inverse().matrix());
+    auto checkerboardCornerPose =  getWorldToJoule(tfListener).inverse() * getCameraToOptical(tfListener).inverse() * checkerboardCornerFromCamera;
+    auto cornerTSR = getCalibrationTSR(checkerboardCornerPose);
+    cornerFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "cornerFrame", checkerboardCornerPose);
+    cornerFrameMarker = viewer.addFrame(cornerFrame.get(), 0.07, 0.002);
+    waitForUser("Wait for move");
+
+    if (!moveArmToTSR(cornerTSR, ada, collisionFreeConstraint, armSpace))
+    {
+        throw std::runtime_error("Trajectory execution failed");
+    }
+
+    for (int i= 20; i<=56; i+=2) {
+        double angle = 0.1745*i;
+        auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
+        0.425 + sin(angle)*0.1 + cos(angle)*-0.05,
+        0.15 - cos(angle)*0.1 + sin(angle)*-0.05,
+        0.05, 3.58, 0, angle));
+        if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+        {
+        ROS_INFO_STREAM("Fail: Step " << i);
+        } else {
+            ROS_INFO_STREAM("Success: Step " << i);
+        std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+        }
+    }
+  } else {
+      throw std::runtime_error("Perception failed");
+  }
+
+
+
+  // ===== DONE =====
+  if (adaReal)
+  {
+  std::this_thread::sleep_for(std::chrono::milliseconds(12000));
+    ada.stopTrajectoryExecutor();
+  }
+
+  waitForUser("Precision test finished.");
+  ros::shutdown();
+  return 0;
+
+/*
+
   // ===== CALIBRATION PROCEDURE =====
   Eigen::Isometry3d targetPointPose
       = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
@@ -241,17 +307,6 @@ int main(int argc, char** argv)
   }
 
   // ===== CALCULATE CALIBRATION =====
-  /*
-  std::vector<Eigen::Isometry3d> differences;
-  for (int i = 0; i < targetPointsInCameraLensFrame.size(); i++)
-  {
-    Eigen::Isometry3d cameraLensPointInWorldFrame2
-        = targetPointPose * targetPointsInCameraLensFrame[i].inverse();
-    Eigen::Isometry3d difference = cameraLensPointsInWorldFrame[i]
-                                   * cameraLensPointInWorldFrame2.inverse();
-    differences.push_back(difference);
-    printPose(difference);
-  }*/
 
   perception.getCameraOffsetFromStoredViews(getCameraToOptical(tfListener));
 
@@ -263,11 +318,11 @@ int main(int argc, char** argv)
     throw std::runtime_error("Trajectory execution failed");
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 
   // ===== DONE =====
   if (adaReal)
   {
+  std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     ada.stopTrajectoryExecutor();
   }
 
@@ -275,5 +330,5 @@ int main(int argc, char** argv)
   waitForUser("Really exit?");
   waitForUser("Are you sure?");
   ros::shutdown();
-  return 0;
+  return 0;*/
 }

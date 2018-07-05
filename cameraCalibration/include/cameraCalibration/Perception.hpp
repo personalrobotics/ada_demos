@@ -36,6 +36,8 @@ public:
 
   Eigen::Isometry3d getCameraOffsetFromStoredViews(const Eigen::Isometry3d& cameraToOptical);
 
+  bool getCheckerboardCorner(Eigen::Isometry3d& cornerTransform);
+
   void receiveImageMessage(cv_bridge::CvImagePtr cv_ptr);
 
   void receiveCameraInfo();

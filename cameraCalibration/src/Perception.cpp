@@ -382,4 +382,81 @@ Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews(const Eigen::Isomet
   return cameraToJoule;
 }
 
+bool Perception::getCheckerboardCorner(Eigen::Isometry3d& cornerTransform) {
+
+  Eigen::Isometry3d rstMat = Eigen::Isometry3d::Identity();
+
+  receiveCameraInfo();
+
+  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
+  receiveImageMessage(cv_ptr);
+  if (cv_ptr == nullptr)
+  {
+    ROS_ERROR("Failed to load image");
+    return false;
+  }
+
+  cv::Size patternsize(mPatternSizeWidth, mPatternSizeHeight);
+  cv::Mat image = cv_ptr->image;
+  std::vector<cv::Point2f> currentCorners;
+
+  bool found = cv::findChessboardCorners(
+      image, patternsize, currentCorners,
+      cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK);
+  if (!found)
+  {
+    ROS_ERROR("Could not find chessboard corners");
+    return false;
+  }
+
+  std::vector<cv::Point3f> cb_p3ds;
+  cv::Mat cb_rvec;
+  cv::Mat cb_tvec;
+  cv::Mat cb_rmat;
+
+  for (int hi=0; hi<patternsize.height; hi++)
+  {
+    for (int wi=0; wi<patternsize.width; wi++)
+    {
+      cb_p3ds.push_back(cv::Point3f(mSquareSize * (wi), mSquareSize * (hi), 0));
+    }
+  }
+
+  cv::solvePnP(
+      cb_p3ds,
+      currentCorners,
+      mCameraModel.intrinsicMatrix(),
+      mCameraModel.distortionCoeffs(),
+      cb_rvec,
+      cb_tvec,
+      false);
+
+  std::vector<cv::Point2f> imagePoints;
+  cv::projectPoints(cb_p3ds, cb_rvec, cb_tvec, mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
+
+  cv::Rodrigues(cb_rvec, cb_rmat);
+
+  for (int ri=0; ri<3; ri++)
+  {
+    for (int ci=0; ci<3; ci++)
+    {
+      rstMat(ri, ci) = cb_rmat.at<double>(ri, ci);
+    }
+    rstMat(ri, 3) = cb_tvec.at<double>(ri);
+  }
+
+  std::cout << rstMat.matrix() << std::endl;
+
+  for (auto point : imagePoints) {
+    cv::circle(image, point, 2, cv::Scalar(50, 255, 70, 255), 3);
+  }
+  cv::drawChessboardCorners(image, patternsize, cv::Mat(corners), found);
+
+  cv::imshow("view", image);
+  cv::waitKey(0);
+
+  cornerTransform = rstMat;
+  return true;
+}
+
 } // namespace cameraCalibration
