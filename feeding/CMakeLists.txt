@@ -8,6 +8,7 @@ add_executable(feeding
   src/Perception.cpp
   src/Workspace.cpp
   src/util.cpp
+  src/PerceptionServoClient.cpp
 )
 
 include_directories(include)
