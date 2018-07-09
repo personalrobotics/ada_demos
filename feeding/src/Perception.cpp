@@ -36,6 +36,9 @@ Perception::Perception(
 //==============================================================================
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 {
+
+  return true;
+    /*
   mObjDetector->detectObjects(
       mWorld,
       ros::Duration(
@@ -56,5 +59,6 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
   {
     return false;
   }
+  */
 }
 }
