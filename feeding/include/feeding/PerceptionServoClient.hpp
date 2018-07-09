@@ -17,9 +17,10 @@ public:
     std::shared_ptr<Perception> perception,
     aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr metaSkeletonStateSpace,
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
-    ::dart::dynamics::ConstBodyNodePtr bodyNode,
+    ::dart::dynamics::BodyNodePtr bodyNode,
     std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> trajectoryExecutor,
-    double perceptionUpdateTime 
+    double perceptionUpdateTime,
+    double goalPoseUpdateTolerance
   );
   virtual ~PerceptionServoClient();
 
@@ -42,17 +43,20 @@ protected:
   /// Meta Skeleton
   ::dart::dynamics::MetaSkeletonPtr mMetaSkeleton;
   /// BodyNode
-  ::dart::dynamics::ConstBodyNodePtr mBodyNode;
+  ::dart::dynamics::BodyNodePtr mBodyNode;
 
   std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> mTrajectoryExecutor;
   double mPerceptionUpdateTime;
+  double mGoalPoseUpdateTolerance;
 
   aikido::trajectory::SplinePtr mCurrentTrajectory;
   
   ros::Timer mNonRealtimeTimer;
   Eigen::Isometry3d mGoalPose;
   Eigen::Isometry3d mLastGoalPose;
-  
+
+  Eigen::VectorXd mMaxVelocity;
+  Eigen::VectorXd mMaxAcceleration;
 };
 
 }
