@@ -129,14 +129,14 @@ public:
       TrajectoryPostprocessType postprocessType = SMOOTH);
 
 private:
-  bool adaReal;
-  ros::NodeHandle nodeHandle;
-  aikido::planner::WorldPtr world;
+  bool mAdaReal;
+  ros::NodeHandle mNodeHandle;
+  aikido::planner::WorldPtr mWorld;
 
-  std::unique_ptr<ada::Ada> ada;
-  aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace;
-  std::unique_ptr<Workspace> workspace;
-  aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint;
+  std::unique_ptr<ada::Ada> mAda;
+  aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
+  std::unique_ptr<Workspace> mWorkspace;
+  aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
 };
 }
 

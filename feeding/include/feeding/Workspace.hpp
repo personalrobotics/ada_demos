@@ -43,22 +43,24 @@ public:
 
   /// Gets the mannequin
   dart::dynamics::ConstSkeletonPtr getPerson() const;
+
+  /// Gets the wheelchair
   dart::dynamics::ConstSkeletonPtr getWheelchair() const;
 
   /// Removes the default food item from the world.
   void deleteFood();
 
 private:
-  ros::NodeHandle nodeHandle;
+  ros::NodeHandle mNodeHandle;
 
-  aikido::planner::WorldPtr world;
+  aikido::planner::WorldPtr mWorld;
 
-  dart::dynamics::SkeletonPtr plate;
-  dart::dynamics::SkeletonPtr table;
-  dart::dynamics::SkeletonPtr workspaceEnvironment;
-  dart::dynamics::SkeletonPtr defaultFoodItem;
-  dart::dynamics::SkeletonPtr person;
-  dart::dynamics::SkeletonPtr wheelchair;
+  dart::dynamics::SkeletonPtr mPlate;
+  dart::dynamics::SkeletonPtr mTable;
+  dart::dynamics::SkeletonPtr mWorkspaceEnvironment;
+  dart::dynamics::SkeletonPtr mDefaultFoodItem;
+  dart::dynamics::SkeletonPtr mPerson;
+  dart::dynamics::SkeletonPtr mWheelchair;
 
   /// Takes a skeleton pointer, fills it with a new skeleton and adds that to
   /// the world.
