@@ -43,6 +43,8 @@ public:
 
   /// Gets the mannequin
   dart::dynamics::ConstSkeletonPtr getPerson() const;
+
+  /// Gets the wheelchair
   dart::dynamics::ConstSkeletonPtr getWheelchair() const;
 
   /// Removes the default food item from the world.
