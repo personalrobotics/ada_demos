@@ -216,7 +216,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
   aikido::constraint::dart::TSR aboveFoodTSR;
   aboveFoodTSR.mT0_w = foodTransform;
   aboveFoodTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceNearFood, verticalToleranceNearFood, -M_PI, M_PI);
+      horizontalToleranceNearFood, verticalToleranceNearFood, M_PI, M_PI);
   aboveFoodTSR.mTw_e.matrix()
       *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
   aboveFoodTSR.mTw_e.translation()
@@ -297,7 +297,7 @@ void FeedingDemo::moveAwayFromPerson()
 {
   bool trajectoryCompleted = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, -1, 0),
-      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle));
+      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle) * 0.7);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
