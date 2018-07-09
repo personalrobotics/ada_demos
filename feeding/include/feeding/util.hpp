@@ -15,6 +15,7 @@ namespace feeding {
 /// \param[out] useFTSensing True if we use the fork forces and torques to abort trajectories
 /// \param[out] autoContinueDemo is true when the demo continues to the next
 /// step without asking for confirmation
+/// \param[out] useFTSensing turns the FTSensor and the MoveUntilTouchController on and off
 void handleArguments(
     int argc, char** argv, bool& adaReal, bool& autoContinueDemo, bool& useFTSensing);
 

@@ -31,7 +31,7 @@ public:
   /// Takes care of setting up the robot and the workspace
   /// \param[in] adaReal True if the real robot is used, false it's running in
   /// simulation.
-  /// \param[in] useFTSensing True if we use the fork forces and torques to abort trajectories
+  /// \param[in] useFTSensing turns the FTSensor and the MoveUntilTouchController on and off
   /// \param[in] nodeHandle Handle of the ros node.
   FeedingDemo(bool adaReal, bool useFTSensing, ros::NodeHandle nodeHandle);
 
@@ -127,14 +127,14 @@ public:
       TrajectoryPostprocessType postprocessType = SMOOTH);
 
 private:
-  bool adaReal;
-  ros::NodeHandle nodeHandle;
-  aikido::planner::WorldPtr world;
+  bool mAdaReal;
+  ros::NodeHandle mNodeHandle;
+  aikido::planner::WorldPtr mWorld;
 
-  std::unique_ptr<ada::Ada> ada;
-  aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace;
-  std::unique_ptr<Workspace> workspace;
-  aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint;
+  std::unique_ptr<ada::Ada> mAda;
+  aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
+  std::unique_ptr<Workspace> mWorkspace;
+  aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
 };
 }
 

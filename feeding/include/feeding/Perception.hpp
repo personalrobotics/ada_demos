@@ -35,9 +35,9 @@ public:
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
 private:
-  aikido::planner::WorldPtr world;
-  ros::NodeHandle& nodeHandle;
-  std::unique_ptr<aikido::perception::PoseEstimatorModule> objDetector;
+  aikido::planner::WorldPtr mWorld;
+  ros::NodeHandle& mNodeHandle;
+  std::unique_ptr<aikido::perception::PoseEstimatorModule> mObjDetector;
 };
 }
 
