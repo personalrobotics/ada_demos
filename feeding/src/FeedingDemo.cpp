@@ -259,7 +259,7 @@ void FeedingDemo::moveIntoFood(Perception* perception)
       ada->getArm()->getMetaSkeleton(),
       ada->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
-      1.0,
+      0.1,
       1e-3);
   servoClient.start();
 

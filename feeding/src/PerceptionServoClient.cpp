@@ -104,6 +104,8 @@ bool PerceptionServoClient::wait(double timelimit)
                       std::chrono::system_clock::now() - startTime)
                       .count();
   }
+  
+  stop();
   return false;
 }
 
@@ -115,7 +117,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
   if(updatePerception(mGoalPose))
   {
     // when the difference between new goal pose and previous goal pose is too large
-    if( computeGeodesicDistance(mGoalPose, mLastGoalPose, 1.0) < mGoalPoseUpdateTolerance )
+    if( computeGeodesicDistance(mGoalPose, mLastGoalPose, 1.0) > mGoalPoseUpdateTolerance )
     {      
       mTrajectoryExecutor->abort();
 
@@ -128,6 +130,10 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       if(mCurrentTrajectory)
       {
         mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
+      }
+      else
+      {
+        throw std::runtime_error("cannot find a feasible path");
       }
     }  
 

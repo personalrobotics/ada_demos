@@ -41,8 +41,10 @@ protected:
   /// Meta skeleton state space.
   aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
       mMetaSkeletonStateSpace;
+
   /// Meta Skeleton
   ::dart::dynamics::MetaSkeletonPtr mMetaSkeleton;
+
   /// BodyNode
   ::dart::dynamics::BodyNodePtr mBodyNode;
 
