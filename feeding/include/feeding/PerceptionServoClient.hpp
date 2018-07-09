@@ -14,7 +14,7 @@ class PerceptionServoClient
 public:
   PerceptionServoClient(
     ::ros::NodeHandle node,
-    std::shared_ptr<Perception> perception,
+    Perception* perception,
     aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr metaSkeletonStateSpace,
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
@@ -28,6 +28,7 @@ public:
 
   void stop();
 
+  bool wait(double timelimit);
   
 protected:
   void nonRealtimeCallback(const ros::TimerEvent& event);
@@ -36,7 +37,7 @@ protected:
   aikido::trajectory::SplinePtr planToGoalPose(const Eigen::Isometry3d& goalPose);
 
   ::ros::NodeHandle mNode;
-  std::shared_ptr<Perception> mPerception;
+  Perception* mPerception;
   /// Meta skeleton state space.
   aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
       mMetaSkeletonStateSpace;
@@ -50,6 +51,7 @@ protected:
   double mGoalPoseUpdateTolerance;
 
   aikido::trajectory::SplinePtr mCurrentTrajectory;
+  std::future<void> mExec;
   
   ros::Timer mNonRealtimeTimer;
   Eigen::Isometry3d mGoalPose;
@@ -57,6 +59,8 @@ protected:
 
   Eigen::VectorXd mMaxVelocity;
   Eigen::VectorXd mMaxAcceleration;
+
+  
 };
 
 }

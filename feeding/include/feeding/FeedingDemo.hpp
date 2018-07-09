@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
 #include "feeding/Workspace.hpp"
+#include "feeding/Perception.hpp"
 
 namespace feeding {
 
@@ -87,6 +88,8 @@ public:
   /// This function does not throw an exception if the trajectory is aborted,
   /// because we expect that.
   void moveIntoFood();
+
+  void moveIntoFood(Perception* perception);
 
   /// Moves the forque upwards above the food.
   void moveOutOfFood();

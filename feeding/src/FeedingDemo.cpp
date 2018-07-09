@@ -2,6 +2,7 @@
 #include <aikido/constraint/TestableIntersection.hpp>
 #include <pr_tsr/plate.hpp>
 #include "feeding/util.hpp"
+#include "feeding/PerceptionServoClient.hpp"
 
 namespace feeding {
 
@@ -46,6 +47,8 @@ FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle)
           armSpace, ada->getArm()->getMetaSkeleton(), collisionDetector);
   collisionFreeConstraint->addPairwiseCheck(
       armCollisionGroup, envCollisionGroup);
+
+
 
   if (adaReal)
   {
@@ -237,6 +240,30 @@ void FeedingDemo::moveIntoFood()
       getRosParam<double>("/feedingDemo/heightAboveFood", nodeHandle));
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
+}
+
+//==============================================================================
+void FeedingDemo::moveIntoFood(Perception* perception)
+{
+  std::shared_ptr<aikido::control::TrajectoryExecutor> executor = ada->getTrajectoryExecutor();
+  
+  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(executor);
+
+  if(rosExecutor==nullptr)
+  {
+    throw std::runtime_error("no ros executor");
+  }
+
+  feeding::PerceptionServoClient servoClient(nodeHandle, 
+      perception, armSpace,
+      ada->getArm()->getMetaSkeleton(),
+      ada->getHand()->getEndEffectorBodyNode(),
+      rosExecutor,
+      1.0,
+      1e-3);
+  servoClient.start();
+
+  servoClient.wait(2.0);
 }
 
 //==============================================================================

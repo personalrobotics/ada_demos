@@ -30,7 +30,7 @@ Eigen::VectorXd getSymmetricLimits(
 //==============================================================================
 PerceptionServoClient::PerceptionServoClient(
     ::ros::NodeHandle node,
-    std::shared_ptr<Perception> perception,
+    Perception* perception,
     aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr metaSkeletonStateSpace,
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
@@ -86,6 +86,27 @@ void PerceptionServoClient::stop()
   mNonRealtimeTimer.stop();
 }
 
+bool PerceptionServoClient::wait(double timelimit)
+{
+  double elapsedTime = 0.0;
+  std::chrono::time_point<std::chrono::system_clock> startTime
+      = std::chrono::system_clock::now();
+  while(elapsedTime < timelimit)
+  {
+    if(mExec.valid())
+    {
+      return true;
+    }
+
+    // sleep a while
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    elapsedTime = std::chrono::duration_cast<std::chrono::duration<double>>(
+                      std::chrono::system_clock::now() - startTime)
+                      .count();
+  }
+  return false;
+}
+
 //==============================================================================
 void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 {
@@ -106,7 +127,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       // Execute the new reference trajectory
       if(mCurrentTrajectory)
       {
-        mTrajectoryExecutor->execute(mCurrentTrajectory);
+        mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
       }
     }  
 
@@ -154,13 +175,15 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(const Eigen:
     mMetaSkeletonStateSpace->getState(mMetaSkeleton.get(), goalState);
   }
 
+  // use snap planner to create the path
   SnapConfigurationToConfigurationPlanner planner(mMetaSkeletonStateSpace);
   ConfigurationToConfiguration problem(mMetaSkeletonStateSpace, startState, goalState, nullptr);
   auto traj = planner.plan(problem);
 
   if(traj)
   {
-    // time traj
+    // time trajectory using parabolic timer
+    // (trajectory is returned by snap planner)
     auto interpolated = dynamic_cast<const Interpolated*>(traj.get());
     if(interpolated)
     {
