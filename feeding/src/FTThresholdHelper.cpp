@@ -25,7 +25,7 @@ void FTThresholdHelper::init()
     return;
 
   auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
-  mFTThresholdClient->trySetThresholdRepeatedly(
+  mFTThresholdClient->trySetThresholdsRepeatedly(
       thresholdPair.first, thresholdPair.second);
 }
 
@@ -36,7 +36,7 @@ bool FTThresholdHelper::setThreshold(FTThreshold threshold)
     return true;
 
   auto thresholdPair = getThresholdValues(threshold);
-  return mFTThresholdClient->setThreshold(
+  return mFTThresholdClient->setThresholds(
       thresholdPair.first, thresholdPair.second);
 }
 
