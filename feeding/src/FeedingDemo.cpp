@@ -100,7 +100,8 @@ bool FeedingDemo::isCollisionFree(std::string& result)
   auto robotState = mAda->getStateSpace()->getScopedStateFromMetaSkeleton(
       mAda->getMetaSkeleton().get());
   aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
-  if (!mCollisionFreeConstraint->isSatisfied(robotState, &collisionCheckOutcome))
+  if (!mCollisionFreeConstraint->isSatisfied(
+          robotState, &collisionCheckOutcome))
   {
     result = "Robot is in collison: " + collisionCheckOutcome.toString();
     return false;
@@ -210,8 +211,9 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
   // so that the MoveUntilTouchController can take care of stopping the
   // trajectory.
   double heightIntoFood
-      = mAdaReal ? getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle)
-                : 0.0;
+      = mAdaReal
+            ? getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle)
+            : 0.0;
   double horizontalToleranceNearFood = getRosParam<double>(
       "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
   double verticalToleranceNearFood = getRosParam<double>(
@@ -220,7 +222,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
   aikido::constraint::dart::TSR aboveFoodTSR;
   aboveFoodTSR.mT0_w = foodTransform;
   aboveFoodTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceNearFood, verticalToleranceNearFood, -M_PI, M_PI);
+      horizontalToleranceNearFood, verticalToleranceNearFood, M_PI, M_PI);
   aboveFoodTSR.mTw_e.matrix()
       *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
   aboveFoodTSR.mTw_e.translation()
@@ -301,7 +303,8 @@ void FeedingDemo::moveAwayFromPerson()
 {
   bool trajectoryCompleted = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, -1, 0),
-      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle));
+      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle)
+          * 0.7);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -380,8 +383,8 @@ bool FeedingDemo::moveArmOnTrajectory(
   switch (postprocessType)
   {
     case RETIME:
-      timedTrajectory
-          = mAda->retimePath(mAda->getArm()->getMetaSkeleton(), trajectory.get());
+      timedTrajectory = mAda->retimePath(
+          mAda->getArm()->getMetaSkeleton(), trajectory.get());
       break;
 
     case SMOOTH:
