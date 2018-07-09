@@ -37,7 +37,7 @@ Perception::Perception(
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 {
 
-  xdiff = 0;
+  double xdiff = 0;
   foodTransform = createIsometry(-0.3 * xdiff, - 0.3, 0.35, 0, 0, 0);
 
   return true;
