@@ -35,7 +35,7 @@ bool FTThresholdHelper::setThresholds(FTThreshold threshold)
   if (!mUseThresholdControl)
     return true;
 
-  auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
+  auto thresholdPair = getThresholdValues(threshold);
   return mFTThresholdClient->setThresholds(
       thresholdPair.first, thresholdPair.second);
 }

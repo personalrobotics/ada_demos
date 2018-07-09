@@ -33,8 +33,10 @@ public:
   void init();
 
   /// Sets the MoveUntilTouchControllers Thresholds accordingly.
-  /// Throws a runtime_error if we useThresholdControl and we are unable to set because of an error.
-  /// \return True if the thresholds were set successfully or false if we experienced a timeout.
+  /// Throws a runtime_error if we useThresholdControl and we are unable to set
+  /// because of an error.
+  /// \return True if the thresholds were set successfully or false if we
+  /// experienced a timeout.
   bool setThresholds(FTThreshold);
 
 private:

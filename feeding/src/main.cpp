@@ -115,7 +115,10 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  if (!ftThresholdHelper.setThresholds(GRAB_FOOD_FT_THRESHOLD)) {return 1;}
+  if (!ftThresholdHelper.setThresholds(GRAB_FOOD_FT_THRESHOLD))
+  {
+    return 1;
+  }
   feedingDemo.moveIntoFood();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
@@ -130,9 +133,15 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD)) {return 1;}
+  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
+  {
+    return 1;
+  }
   feedingDemo.moveOutOfFood();
-  if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD)) {return 1;}
+  if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
+  {
+    return 1;
+  }
 
   // ===== IN FRONT OF PERSON =====
   if (!autoContinueDemo)
