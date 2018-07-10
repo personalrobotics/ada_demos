@@ -1,5 +1,5 @@
-#ifndef FTTHRESHOLDHELPER_H
-#define FTTHRESHOLDHELPER_H
+#ifndef FEEDING_FTTHRESHOLDHELPER_HPP_
+#define FEEDING_FTTHRESHOLDHELPER_HPP_
 
 #include <rewd_controllers/FTThresholdClient.hpp>
 #include <ros/ros.h>
@@ -21,9 +21,10 @@ class FTThresholdHelper
 
 public:
   /// Constructor.
-  /// With useThresholdControl you can turn this whole object on and off.
+  /// \param[in] useThresholdControl You can turn this whole object on and off.
   /// Useful if you don't use the MoveUntilTouchController and don't need to set
-  /// these thresholds
+  /// these thresholds.
+  /// \param[in] nodeHandle Handle of the ros node.
   FTThresholdHelper(bool useThresholdControl, ros::NodeHandle nodeHandle);
 
   /// Needs to be called before setting the first thresholds.
@@ -33,18 +34,16 @@ public:
 
   /// Sets the MoveUntilTouchControllers Thresholds accordingly.
   /// Throws a runtime_error if we useThresholdControl and we are unable to set
-  /// the thresholds.
-  void setThreshold(FTThreshold);
-
-  /// Sets the MoveUntilTouchControllers Thresholds accordingly.
-  /// Returns whether the thresholds were set successfully.
-  bool trySetThreshold(FTThreshold);
+  /// because of an error.
+  /// \return True if the thresholds were set successfully or false if we
+  /// experienced a timeout.
+  bool setThresholds(FTThreshold);
 
 private:
-  bool useThresholdControl;
-  ros::NodeHandle nodeHandle;
+  bool mUseThresholdControl;
+  ros::NodeHandle mNodeHandle;
 
-  std::unique_ptr<rewd_controllers::FTThresholdClient> ftThresholdClient;
+  std::unique_ptr<rewd_controllers::FTThresholdClient> mFTThresholdClient;
 
   std::pair<double, double> getThresholdValues(FTThreshold threshold);
 };

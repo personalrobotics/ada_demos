@@ -44,7 +44,9 @@ int main(int argc, char** argv)
   FTThresholdHelper ftThresholdHelper(false, nodeHandle);
 
   Perception perception(
-      feedingDemo.getWorld(), *feedingDemo.getAda(), nodeHandle);
+      feedingDemo.getWorld(),
+      feedingDemo.getAda().getMetaSkeleton(),
+      nodeHandle);
 
   // visualization
   aikido::rviz::WorldInteractiveMarkerViewer viewer(
@@ -113,7 +115,10 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  ftThresholdHelper.setThreshold(GRAB_FOOD_FT_THRESHOLD);
+  if (!ftThresholdHelper.setThresholds(GRAB_FOOD_FT_THRESHOLD))
+  {
+    return 1;
+  }
   feedingDemo.moveIntoFood();
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
@@ -128,9 +133,15 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  ftThresholdHelper.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
+  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
+  {
+    return 1;
+  }
   feedingDemo.moveOutOfFood();
-  ftThresholdHelper.setThreshold(STANDARD_FT_THRESHOLD);
+  if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
+  {
+    return 1;
+  }
 
   // ===== IN FRONT OF PERSON =====
   if (!autoContinueDemo)

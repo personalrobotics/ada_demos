@@ -74,7 +74,7 @@ if(CLANG_FORMAT_EXECUTABLE)
     soda_grasp/src/*.cpp
     simple_trajectories/src/*.cpp
     feeding/src/*.cpp
-    feeding/include/*.hpp
+    feeding/include/feeding/*.hpp
   )
   list(LENGTH ALL_SOURCE_FILES NUM_SOURCE_FILES)
 
