@@ -135,9 +135,12 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       // Execute the new reference trajectory
       if(mCurrentTrajectory)
       {
-        auto trajMarkerPointer = mViewer.addTrajectoryMarker(mCurrentTrajectory, mMetaSkeleton, *mBodyNode);
-        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-        //mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
+        if (mCurrentTrajectory->getNumSegments() > 0) {
+          // auto trajMarkerPointer = mViewer.addTrajectoryMarker(mCurrentTrajectory, mMetaSkeleton, *mBodyNode);
+          // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+        }
+        mTrajectoryExecutor->execute(mCurrentTrajectory);
+        // mExec = mTrajectoryExecutor->execute(mCurrentTraj/ectory);
       }
       else
       {
@@ -156,7 +159,18 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   if(mPerception)
   {
     // update new goal Pose
-    return mPerception->perceiveFood(goalPose);
+    Eigen::Isometry3d endEffectorTransform = Eigen::Isometry3d::Identity();
+    Eigen::Matrix3d rotationMatrix(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()));
+    endEffectorTransform.linear() = rotationMatrix;
+    bool successful = mPerception->perceiveFood(goalPose);
+    goalPose = goalPose * endEffectorTransform;
+
+    // dart::dynamics::SimpleFramePtr goalFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "goalFrame", goalPose);
+    // mFrames.push_back(goalFrame);
+    // mFrameMarkers.push_back(mViewer.addFrame(goalFrame.get(), 0.07, 0.007));
+    //ROS_INFO_STREAM("Goal pose: " << goalPose.matrix());
+
+    return successful;
   }
   return false;
 }
@@ -183,17 +197,16 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(const Eigen:
   // Get goal configuration using IK
   auto ik = InverseKinematics::create(mBodyNode.get());
   ik->setDofs(mMetaSkeleton->getDofs());
+
   ik->getTarget()->setTransform(goalPose);
   Eigen::VectorXd goalConfig;
-  if(ik->solve(goalConfig, false))
+  if(ik->solve(goalConfig, true))
   {
-    ROS_INFO("able to solve IK");
+    mMetaSkeletonStateSpace->getState(mMetaSkeleton.get(), goalState);
   } else {
     ROS_INFO("unable to solve IK");
+    return nullptr;
   }
-
-  ROS_INFO_STREAM("Start config: " << startConfig);
-  ROS_INFO_STREAM("End config: " << endConfig);
 
   // use snap planner to create the path
   SnapConfigurationToConfigurationPlanner planner(mMetaSkeletonStateSpace);
@@ -208,6 +221,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(const Eigen:
     if(interpolated)
     {
       return computeParabolicTiming(*interpolated, mMaxVelocity, mMaxAcceleration);
+    } else {
+      throw std::runtime_error("trajectory is not interpolated!");
     }
   }
 

@@ -67,6 +67,9 @@ protected:
 
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
   aikido::rviz::WorldInteractiveMarkerViewer& mViewer;
+
+  std::vector<dart::dynamics::SimpleFramePtr> mFrames;
+  std::vector<aikido::rviz::FrameMarkerPtr> mFrameMarkers;
   
 };
 
