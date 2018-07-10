@@ -30,7 +30,7 @@ void FTThresholdHelper::init()
 }
 
 //==============================================================================
-bool FTThresholdHelper::setThreshold(FTThreshold threshold)
+bool FTThresholdHelper::setThresholds(FTThreshold threshold)
 {
   if (!mUseThresholdControl)
     return true;

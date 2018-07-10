@@ -118,7 +118,7 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  if (!ftThresholdHelper.setThreshold(GRAB_FOOD_FT_THRESHOLD))
+  if (!ftThresholdHelper.setThresholds(GRAB_FOOD_FT_THRESHOLD))
   {
     return 1;
   }
@@ -136,12 +136,12 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  if (!ftThresholdHelper.setThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD))
+  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
   {
     return 1;
   }
   feedingDemo.moveOutOfFood();
-  if (!ftThresholdHelper.setThreshold(STANDARD_FT_THRESHOLD))
+  if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
   {
     return 1;
   }

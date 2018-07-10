@@ -37,7 +37,7 @@ public:
   /// because of an error.
   /// \return True if the thresholds were set successfully or false if we
   /// experienced a timeout.
-  bool setThreshold(FTThreshold);
+  bool setThresholds(FTThreshold);
 
 private:
   bool mUseThresholdControl;
