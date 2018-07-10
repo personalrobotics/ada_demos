@@ -25,7 +25,7 @@ Eigen::VectorXd getSymmetricLimits(
   return symmetricLimits;
 }
 
-} // namespace 
+} // namespace
 
 //==============================================================================
 PerceptionServoClient::PerceptionServoClient(
@@ -57,7 +57,7 @@ PerceptionServoClient::PerceptionServoClient(
 
   // initially set the current pose as the goal pose
   mGoalPose = mBodyNode->getTransform();
-  mLastGoalPose = mGoalPose; 
+  mLastGoalPose = mGoalPose;
 
   // update Max velocity and acceleration
   Eigen::VectorXd velocityLowerLimits = mMetaSkeleton->getVelocityLowerLimits();
@@ -66,7 +66,7 @@ PerceptionServoClient::PerceptionServoClient(
   Eigen::VectorXd accelerationUpperLimits = mMetaSkeleton->getAccelerationUpperLimits();
   mMaxVelocity = getSymmetricLimits(velocityLowerLimits, velocityUpperLimits);
   mMaxAcceleration = getSymmetricLimits(accelerationLowerLimits, accelerationUpperLimits);
-    
+
 }
 
 //==============================================================================
@@ -109,7 +109,7 @@ bool PerceptionServoClient::wait(double timelimit)
                       std::chrono::system_clock::now() - startTime)
                       .count();
   }
-  
+
   stop();
   return false;
 }
@@ -117,21 +117,21 @@ bool PerceptionServoClient::wait(double timelimit)
 //==============================================================================
 void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 {
-  using aikido::planner::vectorfield::computeGeodesicDistance;    
+  using aikido::planner::vectorfield::computeGeodesicDistance;
 
   ROS_INFO("Timer callback");
   if(updatePerception(mGoalPose))
   {
     // when the difference between new goal pose and previous goal pose is too large
     if( computeGeodesicDistance(mGoalPose, mLastGoalPose, 1.0) > mGoalPoseUpdateTolerance )
-    {      
+    {
       mTrajectoryExecutor->abort();
 
       // TODO: check whether meta skeleton is automatically updated
 
       // Generate a new reference trajectory to the goal pose
       mCurrentTrajectory = planToGoalPose(mGoalPose);
-        
+
       // Execute the new reference trajectory
       if(mCurrentTrajectory)
       {
@@ -143,7 +143,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       {
         throw std::runtime_error("cannot find a feasible path");
       }
-    }  
+    }
 
     // updateGoalPose
     mLastGoalPose = mGoalPose;
@@ -163,7 +163,7 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
 
 //==============================================================================
 aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(const Eigen::Isometry3d& goalPose)
-{  
+{
   using dart::dynamics::InverseKinematics;
   using aikido::statespace::dart::MetaSkeletonStateSaver;
   using aikido::planner::ConfigurationToConfiguration;
@@ -171,26 +171,22 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(const Eigen:
   using aikido::planner::parabolic::computeParabolicTiming;
   using aikido::trajectory::Interpolated;
 
-  // Save the current state of the space 
-  auto saver = MetaSkeletonStateSaver(mMetaSkeleton); 
+  // Save the current state of the space
+  auto saver = MetaSkeletonStateSaver(mMetaSkeleton);
   DART_UNUSED(saver);
+
+  auto startState = mMetaSkeletonStateSpace->createState();
+  auto goalState = mMetaSkeletonStateSpace->createState();
+  Eigen::VectorXd startConfig = mMetaSkeleton->getPositions();
+  mMetaSkeletonStateSpace->convertPositionsToState(startConfig, startState);
 
   // Get goal configuration using IK
   auto ik = InverseKinematics::create(mBodyNode.get());
   ik->setDofs(mMetaSkeleton->getDofs());
   ik->getTarget()->setTransform(goalPose);
-  
-  auto startState = mMetaSkeletonStateSpace->createState();
-  auto goalState = mMetaSkeletonStateSpace->createState();
-  Eigen::VectorXd startConfig = mMetaSkeleton->getPositions();
-  mMetaSkeletonStateSpace->convertPositionsToState(startConfig, startState);
-  Eigen::VectorXd endConfig;
-
-
-  if(ik->solve(true))
+  Eigen::VectorXd goalConfig;
+  if(ik->solve(goalConfig, false))
   {
-    mMetaSkeletonStateSpace->getState(mMetaSkeleton.get(), goalState);
-    endConfig = mMetaSkeleton->getPositions();
     ROS_INFO("able to solve IK");
   } else {
     ROS_INFO("unable to solve IK");
@@ -203,7 +199,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(const Eigen:
   SnapConfigurationToConfigurationPlanner planner(mMetaSkeletonStateSpace);
   ConfigurationToConfiguration problem(mMetaSkeletonStateSpace, startState, goalState, nullptr /*mCollisionFreeConstraint*/);
   auto traj = planner.plan(problem);
-  
+
   if(traj)
   {
     // time trajectory using parabolic timer
@@ -213,7 +209,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(const Eigen:
     {
       return computeParabolicTiming(*interpolated, mMaxVelocity, mMaxAcceleration);
     }
-  } 
+  }
 
   return nullptr;
 }
