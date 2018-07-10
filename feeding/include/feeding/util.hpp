@@ -8,16 +8,21 @@
 
 namespace feeding {
 
-
 /// Deals with the arguments supplied to the executable.
 /// \param[in] argc and argv are the typical parameters of main(..)
 /// \param[out] adaReal is true when the robot is used and not the simulation
-/// \param[out] useFTSensing True if we use the fork forces and torques to abort trajectories
+/// \param[out] useFTSensing True if we use the fork forces and torques to abort
+/// trajectories
 /// \param[out] autoContinueDemo is true when the demo continues to the next
 /// step without asking for confirmation
-/// \param[out] useFTSensing turns the FTSensor and the MoveUntilTouchController on and off
+/// \param[out] useFTSensing turns the FTSensor and the MoveUntilTouchController
+/// on and off
 void handleArguments(
-    int argc, char** argv, bool& adaReal, bool& autoContinueDemo, bool& useFTSensing);
+    int argc,
+    char** argv,
+    bool& adaReal,
+    bool& autoContinueDemo,
+    bool& useFTSensing);
 
 /// Displays a message and waits for the user to press the enter key
 /// \param[in] The message to display.

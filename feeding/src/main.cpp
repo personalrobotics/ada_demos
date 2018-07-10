@@ -31,7 +31,7 @@ int main(int argc, char** argv)
   // Should the demo continue without asking for human input at each step?
   bool autoContinueDemo = false;
 
-  // the FT sensing can stop trajectories if the forces are too big 
+  // the FT sensing can stop trajectories if the forces are too big
   bool useFTSensing = false;
 
   handleArguments(argc, argv, adaReal, autoContinueDemo, useFTSensing);
