@@ -35,6 +35,8 @@ PerceptionServoClient::PerceptionServoClient(
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
     std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> trajectoryExecutor,
+    aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
+    aikido::rviz::WorldInteractiveMarkerViewer& viewer,
     double perceptionUpdateTime,
     double goalPoseUpdateTolerance
   ) : mNode(node)
@@ -43,6 +45,8 @@ PerceptionServoClient::PerceptionServoClient(
     , mMetaSkeleton(std::move(metaSkeleton))
     , mBodyNode(bodyNode)
     , mTrajectoryExecutor(trajectoryExecutor)
+    , mCollisionFreeConstraint(collisionFreeConstraint)
+    , mViewer(viewer)
     , mPerceptionUpdateTime(perceptionUpdateTime)
     , mGoalPoseUpdateTolerance(goalPoseUpdateTolerance)
     , mCurrentTrajectory(nullptr)
@@ -75,6 +79,7 @@ PerceptionServoClient::~PerceptionServoClient()
 //==============================================================================
 void PerceptionServoClient::start()
 {
+  ROS_INFO("Servoclient started");
   mNonRealtimeTimer.start();
 }
 
@@ -114,6 +119,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 {
   using aikido::planner::vectorfield::computeGeodesicDistance;    
 
+  ROS_INFO("Timer callback");
   if(updatePerception(mGoalPose))
   {
     // when the difference between new goal pose and previous goal pose is too large
@@ -129,7 +135,9 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       // Execute the new reference trajectory
       if(mCurrentTrajectory)
       {
-        mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
+        auto trajMarkerPointer = mViewer.addTrajectoryMarker(mCurrentTrajectory, mMetaSkeleton, *mBodyNode);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+        //mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
       }
       else
       {
@@ -176,16 +184,26 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(const Eigen:
   auto goalState = mMetaSkeletonStateSpace->createState();
   Eigen::VectorXd startConfig = mMetaSkeleton->getPositions();
   mMetaSkeletonStateSpace->convertPositionsToState(startConfig, startState);
+  Eigen::VectorXd endConfig;
+
+
   if(ik->solve(true))
   {
     mMetaSkeletonStateSpace->getState(mMetaSkeleton.get(), goalState);
+    endConfig = mMetaSkeleton->getPositions();
+    ROS_INFO("able to solve IK");
+  } else {
+    ROS_INFO("unable to solve IK");
   }
+
+  ROS_INFO_STREAM("Start config: " << startConfig);
+  ROS_INFO_STREAM("End config: " << endConfig);
 
   // use snap planner to create the path
   SnapConfigurationToConfigurationPlanner planner(mMetaSkeletonStateSpace);
-  ConfigurationToConfiguration problem(mMetaSkeletonStateSpace, startState, goalState, nullptr);
+  ConfigurationToConfiguration problem(mMetaSkeletonStateSpace, startState, goalState, nullptr /*mCollisionFreeConstraint*/);
   auto traj = planner.plan(problem);
-
+  
   if(traj)
   {
     // time trajectory using parabolic timer

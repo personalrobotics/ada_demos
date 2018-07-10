@@ -37,11 +37,13 @@ int main(int argc, char** argv)
   // start node
   ros::init(argc, argv, "feeding");
   ros::NodeHandle nodeHandle("~");
+  ros::AsyncSpinner spinner(2); // 2 threads
+  spinner.start();
 
   // start demo
   FeedingDemo feedingDemo(adaReal, nodeHandle);
 
-  FTThresholdHelper ftThresholdHelper(adaReal, nodeHandle);
+  FTThresholdHelper ftThresholdHelper(false, nodeHandle);
 
   Perception perception(
       feedingDemo.getWorld(),
@@ -79,7 +81,7 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  feedingDemo.moveAbovePlate();
+  //feedingDemo.moveAbovePlate();
 
   // ===== ABOVE FOOD =====
   if (!autoContinueDemo)
@@ -105,7 +107,17 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  feedingDemo.moveAboveFood(foodTransform);
+  //feedingDemo.moveAboveFood(foodTransform);
+
+  auto testTSR = pr_tsr::getDefaultPlateTSR();
+  testTSR.mT0_w = foodTransform;
+  testTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+
+  testTSR.mBw = createBwMatrixForTSR(
+      0.01, 0.01, 0, 0);
+  testTSR.mTw_e.matrix()
+      *= feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
+  feedingDemo.moveArmToTSR(testTSR);
 
   // ===== INTO FOOD =====
   if (!autoContinueDemo)
@@ -119,7 +131,7 @@ int main(int argc, char** argv)
   {
     return 1;
   }
-  feedingDemo.moveIntoFood();
+  feedingDemo.moveIntoFood(&perception, viewer);
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
           getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));

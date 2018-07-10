@@ -245,8 +245,9 @@ void FeedingDemo::moveIntoFood()
 }
 
 //==============================================================================
-void FeedingDemo::moveIntoFood(Perception* perception)
+void FeedingDemo::moveIntoFood(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
 {
+  ROS_INFO("into food servoing");
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor = mAda->getTrajectoryExecutor();
   
   std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(executor);
@@ -256,16 +257,19 @@ void FeedingDemo::moveIntoFood(Perception* perception)
     throw std::runtime_error("no ros executor");
   }
 
+  ROS_INFO_STREAM("EE body node: " << mAda->getHand()->getEndEffectorBodyNode()->getName());
   feeding::PerceptionServoClient servoClient(mNodeHandle, 
       perception, mArmSpace,
       mAda->getArm()->getMetaSkeleton(),
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
+      mCollisionFreeConstraint,
+      viewer,
       0.1,
       1e-3);
   servoClient.start();
 
-  servoClient.wait(2.0);
+  servoClient.wait(20.0);
 }
 
 //==============================================================================

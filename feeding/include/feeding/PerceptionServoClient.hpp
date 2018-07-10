@@ -5,6 +5,7 @@
 #include <aikido/trajectory/Spline.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <aikido/control/ros/RosTrajectoryExecutor.hpp>
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include "feeding/Perception.hpp"
 
 namespace feeding {
@@ -19,6 +20,8 @@ public:
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
     std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> trajectoryExecutor,
+    aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
+    aikido::rviz::WorldInteractiveMarkerViewer& viewer,
     double perceptionUpdateTime,
     double goalPoseUpdateTolerance
   );
@@ -62,6 +65,8 @@ protected:
   Eigen::VectorXd mMaxVelocity;
   Eigen::VectorXd mMaxAcceleration;
 
+  aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
+  aikido::rviz::WorldInteractiveMarkerViewer& mViewer;
   
 };
 

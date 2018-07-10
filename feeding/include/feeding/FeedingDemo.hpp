@@ -6,6 +6,7 @@
 #include <libada/Ada.hpp>
 #include "feeding/Workspace.hpp"
 #include "feeding/Perception.hpp"
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 
 namespace feeding {
 
@@ -89,7 +90,7 @@ public:
   /// because we expect that.
   void moveIntoFood();
 
-  void moveIntoFood(Perception* perception);
+  void moveIntoFood(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer);
 
   /// Moves the forque upwards above the food.
   void moveOutOfFood();

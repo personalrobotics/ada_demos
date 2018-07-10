@@ -37,8 +37,17 @@ Perception::Perception(
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 {
 
-  double xdiff = 0;
-  foodTransform = createIsometry(-0.3 * xdiff, - 0.3, 0.35, 0, 0, 0);
+  double ms = (std::chrono::duration_cast< std::chrono::milliseconds >(
+    std::chrono::system_clock::now().time_since_epoch()).count() % 10000);
+  double xdiff = ms / 5000;
+  double ydiff = xdiff + 0.5;
+  if (xdiff > 1) {xdiff = 2-xdiff;}
+  if (ydiff > 1) {ydiff = 2-ydiff;}
+  xdiff *= 0.01;
+  ydiff *= 0.005;
+  ROS_INFO_STREAM("xdiff: " << xdiff << ",  ydiff: " << ydiff);
+  foodTransform = createIsometry(0.1 + xdiff, -0.25 + ydiff , 0.3, 0, 0, 0);
+  ROS_INFO_STREAM("transform: " << foodTransform.matrix());
 
   return true;
     /*
