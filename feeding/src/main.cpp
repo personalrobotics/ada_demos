@@ -81,7 +81,7 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  //feedingDemo.moveAbovePlate();
+  feedingDemo.moveAbovePlate();
 
   // ===== ABOVE FOOD =====
   if (!autoContinueDemo)
@@ -107,17 +107,17 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  //feedingDemo.moveAboveFood(foodTransform);
+  feedingDemo.moveAboveFood(foodTransform);
 
-  auto testTSR = pr_tsr::getDefaultPlateTSR();
-  testTSR.mT0_w = foodTransform;
-  testTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+  // auto testTSR = pr_tsr::getDefaultPlateTSR();
+  // testTSR.mT0_w = foodTransform;
+  // testTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
-  testTSR.mBw = createBwMatrixForTSR(
-      0.01, 0.01, 0, 0);
-  testTSR.mTw_e.matrix()
-      *= feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
-  feedingDemo.moveArmToTSR(testTSR);
+  // testTSR.mBw = createBwMatrixForTSR(
+  //     0.01, 0.01, 0, 0);
+  // testTSR.mTw_e.matrix()
+  //     *= feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
+  // feedingDemo.moveArmToTSR(testTSR);
 
   // ===== INTO FOOD =====
   if (!autoContinueDemo)

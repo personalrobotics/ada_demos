@@ -125,6 +125,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     // when the difference between new goal pose and previous goal pose is too large
     if( computeGeodesicDistance(mGoalPose, mLastGoalPose, 1.0) > mGoalPoseUpdateTolerance )
     {
+      ROS_INFO("Sending new Trajectory");
       mTrajectoryExecutor->abort();
 
       // TODO: check whether meta skeleton is automatically updated
@@ -146,6 +147,8 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       {
         throw std::runtime_error("cannot find a feasible path");
       }
+    } else {
+      ROS_INFO("Food position didn't change much");
     }
 
     // updateGoalPose
@@ -160,10 +163,15 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   {
     // update new goal Pose
     Eigen::Isometry3d endEffectorTransform = Eigen::Isometry3d::Identity();
-    Eigen::Matrix3d rotationMatrix(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()));
+    Eigen::Matrix3d rotationMatrix(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()) * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
     endEffectorTransform.linear() = rotationMatrix;
     bool successful = mPerception->perceiveFood(goalPose);
     goalPose = goalPose * endEffectorTransform;
+
+    if (goalPose.translation().z() < 0.26) {
+      ROS_WARN("Food STILL below table!");
+      return false;
+    }
 
     // dart::dynamics::SimpleFramePtr goalFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "goalFrame", goalPose);
     // mFrames.push_back(goalFrame);

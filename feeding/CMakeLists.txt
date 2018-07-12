@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(feeding)
 
+
 add_executable(feeding
   src/main.cpp
   src/FeedingDemo.cpp
@@ -18,6 +19,7 @@ target_link_libraries(feeding
   ${aikido_LIBRARIES}
   ${Boost_LIBRARIES}
   ${rewd_controllers_LIBRARIES}
+  ${tf_conversions_LIBRARIES}
   libada)
 
 install(TARGETS feeding RUNTIME DESTINATION bin)

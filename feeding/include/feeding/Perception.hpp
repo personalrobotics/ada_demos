@@ -38,6 +38,11 @@ private:
   aikido::planner::WorldPtr mWorld;
   ros::NodeHandle& mNodeHandle;
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mObjDetector;
+
+  Eigen::Isometry3d mLastPerceivedFoodTransform = Eigen::Isometry3d::Identity();
+
+  double mPerceptionTimeout;
+  std::string mPerceivedFoodName;
 };
 }
 
