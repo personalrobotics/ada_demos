@@ -1,4 +1,4 @@
-dist: xenial
+dist: trusty
 
 sudo: required
 
@@ -19,7 +19,7 @@ matrix:
     - os: linux
       compiler: gcc
       env: BUILD_TYPE=Release CATKIN_CONFIG_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
-
+      
 
 matrix:
   include:
@@ -27,14 +27,18 @@ matrix:
       compiler: gcc
       env:
         - BUILD_NAME=XENIAL_DEBUG
+        - DOCKER_FILE="ubuntu-xenial"
         - BUILD_TYPE=Debug
         - CATKIN_CONFIG_OPTIONS="-DCMAKE_BUILD_TYPE=Debug"
+      services: docker
     - os: linux
       compiler: gcc
       env:
         - BUILD_NAME=XENIAL_RELEASE
+        - DOCKER_FILE="ubuntu-xenial"
         - BUILD_TYPE=Release
         - CATKIN_CONFIG_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
+      services: docker
 
 before_install:
   - if [ -n "$DOCKER_FILE" ]; then
