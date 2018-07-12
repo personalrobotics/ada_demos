@@ -80,7 +80,7 @@ ftSensor:
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
       force: 45
-      torque: 5
+      torque: 2
 
 # Perception parameters
 perception:
