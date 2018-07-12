@@ -31,7 +31,10 @@ int main(int argc, char** argv)
   // Should the demo continue without asking for human input at each step?
   bool autoContinueDemo = false;
 
-  handleArguments(argc, argv, adaReal, autoContinueDemo);
+  // the FT sensing can stop trajectories if the forces are too big
+  bool useFTSensing = false;
+
+  handleArguments(argc, argv, adaReal, autoContinueDemo, useFTSensing);
   ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
   // start node
@@ -41,9 +44,9 @@ int main(int argc, char** argv)
   spinner.start();
 
   // start demo
-  FeedingDemo feedingDemo(adaReal, nodeHandle);
+  FeedingDemo feedingDemo(adaReal, useFTSensing, nodeHandle);
 
-  FTThresholdHelper ftThresholdHelper(false, nodeHandle);
+  FTThresholdHelper ftThresholdHelper(adaReal && useFTSensing, nodeHandle);
 
   Perception perception(
       feedingDemo.getWorld(),

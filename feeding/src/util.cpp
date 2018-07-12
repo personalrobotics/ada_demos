@@ -6,13 +6,22 @@ namespace feeding {
 
 //==============================================================================
 void handleArguments(
-    int argc, char** argv, bool& adaReal, bool& autoContinueDemo)
+    int argc,
+    char** argv,
+    bool& adaReal,
+    bool& autoContinueDemo,
+    bool& useFTSensing)
 {
   // Default options for flags
   po::options_description po_desc("simple_trajectories options");
   po_desc.add_options()("help,h", "Produce help message")(
       "adareal,a", po::bool_switch(&adaReal), "Run ADA in real")(
-      "continueAuto,c", po::bool_switch(&autoContinueDemo));
+      "continueAuto,c",
+      po::bool_switch(&autoContinueDemo),
+      "Continue Demo automatically")(
+      "ftSensing,f",
+      po::bool_switch(&useFTSensing),
+      "Use Force/Torque sensing");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);

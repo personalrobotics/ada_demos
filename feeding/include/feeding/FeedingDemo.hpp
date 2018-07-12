@@ -33,8 +33,10 @@ public:
   /// Takes care of setting up the robot and the workspace
   /// \param[in] adaReal True if the real robot is used, false it's running in
   /// simulation.
+  /// \param[in] useFTSensing turns the FTSensor and the
+  /// MoveUntilTouchController on and off
   /// \param[in] nodeHandle Handle of the ros node.
-  FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle);
+  FeedingDemo(bool adaReal, bool useFTSensing, ros::NodeHandle nodeHandle);
 
   /// Destructor for the Feeding Demo.
   /// Also shuts down the trajectory controllers.

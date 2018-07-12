@@ -13,8 +13,14 @@ namespace feeding {
 /// \param[out] adaReal is true when the robot is used and not the simulation
 /// \param[out] autoContinueDemo is true when the demo continues to the next
 /// step without asking for confirmation
+/// \param[out] useFTSensing turns the FTSensor and the MoveUntilTouchController
+/// on and off
 void handleArguments(
-    int argc, char** argv, bool& adaReal, bool& autoContinueDemo);
+    int argc,
+    char** argv,
+    bool& adaReal,
+    bool& autoContinueDemo,
+    bool& useFTSensing);
 
 /// Displays a message and waits for the user to press the enter key
 /// \param[in] The message to display.
