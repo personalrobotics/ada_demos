@@ -80,6 +80,7 @@ PerceptionServoClient::~PerceptionServoClient()
 void PerceptionServoClient::start()
 {
   ROS_INFO("Servoclient started");
+  mExecutionDone = false;
   mNonRealtimeTimer.start();
 }
 
@@ -96,12 +97,8 @@ bool PerceptionServoClient::wait(double timelimit)
   double elapsedTime = 0.0;
   std::chrono::time_point<std::chrono::system_clock> startTime
       = std::chrono::system_clock::now();
-  while(elapsedTime < timelimit)
+  while(elapsedTime < timelimit && !mExecutionDone)
   {
-    if(mExec.valid())
-    {
-      return true;
-    }
 
     // sleep a while
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -119,7 +116,19 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 {
   using aikido::planner::vectorfield::computeGeodesicDistance;
 
-  ROS_INFO("Timer callback");
+  // check for exceptions (for example the controller aborted the trajectory)
+  if (mExec.valid()) {
+    if (mExec.wait_for(std::chrono::duration<int, std::milli>(0)) == std::future_status::ready) {
+      try {
+        mExec.get();
+      } catch(const std::exception& e) {
+        ROS_WARN_STREAM(e.what());
+        mExecutionDone = true;
+        return;
+      }
+    }
+  }
+
   if(updatePerception(mGoalPose))
   {
     // when the difference between new goal pose and previous goal pose is too large
@@ -127,6 +136,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     {
       ROS_INFO("Sending new Trajectory");
       mTrajectoryExecutor->abort();
+      
 
       // TODO: check whether meta skeleton is automatically updated
 
@@ -140,8 +150,9 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
           // auto trajMarkerPointer = mViewer.addTrajectoryMarker(mCurrentTrajectory, mMetaSkeleton, *mBodyNode);
           // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
         }
-        mTrajectoryExecutor->execute(mCurrentTrajectory);
-        // mExec = mTrajectoryExecutor->execute(mCurrentTraj/ectory);
+        if (mExec.valid())
+          mExec.wait();
+        mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
       }
       else
       {

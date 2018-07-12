@@ -70,6 +70,7 @@ protected:
 
   std::vector<dart::dynamics::SimpleFramePtr> mFrames;
   std::vector<aikido::rviz::FrameMarkerPtr> mFrameMarkers;
+  bool mExecutionDone;
   
 };
 

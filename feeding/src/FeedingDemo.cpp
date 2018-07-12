@@ -271,7 +271,7 @@ void FeedingDemo::moveIntoFood(Perception* perception, aikido::rviz::WorldIntera
       rosExecutor,
       mCollisionFreeConstraint,
       viewer,
-      0.4,
+      0.05,
       1e-3);
   servoClient.start();
 
