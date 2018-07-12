@@ -19,26 +19,53 @@ matrix:
     - os: linux
       compiler: gcc
       env: BUILD_TYPE=Release CATKIN_CONFIG_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
+      
 
-# Install test fixture dependencies.
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      env:
+        - BUILD_NAME=XENIAL_DEBUG
+        - DOCKER_FILE="ubuntu-xenial"
+        - BUILD_TYPE=Debug
+        - CATKIN_CONFIG_OPTIONS="-DCMAKE_BUILD_TYPE=Debug"
+      services: docker
+    - os: linux
+      compiler: gcc
+      env:
+        - BUILD_NAME=XENIAL_RELEASE
+        - DOCKER_FILE="ubuntu-xenial"
+        - BUILD_TYPE=Release
+        - CATKIN_CONFIG_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
+      services: docker
+
 before_install:
-  - mkdir -p "${HOME}/workspace/src"
-  - cd "${HOME}/workspace"
-  - git clone https://github.com/personalrobotics/pr-cleanroom.git scripts
-  - curl -sS "${DISTRIBUTION}" > distribution.yml
-  - ./scripts/internal-setup.sh
-  - export PACKAGE_NAMES="$(./scripts/internal-get-packages.py distribution.yml ${REPOSITORY})"
+  - if [ -n "$DOCKER_FILE" ]; then
+      docker build -t "$DOCKER_FILE" -f ".ci/docker/$DOCKER_FILE" .;
+      docker run -itd -v $TRAVIS_BUILD_DIR:$TRAVIS_BUILD_DIR --env-file .ci/docker/env.list --name my-docker "$DOCKER_FILE";
+      docker exec my-docker /bin/sh -c "cd $TRAVIS_BUILD_DIR && ./.ci/before_install.sh";
+    else
+      '.ci/before_install.sh';
+    fi
 
 install:
-  - mv "${TRAVIS_BUILD_DIR}" src
-  - ./scripts/internal-distro.py --workspace=src distribution.yml --repository "${REPOSITORY}"
+  - if [ -n "$DOCKER_FILE" ]; then
+      docker exec my-docker /bin/sh -c "cd $TRAVIS_BUILD_DIR && ./.ci/install.sh";
+    else
+      '.ci/install.sh';
+    fi
 
 script:
-  - ./scripts/internal-build.sh ${PACKAGE_NAMES}
-  - ./scripts/internal-test.sh ${PACKAGE_NAMES}
-  # Check code style
-  - ./scripts/internal-run.sh catkin build --no-status --no-deps -p 1 -i --make-args check-format -- ada_demos
+  - if [ -n "$DOCKER_FILE" ]; then
+      docker exec my-docker /bin/sh -c "cd $TRAVIS_BUILD_DIR && ./.ci/script.sh";
+    else
+      '.ci/script.sh';
+    fi
 
 after_failure:
   - cat ./build/ada_demos/Testing/Temporary/LastTest.log
   - cat ./build/ada_demos/Testing/Temporary/LastTestsFailed.log
+
+
+
