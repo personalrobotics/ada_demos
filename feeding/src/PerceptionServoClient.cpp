@@ -30,7 +30,7 @@ Eigen::VectorXd getSymmetricLimits(
 //==============================================================================
 PerceptionServoClient::PerceptionServoClient(
     ::ros::NodeHandle node,
-    Perception* perception,
+    boost::function<bool (Eigen::Isometry3d&)> getTransform,
     aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr metaSkeletonStateSpace,
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
@@ -40,7 +40,6 @@ PerceptionServoClient::PerceptionServoClient(
     double perceptionUpdateTime,
     double goalPoseUpdateTolerance
   ) : mNode(node)
-    , mPerception(perception)
     , mMetaSkeletonStateSpace(std::move(metaSkeletonStateSpace))
     , mMetaSkeleton(std::move(metaSkeleton))
     , mBodyNode(bodyNode)
@@ -82,6 +81,7 @@ void PerceptionServoClient::start()
   ROS_INFO("Servoclient started");
   mExecutionDone = false;
   mNonRealtimeTimer.start();
+  mIsRunning = true;
 }
 
 //==============================================================================
@@ -90,9 +90,10 @@ void PerceptionServoClient::stop()
   // Always abort the executing trajectory when quitting
   mTrajectoryExecutor->abort();
   mNonRealtimeTimer.stop();
+  mIsRunning = false;
 }
 
-bool PerceptionServoClient::wait(double timelimit)
+void PerceptionServoClient::wait(double timelimit)
 {
   double elapsedTime = 0.0;
   std::chrono::time_point<std::chrono::system_clock> startTime
@@ -108,13 +109,20 @@ bool PerceptionServoClient::wait(double timelimit)
   }
 
   stop();
-  return false;
 }
+
+//==============================================================================
+bool PerceptionServoClient::isRunning() {return mIsRunning;}
 
 //==============================================================================
 void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 {
   using aikido::planner::vectorfield::computeGeodesicDistance;
+
+  if (mExecutionDone) {
+    stop();
+    return;
+  }
 
   // check for exceptions (for example the controller aborted the trajectory)
   if (mExec.valid()) {
@@ -124,6 +132,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       } catch(const std::exception& e) {
         ROS_WARN_STREAM(e.what());
         mExecutionDone = true;
+        stop();
         return;
       }
     }

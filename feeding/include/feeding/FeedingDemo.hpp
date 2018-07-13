@@ -105,6 +105,8 @@ public:
   /// because we expect that.
   void moveTowardsPerson();
 
+  void moveTowardsPerson(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer);
+
   /// Moves the forque away from the person.
   void moveAwayFromPerson();
 

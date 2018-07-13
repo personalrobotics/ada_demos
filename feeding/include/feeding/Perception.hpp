@@ -34,15 +34,20 @@ public:
   /// \return True if a food item was found.
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
+  bool perceiveFace(Eigen::Isometry3d& faceTransform);
+
+  bool isMouthOpen();
+
 private:
   aikido::planner::WorldPtr mWorld;
   ros::NodeHandle& mNodeHandle;
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mObjDetector;
+  std::shared_ptr<aikido::perception::ObjectDatabase> mObjectDatabase;
 
   Eigen::Isometry3d mLastPerceivedFoodTransform = Eigen::Isometry3d::Identity();
 
   double mPerceptionTimeout;
-  std::string mPerceivedFoodName;
+  std::string mPerceivedFoodName, mPerceivedFaceName;
 };
 }
 

@@ -22,12 +22,13 @@ Perception::Perception(
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
 
+  mObjectDatabase = std::make_shared<aikido::perception::ObjectDatabase>(resourceRetriever, detectorDataURI);
+
   mObjDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
           mNodeHandle,
           detectorTopicName,
-          std::make_shared<aikido::perception::ObjectDatabase>(
-              resourceRetriever, detectorDataURI),
+          mObjectDatabase,
           resourceRetriever,
           referenceFrameName,
           aikido::robot::util::getBodyNodeOrThrow(
@@ -35,6 +36,7 @@ Perception::Perception(
 
   mPerceptionTimeout = getRosParam<double>("/perception/timeoutSeconds", mNodeHandle);
   mPerceivedFoodName = getRosParam<std::string>("/perception/foodName", mNodeHandle);
+  mPerceivedFaceName = getRosParam<std::string>("/perception/faceName", mNodeHandle);
 }
 
 
@@ -110,4 +112,30 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
   }
   
 }
+
+bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
+{
+  mObjDetector->detectObjects(
+      mWorld,
+      ros::Duration(mPerceptionTimeout));
+
+  // just choose one for now
+  auto perceivedFace = mWorld->getSkeleton(mPerceivedFaceName);
+  if (perceivedFace != nullptr)
+  {
+    faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
+    ROS_INFO_STREAM("perceived Face: " << faceTransform.matrix());
+    return true;
+  }
+  else
+  {
+    return false;
+  } 
+}
+
+bool Perception::isMouthOpen() {
+  //return mObjectDatabase->mObjData["faceStatus"].as<bool>();
+  return true;
+}
+
 }
