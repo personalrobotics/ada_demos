@@ -253,7 +253,7 @@ void FeedingDemo::moveIntoFood()
 //==============================================================================
 void FeedingDemo::moveIntoFood(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
 {
-  ROS_INFO("into food servoing");
+  ROS_INFO("Servoing into food");
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor = mAda->getTrajectoryExecutor();
   
   std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(executor);
@@ -263,7 +263,6 @@ void FeedingDemo::moveIntoFood(Perception* perception, aikido::rviz::WorldIntera
     throw std::runtime_error("no ros executor");
   }
 
-  ROS_INFO_STREAM("EE body node: " << mAda->getHand()->getEndEffectorBodyNode()->getName());
   feeding::PerceptionServoClient servoClient(mNodeHandle, 
       boost::bind(&Perception::perceiveFood, perception, _1), mArmSpace,
       mAda->getArm()->getMetaSkeleton(),
@@ -329,6 +328,34 @@ void FeedingDemo::moveTowardsPerson()
   bool trajectoryCompleted = moveWithEndEffectorOffset(
       Eigen::Vector3d(0, 1, 0),
       getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle) * 0.9);
+}
+
+//==============================================================================
+void FeedingDemo::moveTowardsPerson(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
+{
+  std::shared_ptr<aikido::control::TrajectoryExecutor> executor = mAda->getTrajectoryExecutor();
+  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(executor);
+
+  if(rosExecutor==nullptr)
+  {
+    throw std::runtime_error("no ros executor");
+  }
+
+  feeding::PerceptionServoClient servoClient(mNodeHandle, 
+      boost::bind(&Perception::perceiveFace, perception, _1), mArmSpace,
+      mAda->getArm()->getMetaSkeleton(),
+      mAda->getHand()->getEndEffectorBodyNode(),
+      rosExecutor,
+      mCollisionFreeConstraint,
+      viewer,
+      0.05,
+      1e-3);
+  servoClient.start();
+
+  while (perception->isMouthOpen() && ros::ok()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  servoClient.stop();
 }
 
 //==============================================================================

@@ -31,7 +31,9 @@ public:
 
   void stop();
 
-  bool wait(double timelimit);
+  bool isRunning();
+
+  void wait(double timelimit);
   
 protected:
   void nonRealtimeCallback(const ros::TimerEvent& event);
@@ -71,6 +73,7 @@ protected:
   std::vector<dart::dynamics::SimpleFramePtr> mFrames;
   std::vector<aikido::rviz::FrameMarkerPtr> mFrameMarkers;
   bool mExecutionDone;
+  bool mIsRunning;
   
 };
 

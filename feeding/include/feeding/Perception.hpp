@@ -36,6 +36,7 @@ public:
 
   bool perceiveFace(Eigen::Isometry3d& faceTransform);
 
+  bool isMouthOpen();
 
 private:
   aikido::planner::WorldPtr mWorld;
