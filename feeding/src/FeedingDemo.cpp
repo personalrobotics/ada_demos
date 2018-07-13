@@ -265,7 +265,7 @@ void FeedingDemo::moveIntoFood(Perception* perception, aikido::rviz::WorldIntera
 
   ROS_INFO_STREAM("EE body node: " << mAda->getHand()->getEndEffectorBodyNode()->getName());
   feeding::PerceptionServoClient servoClient(mNodeHandle, 
-      perception, mArmSpace,
+      boost::bind(&Perception::perceiveFood, perception, _1), mArmSpace,
       mAda->getArm()->getMetaSkeleton(),
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,

@@ -30,7 +30,7 @@ Eigen::VectorXd getSymmetricLimits(
 //==============================================================================
 PerceptionServoClient::PerceptionServoClient(
     ::ros::NodeHandle node,
-    Perception* perception,
+    boost::function<bool (Eigen::Isometry3d&)> getTransform,
     aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr metaSkeletonStateSpace,
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
@@ -40,7 +40,6 @@ PerceptionServoClient::PerceptionServoClient(
     double perceptionUpdateTime,
     double goalPoseUpdateTolerance
   ) : mNode(node)
-    , mPerception(perception)
     , mMetaSkeletonStateSpace(std::move(metaSkeletonStateSpace))
     , mMetaSkeleton(std::move(metaSkeleton))
     , mBodyNode(bodyNode)

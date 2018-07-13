@@ -15,7 +15,7 @@ class PerceptionServoClient
 public:
   PerceptionServoClient(
     ::ros::NodeHandle node,
-    Perception* perception,
+    boost::function<bool (Eigen::Isometry3d&)> getTransform,
     aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr metaSkeletonStateSpace,
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
