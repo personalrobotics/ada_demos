@@ -234,6 +234,10 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(const Eigen:
 
   if(traj)
   {
+    Eigen::VectorXd currentVelocities = mMetaSkeleton->getVelocities();
+    std::cout << "Timing new trajectory" << std::endl;
+    std::cout << "Current velocities " << currentVelocities.transpose() << std::endl;
+
     // time trajectory using parabolic timer
     // (trajectory is returned by snap planner)
     auto interpolated = dynamic_cast<const Interpolated*>(traj.get());

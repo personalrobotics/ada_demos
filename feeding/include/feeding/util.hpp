@@ -5,6 +5,8 @@
 #include <Eigen/Dense>
 #include <boost/program_options.hpp>
 #include <ros/ros.h>
+#include <aikido/trajectory/Spline.hpp>
+#include <aikido/statespace/StateSpace.hpp>
 
 namespace feeding {
 
@@ -71,5 +73,14 @@ Eigen::MatrixXd createBwMatrixForTSR(
     double yawMin,
     double yawMax);
 }
+
+/// Create a timed spline with only two waypoints with start/end velocities 
+std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory( 
+    Eigen::VectorXd& startPosition, 
+    Eigen::VectorXd& endPosition,
+    Eigen::VectorXd& startVelocity,
+    Eigen::VectorXd& endVelocity, 
+    aikido::statespace::ConstStateSpacePtr stateSpace, 
+    double startTime = 0.);
 
 #endif

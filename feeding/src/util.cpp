@@ -1,3 +1,5 @@
+#include <dart/common/StlHelpers.hpp>
+#include <aikido/common/Spline.hpp>
 #include "feeding/util.hpp"
 
 namespace po = boost::program_options;
@@ -86,4 +88,62 @@ Eigen::MatrixXd createBwMatrixForTSR(
   bw(5, 1) = yawMax;
   return bw;
 }
+
+//==============================================================================
+double calcMinTime(Eigen::VectorXd& startPosition, 
+                   Eigen::VectorXd& endPosition,
+                   Eigen::VectorXd& startVelocity,
+                   Eigen::VectorXd& endVelocity, 
+                   Eigen::VectorXd& maxVelocity,
+                   Eigen::VectorXd& maxAcceleration)
+{
+
+  return 0.0;
+}
+
+//==============================================================================
+std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory( 
+    Eigen::VectorXd& startPosition, 
+    Eigen::VectorXd& endPosition,
+    Eigen::VectorXd& startVelocity,
+    Eigen::VectorXd& endVelocity, 
+    Eigen::VectorXd& maxVelocity,
+    Eigen::VectorXd& maxAcceleration,
+    aikido::statespace::ConstStateSpacePtr stateSpace, 
+    double startTime = 0.)
+{
+  using dart::common::make_unique;
+  using CubicSplineProblem
+    = aikido::common::SplineProblem<double, int, 4, Eigen::Dynamic, 2>;
+
+  std::size_t dimension = stateSpace->getDimension();
+
+  // create an empty spline
+  auto outputTrajectory = make_unique<aikido::trajectory::Spline>(
+      stateSpace, startTime);
+
+  // calculate min time
+  double trajTime = calcMinTime(startPosition, endPosition, startVelocity,
+                   endVelocity, maxVelocity, maxAcceleration); 
+
+  // add waypoint 
+  CubicSplineProblem problem(Eigen::Vector2d(0, trajTime), 4, dimension);
+    problem.addConstantConstraint(0, 0, startPosition);
+    problem.addConstantConstraint(0, 1, startVelocity);
+    problem.addConstantConstraint(1, 0, endPosition);
+    problem.addConstantConstraint(1, 1, endVelocity);
+    const auto spline = problem.fit();
+
+  auto startState = stateSpace->createState();
+  stateSpace->expMap(startPosition, startState);
+
+  // Add the ramp to the output trajectory.
+  assert(spline.getCoefficients().size() == 1);
+  const auto& coefficients = spline.getCoefficients().front();
+  outputTrajectory->addSegment(
+        coefficients, trajTime, startState);
+
+  return outputTrajectory;
+}
+
 }
