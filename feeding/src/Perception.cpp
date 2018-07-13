@@ -22,12 +22,13 @@ Perception::Perception(
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
 
+  mObjectDatabase = std::make_shared<aikido::perception::ObjectDatabase>(resourceRetriever, detectorDataURI);
+
   mObjDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
           mNodeHandle,
           detectorTopicName,
-          std::make_shared<aikido::perception::ObjectDatabase>(
-              resourceRetriever, detectorDataURI),
+          mObjectDatabase,
           resourceRetriever,
           referenceFrameName,
           aikido::robot::util::getBodyNodeOrThrow(
@@ -35,6 +36,7 @@ Perception::Perception(
 
   mPerceptionTimeout = getRosParam<double>("/perception/timeoutSeconds", mNodeHandle);
   mPerceivedFoodName = getRosParam<std::string>("/perception/foodName", mNodeHandle);
+  mPerceivedFaceName = getRosParam<std::string>("/perception/faceName", mNodeHandle);
 }
 
 
@@ -102,6 +104,46 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
     }
 
     mLastPerceivedFoodTransform = foodTransform;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+  
+}
+
+bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
+{
+
+//   double ms = (std::chrono::duration_cast< std::chrono::milliseconds >(
+//     std::chrono::system_clock::now().time_since_epoch()).count() % 10000);
+//   double xdiff = ms / 5000.0;
+//   double ydiff = xdiff + 0.5;
+//   if (ydiff > 2) {ydiff -= 2;}
+//   if (xdiff > 1) {xdiff = 2-xdiff;}
+//   if (ydiff > 1) {ydiff = 2-ydiff;}
+//   xdiff *= 0.3;
+//   ydiff *= 0.08;
+// //   ROS_INFO_STREAM("xdiff: " << xdiff << ",  ydiff: " << ydiff);
+//   foodTransform = createIsometry(0.1 + xdiff, -0.25 + ydiff , 0.3, 0, 0, 0);
+// //   ROS_INFO_STREAM("transform: " << foodTransform.matrix());
+//   return true;
+
+
+  tf::TransformListener tfListener;
+
+  mObjDetector->detectObjects(
+      mWorld,
+      ros::Duration(mPerceptionTimeout));
+
+
+  // just choose one for now
+  auto perceivedFace = mWorld->getSkeleton(mPerceivedFaceName);
+  if (perceivedFace != nullptr)
+  {
+    faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
+    ROS_INFO_STREAM("perceived Face: " << faceTransform.matrix());
     return true;
   }
   else
