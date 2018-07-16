@@ -9,21 +9,21 @@ Perception::Perception(
     aikido::planner::WorldPtr world,
     dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
     ros::NodeHandle nodeHandle)
-  : world(world), nodeHandle(nodeHandle)
+  : mWorld(world), mNodeHandle(nodeHandle)
 {
   std::string detectorDataURI
-      = getRosParam<std::string>("/perception/detectorDataUri", nodeHandle);
+      = getRosParam<std::string>("/perception/detectorDataUri", mNodeHandle);
   std::string referenceFrameName
-      = getRosParam<std::string>("/perception/referenceFrameName", nodeHandle);
+      = getRosParam<std::string>("/perception/referenceFrameName", mNodeHandle);
   std::string detectorTopicName
-      = getRosParam<std::string>("/perception/detectorTopicName", nodeHandle);
+      = getRosParam<std::string>("/perception/detectorTopicName", mNodeHandle);
 
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
 
-  objDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
+  mObjDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
-          nodeHandle,
+          mNodeHandle,
           detectorTopicName,
           std::make_shared<aikido::perception::ObjectDatabase>(
               resourceRetriever, detectorDataURI),
@@ -36,15 +36,15 @@ Perception::Perception(
 //==============================================================================
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 {
-  objDetector->detectObjects(
-      world,
+  mObjDetector->detectObjects(
+      mWorld,
       ros::Duration(
-          getRosParam<double>("/perception/timeoutSeconds", nodeHandle)));
+          getRosParam<double>("/perception/timeoutSeconds", mNodeHandle)));
 
   // just choose one for now
   std::string perceivedFoodName
-      = getRosParam<std::string>("/perception/foodName", nodeHandle);
-  auto perceivedFood = world->getSkeleton(perceivedFoodName);
+      = getRosParam<std::string>("/perception/foodName", mNodeHandle);
+  auto perceivedFood = mWorld->getSkeleton(perceivedFoodName);
   if (perceivedFood != nullptr)
   {
     foodTransform = Eigen::Isometry3d::Identity();
