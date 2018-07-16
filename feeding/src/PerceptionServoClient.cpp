@@ -43,6 +43,7 @@ PerceptionServoClient::PerceptionServoClient(
     double perceptionUpdateTime,
     double goalPoseUpdateTolerance)
   : mNode(node)
+  , mGetTransform(getTransform)
   , mMetaSkeletonStateSpace(std::move(metaSkeletonStateSpace))
   , mMetaSkeleton(std::move(metaSkeleton))
   , mBodyNode(bodyNode)
@@ -127,6 +128,7 @@ bool PerceptionServoClient::isRunning()
 //==============================================================================
 void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 {
+  ROS_INFO("realtime callback 1");
   using aikido::planner::vectorfield::computeGeodesicDistance;
 
   if (mExecutionDone)
@@ -155,6 +157,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     }
   }
 
+  ROS_INFO("realtime callback 2");
   if (updatePerception(mGoalPose))
   {
     // when the difference between new goal pose and previous goal pose is too
@@ -182,7 +185,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
         }
         if (mExec.valid())
           mExec.wait();
-        mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
+        //mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
       }
       else
       {
@@ -202,15 +205,16 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 //==============================================================================
 bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
 {
-  if (mPerception)
-  {
+  ROS_INFO("perception 1");
+  // if (mGetTransform)
+  // {
     // update new goal Pose
     Eigen::Isometry3d endEffectorTransform = Eigen::Isometry3d::Identity();
     Eigen::Matrix3d rotationMatrix(
         Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())
         * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
     endEffectorTransform.linear() = rotationMatrix;
-    bool successful = mPerception->perceiveFood(goalPose);
+    bool successful = mGetTransform(goalPose);
     goalPose = goalPose * endEffectorTransform;
 
     if (goalPose.translation().z() < 0.26)
@@ -227,8 +231,8 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
     // ROS_INFO_STREAM("Goal pose: " << goalPose.matrix());
 
     return successful;
-  }
-  return false;
+  // }
+  // return false;
 }
 
 //==============================================================================
@@ -241,6 +245,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   using aikido::planner::SnapConfigurationToConfigurationPlanner;
   using aikido::planner::parabolic::computeParabolicTiming;
   using aikido::trajectory::Interpolated;
+
+  ROS_INFO("planToGoalPose");
 
   // Save the current state of the space
   auto saver = MetaSkeletonStateSaver(mMetaSkeleton);
@@ -279,9 +285,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   if (traj)
   {
     Eigen::VectorXd currentVelocities = mMetaSkeleton->getVelocities();
-    std::cout << "Timing new trajectory" << std::endl;
-    std::cout << "Current velocities " << currentVelocities.transpose()
-              << std::endl;
+    ROS_INFO("Timing new trajectory");
+    ROS_INFO_STREAM("Current velocities " << currentVelocities.transpose());
     Eigen::VectorXd endVelocities = Eigen::VectorXd::Zero(currentVelocities.rows(), currentVelocities.cols());
 
     // time trajectory using parabolic timer

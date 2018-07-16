@@ -222,6 +222,8 @@ double calcMinTime(
     Eigen::VectorXd& maxVelocity,
     Eigen::VectorXd& maxAcceleration)
 {
+  ROS_INFO_STREAM("startPos: " << startPosition.matrix());
+
   ParabolicRamp::Vector amax, vmax;
   ParabolicRamp::ParabolicRampND ramp;
   from_vector(startPosition, ramp.x0);
@@ -234,14 +236,24 @@ double calcMinTime(
   if (ramp.IsValid())
   {
     std::cout << "VALID SEGMENT" << std::endl;
+    for (int i =0; i<amax.size(); i++) {
+      ROS_INFO_STREAM(amax[i] << ",  " << vmax[i] << ",  " << ramp.x0[i] << ",  " << ramp.x1[i] << ramp.dx0[i] << ",  " << ramp.dx1[i]);
+    }
     if (ramp.SolveMinTime(amax, vmax))
     {
-      std::cout << "TIME SEGMENT SUCCEED" << std::endl;
+      ParabolicRamp::Vector betweenVelocityRamp;
+      ramp.Derivative((ramp.endTime) / 2, betweenVelocityRamp);
+      ROS_INFO("Between Velocity Ramp");
+      for (int i =0; i<betweenVelocityRamp.size(); i++) {
+        ROS_INFO_STREAM(betweenVelocityRamp[i]);
+      }
+      std::cout << "TIME SEGMENT SUCCEED, ramp.endTime: " << ramp.endTime << std::endl;
       return ramp.endTime;
     }
+    throw std::runtime_error("calcMinTime: SolveMinTime failed");
   }
 
-  return -1.0;
+  throw std::runtime_error("calcMinTime: ramp not valid");
 }
 
 //==============================================================================
@@ -290,6 +302,18 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
   const auto& coefficients = spline.getCoefficients().front();
   outputTrajectory->addSegment(coefficients, trajTime, startState);
 
+
+  ROS_INFO_STREAM("ouput duration: " << outputTrajectory->getDuration());
+  Eigen::VectorXd startVelocityOutput(stateSpace->getDimension());
+  Eigen::VectorXd betweenVelocityOutput(stateSpace->getDimension());
+  Eigen::VectorXd endVelocityOutput(stateSpace->getDimension());
+  outputTrajectory->evaluateDerivative(outputTrajectory->getStartTime(), 1, startVelocityOutput);
+  outputTrajectory->evaluateDerivative((outputTrajectory->getStartTime() + outputTrajectory->getEndTime()) / 2, 1, betweenVelocityOutput);
+  outputTrajectory->evaluateDerivative(outputTrajectory->getEndTime(), 1, endVelocityOutput);
+  ROS_INFO_STREAM("start velocity: " << startVelocityOutput.matrix());
+  ROS_INFO_STREAM("between velocity: " << betweenVelocityOutput.matrix());
+  ROS_INFO_STREAM("end velocity: " << endVelocityOutput.matrix());
+
   return outputTrajectory;
 }
 
@@ -305,6 +329,12 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
   auto startTime = interpolated.getStartTime();
   Eigen::VectorXd startConfig(stateSpace->getDimension());
   Eigen::VectorXd endConfig(stateSpace->getDimension());
+  auto startState = stateSpace->createState();
+  auto endState = stateSpace->createState();
+  interpolated.evaluate(interpolated.getStartTime(), startState);
+  interpolated.evaluate(interpolated.getEndTime(), endState);
+  interpolated.getStateSpace()->logMap(startState, startConfig);
+  interpolated.getStateSpace()->logMap(endState, endConfig);
   return createTimedSplineTrajectory(startConfig, endConfig,
                                      startVelocity, endVelocity,
                                      maxVelocity, maxAcceleration,

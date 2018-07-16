@@ -47,7 +47,7 @@ protected:
       const Eigen::Isometry3d& goalPose);
 
   ::ros::NodeHandle mNode;
-  Perception* mPerception;
+  boost::function<bool(Eigen::Isometry3d&)> mGetTransform;
   /// Meta skeleton state space.
   aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
       mMetaSkeletonStateSpace;
