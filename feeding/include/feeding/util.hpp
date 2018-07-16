@@ -76,21 +76,21 @@ Eigen::MatrixXd createBwMatrixForTSR(
 
 /// Create a timed spline with only two waypoints with start/end velocities
 std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
-    Eigen::VectorXd& startPosition,
-    Eigen::VectorXd& endPosition,
-    Eigen::VectorXd& startVelocity,
-    Eigen::VectorXd& endVelocity,
-    Eigen::VectorXd& maxVelocity,
-    Eigen::VectorXd& maxAcceleration,
+    const Eigen::VectorXd& startPosition,
+    const Eigen::VectorXd& endPosition,
+    const Eigen::VectorXd& startVelocity,
+    const Eigen::VectorXd& endVelocity,
+    const Eigen::VectorXd& maxVelocity,
+    const Eigen::VectorXd& maxAcceleration,
     aikido::statespace::ConstStateSpacePtr stateSpace,
     double startTime = 0.);
 
 std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
     const aikido::trajectory::Interpolated& interpolated,
-    Eigen::VectorXd& startVelocity,
-    Eigen::VectorXd& endVelocity,
-    Eigen::VectorXd& maxVelocity,
-    Eigen::VectorXd& maxAcceleration);
+    const Eigen::VectorXd& startVelocity,
+    const Eigen::VectorXd& endVelocity,
+    const Eigen::VectorXd& maxVelocity,
+    const Eigen::VectorXd& maxAcceleration);
 
 } // feeding
 

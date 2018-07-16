@@ -1,4 +1,5 @@
 #include "feeding/util.hpp"
+#include <algorithm>
 #include <aikido/common/Spline.hpp>
 #include <dart/common/StlHelpers.hpp>
 #include "external/ParabolicRamp.h"
@@ -207,20 +208,31 @@ double calcSwitchTime(
   return 0.0;
 }
 
-void from_vector(Eigen::VectorXd e_vector, std::vector<double>& s_vector)
+void from_vector(const Eigen::VectorXd& e_vector, std::vector<double>& s_vector)
 {
   s_vector = std::vector<double>(
       e_vector.data(), e_vector.data() + e_vector.rows() * e_vector.cols());
 }
 
+void to_vector(const std::vector<double>& s_vector, Eigen::VectorXd& e_vector)
+{
+  for(std::size_t i=0; i<s_vector.size(); i++)
+  {
+    e_vector[i] = s_vector[i];
+  }
+}
+
 //==============================================================================
 double calcMinTime(
-    Eigen::VectorXd& startPosition,
-    Eigen::VectorXd& endPosition,
-    Eigen::VectorXd& startVelocity,
-    Eigen::VectorXd& endVelocity,
-    Eigen::VectorXd& maxVelocity,
-    Eigen::VectorXd& maxAcceleration)
+    const Eigen::VectorXd& startPosition,
+    const Eigen::VectorXd& endPosition,
+    const Eigen::VectorXd& startVelocity,
+    const Eigen::VectorXd& endVelocity,
+    const Eigen::VectorXd& maxVelocity,
+    const Eigen::VectorXd& maxAcceleration,
+    std::vector<double>& timeSeq,
+    std::vector<Eigen::VectorXd>& posSeq,
+    std::vector<Eigen::VectorXd>& velSeq)
 {
   ROS_INFO_STREAM("startPos: " << startPosition.matrix());
 
@@ -241,13 +253,35 @@ double calcMinTime(
     }
     if (ramp.SolveMinTime(amax, vmax))
     {
-      ParabolicRamp::Vector betweenVelocityRamp;
-      ramp.Derivative((ramp.endTime) / 2, betweenVelocityRamp);
-      ROS_INFO("Between Velocity Ramp");
-      for (int i =0; i<betweenVelocityRamp.size(); i++) {
-        ROS_INFO_STREAM(betweenVelocityRamp[i]);
+      timeSeq.clear();
+      posSeq.clear();
+      velSeq.clear();
+     
+      timeSeq.push_back(0.0);
+      for (const auto& ramp1d : ramp.ramps)
+      {
+        timeSeq.push_back(ramp1d.tswitch1);
+        timeSeq.push_back(ramp1d.tswitch2);
       }
-      std::cout << "TIME SEGMENT SUCCEED, ramp.endTime: " << ramp.endTime << std::endl;
+      timeSeq.push_back(ramp.endTime);
+      std::sort(timeSeq.begin(), timeSeq.end());
+      
+      ParabolicRamp::Vector currPos, currVel;
+      Eigen::VectorXd currPosVec(startPosition.cols());
+      Eigen::VectorXd currVelVec(startPosition.cols());
+      for(std::vector<double>::iterator it=timeSeq.begin();
+          it!=timeSeq.end(); ++it)
+      {
+        double t = (*it);
+        ramp.Evaluate(t, currPos);
+        ramp.Derivative(t, currVel);
+        to_vector(currPos, currPosVec);
+        to_vector(currVel, currVelVec);  
+
+        posSeq.push_back(currPosVec);
+        velSeq.push_back(currVelVec);      
+      }     
+
       return ramp.endTime;
     }
     throw std::runtime_error("calcMinTime: SolveMinTime failed");
@@ -258,12 +292,12 @@ double calcMinTime(
 
 //==============================================================================
 std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
-    Eigen::VectorXd& startPosition,
-    Eigen::VectorXd& endPosition,
-    Eigen::VectorXd& startVelocity,
-    Eigen::VectorXd& endVelocity,
-    Eigen::VectorXd& maxVelocity,
-    Eigen::VectorXd& maxAcceleration,
+    const Eigen::VectorXd& startPosition,
+    const Eigen::VectorXd& endPosition,
+    const Eigen::VectorXd& startVelocity,
+    const Eigen::VectorXd& endVelocity,
+    const Eigen::VectorXd& maxVelocity,
+    const Eigen::VectorXd& maxAcceleration,
     aikido::statespace::ConstStateSpacePtr stateSpace,
     double startTime)
 {
@@ -278,30 +312,41 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
       = make_unique<aikido::trajectory::Spline>(stateSpace, startTime);
 
   // calculate min time
+  std::vector<double> timeSeq;
+  std::vector<Eigen::VectorXd> posSeq;
+  std::vector<Eigen::VectorXd> velSeq;
   double trajTime = calcMinTime(
       startPosition,
       endPosition,
       startVelocity,
       endVelocity,
       maxVelocity,
-      maxAcceleration);
+      maxAcceleration,
+      timeSeq,
+      posSeq,
+      velSeq);
 
-  // add waypoint
-  CubicSplineProblem problem(Eigen::Vector2d(0, trajTime), 4, dimension);
-  problem.addConstantConstraint(0, 0, startPosition);
-  problem.addConstantConstraint(0, 1, startVelocity);
-  problem.addConstantConstraint(1, 0, endPosition);
-  problem.addConstantConstraint(1, 1, endVelocity);
-  const auto spline = problem.fit();
+  auto currState = stateSpace->createState();
+  std::cout << "TIME SEQ: ";
+  for(std::size_t i=0; i<timeSeq.size()-1; i++)
+  {
+    std::cout << timeSeq[i] << " ";
+    double segTime = timeSeq[i+1] - timeSeq[i];
+    // add waypoint
+    CubicSplineProblem problem(Eigen::Vector2d(0, segTime), 4, dimension);
+    problem.addConstantConstraint(0, 0, posSeq[i]);
+    problem.addConstantConstraint(0, 1, velSeq[i]);
+    problem.addConstantConstraint(1, 0, posSeq[i+1]);
+    problem.addConstantConstraint(1, 1, velSeq[i+1]);
+    const auto spline = problem.fit();
 
-  auto startState = stateSpace->createState();
-  stateSpace->expMap(startPosition, startState);
-
-  // Add the ramp to the output trajectory.
-  assert(spline.getCoefficients().size() == 1);
-  const auto& coefficients = spline.getCoefficients().front();
-  outputTrajectory->addSegment(coefficients, trajTime, startState);
-
+    stateSpace->expMap(posSeq[i], currState);
+    // Add the ramp to the output trajectory.
+    assert(spline.getCoefficients().size() == 1);
+    const auto& coefficients = spline.getCoefficients().front();
+    outputTrajectory->addSegment(coefficients, segTime, currState);
+  }
+  std::cout << std::endl;
 
   ROS_INFO_STREAM("ouput duration: " << outputTrajectory->getDuration());
   Eigen::VectorXd startVelocityOutput(stateSpace->getDimension());
@@ -320,10 +365,10 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
 //==============================================================================
 std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
     const aikido::trajectory::Interpolated& interpolated,
-    Eigen::VectorXd& startVelocity,
-    Eigen::VectorXd& endVelocity,
-    Eigen::VectorXd& maxVelocity,
-    Eigen::VectorXd& maxAcceleration)
+    const Eigen::VectorXd& startVelocity,
+    const Eigen::VectorXd& endVelocity,
+    const Eigen::VectorXd& maxVelocity,
+    const Eigen::VectorXd& maxAcceleration)
 {
   auto stateSpace = interpolated.getStateSpace();
   auto startTime = interpolated.getStartTime();
