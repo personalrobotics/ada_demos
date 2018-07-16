@@ -6,6 +6,8 @@
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <dart/dynamics/BodyNode.hpp>
+#include "aikido/trajectory/Spline.hpp"
+#include "aikido/control/ros/RosTrajectoryExecutor.hpp"
 #include "feeding/Perception.hpp"
 
 namespace feeding {
@@ -31,6 +33,7 @@ public:
   void start();
 
   void stop();
+
 
   bool isRunning();
 
@@ -78,6 +81,7 @@ protected:
   bool mExecutionDone;
   bool mIsRunning;
 };
+
 }
 
 #endif // FEEDING_PERCEPTIONSERVOCLIENT_HPP_
