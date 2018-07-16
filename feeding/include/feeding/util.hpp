@@ -83,4 +83,8 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
     aikido::statespace::ConstStateSpacePtr stateSpace, 
     double startTime = 0.);
 
+int quadraticRootFinder(double a, double b, double c, double& r1, double& r2, double epsilon=1e-6);
+
+double calcSwitchTime(double x0, double x1, double dx0, double dx1, double accel);
+
 #endif
