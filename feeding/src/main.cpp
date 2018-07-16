@@ -119,7 +119,8 @@ int main(int argc, char** argv)
   // testTSR.mBw = createBwMatrixForTSR(
   //     0.01, 0.01, 0, 0);
   // testTSR.mTw_e.matrix()
-  //     *= feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
+  //     *=
+  //     feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
   // feedingDemo.moveArmToTSR(testTSR);
 
   // ===== INTO FOOD =====

@@ -2,11 +2,11 @@
 #define FEEDING_FEEDINGDEMO_HPP_
 
 #include <aikido/planner/World.hpp>
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
-#include "feeding/Workspace.hpp"
 #include "feeding/Perception.hpp"
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include "feeding/Workspace.hpp"
 
 namespace feeding {
 
@@ -92,7 +92,9 @@ public:
   /// because we expect that.
   void moveIntoFood();
 
-  void moveIntoFood(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer);
+  void moveIntoFood(
+      Perception* perception,
+      aikido::rviz::WorldInteractiveMarkerViewer& viewer);
 
   /// Moves the forque upwards above the food.
   void moveOutOfFood();
@@ -105,7 +107,9 @@ public:
   /// because we expect that.
   void moveTowardsPerson();
 
-  void moveTowardsPerson(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer);
+  void moveTowardsPerson(
+      Perception* perception,
+      aikido::rviz::WorldInteractiveMarkerViewer& viewer);
 
   /// Moves the forque away from the person.
   void moveAwayFromPerson();

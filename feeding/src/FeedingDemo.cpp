@@ -1,8 +1,8 @@
 #include "feeding/FeedingDemo.hpp"
 #include <aikido/constraint/TestableIntersection.hpp>
 #include <pr_tsr/plate.hpp>
-#include "feeding/util.hpp"
 #include "feeding/PerceptionServoClient.hpp"
+#include "feeding/util.hpp"
 
 namespace feeding {
 
@@ -54,7 +54,6 @@ FeedingDemo::FeedingDemo(
           mArmSpace, mAda->getArm()->getMetaSkeleton(), collisionDetector);
   mCollisionFreeConstraint->addPairwiseCheck(
       armCollisionGroup, envCollisionGroup);
-
 
   if (mAdaReal)
   {
@@ -251,20 +250,26 @@ void FeedingDemo::moveIntoFood()
 }
 
 //==============================================================================
-void FeedingDemo::moveIntoFood(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
+void FeedingDemo::moveIntoFood(
+    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
 {
   ROS_INFO("Servoing into food");
-  std::shared_ptr<aikido::control::TrajectoryExecutor> executor = mAda->getTrajectoryExecutor();
-  
-  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(executor);
+  std::shared_ptr<aikido::control::TrajectoryExecutor> executor
+      = mAda->getTrajectoryExecutor();
 
-  if(rosExecutor==nullptr)
+  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor
+      = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(
+          executor);
+
+  if (rosExecutor == nullptr)
   {
     throw std::runtime_error("no ros executor");
   }
 
-  feeding::PerceptionServoClient servoClient(mNodeHandle, 
-      boost::bind(&Perception::perceiveFood, perception, _1), mArmSpace,
+  feeding::PerceptionServoClient servoClient(
+      mNodeHandle,
+      boost::bind(&Perception::perceiveFood, perception, _1),
+      mArmSpace,
       mAda->getArm()->getMetaSkeleton(),
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
@@ -331,18 +336,24 @@ void FeedingDemo::moveTowardsPerson()
 }
 
 //==============================================================================
-void FeedingDemo::moveTowardsPerson(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
+void FeedingDemo::moveTowardsPerson(
+    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
 {
-  std::shared_ptr<aikido::control::TrajectoryExecutor> executor = mAda->getTrajectoryExecutor();
-  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(executor);
+  std::shared_ptr<aikido::control::TrajectoryExecutor> executor
+      = mAda->getTrajectoryExecutor();
+  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor
+      = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(
+          executor);
 
-  if(rosExecutor==nullptr)
+  if (rosExecutor == nullptr)
   {
     throw std::runtime_error("no ros executor");
   }
 
-  feeding::PerceptionServoClient servoClient(mNodeHandle, 
-      boost::bind(&Perception::perceiveFace, perception, _1), mArmSpace,
+  feeding::PerceptionServoClient servoClient(
+      mNodeHandle,
+      boost::bind(&Perception::perceiveFace, perception, _1),
+      mArmSpace,
       mAda->getArm()->getMetaSkeleton(),
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
@@ -352,7 +363,8 @@ void FeedingDemo::moveTowardsPerson(Perception* perception, aikido::rviz::WorldI
       1e-3);
   servoClient.start();
 
-  while (perception->isMouthOpen() && ros::ok()) {
+  while (perception->isMouthOpen() && ros::ok())
+  {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   servoClient.stop();

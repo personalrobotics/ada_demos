@@ -3,10 +3,11 @@
 
 #include <iostream>
 #include <Eigen/Dense>
+#include <aikido/statespace/StateSpace.hpp>
+#include <aikido/trajectory/Interpolated.hpp>
+#include <aikido/trajectory/Spline.hpp>
 #include <boost/program_options.hpp>
 #include <ros/ros.h>
-#include <aikido/trajectory/Spline.hpp>
-#include <aikido/statespace/StateSpace.hpp>
 
 namespace feeding {
 
@@ -72,19 +73,25 @@ Eigen::MatrixXd createBwMatrixForTSR(
     double verticalTolerance,
     double yawMin,
     double yawMax);
-}
 
-/// Create a timed spline with only two waypoints with start/end velocities 
-std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory( 
-    Eigen::VectorXd& startPosition, 
+/// Create a timed spline with only two waypoints with start/end velocities
+std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
+    Eigen::VectorXd& startPosition,
     Eigen::VectorXd& endPosition,
     Eigen::VectorXd& startVelocity,
-    Eigen::VectorXd& endVelocity, 
-    aikido::statespace::ConstStateSpacePtr stateSpace, 
+    Eigen::VectorXd& endVelocity,
+    Eigen::VectorXd& maxVelocity,
+    Eigen::VectorXd& maxAcceleration,
+    aikido::statespace::ConstStateSpacePtr stateSpace,
     double startTime = 0.);
 
-int quadraticRootFinder(double a, double b, double c, double& r1, double& r2, double epsilon=1e-6);
+std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
+    const aikido::trajectory::Interpolated& interpolated,
+    Eigen::VectorXd& startVelocity,
+    Eigen::VectorXd& endVelocity,
+    Eigen::VectorXd& maxVelocity,
+    Eigen::VectorXd& maxAcceleration);
 
-double calcSwitchTime(double x0, double x1, double dx0, double dx1, double accel);
+} // feeding
 
 #endif
