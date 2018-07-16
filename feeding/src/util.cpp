@@ -247,10 +247,6 @@ double calcMinTime(
 
   if (ramp.IsValid())
   {
-    std::cout << "VALID SEGMENT" << std::endl;
-    for (int i =0; i<amax.size(); i++) {
-      ROS_INFO_STREAM(amax[i] << ",  " << vmax[i] << ",  " << ramp.x0[i] << ",  " << ramp.x1[i] << ramp.dx0[i] << ",  " << ramp.dx1[i]);
-    }
     if (ramp.SolveMinTime(amax, vmax))
     {
       timeSeq.clear();
@@ -265,16 +261,19 @@ double calcMinTime(
       }
       timeSeq.push_back(ramp.endTime);
       std::sort(timeSeq.begin(), timeSeq.end());
-      
-      ParabolicRamp::Vector currPos, currVel;
-      Eigen::VectorXd currPosVec(startPosition.cols());
-      Eigen::VectorXd currVelVec(startPosition.cols());
       for(std::vector<double>::iterator it=timeSeq.begin();
           it!=timeSeq.end(); ++it)
       {
+        ParabolicRamp::Vector currPos, currVel;
+        Eigen::VectorXd currPosVec(startPosition.rows());
+        Eigen::VectorXd currVelVec(startPosition.rows());
+
         double t = (*it);
         ramp.Evaluate(t, currPos);
         ramp.Derivative(t, currVel);
+        ROS_INFO_STREAM("currPosVec: " << currPosVec.cols());
+        ROS_INFO_STREAM("currPosVec: " << currPosVec.rows());
+        ROS_INFO_STREAM("currPosVec: " << currPosVec.size());
         to_vector(currPos, currPosVec);
         to_vector(currVel, currVelVec);  
 
@@ -333,18 +332,20 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
     std::cout << timeSeq[i] << " ";
     double segTime = timeSeq[i+1] - timeSeq[i];
     // add waypoint
-    CubicSplineProblem problem(Eigen::Vector2d(0, segTime), 4, dimension);
-    problem.addConstantConstraint(0, 0, posSeq[i]);
-    problem.addConstantConstraint(0, 1, velSeq[i]);
-    problem.addConstantConstraint(1, 0, posSeq[i+1]);
-    problem.addConstantConstraint(1, 1, velSeq[i+1]);
-    const auto spline = problem.fit();
+    if (segTime > 0) {
+      CubicSplineProblem problem(Eigen::Vector2d(0, segTime), 4, dimension);
+      problem.addConstantConstraint(0, 0, posSeq[i]);
+      problem.addConstantConstraint(0, 1, velSeq[i]);
+      problem.addConstantConstraint(1, 0, posSeq[i+1]);
+      problem.addConstantConstraint(1, 1, velSeq[i+1]);
+      const auto spline = problem.fit();
 
-    stateSpace->expMap(posSeq[i], currState);
-    // Add the ramp to the output trajectory.
-    assert(spline.getCoefficients().size() == 1);
-    const auto& coefficients = spline.getCoefficients().front();
-    outputTrajectory->addSegment(coefficients, segTime, currState);
+      stateSpace->expMap(posSeq[i], currState);
+      // Add the ramp to the output trajectory.
+      assert(spline.getCoefficients().size() == 1);
+      const auto& coefficients = spline.getCoefficients().front();
+      outputTrajectory->addSegment(coefficients, segTime, currState);
+    }
   }
   std::cout << std::endl;
 

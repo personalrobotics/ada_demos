@@ -185,7 +185,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
         }
         if (mExec.valid())
           mExec.wait();
-        //mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
+        mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
       }
       else
       {
