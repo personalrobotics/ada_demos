@@ -2,7 +2,6 @@
 #include <aikido/constraint/TestableIntersection.hpp>
 #include <pr_tsr/plate.hpp>
 #include "feeding/util.hpp"
-#include "feeding/PerceptionServoClient.hpp"
 
 namespace feeding {
 
@@ -33,27 +32,9 @@ FeedingDemo::FeedingDemo(
   Eigen::Isometry3d robotPose = createIsometry(
       getRosParam<std::vector<double>>("/ada/baseFramePose", mNodeHandle));
 
-  mWorkspace = std::unique_ptr<Workspace>(
-      new Workspace(mWorld, robotPose, mAdaReal, mNodeHandle));
-
   // Setting up collisions
-  dart::collision::CollisionDetectorPtr collisionDetector
-      = dart::collision::FCLCollisionDetector::create();
-  std::shared_ptr<dart::collision::CollisionGroup> armCollisionGroup
-      = collisionDetector->createCollisionGroup(
-          mAda->getMetaSkeleton().get(),
-          mAda->getHand()->getEndEffectorBodyNode());
-  std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
-      = collisionDetector->createCollisionGroup(
-          mWorkspace->getTable().get(),
-          mWorkspace->getPerson().get(),
-          mWorkspace->getWorkspaceEnvironment().get(),
-          mWorkspace->getWheelchair().get());
   mCollisionFreeConstraint
-      = std::make_shared<aikido::constraint::dart::CollisionFree>(
-          mArmSpace, mAda->getArm()->getMetaSkeleton(), collisionDetector);
-  mCollisionFreeConstraint->addPairwiseCheck(
-      armCollisionGroup, envCollisionGroup);
+      = nullptr;
 
 
   if (mAdaReal)
@@ -79,41 +60,6 @@ aikido::planner::WorldPtr FeedingDemo::getWorld()
   return mWorld;
 }
 
-//==============================================================================
-Workspace& FeedingDemo::getWorkspace()
-{
-  return *mWorkspace;
-}
-
-//==============================================================================
-ada::Ada& FeedingDemo::getAda()
-{
-  return *mAda;
-}
-
-//==============================================================================
-Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
-{
-  return mWorkspace->getDefaultFoodItem()
-      ->getRootBodyNode()
-      ->getWorldTransform();
-}
-
-//==============================================================================
-bool FeedingDemo::isCollisionFree(std::string& result)
-{
-  auto robotState = mAda->getStateSpace()->getScopedStateFromMetaSkeleton(
-      mAda->getMetaSkeleton().get());
-  aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
-  if (!mCollisionFreeConstraint->isSatisfied(
-          robotState, &collisionCheckOutcome))
-  {
-    result = "Robot is in collison: " + collisionCheckOutcome.toString();
-    return false;
-  }
-  result = "Robot is not in collision";
-  return true;
-}
 
 //==============================================================================
 void FeedingDemo::printRobotConfiguration()
@@ -144,25 +90,6 @@ void FeedingDemo::closeHand()
 }
 
 //==============================================================================
-void FeedingDemo::grabFoodWithForque()
-{
-  if (!mAdaReal && mWorkspace->getDefaultFoodItem())
-  {
-    mAda->getHand()->grab(mWorkspace->getDefaultFoodItem());
-  }
-}
-
-//==============================================================================
-void FeedingDemo::ungrabAndDeleteFood()
-{
-  if (!mAdaReal)
-  {
-    mAda->getHand()->ungrab();
-    mWorkspace->deleteFood();
-  }
-}
-
-//==============================================================================
 void FeedingDemo::moveToStartConfiguration()
 {
   auto home
@@ -189,9 +116,13 @@ void FeedingDemo::moveAbovePlate()
   double verticalToleranceAbovePlate = getRosParam<double>(
       "/planning/tsr/verticalToleranceAbovePlate", mNodeHandle);
 
+  Eigen::Isometry3d robotPose = createIsometry(
+      getRosParam<std::vector<double>>("/ada/baseFramePose", mNodeHandle));
+  Eigen::Isometry3d platePose = createIsometry(
+      getRosParam<std::vector<double>>("/plate/pose", mNodeHandle));
   auto abovePlateTSR = pr_tsr::getDefaultPlateTSR();
   abovePlateTSR.mT0_w
-      = mWorkspace->getPlate()->getRootBodyNode()->getWorldTransform();
+      = robotPose.inverse() * platePose;
   abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAbovePlate};
 
   abovePlateTSR.mBw = createBwMatrixForTSR(
@@ -200,171 +131,6 @@ void FeedingDemo::moveAbovePlate()
       *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
 
   bool trajectoryCompleted = moveArmToTSR(abovePlateTSR);
-  if (!trajectoryCompleted)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
-}
-
-//==============================================================================
-void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
-{
-  double heightAboveFood
-      = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
-  // If the robot is not simulated, we want to plan the trajectory to move a
-  // little further downwards,
-  // so that the MoveUntilTouchController can take care of stopping the
-  // trajectory.
-  double heightIntoFood
-      = mAdaReal
-            ? getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle)
-            : 0.0;
-  double horizontalToleranceNearFood = getRosParam<double>(
-      "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
-  double verticalToleranceNearFood = getRosParam<double>(
-      "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
-
-  aikido::constraint::dart::TSR aboveFoodTSR;
-  aboveFoodTSR.mT0_w = foodTransform;
-  aboveFoodTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceNearFood, verticalToleranceNearFood, M_PI, M_PI);
-  aboveFoodTSR.mTw_e.matrix()
-      *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
-  aboveFoodTSR.mTw_e.translation()
-      = Eigen::Vector3d{0, 0, heightAboveFood - heightIntoFood};
-
-  bool trajectoryCompleted = moveArmToTSR(aboveFoodTSR);
-  if (!trajectoryCompleted)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
-}
-
-//==============================================================================
-void FeedingDemo::moveIntoFood()
-{
-  bool trajectoryCompleted = moveWithEndEffectorOffset(
-      Eigen::Vector3d(0, 0, -1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle));
-  // trajectoryCompleted might be false because the forque hit the food
-  // along the way and the trajectory was aborted
-}
-
-//==============================================================================
-void FeedingDemo::moveIntoFood(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
-{
-  ROS_INFO("Servoing into food");
-  std::shared_ptr<aikido::control::TrajectoryExecutor> executor = mAda->getTrajectoryExecutor();
-  
-  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(executor);
-
-  if(rosExecutor==nullptr)
-  {
-    throw std::runtime_error("no ros executor");
-  }
-
-  feeding::PerceptionServoClient servoClient(mNodeHandle, 
-      boost::bind(&Perception::perceiveFood, perception, _1), mArmSpace,
-      mAda->getArm()->getMetaSkeleton(),
-      mAda->getHand()->getEndEffectorBodyNode(),
-      rosExecutor,
-      mCollisionFreeConstraint,
-      viewer,
-      0.05,
-      1e-3);
-  servoClient.start();
-
-  servoClient.wait(20.0);
-}
-
-//==============================================================================
-void FeedingDemo::moveOutOfFood()
-{
-  bool trajectoryCompleted = moveWithEndEffectorOffset(
-      Eigen::Vector3d(0, 0, 1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle));
-  if (!trajectoryCompleted)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
-}
-
-//==============================================================================
-void FeedingDemo::moveInFrontOfPerson()
-{
-  double distanceToPerson
-      = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
-  double horizontalToleranceNearPerson = getRosParam<double>(
-      "/planning/tsr/horizontalToleranceNearPerson", mNodeHandle);
-  double verticalToleranceNearPerson = getRosParam<double>(
-      "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
-
-  aikido::constraint::dart::TSR personTSR;
-  Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = mWorkspace->getPerson()
-                                 ->getRootBodyNode()
-                                 ->getWorldTransform()
-                                 .translation();
-  personPose.linear()
-      = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
-  personTSR.mT0_w = personPose;
-  personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
-
-  personTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
-  personTSR.mTw_e.matrix()
-      *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
-
-  bool trajectoryCompleted = moveArmToTSR(personTSR);
-  if (!trajectoryCompleted)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
-}
-
-//==============================================================================
-void FeedingDemo::moveTowardsPerson()
-{
-  bool trajectoryCompleted = moveWithEndEffectorOffset(
-      Eigen::Vector3d(0, 1, 0),
-      getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle) * 0.9);
-}
-
-//==============================================================================
-void FeedingDemo::moveTowardsPerson(Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
-{
-  std::shared_ptr<aikido::control::TrajectoryExecutor> executor = mAda->getTrajectoryExecutor();
-  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(executor);
-
-  if(rosExecutor==nullptr)
-  {
-    throw std::runtime_error("no ros executor");
-  }
-
-  feeding::PerceptionServoClient servoClient(mNodeHandle, 
-      boost::bind(&Perception::perceiveFace, perception, _1), mArmSpace,
-      mAda->getArm()->getMetaSkeleton(),
-      mAda->getHand()->getEndEffectorBodyNode(),
-      rosExecutor,
-      mCollisionFreeConstraint,
-      viewer,
-      0.05,
-      1e-3);
-  servoClient.start();
-
-  while (perception->isMouthOpen() && ros::ok()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  servoClient.stop();
-}
-
-//==============================================================================
-void FeedingDemo::moveAwayFromPerson()
-{
-  bool trajectoryCompleted = moveWithEndEffectorOffset(
-      Eigen::Vector3d(0, -1, 0),
-      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle)
-          * 0.7);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -384,6 +150,10 @@ bool FeedingDemo::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
       mCollisionFreeConstraint,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
+
+  if (!trajectory) {
+    throw std::runtime_error("yes, it's definitely the planToTSR");
+  }
 
   return moveArmOnTrajectory(trajectory);
 }

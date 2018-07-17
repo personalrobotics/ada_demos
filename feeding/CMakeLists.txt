@@ -5,11 +5,7 @@ project(feeding)
 add_executable(feeding
   src/main.cpp
   src/FeedingDemo.cpp
-  src/FTThresholdHelper.cpp
-  src/Perception.cpp
-  src/Workspace.cpp
   src/util.cpp
-  src/PerceptionServoClient.cpp
 )
 
 include_directories(include)
