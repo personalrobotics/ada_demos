@@ -250,7 +250,7 @@ double calcMinTime(
       timeSeq.clear();
       posSeq.clear();
       velSeq.clear();
-      
+
       std::set<double> timeSet;
       timeSet.insert(0.0);
       for (const auto& ramp1d : ramp.ramps)
@@ -272,14 +272,14 @@ double calcMinTime(
         ramp.Evaluate(t, currPos);
         ramp.Derivative(t, currVel);
         to_vector(currPos, currPosVec);
-        to_vector(currVel, currVelVec); 
-  
+        to_vector(currVel, currVelVec);
+
         std::cout << "AT TIME " << t << " POS " << currPosVec.matrix().transpose();
-        std::cout << " VEL " << currVelVec.matrix().transpose() << std::endl; 
+        std::cout << " VEL " << currVelVec.matrix().transpose() << std::endl;
 
         posSeq.push_back(currPosVec);
-        velSeq.push_back(currVelVec);      
-      }     
+        velSeq.push_back(currVelVec);
+      }
 
       return ramp.endTime;
     }
@@ -306,6 +306,7 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
 
   std::size_t dimension = stateSpace->getDimension();
 
+  std::cout << "START TIME " << startTime << std::endl;
   // create an empty spline
   auto outputTrajectory
       = make_unique<aikido::trajectory::Spline>(stateSpace, startTime);
@@ -325,14 +326,14 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
       posSeq,
       velSeq);
 
-  auto currState = stateSpace->createState();
+
   std::cout << "TIME SEQ: ";
   for(std::size_t i=0; i<timeSeq.size()-1; i++)
   {
-    std::cout << timeSeq[i] << " ";
     double segTime = timeSeq[i+1] - timeSeq[i];
     // add waypoint
-    if (segTime > 0) {
+    if (segTime > 0)
+    {
 
       std::cout << "AT TIME " << timeSeq[i] << " DURATION " << segTime;
       std::cout << " CUR_POS " << posSeq[i].matrix().transpose();
@@ -340,12 +341,13 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
       std::cout << " NEX_POS " << posSeq[i+1].matrix().transpose();
       std::cout << " NEX_VEL " << velSeq[i+1].matrix().transpose() << std::endl;
       CubicSplineProblem problem(Eigen::Vector2d(0, segTime), 4, dimension);
-      problem.addConstantConstraint(0, 0, posSeq[i]);
+      problem.addConstantConstraint(0, 0, Eigen::VectorXd::Zero(dimension));
       problem.addConstantConstraint(0, 1, velSeq[i]);
-      problem.addConstantConstraint(1, 0, posSeq[i+1]);
+      problem.addConstantConstraint(1, 0, posSeq[i+1]-posSeq[i]);
       problem.addConstantConstraint(1, 1, velSeq[i+1]);
       const auto spline = problem.fit();
 
+      auto currState = stateSpace->createState();
       stateSpace->expMap(posSeq[i], currState);
       // Add the ramp to the output trajectory.
       assert(spline.getCoefficients().size() == 1);
@@ -353,7 +355,6 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
       outputTrajectory->addSegment(coefficients, segTime, currState);
     }
   }
-  std::cout << std::endl;
 
   ROS_INFO_STREAM("ouput duration: " << outputTrajectory->getDuration());
   Eigen::VectorXd startVelocityOutput(stateSpace->getDimension());
