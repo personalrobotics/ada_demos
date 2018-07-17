@@ -2,6 +2,7 @@
 #define FEEDING_UTIL_HPP_
 
 #include <iostream>
+#include <fstream>
 #include <Eigen/Dense>
 #include <aikido/statespace/StateSpace.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
@@ -91,6 +92,18 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
     const Eigen::VectorXd& endVelocity,
     const Eigen::VectorXd& maxVelocity,
     const Eigen::VectorXd& maxAcceleration);
+
+void printStateWithTime(
+    double t,
+    std::size_t dimension,
+    Eigen::VectorXd& stateVec,
+    Eigen::VectorXd& velocityVec,
+    std::ofstream& cout);
+
+void dumpSplinePhasePlot(
+    const aikido::trajectory::Spline& spline,
+    const std::string& filename,
+    double timeStep);
 
 } // feeding
 

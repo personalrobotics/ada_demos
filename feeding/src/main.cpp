@@ -7,6 +7,8 @@
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
 
+#include <aikido/statespace/Rn.hpp>
+
 using namespace feeding;
 
 ///
@@ -42,6 +44,32 @@ int main(int argc, char** argv)
   ros::NodeHandle nodeHandle("~");
   ros::AsyncSpinner spinner(2); // 2 threads
   spinner.start();
+
+
+  // test function
+  auto tmpStateSpace = std::make_shared<aikido::statespace::R2>();
+  auto tmpInterpolator = std::make_shared<aikido::statespace::GeodesicInterpolator>(tmpStateSpace);
+  auto tmpTraj = std::make_shared<aikido::trajectory::Interpolated>(tmpStateSpace, tmpInterpolator);
+  Eigen::Vector2d tmpMaxVel(1., 1.);
+  Eigen::Vector2d tmpMaxAccel(2., 2.);
+
+  auto tmpState = tmpStateSpace->createState();
+  tmpState.setValue(Eigen::Vector2d(1., 2.));
+  tmpTraj->addWaypoint(0., tmpState);
+  tmpState.setValue(Eigen::Vector2d(3., 4.));
+  tmpTraj->addWaypoint(1., tmpState);
+
+  Eigen::Vector2d tmpStartVel(0., 0.);
+  Eigen::Vector2d tmpEndVel(0., 0.);
+
+  auto tmpTimed1 = aikido::planner::parabolic::computeParabolicTiming(*tmpTraj, tmpMaxVel, tmpMaxAccel);
+  auto tmpTimed2 = createTimedSplineTrajectory(*tmpTraj, tmpStartVel, tmpEndVel, 
+    tmpMaxVel, tmpMaxAccel);
+
+  dumpSplinePhasePlot(*tmpTimed1, "tmpTimed1.txt", 0.01);
+  dumpSplinePhasePlot(*tmpTimed2, "tmpTimed2.txt", 0.01);
+
+ 
 
   // start demo
   FeedingDemo feedingDemo(adaReal, useFTSensing, nodeHandle);

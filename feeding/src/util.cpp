@@ -234,8 +234,6 @@ double calcMinTime(
     std::vector<Eigen::VectorXd>& posSeq,
     std::vector<Eigen::VectorXd>& velSeq)
 {
-  ROS_INFO_STREAM("startPos: " << startPosition.matrix());
-
   ParabolicRamp::Vector amax, vmax;
   ParabolicRamp::ParabolicRampND ramp;
   from_vector(startPosition, ramp.x0);
@@ -252,30 +250,32 @@ double calcMinTime(
       timeSeq.clear();
       posSeq.clear();
       velSeq.clear();
-     
-      timeSeq.push_back(0.0);
+      
+      std::set<double> timeSet;
+      timeSet.insert(0.0);
       for (const auto& ramp1d : ramp.ramps)
       {
-        timeSeq.push_back(ramp1d.tswitch1);
-        timeSeq.push_back(ramp1d.tswitch2);
+        timeSet.insert(ramp1d.tswitch1);
+        timeSet.insert(ramp1d.tswitch2);
       }
-      timeSeq.push_back(ramp.endTime);
-      std::sort(timeSeq.begin(), timeSeq.end());
+      timeSet.insert(ramp.endTime);
+
+      timeSeq = std::vector<double>(timeSet.begin(), timeSet.end());
+
+      ParabolicRamp::Vector currPos, currVel;
+      Eigen::VectorXd currPosVec(startPosition.size());
+      Eigen::VectorXd currVelVec(startPosition.size());
       for(std::vector<double>::iterator it=timeSeq.begin();
           it!=timeSeq.end(); ++it)
       {
-        ParabolicRamp::Vector currPos, currVel;
-        Eigen::VectorXd currPosVec(startPosition.rows());
-        Eigen::VectorXd currVelVec(startPosition.rows());
-
         double t = (*it);
         ramp.Evaluate(t, currPos);
         ramp.Derivative(t, currVel);
-        ROS_INFO_STREAM("currPosVec: " << currPosVec.cols());
-        ROS_INFO_STREAM("currPosVec: " << currPosVec.rows());
-        ROS_INFO_STREAM("currPosVec: " << currPosVec.size());
         to_vector(currPos, currPosVec);
-        to_vector(currVel, currVelVec);  
+        to_vector(currVel, currVelVec); 
+  
+        std::cout << "AT TIME " << t << " POS " << currPosVec.matrix().transpose();
+        std::cout << " VEL " << currVelVec.matrix().transpose() << std::endl; 
 
         posSeq.push_back(currPosVec);
         velSeq.push_back(currVelVec);      
@@ -333,6 +333,12 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
     double segTime = timeSeq[i+1] - timeSeq[i];
     // add waypoint
     if (segTime > 0) {
+
+      std::cout << "AT TIME " << timeSeq[i] << " DURATION " << segTime;
+      std::cout << " CUR_POS " << posSeq[i].matrix().transpose();
+      std::cout << " CUR_VEL " << velSeq[i].matrix().transpose();
+      std::cout << " NEX_POS " << posSeq[i+1].matrix().transpose();
+      std::cout << " NEX_VEL " << velSeq[i+1].matrix().transpose() << std::endl;
       CubicSplineProblem problem(Eigen::Vector2d(0, segTime), 4, dimension);
       problem.addConstantConstraint(0, 0, posSeq[i]);
       problem.addConstantConstraint(0, 1, velSeq[i]);
@@ -353,12 +359,22 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
   Eigen::VectorXd startVelocityOutput(stateSpace->getDimension());
   Eigen::VectorXd betweenVelocityOutput(stateSpace->getDimension());
   Eigen::VectorXd endVelocityOutput(stateSpace->getDimension());
+  Eigen::VectorXd startPositionOutput(stateSpace->getDimension());
+  Eigen::VectorXd betweenPositionOutput(stateSpace->getDimension());
+  Eigen::VectorXd endPositionOutput(stateSpace->getDimension());
+  auto tmpState = stateSpace->createState();
+  outputTrajectory->evaluate(outputTrajectory->getStartTime(), tmpState);
+  stateSpace->logMap(tmpState, startPositionOutput);
   outputTrajectory->evaluateDerivative(outputTrajectory->getStartTime(), 1, startVelocityOutput);
+  outputTrajectory->evaluate((outputTrajectory->getStartTime() + outputTrajectory->getEndTime()) / 2, tmpState);
+  stateSpace->logMap(tmpState, betweenPositionOutput);
   outputTrajectory->evaluateDerivative((outputTrajectory->getStartTime() + outputTrajectory->getEndTime()) / 2, 1, betweenVelocityOutput);
+  outputTrajectory->evaluate(outputTrajectory->getEndTime(), tmpState);
+  stateSpace->logMap(tmpState, endPositionOutput);
   outputTrajectory->evaluateDerivative(outputTrajectory->getEndTime(), 1, endVelocityOutput);
-  ROS_INFO_STREAM("start velocity: " << startVelocityOutput.matrix());
-  ROS_INFO_STREAM("between velocity: " << betweenVelocityOutput.matrix());
-  ROS_INFO_STREAM("end velocity: " << endVelocityOutput.matrix());
+  ROS_INFO_STREAM("start position: " << startPositionOutput.matrix().transpose() << " velocity: " << startVelocityOutput.matrix().transpose());
+  ROS_INFO_STREAM("between position: " << betweenPositionOutput.matrix().transpose() << " velocity: " << betweenVelocityOutput.matrix().transpose());
+  ROS_INFO_STREAM("end position: " << endPositionOutput.matrix().transpose() << " velocity: " << endVelocityOutput.matrix().transpose());
 
   return outputTrajectory;
 }
@@ -386,5 +402,57 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
                                      maxVelocity, maxAcceleration,
                                      stateSpace, startTime);
 }
+
+void printStateWithTime(
+    double t,
+    std::size_t dimension,
+    Eigen::VectorXd& stateVec,
+    Eigen::VectorXd& velocityVec,
+    std::ofstream& cout)
+{
+  cout << t << ",";
+  for (std::size_t i = 0; i < dimension; i++)
+  {
+    cout << stateVec[i] << "," << velocityVec[i];
+    if(i<dimension-1)
+    {
+      cout << ",";
+    }
+  }
+  cout << std::endl;
+  return;
+}
+
+void dumpSplinePhasePlot(
+    const aikido::trajectory::Spline& spline,
+    const std::string& filename,
+    double timeStep)
+{
+  std::ofstream phasePlotFile;
+  phasePlotFile.open(filename);
+  auto stateSpace = spline.getStateSpace();
+  std::size_t dim = stateSpace->getDimension();
+
+  auto state = stateSpace->createState();
+  Eigen::VectorXd stateVec(dim);
+  Eigen::VectorXd velocityVec(dim);
+  double t = spline.getStartTime();
+  while (t + timeStep < spline.getEndTime())
+  {
+    spline.evaluate(t, state);
+    spline.evaluateDerivative(t, 1, velocityVec);
+    stateSpace->logMap(state, stateVec);
+    printStateWithTime(t, dim, stateVec, velocityVec, phasePlotFile);
+    t += timeStep;
+  }
+  spline.evaluate(spline.getEndTime(), state);
+  spline.evaluateDerivative(spline.getEndTime(), 1, velocityVec);
+  stateSpace->logMap(state, stateVec);
+  printStateWithTime(t, dim, stateVec, velocityVec, phasePlotFile);
+
+  phasePlotFile.close();
+  return;
+}
+
 
 }
