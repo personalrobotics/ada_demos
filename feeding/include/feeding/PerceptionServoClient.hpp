@@ -84,6 +84,8 @@ protected:
   std::vector<aikido::rviz::FrameMarkerPtr> mFrameMarkers;
   bool mExecutionDone;
   bool mIsRunning;
+
+  ros::Subscriber mSub;
 };
 
 }

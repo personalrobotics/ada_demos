@@ -6,7 +6,7 @@
 #include <aikido/statespace/dart/MetaSkeletonStateSaver.hpp>
 #include "feeding/util.hpp"
 
-static std::string JOINT_STATE_TOPIC_NAME = "/JointState";
+static std::string JOINT_STATE_TOPIC_NAME = "/joint_states";
 
 namespace feeding {
 
@@ -64,7 +64,7 @@ PerceptionServoClient::PerceptionServoClient(
       false);
 
   // subscribe to the joint state publisher
-  ros::Subscriber sub = mNode.subscribe(JOINT_STATE_TOPIC_NAME, 10, &PerceptionServoClient::jointStateUpdateCallback, this);
+  mSub = mNode.subscribe(JOINT_STATE_TOPIC_NAME, 10, &PerceptionServoClient::jointStateUpdateCallback, this);
 
   // initially set the current pose as the goal pose
   mGoalPose = mBodyNode->getTransform();
