@@ -16,8 +16,10 @@ Perception::Perception(
       = getRosParam<std::string>("/perception/detectorDataUri", mNodeHandle);
   std::string referenceFrameName
       = getRosParam<std::string>("/perception/referenceFrameName", mNodeHandle);
-  std::string detectorTopicName
-      = getRosParam<std::string>("/perception/detectorTopicName", mNodeHandle);
+  std::string foodDetectorTopicName
+      = getRosParam<std::string>("/perception/foodDetectorTopicName", mNodeHandle);
+  std::string faceDetectorTopicName
+      = getRosParam<std::string>("/perception/faceDetectorTopicName", mNodeHandle);
 
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
@@ -25,10 +27,20 @@ Perception::Perception(
   mObjectDatabase = std::make_shared<aikido::perception::ObjectDatabase>(
       resourceRetriever, detectorDataURI);
 
-  mObjDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
+  mFoodDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
           mNodeHandle,
-          detectorTopicName,
+          foodDetectorTopicName,
+          mObjectDatabase,
+          resourceRetriever,
+          referenceFrameName,
+          aikido::robot::util::getBodyNodeOrThrow(
+              *adasMetaSkeleton, referenceFrameName)));
+
+  mFaceDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
+      new aikido::perception::PoseEstimatorModule(
+          mNodeHandle,
+          faceDetectorTopicName,
           mObjectDatabase,
           resourceRetriever,
           referenceFrameName,
@@ -85,7 +97,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 
   tf::TransformListener tfListener;
 
-  mObjDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
+  mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
 
   // just choose one for now
   auto perceivedFood = mWorld->getSkeleton(mPerceivedFoodName);
@@ -129,7 +141,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 
 bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
 {
-  mObjDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
+  mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
 
   // just choose one for now
   auto perceivedFace = mWorld->getSkeleton(mPerceivedFaceName);

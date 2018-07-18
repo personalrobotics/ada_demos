@@ -104,88 +104,6 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
-  // ===== ABOVE PLATE =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque above plate"))
-    {
-      return 0;
-    }
-  }
-  feedingDemo.moveAbovePlate();
-
-  // ===== ABOVE FOOD =====
-  if (!autoContinueDemo)
-    if (!waitForUser("Perceive Food"))
-    {
-      return 0;
-    }
-  Eigen::Isometry3d foodTransform;
-  if (adaReal)
-  {
-    bool perceptionSuccessful = perception.perceiveFood(foodTransform);
-    if (!perceptionSuccessful)
-      throw std::runtime_error("Perception failed");
-  }
-  else
-  {
-    foodTransform = feedingDemo.getDefaultFoodTransform();
-  }
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque above food"))
-    {
-      return 0;
-    }
-  }
-  feedingDemo.moveAboveFood(foodTransform);
-
-  // auto testTSR = pr_tsr::getDefaultPlateTSR();
-  // testTSR.mT0_w = foodTransform;
-  // testTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
-
-  // testTSR.mBw = createBwMatrixForTSR(
-  //     0.01, 0.01, 0, 0);
-  // testTSR.mTw_e.matrix()
-  //     *=
-  //     feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
-  // feedingDemo.moveArmToTSR(testTSR);
-
-  // ===== INTO FOOD =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque into food"))
-    {
-      return 0;
-    }
-  }
-  if (!ftThresholdHelper.setThresholds(GRAB_FOOD_FT_THRESHOLD))
-  {
-    return 1;
-  }
-  feedingDemo.moveIntoFood(&perception, viewer);
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(
-          getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
-  feedingDemo.grabFoodWithForque();
-
-  // ===== OUT OF FOOD =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque out of food"))
-    {
-      return 0;
-    }
-  }
-  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
-  {
-    return 1;
-  }
-  feedingDemo.moveOutOfFood();
-  if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
-  {
-    return 1;
-  }
 
   // ===== IN FRONT OF PERSON =====
   if (!autoContinueDemo)
@@ -197,32 +115,21 @@ int main(int argc, char** argv)
   }
   feedingDemo.moveInFrontOfPerson();
 
-  // ===== TOWARDS PERSON =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move towards person"))
+    // ===== TOWARDS PERSON =====
+  while (waitForUser("Perceive Face")) {
+    Eigen::Isometry3d faceTransform;
+    if (adaReal)
     {
-      return 0;
+      bool perceptionSuccessful = perception.perceiveFace(faceTransform);
+      if (!perceptionSuccessful)
+        ROS_INFO("Perception failed");
+        //throw std::runtime_error("Perception failed");
+    }
+    else
+    {
+      throw std::runtime_error("Simulation is not allowed!");
     }
   }
-  feedingDemo.moveTowardsPerson();
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(
-          getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
-  feedingDemo.ungrabAndDeleteFood();
-
-  // ===== AWAY FROM PERSON =====
-  feedingDemo.moveAwayFromPerson();
-
-  // ===== BACK TO PLATE =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move back to plate"))
-    {
-      return 0;
-    }
-  }
-  feedingDemo.moveAbovePlate();
 
   // ===== DONE =====
   waitForUser("Demo finished.");
