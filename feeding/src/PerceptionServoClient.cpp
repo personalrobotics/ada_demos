@@ -81,7 +81,8 @@ PerceptionServoClient::PerceptionServoClient(
   mMaxAcceleration
       = getSymmetricLimits(accelerationLowerLimits, accelerationUpperLimits);
 
-  
+  mCurrentPosition = Eigen::VectorXd::Zero(mMetaSkeleton->getNumDofs());
+  mCurrentVelocity = Eigen::VectorXd::Zero(mMetaSkeleton->getNumDofs());
 }
 
 //==============================================================================
@@ -102,10 +103,14 @@ void PerceptionServoClient::start()
 //==============================================================================
 void PerceptionServoClient::jointStateUpdateCallback(const sensor_msgs::JointState::ConstPtr& msg)
 {
+  std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex, 
+                                                 std::adopt_lock};
   std::size_t velDimSize = msg->velocity.size();
   std::cout << "jointStateUpdateCallback = SIZE " << velDimSize << " [";
   for(std::size_t i=0; i < velDimSize; i++)
   {
+    mCurrentVelocity[i] = msg->velocity[i];
+    mCurrentPosition[i] = msg->position[i];  
     std::cout << msg->velocity[i] << " ";
   }
   std::cout << std::endl;
@@ -304,6 +309,12 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   if (traj)
   {
     Eigen::VectorXd currentVelocities = mMetaSkeleton->getVelocities();
+
+    {
+      std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex, 
+                                                 std::adopt_lock};
+      currentVelocities = mCurrentVelocity;
+    }
     ROS_INFO("Timing new trajectory");
     ROS_INFO_STREAM("Current velocities " << currentVelocities.transpose());
     Eigen::VectorXd endVelocities = Eigen::VectorXd::Zero(currentVelocities.rows(), currentVelocities.cols());

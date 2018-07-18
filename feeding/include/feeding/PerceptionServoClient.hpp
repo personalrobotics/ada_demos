@@ -1,6 +1,7 @@
 #ifndef FEEDING_PERCEPTIONSERVOCLIENT_HPP_
 #define FEEDING_PERCEPTIONSERVOCLIENT_HPP_
 
+#include <mutex>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 #include <aikido/control/ros/RosTrajectoryExecutor.hpp>
@@ -77,6 +78,9 @@ protected:
   Eigen::VectorXd mMaxVelocity;
   Eigen::VectorXd mMaxAcceleration;
 
+  Eigen::VectorXd mCurrentPosition;
+  Eigen::VectorXd mCurrentVelocity;
+
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
   aikido::rviz::WorldInteractiveMarkerViewer& mViewer;
 
@@ -86,6 +90,7 @@ protected:
   bool mIsRunning;
 
   ros::Subscriber mSub;
+  std::mutex mJointStateUpdateMutex;
 };
 
 }
