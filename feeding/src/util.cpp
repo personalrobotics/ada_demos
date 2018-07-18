@@ -274,8 +274,8 @@ double calcMinTime(
         to_vector(currPos, currPosVec);
         to_vector(currVel, currVelVec);
 
-        std::cout << "AT TIME " << t << " POS " << currPosVec.matrix().transpose();
-        std::cout << " VEL " << currVelVec.matrix().transpose() << std::endl;
+        //std::cout << "AT TIME " << t << " POS " << currPosVec.matrix().transpose();
+        //std::cout << " VEL " << currVelVec.matrix().transpose() << std::endl;
 
         posSeq.push_back(currPosVec);
         velSeq.push_back(currVelVec);
@@ -334,12 +334,12 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
     // add waypoint
     if (segTime > 0)
     {
-
+      /*
       std::cout << "AT TIME " << timeSeq[i] << " DURATION " << segTime;
       std::cout << " CUR_POS " << posSeq[i].matrix().transpose();
       std::cout << " CUR_VEL " << velSeq[i].matrix().transpose();
       std::cout << " NEX_POS " << posSeq[i+1].matrix().transpose();
-      std::cout << " NEX_VEL " << velSeq[i+1].matrix().transpose() << std::endl;
+      std::cout << " NEX_VEL " << velSeq[i+1].matrix().transpose() << std::endl;*/
       CubicSplineProblem problem(Eigen::Vector2d(0, segTime), 4, dimension);
       problem.addConstantConstraint(0, 0, Eigen::VectorXd::Zero(dimension));
       problem.addConstantConstraint(0, 1, velSeq[i]);
