@@ -1,13 +1,15 @@
 #ifndef FEEDING_PERCEPTIONSERVOCLIENT_HPP_
 #define FEEDING_PERCEPTIONSERVOCLIENT_HPP_
 
+#include <ros/ros.h>
+#include <sensor_msgs/JointState.h>
 #include <aikido/control/ros/RosTrajectoryExecutor.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <dart/dynamics/BodyNode.hpp>
-#include "aikido/trajectory/Spline.hpp"
-#include "aikido/control/ros/RosTrajectoryExecutor.hpp"
+#include <aikido/trajectory/Spline.hpp>
+#include <aikido/control/ros/RosTrajectoryExecutor.hpp>
 #include "feeding/Perception.hpp"
 
 namespace feeding {
@@ -41,6 +43,8 @@ public:
 
 protected:
   void nonRealtimeCallback(const ros::TimerEvent& event);
+
+  void jointStateUpdateCallback(const sensor_msgs::JointState::ConstPtr& msg);
 
   bool updatePerception(Eigen::Isometry3d& goalPose);
   aikido::trajectory::SplinePtr planToGoalPose(

@@ -6,6 +6,8 @@
 #include <aikido/statespace/dart/MetaSkeletonStateSaver.hpp>
 #include "feeding/util.hpp"
 
+static std::string JOINT_STATE_TOPIC_NAME = "/JointState";
+
 namespace feeding {
 
 namespace {
@@ -61,6 +63,9 @@ PerceptionServoClient::PerceptionServoClient(
       false,
       false);
 
+  // subscribe to the joint state publisher
+  ros::Subscriber sub = mNode.subscribe(JOINT_STATE_TOPIC_NAME, 10, &PerceptionServoClient::jointStateUpdateCallback, this);
+
   // initially set the current pose as the goal pose
   mGoalPose = mBodyNode->getTransform();
   mLastGoalPose = mGoalPose;
@@ -75,6 +80,8 @@ PerceptionServoClient::PerceptionServoClient(
   mMaxVelocity = getSymmetricLimits(velocityLowerLimits, velocityUpperLimits);
   mMaxAcceleration
       = getSymmetricLimits(accelerationLowerLimits, accelerationUpperLimits);
+
+  
 }
 
 //==============================================================================
@@ -90,6 +97,18 @@ void PerceptionServoClient::start()
   mExecutionDone = false;
   mNonRealtimeTimer.start();
   mIsRunning = true;
+}
+
+//==============================================================================
+void PerceptionServoClient::jointStateUpdateCallback(const sensor_msgs::JointState::ConstPtr& msg)
+{
+  std::size_t velDimSize = msg->velocity.size();
+  std::cout << "jointStateUpdateCallback = SIZE " << velDimSize << " [";
+  for(std::size_t i=0; i < velDimSize; i++)
+  {
+    std::cout << msg->velocity[i] << " ";
+  }
+  std::cout << std::endl;
 }
 
 //==============================================================================
