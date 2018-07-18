@@ -90,4 +90,4 @@ perception:
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
   foodName: apricot_1
-  faceName: apricot_1
+  faceName: mouth
