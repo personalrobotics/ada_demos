@@ -312,4 +312,12 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   return nullptr;
 }
 
+std::unique_ptr<aikido::trajectory::Spline> timeTrajectoryUsingConstantVelocity(
+    const aikido::trajectory::TrajectoryPtr traj,
+    std::vector<double>& constantVelocity)
+{
+  
+  return nullptr;
+}
+
 } // namespace feeding

@@ -39,7 +39,6 @@ public:
 
   void stop();
 
-
   bool isRunning();
 
   void wait(double timelimit);
@@ -52,6 +51,10 @@ protected:
   bool updatePerception(Eigen::Isometry3d& goalPose);
   aikido::trajectory::SplinePtr planToGoalPose(
       const Eigen::Isometry3d& goalPose);
+
+  std::unique_ptr<aikido::trajectory::Spline> timeTrajectoryUsingConstantVelocity(
+      const aikido::trajectory::TrajectoryPtr traj,
+      double constantVelocity);
 
   ::ros::NodeHandle mNode;
   boost::function<bool(Eigen::Isometry3d&)> mGetTransform;
