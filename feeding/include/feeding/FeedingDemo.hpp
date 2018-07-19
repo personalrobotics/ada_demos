@@ -7,14 +7,9 @@
 #include <libada/Ada.hpp>
 #include "feeding/Perception.hpp"
 #include "feeding/Workspace.hpp"
+#include "feeding/AdaMover.hpp"
 
 namespace feeding {
-
-enum TrajectoryPostprocessType
-{
-  RETIME,
-  SMOOTH,
-};
 
 /// The FeedingDemo class is responsible for
 /// - The robot (loading + control)
@@ -114,33 +109,11 @@ public:
   /// Moves the forque away from the person.
   void moveAwayFromPerson();
 
-  /// Moves the end effector to a TSR.
-  /// Throws a runtime_error if no trajectory could be found.
-  /// \return True if the trajectory was completed successfully.
-  bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr);
-
-  /// Moves the end effector along a certain position offset.
-  /// Throws a runtime_error if no trajectory could be found.
-  /// \return True if the trajectory was completed successfully.
-  bool moveWithEndEffectorOffset(
-      const Eigen::Vector3d& direction, double length);
-
-  /// Moves the robot to a configuration.
-  /// Throws a runtime_error if no trajectory could be found.
-  /// \return True if the trajectory was completed successfully.
-  bool moveArmToConfiguration(const Eigen::Vector6d& configuration);
-
-  /// Postprocesses and executes a trjectory.
-  /// Throws runtime_error if the trajectory is empty.
-  /// \return True if the trajectory was completed successfully.
-  bool moveArmOnTrajectory(
-      aikido::trajectory::TrajectoryPtr trajectory,
-      TrajectoryPostprocessType postprocessType = SMOOTH);
-
 private:
   bool mAdaReal;
   ros::NodeHandle mNodeHandle;
   aikido::planner::WorldPtr mWorld;
+  std::unique_ptr<AdaMover> mAdaMover;
 
   std::unique_ptr<ada::Ada> mAda;
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;

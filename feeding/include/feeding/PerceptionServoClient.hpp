@@ -12,6 +12,7 @@
 #include <aikido/trajectory/Spline.hpp>
 #include <aikido/control/ros/RosTrajectoryExecutor.hpp>
 #include "feeding/Perception.hpp"
+#include "feeding/AdaMover.hpp"
 
 namespace feeding {
 
@@ -23,6 +24,7 @@ public:
       boost::function<bool(Eigen::Isometry3d&)> getTransform,
       aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
           metaSkeletonStateSpace,
+          AdaMover& adaMover,
       ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
       ::dart::dynamics::BodyNodePtr bodyNode,
       std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
@@ -91,6 +93,8 @@ protected:
 
   ros::Subscriber mSub;
   std::mutex mJointStateUpdateMutex;
+
+  AdaMover& mAdaMover;
 };
 
 }

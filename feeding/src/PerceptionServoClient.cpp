@@ -36,6 +36,7 @@ PerceptionServoClient::PerceptionServoClient(
     boost::function<bool(Eigen::Isometry3d&)> getTransform,
     aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
         metaSkeletonStateSpace,
+          AdaMover& adaMover,
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
     std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
@@ -47,6 +48,7 @@ PerceptionServoClient::PerceptionServoClient(
   : mNode(node)
   , mGetTransform(getTransform)
   , mMetaSkeletonStateSpace(std::move(metaSkeletonStateSpace))
+  , mAdaMover(adaMover)
   , mMetaSkeleton(std::move(metaSkeleton))
   , mBodyNode(bodyNode)
   , mTrajectoryExecutor(trajectoryExecutor)
@@ -272,39 +274,10 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 
   ROS_INFO("planToGoalPose");
 
-  // Save the current state of the space
-  auto saver = MetaSkeletonStateSaver(mMetaSkeleton);
-  DART_UNUSED(saver);
-
-  auto startState = mMetaSkeletonStateSpace->createState();
-  auto goalState = mMetaSkeletonStateSpace->createState();
-  Eigen::VectorXd startConfig = mMetaSkeleton->getPositions();
-  mMetaSkeletonStateSpace->convertPositionsToState(startConfig, startState);
-
-  // Get goal configuration using IK
-  auto ik = InverseKinematics::create(mBodyNode.get());
-  ik->setDofs(mMetaSkeleton->getDofs());
-
-  ik->getTarget()->setTransform(goalPose);
-  Eigen::VectorXd goalConfig;
-  if (ik->solve(goalConfig, true))
-  {
-    mMetaSkeletonStateSpace->getState(mMetaSkeleton.get(), goalState);
-  }
-  else
-  {
-    ROS_INFO("unable to solve IK");
-    return nullptr;
-  }
-
-  // use snap planner to create the path
-  SnapConfigurationToConfigurationPlanner planner(mMetaSkeletonStateSpace);
-  ConfigurationToConfiguration problem(
-      mMetaSkeletonStateSpace,
-      startState,
-      goalState,
-      nullptr /*mCollisionFreeConstraint*/);
-  auto traj = planner.plan(problem);
+  Eigen::Isometry3d startPose = mBodyNode->getTransform();
+  Eigen::Vector3d difference = goalPose.translation() - startPose.translation();
+  double length = difference.norm();
+  auto traj = mAdaMover.planToEndEffectorOffset(difference.normalized(), length);
 
   if (traj)
   {
