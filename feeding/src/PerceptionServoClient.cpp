@@ -1,3 +1,4 @@
+#include <chrono>
 #include "feeding/PerceptionServoClient.hpp"
 #include <aikido/planner/ConfigurationToConfiguration.hpp>
 #include <aikido/planner/SnapConfigurationToConfigurationPlanner.hpp>
@@ -193,12 +194,21 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
         > mGoalPoseUpdateTolerance)
     {
       ROS_INFO("Sending new Trajectory");
+
+      auto beforeAbortTime = std::chrono::high_resolution_clock::now();
       mTrajectoryExecutor->abort();
+      auto afterAbortTime = std::chrono::high_resolution_clock::now();
+      std::chrono::duration<double> abortElapsed = afterAbortTime-beforeAbortTime;
+      std::cout << "ABORT ELAPSED: " << abortElapsed.count() << std::endl;
 
       // TODO: check whether meta skeleton is automatically updated
 
       // Generate a new reference trajectory to the goal pose
+      auto beforeReplanTime = std::chrono::high_resolution_clock::now();
       mCurrentTrajectory = planToGoalPose(mGoalPose);
+      auto afterReplanTime = std::chrono::high_resolution_clock::now();
+      std::chrono::duration<double> replanElapsed = afterReplanTime-beforeReplanTime;
+      std::cout << "REPLAN ELAPSED: " << replanElapsed.count() << std::endl;
 
       // Execute the new reference trajectory
       if (mCurrentTrajectory)
