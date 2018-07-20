@@ -318,7 +318,15 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 		                                mMaxVelocity,
 		                                mMaxAcceleration,
 		                                currentVelocities);
-      return std::move(timedTraj);
+
+      if(timedTraj)
+      {
+        Eigen::VectorXd initVel(mMaxVelocity.size());
+        timedTraj->evaluateDerivative(0.0, 1, initVel);
+        std::cout << "INIT VEL IS " << initVel.matrix().transpose() << std::endl;
+       
+        return std::move(timedTraj);
+      }
     }
     else
     {
@@ -329,7 +337,14 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 		                                mMaxVelocity,
 		                                mMaxAcceleration,
 		                                currentVelocities);
-        return std::move(timedTraj); 
+        if(timedTraj)
+        {
+          Eigen::VectorXd initVel(mMaxVelocity.size());
+          timedTraj->evaluateDerivative(0.0, 1, initVel);
+          std::cout << "INIT VEL IS " << initVel.matrix().transpose() << std::endl;
+      
+          return std::move(timedTraj);
+        } 
       }
     }
   }
