@@ -44,7 +44,7 @@ aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
       mArmSpace,
       mAda.getArm()->getMetaSkeleton(),
       mAda.getHand()->getEndEffectorBodyNode(),
-      mCollisionFreeConstraint,
+      nullptr,
       direction,
       length,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
