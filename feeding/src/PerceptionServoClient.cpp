@@ -109,14 +109,14 @@ void PerceptionServoClient::jointStateUpdateCallback(const sensor_msgs::JointSta
   std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex, 
                                                  std::adopt_lock};
   std::size_t velDimSize = msg->velocity.size();
-  std::cout << "jointStateUpdateCallback = SIZE " << velDimSize << " [";
+  //std::cout << "jointStateUpdateCallback = SIZE " << velDimSize << " [";
   for(std::size_t i=0; i < velDimSize; i++)
   {
     mCurrentVelocity[i] = msg->velocity[i];
     mCurrentPosition[i] = msg->position[i];  
-    std::cout << msg->velocity[i] << " ";
+    //std::cout << msg->velocity[i] << " ";
   }
-  std::cout << std::endl;
+  //std::cout << std::endl;
 }
 
 //==============================================================================
@@ -192,13 +192,19 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     if (computeGeodesicDistance(mGoalPose, mLastGoalPose, 1.0)
         > mGoalPoseUpdateTolerance)
     {
-      ROS_INFO("Sending new Trajectory");
+
+      // Generate a new reference trajectory to the goal pose
+      auto start = std::chrono::steady_clock::now();
+      mCurrentTrajectory = planToGoalPose(mGoalPose);
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds> 
+                            (std::chrono::steady_clock::now() - start);
+      ROS_INFO_STREAM("Planning took " << duration.count() << " millisecs");
+
+      ROS_INFO("Aborting old trajectory");
       mTrajectoryExecutor->abort();
 
       // TODO: check whether meta skeleton is automatically updated
 
-      // Generate a new reference trajectory to the goal pose
-      mCurrentTrajectory = planToGoalPose(mGoalPose);
 
       // Execute the new reference trajectory
       if (mCurrentTrajectory)
@@ -212,6 +218,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
         }
         if (mExec.valid())
           mExec.wait();
+        ROS_INFO("Starting trajectory execution");
         mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
       }
       else
@@ -274,12 +281,19 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   using aikido::trajectory::Interpolated;
   using aikido::trajectory::Spline;
 
-  ROS_INFO("planToGoalPose");
+
 
   Eigen::Isometry3d startPose = mBodyNode->getTransform();
   Eigen::Vector3d difference = goalPose.translation() - startPose.translation();
+  // double length = std::min(0.01, difference.norm());
   double length = difference.norm();
+  ROS_INFO_STREAM("planToGoalPose, length: " << length << ", norm: " << difference.norm());
+
   auto traj = mAdaMover.planToEndEffectorOffset(difference.normalized(), length);
+
+  if (!traj) {
+    ROS_WARN("Failed to find a solution!");
+  }
 
   if (traj)
   {
@@ -291,7 +305,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
       currentVelocities = mCurrentVelocity;
     }
     ROS_INFO("Timing new trajectory");
-    ROS_INFO_STREAM("Current velocities " << currentVelocities.transpose());
+    // ROS_INFO_STREAM("Current velocities " << currentVelocities.transpose());
     /*
     Eigen::VectorXd endVelocities = Eigen::VectorXd::Zero(currentVelocities.rows(), currentVelocities.cols());
 

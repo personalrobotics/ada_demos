@@ -15,7 +15,7 @@ FeedingDemo::FeedingDemo(
 
   std::string armTrajectoryExecutor = useFTSensing
                                           ? "move_until_touch_topic_controller"
-                                          : "trajectory_controller";
+                                          : "rewd_trajectory_controller";
 
   mAda = std::unique_ptr<ada::Ada>(
       new ada::Ada(
@@ -277,8 +277,8 @@ void FeedingDemo::moveIntoFood(
       rosExecutor,
       mCollisionFreeConstraint,
       viewer,
-      0.05,
-      1e-3);
+      0.1,
+      5e-3);
   servoClient.start();
 
   servoClient.wait(20.0);
