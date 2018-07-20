@@ -4,6 +4,7 @@
 #include <aikido/planner/parabolic/ParabolicTimer.hpp>
 #include <aikido/planner/vectorfield/VectorFieldUtil.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSaver.hpp>
+#include <aikido/planner/kinodynamic/KinodynamicTimer.hpp>
 #include "feeding/util.hpp"
 
 static std::string JOINT_STATE_TOPIC_NAME = "/joint_states";
@@ -269,8 +270,9 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   using aikido::statespace::dart::MetaSkeletonStateSaver;
   using aikido::planner::ConfigurationToConfiguration;
   using aikido::planner::SnapConfigurationToConfigurationPlanner;
-  using aikido::planner::parabolic::computeParabolicTiming;
+  using aikido::planner::kinodynamic::computeKinodynamicTiming;
   using aikido::trajectory::Interpolated;
+  using aikido::trajectory::Spline;
 
   ROS_INFO("planToGoalPose");
 
@@ -290,6 +292,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     }
     ROS_INFO("Timing new trajectory");
     ROS_INFO_STREAM("Current velocities " << currentVelocities.transpose());
+    /*
     Eigen::VectorXd endVelocities = Eigen::VectorXd::Zero(currentVelocities.rows(), currentVelocities.cols());
 
     // time trajectory using parabolic timer
@@ -306,6 +309,28 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     else
     {
       throw std::runtime_error("trajectory is not interpolated!");
+    }*/
+
+    const Interpolated* interpolated = dynamic_cast<const Interpolated*>(traj.get());
+    if (interpolated)
+    {
+      auto timedTraj = computeKinodynamicTiming(*interpolated,
+		                                mMaxVelocity,
+		                                mMaxAcceleration,
+		                                currentVelocities);
+      return std::move(timedTraj);
+    }
+    else
+    {
+      const Spline* spline = dynamic_cast<const Spline*>(traj.get());
+      if(spline)
+      {
+        auto timedTraj = computeKinodynamicTiming(*spline,
+		                                mMaxVelocity,
+		                                mMaxAcceleration,
+		                                currentVelocities);
+        return std::move(timedTraj); 
+      }
     }
   }
 
