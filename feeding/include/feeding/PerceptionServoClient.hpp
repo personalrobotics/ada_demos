@@ -18,19 +18,21 @@ namespace feeding {
 
 class PerceptionServoClient
 {
+     
 public:
+EIGEN_MAKE_ALIGNED_OPERATOR_NEW 
   PerceptionServoClient(
       ::ros::NodeHandle node,
       boost::function<bool(Eigen::Isometry3d&)> getTransform,
       aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
           metaSkeletonStateSpace,
-          AdaMover& adaMover,
+          AdaMover* adaMover,
       ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
       ::dart::dynamics::BodyNodePtr bodyNode,
       std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
           trajectoryExecutor,
       aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
-      aikido::rviz::WorldInteractiveMarkerViewer& viewer,
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
       double perceptionUpdateTime,
       double goalPoseUpdateTolerance);
   virtual ~PerceptionServoClient();
@@ -87,7 +89,7 @@ protected:
   Eigen::VectorXd mCurrentVelocity;
 
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
-  aikido::rviz::WorldInteractiveMarkerViewer& mViewer;
+  aikido::rviz::WorldInteractiveMarkerViewerPtr mViewer;
 
   std::vector<dart::dynamics::SimpleFramePtr> mFrames;
   std::vector<aikido::rviz::FrameMarkerPtr> mFrameMarkers;
@@ -97,7 +99,7 @@ protected:
   ros::Subscriber mSub;
   std::mutex mJointStateUpdateMutex;
 
-  AdaMover& mAdaMover;
+  AdaMover* mAdaMover;
 };
 
 }

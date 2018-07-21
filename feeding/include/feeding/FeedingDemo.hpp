@@ -3,6 +3,7 @@
 
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include "feeding/PerceptionServoClient.hpp"
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
 #include "feeding/Perception.hpp"
@@ -89,7 +90,7 @@ public:
 
   void moveIntoFood(
       Perception* perception,
-      aikido::rviz::WorldInteractiveMarkerViewer& viewer);
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   /// Moves the forque upwards above the food.
   void moveOutOfFood();
@@ -104,7 +105,7 @@ public:
 
   void moveTowardsPerson(
       Perception* perception,
-      aikido::rviz::WorldInteractiveMarkerViewer& viewer);
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   /// Moves the forque away from the person.
   void moveAwayFromPerson();
@@ -119,6 +120,8 @@ private:
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
   std::unique_ptr<Workspace> mWorkspace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
+
+  std::unique_ptr<PerceptionServoClient> mServoClient;
 };
 }
 

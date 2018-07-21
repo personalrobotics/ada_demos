@@ -1,6 +1,5 @@
 #include "feeding/FeedingDemo.hpp"
 #include <pr_tsr/plate.hpp>
-#include "feeding/PerceptionServoClient.hpp"
 #include "feeding/util.hpp"
 
 namespace feeding {
@@ -252,7 +251,7 @@ void FeedingDemo::moveIntoFood()
 
 //==============================================================================
 void FeedingDemo::moveIntoFood(
-    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
+    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   ROS_INFO("Servoing into food");
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
@@ -267,11 +266,31 @@ void FeedingDemo::moveIntoFood(
     throw std::runtime_error("no ros executor");
   }
 
-  feeding::PerceptionServoClient servoClient(
+  /*
+  std::unique_ptr<PerceptionServoClient> servoClient
+  = std::unique_ptr<PerceptionServoClient>(new PerceptionServoClient
+  (
       mNodeHandle,
       boost::bind(&Perception::perceiveFood, perception, _1),
       mArmSpace,
-      *mAdaMover,
+      mAdaMover,
+      mAda->getArm()->getMetaSkeleton(),
+      mAda->getHand()->getEndEffectorBodyNode(),
+      rosExecutor,
+      mCollisionFreeConstraint,
+      viewer,
+      0.1,
+      5e-3));
+  servoClient->start();
+
+  servoClient->wait(20.0); 
+  */
+  PerceptionServoClient servoClient
+  (
+      mNodeHandle,
+      boost::bind(&Perception::perceiveFood, perception, _1),
+      mArmSpace,
+      mAdaMover.get(),
       mAda->getArm()->getMetaSkeleton(),
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
@@ -281,7 +300,7 @@ void FeedingDemo::moveIntoFood(
       5e-3);
   servoClient.start();
 
-  servoClient.wait(20.0);
+  servoClient.wait(5.0);
 }
 
 //==============================================================================
@@ -339,7 +358,7 @@ void FeedingDemo::moveTowardsPerson()
 
 //==============================================================================
 void FeedingDemo::moveTowardsPerson(
-    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
+    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
       = mAda->getTrajectoryExecutor();
@@ -356,7 +375,7 @@ void FeedingDemo::moveTowardsPerson(
       mNodeHandle,
       boost::bind(&Perception::perceiveFace, perception, _1),
       mArmSpace,
-      *mAdaMover,
+      mAdaMover.get(),
       mAda->getArm()->getMetaSkeleton(),
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,

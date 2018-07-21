@@ -37,16 +37,16 @@ PerceptionServoClient::PerceptionServoClient(
     boost::function<bool(Eigen::Isometry3d&)> getTransform,
     aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
         metaSkeletonStateSpace,
-          AdaMover& adaMover,
+          AdaMover* adaMover,
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
     std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
         trajectoryExecutor,
     aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
-    aikido::rviz::WorldInteractiveMarkerViewer& viewer,
+    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
     double perceptionUpdateTime,
     double goalPoseUpdateTolerance)
-  : mNode(node)
+  : mNode(node, "perceptionServo")
   , mGetTransform(getTransform)
   , mMetaSkeletonStateSpace(std::move(metaSkeletonStateSpace))
   , mAdaMover(adaMover)
@@ -91,7 +91,15 @@ PerceptionServoClient::PerceptionServoClient(
 //==============================================================================
 PerceptionServoClient::~PerceptionServoClient()
 {
+  ROS_INFO("PerceptionServoClient::~PerceptionServoClient");
+  if(mTrajectoryExecutor)
+  {
+    mTrajectoryExecutor->abort();
+  }
+  mNonRealtimeTimer.stop();
+  mSub.shutdown();
   // DO NOTHING
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 }
 
 //==============================================================================
@@ -126,6 +134,7 @@ void PerceptionServoClient::stop()
   mTrajectoryExecutor->abort();
   mNonRealtimeTimer.stop();
   mIsRunning = false;
+  ROS_INFO("stopping done");
 }
 
 void PerceptionServoClient::wait(double timelimit)
@@ -144,6 +153,7 @@ void PerceptionServoClient::wait(double timelimit)
   }
 
   stop();
+  ROS_INFO("waiting done");
 }
 
 //==============================================================================
@@ -155,7 +165,6 @@ bool PerceptionServoClient::isRunning()
 //==============================================================================
 void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 {
-  ROS_INFO("realtime callback 1");
   using aikido::planner::vectorfield::computeGeodesicDistance;
 
   if (mExecutionDone)
@@ -167,9 +176,11 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
   // check for exceptions (for example the controller aborted the trajectory)
   if (mExec.valid())
   {
+    //ROS_INFO("mExec valid");
     if (mExec.wait_for(std::chrono::duration<int, std::milli>(0))
         == std::future_status::ready)
     {
+      ROS_INFO("future is ready");
       try
       {
         mExec.get();
@@ -179,18 +190,22 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
         ROS_WARN_STREAM(e.what());
         mExecutionDone = true;
         stop();
+        ROS_INFO("timer update aborted");
         return;
       }
+    } else {
+      ROS_INFO_STREAM("future status: " << std::to_string((uint8_t)mExec.wait_for(std::chrono::duration<int, std::milli>(0))));
     }
   }
 
-  ROS_INFO("realtime callback 2");
   if (updatePerception(mGoalPose))
   {
     // when the difference between new goal pose and previous goal pose is too
     // large
-    if (computeGeodesicDistance(mGoalPose, mLastGoalPose, 1.0)
-        > mGoalPoseUpdateTolerance)
+    double angularDistanceRatio = 1.0; // ignore the angular difference
+    double geodesicDistance = computeGeodesicDistance(mGoalPose, mLastGoalPose, angularDistanceRatio);
+    //ROS_INFO_STREAM("CURRENT GEODESIC DISTANCE IS " << geodesicDistance);
+    if(geodesicDistance > mGoalPoseUpdateTolerance )
     {
 
       // Generate a new reference trajectory to the goal pose
@@ -200,9 +215,38 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
                             (std::chrono::steady_clock::now() - start);
       ROS_INFO_STREAM("Planning took " << duration.count() << " millisecs");
 
-      ROS_INFO("Aborting old trajectory");
-      mTrajectoryExecutor->abort();
 
+ if (mExec.valid())
+  {
+    //ROS_INFO("mExec valid");
+    if (mExec.wait_for(std::chrono::duration<int, std::milli>(0))
+        == std::future_status::ready)
+    {
+      ROS_INFO("future is ready");
+      try
+      {
+        mExec.get();
+      }
+      catch (const std::exception& e)
+      {
+        ROS_WARN_STREAM(e.what());
+        mExecutionDone = true;
+        stop();
+        ROS_INFO("timer update aborted");
+        return;
+      }
+    } else {
+      ROS_INFO_STREAM("future status: " << std::to_string((uint8_t)mExec.wait_for(std::chrono::duration<int, std::milli>(0))));
+    }
+  }
+
+
+      // ROS_INFO("Aborting old trajectory");
+      start = std::chrono::steady_clock::now();
+      mTrajectoryExecutor->abort();
+      duration = std::chrono::duration_cast<std::chrono::milliseconds> 
+                            (std::chrono::steady_clock::now() - start);
+      // ROS_INFO_STREAM("Aborting took " << duration.count() << " millisecs");
       // TODO: check whether meta skeleton is automatically updated
 
 
@@ -218,7 +262,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
         }
         if (mExec.valid())
           mExec.wait();
-        ROS_INFO("Starting trajectory execution");
+        // ROS_INFO("Starting trajectory execution");
         mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
       }
       else
@@ -239,7 +283,6 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 //==============================================================================
 bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
 {
-  ROS_INFO("perception 1");
   // if (mGetTransform)
   // {
     // update new goal Pose
@@ -281,15 +324,23 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   using aikido::trajectory::Interpolated;
   using aikido::trajectory::Spline;
 
+  Eigen::Vector3d goalTranslation(goalPose.translation().x(), goalPose.translation().y(), goalPose.translation().z());
+  Eigen::Isometry3d liftedGoalPose = goalPose;
+  liftedGoalPose.translation() = goalTranslation;
 
+  // ROS_INFO_STREAM("Goal pose: " << liftedGoalPose.translation().matrix());
 
   Eigen::Isometry3d startPose = mBodyNode->getTransform();
-  Eigen::Vector3d difference = goalPose.translation() - startPose.translation();
+  Eigen::Vector3d difference = liftedGoalPose.translation() - startPose.translation();
   // double length = std::min(0.01, difference.norm());
-  double length = difference.norm();
+  double length = std::min(difference.norm(), 0.05);
+  if (length < 0.002) {
+    mExecutionDone = true;
+    return nullptr;
+  }
   ROS_INFO_STREAM("planToGoalPose, length: " << length << ", norm: " << difference.norm());
 
-  auto traj = mAdaMover.planToEndEffectorOffset(difference.normalized(), length);
+  auto traj = mAdaMover->planToEndEffectorOffset(difference.normalized(), length);
 
   if (!traj) {
     ROS_WARN("Failed to find a solution!");
@@ -304,7 +355,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
                                                  std::adopt_lock};
       currentVelocities = mCurrentVelocity;
     }
-    ROS_INFO("Timing new trajectory");
+    // ROS_INFO("Timing new trajectory");
     // ROS_INFO_STREAM("Current velocities " << currentVelocities.transpose());
     /*
     Eigen::VectorXd endVelocities = Eigen::VectorXd::Zero(currentVelocities.rows(), currentVelocities.cols());
@@ -337,7 +388,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
       {
         Eigen::VectorXd initVel(mMaxVelocity.size());
         timedTraj->evaluateDerivative(0.0, 1, initVel);
-        std::cout << "INIT VEL IS " << initVel.matrix().transpose() << std::endl;
+        // std::cout << "INIT VEL IS " << initVel.matrix().transpose() << std::endl;
        
         return std::move(timedTraj);
       }
@@ -355,7 +406,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         {
           Eigen::VectorXd initVel(mMaxVelocity.size());
           timedTraj->evaluateDerivative(0.0, 1, initVel);
-          std::cout << "INIT VEL IS " << initVel.matrix().transpose() << std::endl;
+          // std::cout << "INIT VEL IS " << initVel.matrix().transpose() << std::endl;
       
           return std::move(timedTraj);
         } 
