@@ -1,3 +1,4 @@
+#include <chrono>
 #include "feeding/PerceptionServoClient.hpp"
 #include <aikido/planner/ConfigurationToConfiguration.hpp>
 #include <aikido/planner/SnapConfigurationToConfigurationPlanner.hpp>
@@ -207,13 +208,21 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     //ROS_INFO_STREAM("CURRENT GEODESIC DISTANCE IS " << geodesicDistance);
     if(geodesicDistance > mGoalPoseUpdateTolerance )
     {
-
       // Generate a new reference trajectory to the goal pose
       auto start = std::chrono::steady_clock::now();
       mCurrentTrajectory = planToGoalPose(mGoalPose);
       auto duration = std::chrono::duration_cast<std::chrono::milliseconds> 
                             (std::chrono::steady_clock::now() - start);
       ROS_INFO_STREAM("Planning took " << duration.count() << " millisecs");
+
+
+      ROS_INFO("Aborting old trajectory");
+
+      start = std::chrono::steady_clock::now();
+      mTrajectoryExecutor->abort();
+      duration = std::chrono::duration_cast<std::chrono::milliseconds> 
+                            (std::chrono::steady_clock::now() - start);
+      ROS_INFO_STREAM("Abortion took " << duration.count() << " millisecs");
 
 
  if (mExec.valid())
@@ -248,7 +257,6 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
                             (std::chrono::steady_clock::now() - start);
       // ROS_INFO_STREAM("Aborting took " << duration.count() << " millisecs");
       // TODO: check whether meta skeleton is automatically updated
-
 
       // Execute the new reference trajectory
       if (mCurrentTrajectory)
