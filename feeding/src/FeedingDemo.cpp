@@ -295,7 +295,6 @@ void FeedingDemo::moveIntoFood(
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
       mCollisionFreeConstraint,
-      viewer,
       0.1,
       5e-3);
   servoClient.start();
@@ -380,7 +379,6 @@ void FeedingDemo::moveTowardsPerson(
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
       mCollisionFreeConstraint,
-      viewer,
       0.05,
       1e-3);
   servoClient.start();
