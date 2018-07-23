@@ -299,7 +299,7 @@ void FeedingDemo::moveIntoFood(
       5e-3);
   servoClient.start();
 
-  servoClient.wait(5.0);
+  servoClient.wait(10.0);
 }
 
 //==============================================================================
