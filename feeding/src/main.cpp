@@ -116,26 +116,38 @@ int main(int argc, char** argv)
   }
   feedingDemo.moveInFrontOfPerson();
 
-    // ===== TOWARDS PERSON =====
-  dart::dynamics::SimpleFramePtr frame;
-  aikido::rviz::FrameMarkerPtr frameMarker;
-  while (waitForUser("Perceive Face")) {
-    Eigen::Isometry3d faceTransform;
-    if (adaReal)
+    if (!autoContinueDemo)
+  {
+    if (!waitForUser("Move forque towards person"))
     {
-      bool perceptionSuccessful = perception.perceiveFace(faceTransform);
-      if (!perceptionSuccessful) {
-        ROS_INFO("Perception failed");
-      } else {
-        // frame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "mouthFrame", faceTransform);
-        // frameMarker = viewer.addFrame(frame.get(), 0.7, 0.07);
-      }
-    }
-    else
-    {
-      throw std::runtime_error("Simulation is not allowed!");
+      return 0;
     }
   }
+
+  feedingDemo.moveTowardsPerson(&perception, viewer);
+
+    // ===== TOWARDS PERSON =====
+
+
+  // dart::dynamics::SimpleFramePtr frame;
+  // aikido::rviz::FrameMarkerPtr frameMarker;
+  // while (waitForUser("Perceive Face")) {
+  //   Eigen::Isometry3d faceTransform;
+  //   if (adaReal)
+  //   {
+  //     bool perceptionSuccessful = perception.perceiveFace(faceTransform);
+  //     if (!perceptionSuccessful) {
+  //       ROS_INFO("Perception failed");
+  //     } else {
+  //       // frame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "mouthFrame", faceTransform);
+  //       // frameMarker = viewer.addFrame(frame.get(), 0.7, 0.07);
+  //     }
+  //   }
+  //   else
+  //   {
+  //     throw std::runtime_error("Simulation is not allowed!");
+  //   }
+  // }
 
   // ===== DONE =====
   waitForUser("Demo finished.");

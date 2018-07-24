@@ -44,6 +44,9 @@ public:
   /// Gets the mannequin
   dart::dynamics::ConstSkeletonPtr getPerson() const;
 
+  /// Gets the mannequin pose
+  Eigen::Isometry3d getPersonPose() const;
+
   /// Gets the wheelchair
   dart::dynamics::ConstSkeletonPtr getWheelchair() const;
 
@@ -61,6 +64,8 @@ private:
   dart::dynamics::SkeletonPtr mDefaultFoodItem;
   dart::dynamics::SkeletonPtr mPerson;
   dart::dynamics::SkeletonPtr mWheelchair;
+
+  Eigen::Isometry3d mPersonPose;
 
   /// Takes a skeleton pointer, fills it with a new skeleton and adds that to
   /// the world.

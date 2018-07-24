@@ -44,7 +44,6 @@ FeedingDemo::FeedingDemo(
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
           mWorkspace->getTable().get(),
-          mWorkspace->getPerson().get(),
           mWorkspace->getWorkspaceEnvironment().get(),
           mWorkspace->getWheelchair().get());
   mCollisionFreeConstraint
@@ -326,10 +325,7 @@ void FeedingDemo::moveInFrontOfPerson()
 
   aikido::constraint::dart::TSR personTSR;
   Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = mWorkspace->getPerson()
-                                 ->getRootBodyNode()
-                                 ->getWorldTransform()
-                                 .translation();
+  personPose.translation() = mWorkspace->getPersonPose().translation();
   personPose.linear()
       = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
@@ -383,11 +379,13 @@ void FeedingDemo::moveTowardsPerson(
       1e-3);
   servoClient.start();
 
-  while (perception->isMouthOpen() && ros::ok())
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  servoClient.stop();
+  servoClient.wait(10.0);
+
+//   while (perception->isMouthOpen() && ros::ok())
+//   {
+//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//   }
+//   servoClient.stop();
 }
 
 //==============================================================================
