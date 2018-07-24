@@ -5,6 +5,7 @@ project(feeding)
 add_executable(feeding
   src/main.cpp
   src/FeedingDemo.cpp
+  src/AdaMover.cpp
   src/FTThresholdHelper.cpp
   src/Perception.cpp
   src/Workspace.cpp

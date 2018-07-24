@@ -1,7 +1,5 @@
 #include "feeding/FeedingDemo.hpp"
-#include <aikido/constraint/TestableIntersection.hpp>
 #include <pr_tsr/plate.hpp>
-#include "feeding/PerceptionServoClient.hpp"
 #include "feeding/util.hpp"
 
 namespace feeding {
@@ -16,7 +14,7 @@ FeedingDemo::FeedingDemo(
 
   std::string armTrajectoryExecutor = useFTSensing
                                           ? "move_until_touch_topic_controller"
-                                          : "trajectory_controller";
+                                          : "rewd_trajectory_controller";
 
   mAda = std::unique_ptr<ada::Ada>(
       new ada::Ada(
@@ -54,6 +52,8 @@ FeedingDemo::FeedingDemo(
           mArmSpace, mAda->getArm()->getMetaSkeleton(), collisionDetector);
   mCollisionFreeConstraint->addPairwiseCheck(
       armCollisionGroup, envCollisionGroup);
+
+  mAdaMover = std::unique_ptr<AdaMover>(new AdaMover(*mAda, mArmSpace, mCollisionFreeConstraint, nodeHandle));
 
   if (mAdaReal)
   {
@@ -169,7 +169,7 @@ void FeedingDemo::moveToStartConfiguration()
   if (mAdaReal)
   {
     // We decided to not move to an initial configuration for now
-    // moveArmToConfiguration(Eigen::Vector6d(home.data()));
+    // mAdaMover->moveArmToConfiguration(Eigen::Vector6d(home.data()));
   }
   else
   {
@@ -198,7 +198,7 @@ void FeedingDemo::moveAbovePlate()
   abovePlateTSR.mTw_e.matrix()
       *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
 
-  bool trajectoryCompleted = moveArmToTSR(abovePlateTSR);
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -232,7 +232,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
   aboveFoodTSR.mTw_e.translation()
       = Eigen::Vector3d{0, 0, heightAboveFood - heightIntoFood};
 
-  bool trajectoryCompleted = moveArmToTSR(aboveFoodTSR);
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -242,7 +242,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
 //==============================================================================
 void FeedingDemo::moveIntoFood()
 {
-  bool trajectoryCompleted = moveWithEndEffectorOffset(
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, -1),
       getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle));
   // trajectoryCompleted might be false because the forque hit the food
@@ -251,7 +251,7 @@ void FeedingDemo::moveIntoFood()
 
 //==============================================================================
 void FeedingDemo::moveIntoFood(
-    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
+    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   ROS_INFO("Servoing into food");
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
@@ -266,26 +266,46 @@ void FeedingDemo::moveIntoFood(
     throw std::runtime_error("no ros executor");
   }
 
-  feeding::PerceptionServoClient servoClient(
+  /*
+  std::unique_ptr<PerceptionServoClient> servoClient
+  = std::unique_ptr<PerceptionServoClient>(new PerceptionServoClient
+  (
       mNodeHandle,
       boost::bind(&Perception::perceiveFood, perception, _1),
       mArmSpace,
+      mAdaMover,
       mAda->getArm()->getMetaSkeleton(),
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
       mCollisionFreeConstraint,
       viewer,
-      0.05,
-      1e-3);
+      0.1,
+      5e-3));
+  servoClient->start();
+
+  servoClient->wait(20.0); 
+  */
+  PerceptionServoClient servoClient
+  (
+      mNodeHandle,
+      boost::bind(&Perception::perceiveFood, perception, _1),
+      mArmSpace,
+      mAdaMover.get(),
+      mAda->getArm()->getMetaSkeleton(),
+      mAda->getHand()->getEndEffectorBodyNode(),
+      rosExecutor,
+      mCollisionFreeConstraint,
+      0.1,
+      5e-3);
   servoClient.start();
 
-  servoClient.wait(20.0);
+  servoClient.wait(10.0);
 }
 
 //==============================================================================
 void FeedingDemo::moveOutOfFood()
 {
-  bool trajectoryCompleted = moveWithEndEffectorOffset(
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, 1),
       getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle));
   if (!trajectoryCompleted)
@@ -320,7 +340,7 @@ void FeedingDemo::moveInFrontOfPerson()
   personTSR.mTw_e.matrix()
       *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
 
-  bool trajectoryCompleted = moveArmToTSR(personTSR);
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -330,14 +350,14 @@ void FeedingDemo::moveInFrontOfPerson()
 //==============================================================================
 void FeedingDemo::moveTowardsPerson()
 {
-  bool trajectoryCompleted = moveWithEndEffectorOffset(
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 1, 0),
       getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle) * 0.9);
 }
 
 //==============================================================================
 void FeedingDemo::moveTowardsPerson(
-    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewer& viewer)
+    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
       = mAda->getTrajectoryExecutor();
@@ -354,11 +374,11 @@ void FeedingDemo::moveTowardsPerson(
       mNodeHandle,
       boost::bind(&Perception::perceiveFace, perception, _1),
       mArmSpace,
+      mAdaMover.get(),
       mAda->getArm()->getMetaSkeleton(),
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
       mCollisionFreeConstraint,
-      viewer,
       0.05,
       1e-3);
   servoClient.start();
@@ -373,7 +393,7 @@ void FeedingDemo::moveTowardsPerson(
 //==============================================================================
 void FeedingDemo::moveAwayFromPerson()
 {
-  bool trajectoryCompleted = moveWithEndEffectorOffset(
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, -1, 0),
       getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle)
           * 0.7);
@@ -383,102 +403,4 @@ void FeedingDemo::moveAwayFromPerson()
   }
 }
 
-//==============================================================================
-bool FeedingDemo::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
-{
-  auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
-
-  auto trajectory = mAda->planToTSR(
-      mArmSpace,
-      mAda->getArm()->getMetaSkeleton(),
-      mAda->getHand()->getEndEffectorBodyNode(),
-      goalTSR,
-      mCollisionFreeConstraint,
-      getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-      getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
-
-  return moveArmOnTrajectory(trajectory);
-}
-
-//==============================================================================
-bool FeedingDemo::moveWithEndEffectorOffset(
-    const Eigen::Vector3d& direction, double length)
-{
-  auto trajectory = mAda->planToEndEffectorOffset(
-      mArmSpace,
-      mAda->getArm()->getMetaSkeleton(),
-      mAda->getHand()->getEndEffectorBodyNode(),
-      mCollisionFreeConstraint,
-      direction,
-      length,
-      getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-      getRosParam<double>(
-          "/planning/endEffectorOffset/positionTolerance", mNodeHandle),
-      getRosParam<double>(
-          "/planning/endEffectorOffset/angularTolerance", mNodeHandle));
-
-  return moveArmOnTrajectory(trajectory, RETIME);
-}
-
-//==============================================================================
-bool FeedingDemo::moveArmToConfiguration(const Eigen::Vector6d& configuration)
-{
-  auto trajectory = mAda->planToConfiguration(
-      mArmSpace,
-      mAda->getArm()->getMetaSkeleton(),
-      configuration,
-      mCollisionFreeConstraint,
-      getRosParam<double>("/planning/timeoutSeconds", mNodeHandle));
-
-  return moveArmOnTrajectory(trajectory, SMOOTH);
-}
-
-//==============================================================================
-bool FeedingDemo::moveArmOnTrajectory(
-    aikido::trajectory::TrajectoryPtr trajectory,
-    TrajectoryPostprocessType postprocessType)
-{
-  if (!trajectory)
-  {
-    throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
-  }
-
-  std::vector<aikido::constraint::ConstTestablePtr> constraints;
-  if (mCollisionFreeConstraint)
-  {
-    constraints.push_back(mCollisionFreeConstraint);
-  }
-  auto testable = std::make_shared<aikido::constraint::TestableIntersection>(
-      mArmSpace, constraints);
-
-  aikido::trajectory::TrajectoryPtr timedTrajectory;
-  switch (postprocessType)
-  {
-    case RETIME:
-      timedTrajectory = mAda->retimePath(
-          mAda->getArm()->getMetaSkeleton(), trajectory.get());
-      break;
-
-    case SMOOTH:
-      timedTrajectory = mAda->smoothPath(
-          mAda->getArm()->getMetaSkeleton(), trajectory.get(), testable);
-      break;
-
-    default:
-      throw std::runtime_error(
-          "Feeding demo: Unexpected trajectory post processing type!");
-  }
-
-  auto future = mAda->executeTrajectory(std::move(timedTrajectory));
-  try
-  {
-    future.get();
-  }
-  catch (const std::exception& e)
-  {
-    ROS_INFO_STREAM("trajectory execution failed: " << e.what());
-    return false;
-  }
-  return true;
-}
 };

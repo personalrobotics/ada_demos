@@ -103,7 +103,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
   auto perceivedFood = mWorld->getSkeleton(mPerceivedFoodName);
   if (perceivedFood != nullptr)
   {
-    foodTransform = Eigen::Isometry3d::Identity();
+    foodTransform.setIdentity();
     foodTransform.translation()
         = perceivedFood->getBodyNode(0)->getWorldTransform().translation();
 

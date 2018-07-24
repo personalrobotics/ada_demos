@@ -82,11 +82,12 @@ int main(int argc, char** argv)
       nodeHandle);
 
   // visualization
-  aikido::rviz::WorldInteractiveMarkerViewer viewer(
+  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = 
+  std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
       feedingDemo.getWorld(),
       getRosParam<std::string>("/visualization/topicName", nodeHandle),
       getRosParam<std::string>("/visualization/baseFrameName", nodeHandle));
-  viewer.setAutoUpdate(true);
+  viewer->setAutoUpdate(true);
 
   std::string collisionCheckResult;
   if (!feedingDemo.isCollisionFree(collisionCheckResult))
