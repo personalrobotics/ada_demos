@@ -206,7 +206,7 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  feedingDemo.moveTowardsPerson();
+  feedingDemo.moveTowardsPerson(&perception, viewer);
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
           getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
