@@ -187,12 +187,12 @@ int main(int argc, char** argv)
   std::vector<dart::dynamics::SimpleFramePtr> frames;
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
-
+    // 20 - 56
   for (int i= 20; i<=56; i+=1) {
     double angle = 0.1745*i;
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
-      0.425 + sin(angle)*0.1 + cos(angle)*-0.05,
-      0.15 - cos(angle)*0.1 + sin(angle)*-0.05,
+      0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
+      0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
       0.05, 3.58, 0, angle)); if
     (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
     {

@@ -333,10 +333,10 @@ Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews(const Eigen::Isomet
 
 
   std::vector<int> inliers;
-  cv::Mat cb_rvec;
-  cv::Mat cb_tvec;
+  cv::Mat cb_rvec = (cv::Mat_<double>(3,1) << -2.120, 0.206, -2.076);
+  cv::Mat cb_tvec = (cv::Mat_<double>(3,1) << -0.021, 0.043, -0.094);
   cv::Mat cb_rmat;
-
+  
   cv::solvePnP(
       modelPoints,
       corners,
@@ -344,12 +344,15 @@ Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews(const Eigen::Isomet
       mCameraModel.distortionCoeffs(),
       cb_rvec,
       cb_tvec,
-      false);
+      true, CV_ITERATIVE);
 
   std::cout << "inliers: " << inliers.size() << std::endl;
 
   std::vector<cv::Point2f> imagePoints;
   cv::projectPoints(modelPoints, cb_rvec, cb_tvec, mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
+
+  std::cout << "rvec: " << cb_rvec << std::endl;
+  std::cout << "tvec: " << cb_tvec << std::endl;
 
   cv::Rodrigues(cb_rvec, cb_rmat);
 
