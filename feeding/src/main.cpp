@@ -121,6 +121,7 @@ int main(int argc, char** argv)
     {
       return 0;
     }
+
   Eigen::Isometry3d foodTransform;
   if (adaReal)
   {
@@ -198,6 +199,10 @@ int main(int argc, char** argv)
   }
   feedingDemo.moveInFrontOfPerson();
 
+  // while (true) {
+  //     Eigen::Isometry3d faceTransform;
+  //   bool perceptionSuccessful = perception.perceiveFace(faceTransform);
+  // }
   // ===== TOWARDS PERSON =====
   if (!autoContinueDemo)
   {
@@ -206,7 +211,9 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  feedingDemo.moveTowardsPerson();
+
+  feedingDemo.moveTowardsPerson(&perception, viewer);
+  ROS_WARN("Human is eating");
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
           getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));

@@ -44,7 +44,6 @@ FeedingDemo::FeedingDemo(
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
           mWorkspace->getTable().get(),
-          mWorkspace->getPerson().get(),
           mWorkspace->getWorkspaceEnvironment().get(),
           mWorkspace->getWheelchair().get());
   mCollisionFreeConstraint
@@ -285,6 +284,12 @@ void FeedingDemo::moveIntoFood(
 
   servoClient->wait(20.0); 
   */
+
+  int numDofs = mAda->getArm()->getMetaSkeleton()->getNumDofs();
+  Eigen::VectorXd velocityLimits = Eigen::VectorXd::Zero(numDofs);
+  for (int i=0; i<numDofs; i++)
+  velocityLimits[i] = 0.2;
+
   PerceptionServoClient servoClient
   (
       mNodeHandle,
@@ -296,7 +301,8 @@ void FeedingDemo::moveIntoFood(
       rosExecutor,
       mCollisionFreeConstraint,
       0.1,
-      5e-3);
+      5e-3,
+      velocityLimits);
   servoClient.start();
 
   servoClient.wait(10.0);
@@ -326,10 +332,7 @@ void FeedingDemo::moveInFrontOfPerson()
 
   aikido::constraint::dart::TSR personTSR;
   Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = mWorkspace->getPerson()
-                                 ->getRootBodyNode()
-                                 ->getWorldTransform()
-                                 .translation();
+  personPose.translation() = mWorkspace->getPersonPose().translation();
   personPose.linear()
       = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
@@ -370,6 +373,11 @@ void FeedingDemo::moveTowardsPerson(
     throw std::runtime_error("no ros executor");
   }
 
+  int numDofs = mAda->getArm()->getMetaSkeleton()->getNumDofs();
+  Eigen::VectorXd velocityLimits = Eigen::VectorXd::Zero(numDofs);
+  for (int i=0; i<numDofs; i++)
+  velocityLimits[i] = 0.1;
+
   feeding::PerceptionServoClient servoClient(
       mNodeHandle,
       boost::bind(&Perception::perceiveFace, perception, _1),
@@ -380,14 +388,16 @@ void FeedingDemo::moveTowardsPerson(
       rosExecutor,
       mCollisionFreeConstraint,
       0.05,
-      1e-3);
+      1e-3,
+      velocityLimits);
   servoClient.start();
+  servoClient.wait(10);
 
-  while (perception->isMouthOpen() && ros::ok())
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-  servoClient.stop();
+//   while (perception->isMouthOpen() && ros::ok())
+//   {
+//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+//   }
+//   servoClient.stop();
 }
 
 //==============================================================================

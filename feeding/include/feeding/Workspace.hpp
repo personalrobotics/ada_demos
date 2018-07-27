@@ -47,6 +47,8 @@ public:
   /// Gets the wheelchair
   dart::dynamics::ConstSkeletonPtr getWheelchair() const;
 
+  Eigen::Isometry3d getPersonPose() const;
+
   /// Removes the default food item from the world.
   void deleteFood();
 
@@ -61,6 +63,8 @@ private:
   dart::dynamics::SkeletonPtr mDefaultFoodItem;
   dart::dynamics::SkeletonPtr mPerson;
   dart::dynamics::SkeletonPtr mWheelchair;
+
+  Eigen::Isometry3d mPersonPose;
 
   /// Takes a skeleton pointer, fills it with a new skeleton and adds that to
   /// the world.

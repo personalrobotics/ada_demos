@@ -29,13 +29,13 @@ plate:
   pose: [.425, 0.15, 0.0, 0, 0, 0]
 table:
   urdfUri: package://pr_ordata/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.735, 0, 0, 0]
+  pose: [0.76, 0.38, -0.72, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_ordata/data/objects/food_item.urdf
   pose: [.425, 0.15, 0.00, 0, 0, 0]
 person: # the mannequin
   urdfUri: package://pr_ordata/data/objects/tom.urdf
-  pose: [0.425, -0.45, 0.462, 0, 0, 3.1415]
+  pose: [0.425, -0.45, 0.502, 0, 0, 3.1415]
 workspaceEnvironment:
   urdfUri: package://pr_ordata/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0, 0, 0, 0]
@@ -85,8 +85,9 @@ ftSensor:
 # Perception parameters
 perception:
   detectorDataUri: package://pr_ordata/data/objects/tag_data_foods.json
-  detectorTopicName: /deep_pose/marker_array
+  foodDetectorTopicName: /deep_pose/marker_array
+  faceDetectorTopicName: /face_pose
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
   foodName: apricot_1
-  faceName: apricot_1
+  faceName: mouth

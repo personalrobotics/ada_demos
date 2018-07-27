@@ -16,8 +16,10 @@ Perception::Perception(
       = getRosParam<std::string>("/perception/detectorDataUri", mNodeHandle);
   std::string referenceFrameName
       = getRosParam<std::string>("/perception/referenceFrameName", mNodeHandle);
-  std::string detectorTopicName
-      = getRosParam<std::string>("/perception/detectorTopicName", mNodeHandle);
+  std::string foodDetectorTopicName
+      = getRosParam<std::string>("/perception/foodDetectorTopicName", mNodeHandle);
+  std::string faceDetectorTopicName
+      = getRosParam<std::string>("/perception/faceDetectorTopicName", mNodeHandle);
 
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
@@ -25,10 +27,20 @@ Perception::Perception(
   mObjectDatabase = std::make_shared<aikido::perception::ObjectDatabase>(
       resourceRetriever, detectorDataURI);
 
-  mObjDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
+  mFoodDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
           mNodeHandle,
-          detectorTopicName,
+          foodDetectorTopicName,
+          mObjectDatabase,
+          resourceRetriever,
+          referenceFrameName,
+          aikido::robot::util::getBodyNodeOrThrow(
+              *adasMetaSkeleton, referenceFrameName)));
+
+  mFaceDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
+      new aikido::perception::PoseEstimatorModule(
+          mNodeHandle,
+          faceDetectorTopicName,
           mObjectDatabase,
           resourceRetriever,
           referenceFrameName,
@@ -41,6 +53,8 @@ Perception::Perception(
       = getRosParam<std::string>("/perception/foodName", mNodeHandle);
   mPerceivedFaceName
       = getRosParam<std::string>("/perception/faceName", mNodeHandle);
+
+      mLastPerceivedFoodTransform.translation().z() = 0.28;
 }
 
 Eigen::Isometry3d getOpticalToWorld(tf::TransformListener& tfListener)
@@ -85,7 +99,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 
   tf::TransformListener tfListener;
 
-  mObjDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
+  mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
 
   // just choose one for now
   auto perceivedFood = mWorld->getSkeleton(mPerceivedFoodName);
@@ -97,15 +111,16 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 
     if (foodTransform.translation().z() < 0.26)
     {
-      ROS_WARN("Food below table!");
+      ROS_WARN_STREAM("Food below table!   " << foodTransform.matrix());
       Eigen::Vector3d start(foodTransform.translation());
       Eigen::Vector3d end(getOpticalToWorld(tfListener).translation());
       Eigen::ParametrizedLine<double, 3> line(
           start, (end - start).normalized());
       // TODO(daniel): Rotation needs to be adjusted if camera doesn't point
       // straight downwards
+      ROS_INFO_STREAM("last perceived food transform: " << mLastPerceivedFoodTransform.matrix());
       Eigen::Hyperplane<double, 3> plane(
-          mLastPerceivedFoodTransform.linear() * Eigen::Vector3d(0, 0, 1),
+          /*mLastPerceivedFoodTransform.linear() */ Eigen::Vector3d(0, 0, 1),
           Eigen::Vector3d(mLastPerceivedFoodTransform.translation()));
       Eigen::Vector3d intersection = line.intersectionPoint(plane);
       foodTransform.translation() = intersection;
@@ -119,6 +134,8 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
     }
 
     mLastPerceivedFoodTransform = foodTransform;
+    Eigen::Vector3d foodTranslation(foodTransform.translation().x(), foodTransform.translation().y(), foodTransform.translation().z() - 0.02);
+    foodTransform.translation() = foodTranslation;
     return true;
   }
   else
@@ -129,7 +146,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 
 bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
 {
-  mObjDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
+  mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
 
   // just choose one for now
   auto perceivedFace = mWorld->getSkeleton(mPerceivedFaceName);

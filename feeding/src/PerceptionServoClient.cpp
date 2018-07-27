@@ -45,7 +45,8 @@ PerceptionServoClient::PerceptionServoClient(
         trajectoryExecutor,
     aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
     double perceptionUpdateTime,
-    double goalPoseUpdateTolerance)
+    double goalPoseUpdateTolerance,
+    const Eigen::VectorXd& veloctiyLimits)
   : mNode(node, "perceptionServo")
   , mGetTransform(getTransform)
   , mMetaSkeletonStateSpace(std::move(metaSkeletonStateSpace))
@@ -79,7 +80,7 @@ PerceptionServoClient::PerceptionServoClient(
       = mMetaSkeleton->getAccelerationLowerLimits();
   Eigen::VectorXd accelerationUpperLimits
       = mMetaSkeleton->getAccelerationUpperLimits();
-  mMaxVelocity = getSymmetricLimits(velocityLowerLimits, velocityUpperLimits);
+  mMaxVelocity = veloctiyLimits;
   mMaxAcceleration
       = getSymmetricLimits(accelerationLowerLimits, accelerationUpperLimits);
 
@@ -276,9 +277,9 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   endEffectorTransform.linear() = rotationMatrix;
   bool successful = mGetTransform(goalPose);
   goalPose = goalPose * endEffectorTransform;
-  if (goalPose.translation().z() < 0.26)
+  if (goalPose.translation().z() < 0.235)
   {
-    ROS_WARN("Food STILL below table!");
+    ROS_WARN_STREAM("Food STILL below table!   " << goalPose.matrix());
     return false;
   }
   return successful;
@@ -296,14 +297,10 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   using aikido::trajectory::Interpolated;
   using aikido::trajectory::Spline;
 
-  Eigen::Vector3d goalTranslation(goalPose.translation().x(), goalPose.translation().y(), goalPose.translation().z());
-  Eigen::Isometry3d liftedGoalPose = goalPose;
-  liftedGoalPose.translation() = goalTranslation;
-
   // ROS_INFO_STREAM("Goal pose: " << liftedGoalPose.translation().matrix());
 
   Eigen::Isometry3d startPose = mBodyNode->getTransform();
-  Eigen::Vector3d difference = liftedGoalPose.translation() - startPose.translation();
+  Eigen::Vector3d difference = goalPose.translation() - startPose.translation();
   double length = std::min(difference.norm(), 0.05);
   if (length < 0.002) {
     mExecutionDone = true;

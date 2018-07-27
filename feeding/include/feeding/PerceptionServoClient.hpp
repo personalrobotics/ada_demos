@@ -33,7 +33,8 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW
           trajectoryExecutor,
       aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
       double perceptionUpdateTime,
-      double goalPoseUpdateTolerance);
+      double goalPoseUpdateTolerance,
+      const Eigen::VectorXd& veloctiyLimits);
   virtual ~PerceptionServoClient();
 
   void start();
