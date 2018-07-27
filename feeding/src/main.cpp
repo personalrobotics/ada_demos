@@ -211,7 +211,6 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-
   feedingDemo.moveTowardsPerson(&perception, viewer);
   ROS_WARN("Human is eating");
   std::this_thread::sleep_for(

@@ -392,7 +392,7 @@ void FeedingDemo::moveTowardsPerson(
       velocityLimits);
   servoClient.start();
   servoClient.wait(10);
-
+  
 //   while (perception->isMouthOpen() && ros::ok())
 //   {
 //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
