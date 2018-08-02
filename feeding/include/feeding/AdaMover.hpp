@@ -10,6 +10,7 @@ enum TrajectoryPostprocessType
 {
   RETIME,
   SMOOTH,
+  TRYOPTIMALRETIME
 };
 
 class AdaMover {

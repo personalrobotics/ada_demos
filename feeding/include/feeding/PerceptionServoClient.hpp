@@ -58,6 +58,8 @@ protected:
       const aikido::trajectory::TrajectoryPtr traj,
       double constantVelocity);
 
+  double getElapsedTime();
+
   ::ros::NodeHandle mNode;
   boost::function<bool(Eigen::Isometry3d&)> mGetTransform;
   /// Meta skeleton state space.
@@ -101,6 +103,8 @@ protected:
   std::mutex timerMutex;
 
   AdaMover* mAdaMover;
+
+  std::chrono::time_point<std::chrono::system_clock> mStartTime;
 };
 
 }
