@@ -10,7 +10,15 @@ Perception::Perception(
     aikido::planner::WorldPtr world,
     dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
     ros::NodeHandle nodeHandle)
-  : mWorld(world), mNodeHandle(nodeHandle)
+  : mWorld(world), mNodeHandle(nodeHandle),
+  mCheckerboardPerception(
+      nodeHandle,
+      "/camera/color/image_raw/compressed",
+      "/camera/color/camera_info",
+      true,
+      9,
+      6,
+      0.01065)
 {
   std::string detectorDataURI
       = getRosParam<std::string>("/perception/detectorDataUri", mNodeHandle);
