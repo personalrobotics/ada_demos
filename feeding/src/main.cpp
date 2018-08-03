@@ -92,7 +92,7 @@ int main(int argc, char** argv)
   std::string collisionCheckResult;
   if (!feedingDemo.isCollisionFree(collisionCheckResult))
   {
-    throw std::runtime_error(collisionCheckResult);
+    //throw std::runtime_error(collisionCheckResult);
   }
 
   ftThresholdHelper.init();
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
   Eigen::Isometry3d foodTransform;
   if (adaReal)
   {
-    bool perceptionSuccessful = perception.perceiveFood(foodTransform);
+    bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
     if (!perceptionSuccessful)
       throw std::runtime_error("Perception failed");
   }
@@ -220,6 +220,9 @@ int main(int argc, char** argv)
 
   // ===== AWAY FROM PERSON =====
   feedingDemo.moveAwayFromPerson();
+
+
+  feedingDemo.moveInFrontOfPerson();
 
   // ===== BACK TO PLATE =====
   if (!autoContinueDemo)

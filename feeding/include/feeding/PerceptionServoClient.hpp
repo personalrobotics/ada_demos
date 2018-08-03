@@ -54,6 +54,8 @@ protected:
   aikido::trajectory::SplinePtr planToGoalPose(
       const Eigen::Isometry3d& goalPose);
 
+  double getElapsedTime();
+
   ::ros::NodeHandle mNode;
   boost::function<bool(Eigen::Isometry3d&)> mGetTransform;
   /// Meta skeleton state space.
@@ -85,6 +87,8 @@ protected:
   Eigen::VectorXd mCurrentPosition;
   Eigen::VectorXd mCurrentVelocity;
 
+  Eigen::Isometry3d mOriginalPose;
+
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
 
   std::vector<dart::dynamics::SimpleFramePtr> mFrames;
@@ -97,6 +101,8 @@ protected:
   std::mutex timerMutex;
 
   AdaMover* mAdaMover;
+
+  std::chrono::time_point<std::chrono::system_clock> mStartTime;
 };
 
 }

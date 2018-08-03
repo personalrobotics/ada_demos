@@ -33,7 +33,7 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
 bool AdaMover::moveToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length)
 {
-  return moveArmOnTrajectory(planToEndEffectorOffset(direction, length), RETIME);
+  return moveArmOnTrajectory(planToEndEffectorOffset(direction, length), TRYOPTIMALRETIME);
 }
 
 //==============================================================================
@@ -97,6 +97,18 @@ bool AdaMover::moveArmOnTrajectory(
       timedTrajectory = mAda.smoothPath(
           mAda.getArm()->getMetaSkeleton(), trajectory.get(), testable);
       break;
+
+    case TRYOPTIMALRETIME:
+      timedTrajectory
+            = mAda.retimeTimeOptimalPath(mAda.getArm()->getMetaSkeleton(), trajectory.get());
+        
+        if(!timedTrajectory)
+        {
+          // If using time-optimal retining failed, back to parabolic timing
+          timedTrajectory = mAda.retimePath(
+            mAda.getArm()->getMetaSkeleton(), trajectory.get());
+        }
+        break;
 
     default:
       throw std::runtime_error(

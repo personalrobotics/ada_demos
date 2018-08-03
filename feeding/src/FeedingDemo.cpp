@@ -376,7 +376,7 @@ void FeedingDemo::moveTowardsPerson(
   int numDofs = mAda->getArm()->getMetaSkeleton()->getNumDofs();
   Eigen::VectorXd velocityLimits = Eigen::VectorXd::Zero(numDofs);
   for (int i=0; i<numDofs; i++)
-  velocityLimits[i] = 0.1;
+    velocityLimits[i] = 0.1;
 
   feeding::PerceptionServoClient servoClient(
       mNodeHandle,
@@ -387,12 +387,12 @@ void FeedingDemo::moveTowardsPerson(
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
       mCollisionFreeConstraint,
-      0.05,
+      0.5,
       1e-3,
       velocityLimits);
   servoClient.start();
-  servoClient.wait(10);
-  
+  servoClient.wait(30);
+
 //   while (perception->isMouthOpen() && ros::ok())
 //   {
 //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
