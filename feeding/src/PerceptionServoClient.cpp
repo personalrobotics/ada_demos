@@ -212,7 +212,6 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
                             (std::chrono::steady_clock::now() - start);
       ROS_INFO_STREAM("Planning took " << duration.count() << " millisecs");
 
-
       ROS_INFO("Aborting old trajectory");
 
       start = std::chrono::steady_clock::now();
@@ -383,12 +382,6 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   return nullptr;
 }
 
-std::unique_ptr<aikido::trajectory::Spline> timeTrajectoryUsingConstantVelocity(
-    const aikido::trajectory::TrajectoryPtr traj,
-    std::vector<double>& constantVelocity)
-{
-  
-  return nullptr;
-}
+
 
 } // namespace feeding

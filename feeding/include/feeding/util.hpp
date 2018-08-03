@@ -93,6 +93,10 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
     const Eigen::VectorXd& maxVelocity,
     const Eigen::VectorXd& maxAcceleration);
 
+double findClosetStateOnTrajectory(const aikido::trajectory::Trajectory* traj,
+                                   const Eigen::VectorXd& config,
+                                   double timeStep=0.01);
+
 void printStateWithTime(
     double t,
     std::size_t dimension,
