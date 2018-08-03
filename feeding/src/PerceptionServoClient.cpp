@@ -409,17 +409,25 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     return nullptr;
   } else {
 
-    aikido::trajectory::Spline* spline1, spline2;
+    aikido::trajectory::Spline* spline1 = nullptr;
+    aikido::trajectory::Spline* spline2 = nullptr;
+    aikido::trajectory::TrajectoryPtr trajectory1;
+    aikido::trajectory::TrajectoryPtr trajectory2;
 
     Eigen::VectorXd currentConfig = mMetaSkeleton->getPositions();
+
+    ROS_INFO_STREAM("original: " << mOriginalPose.matrix());
+    ROS_INFO_STREAM("current:  " << currentPose.matrix());
+    ROS_INFO_STREAM("goal:     " << goalPose.matrix());
+    ROS_INFO_STREAM("configuration: " << currentConfig.matrix().transpose());
 
     Eigen::Vector3d direction1 = currentPose.translation() - mOriginalPose.translation();
 
     if(direction1.norm()>1e-2)
     {
       MetaSkeletonStateSaver saver1(mMetaSkeleton);
-      aikido::trajectory::TrajectoryPtr trajectory1 = mAdaMover->planToEndEffectorOffset(direction1.normalized(), direction1.norm());
-      if(trajectory1==nulltpr)
+      trajectory1 = mAdaMover->planToEndEffectorOffset(direction1.normalized(), direction1.norm());
+      if(trajectory1==nullptr)
         throw std::runtime_error("Failed in finding the first half");
       spline1 = dynamic_cast<aikido::trajectory::Spline*>(trajectory1.get());
     }
@@ -433,7 +441,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 
     {
       MetaSkeletonStateSaver saver2(mMetaSkeleton);
-      aikido::trajectory::TrajectoryPtr trajectory2 = mAdaMover->planToEndEffectorOffset(direction2.normalized(), direction2.norm());
+      trajectory2 = mAdaMover->planToEndEffectorOffset(direction2.normalized(), direction2.norm());
       if(trajectory2==nullptr)
         throw std::runtime_error("Failed in finding the second half");
       spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
@@ -454,16 +462,26 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 
       auto timedTraj = computeKinodynamicTiming(*concatenatedTraj,
 	                                              mMaxVelocity,
-		                                            mMaxAcceleration);
-      dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
+		                                            mMaxAcceleration,
+                                      1e-2,
+                                      3e-3);
 
       if(timedTraj==nullptr)
         return nullptr;
+
+      dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
 
       double refTime = findClosetStateOnTrajectory(timedTraj.get(),
                                                    currentConfig);
 
       auto partialTimedTraj = createPartialTrajectory(*timedTraj, refTime);
+
+      auto tempState = partialTimedTraj->getStateSpace()->createState();
+      partialTimedTraj->evaluate(0, tempState);
+      Eigen::VectorXd tempStateVec(partialTimedTraj->getStateSpace()->getDimension());
+      partialTimedTraj->getStateSpace()->logMap(tempState, tempStateVec);
+      ROS_INFO_STREAM("Config at partial trajectory start: " << tempStateVec.matrix().transpose());
+      
 
       dumpSplinePhasePlot(*partialTimedTraj, "partialTimed.txt", 0.01);
       return std::move(partialTimedTraj);
@@ -471,13 +489,19 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     else
     {
       dumpSplinePhasePlot(*spline2, "spline2.txt", 0.01);
-      /*
+      
       auto timedTraj = computeKinodynamicTiming(*spline2,
                                                 mMaxVelocity,
-                                                mMaxAcceleration);
+                                                mMaxAcceleration,
+                                      1e-2,
+                                      3e-3);
+
+      if(timedTraj==nullptr)
+        return nullptr;
+
       dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
 
-      return std::move(timedTraj);*/
+      return std::move(timedTraj);
     }
   }
 }

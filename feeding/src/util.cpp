@@ -435,22 +435,20 @@ void dumpSplinePhasePlot(
   auto stateSpace = spline.getStateSpace();
   std::size_t dim = stateSpace->getDimension();
 
+  aikido::common::StepSequence sequence(
+        timeStep, true, true, spline.getStartTime(), spline.getEndTime());
   auto state = stateSpace->createState();
   Eigen::VectorXd stateVec(dim);
   Eigen::VectorXd velocityVec(dim);
-  double t = spline.getStartTime();
-  while (t + timeStep < spline.getEndTime())
+
+  for (std::size_t i = 0; i < sequence.getLength(); i++)
   {
+    double t = sequence[i];
     spline.evaluate(t, state);
     spline.evaluateDerivative(t, 1, velocityVec);
     stateSpace->logMap(state, stateVec);
     printStateWithTime(t, dim, stateVec, velocityVec, phasePlotFile);
-    t += timeStep;
   }
-  spline.evaluate(spline.getEndTime(), state);
-  spline.evaluateDerivative(spline.getEndTime(), 1, velocityVec);
-  stateSpace->logMap(state, stateVec);
-  printStateWithTime(t, dim, stateVec, velocityVec, phasePlotFile);
 
   phasePlotFile.close();
   return;
@@ -533,17 +531,20 @@ std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido
       traj.evaluateDerivative(currSegmentEndTime, 1, segEndVel);
 
       double segmentDuration = currSegmentEndTime - partialStartTime;
-      CubicSplineProblem problem(
+
+      if(segmentDuration > 0.0)
+      {
+        CubicSplineProblem problem(
           Eigen::Vector2d{0., segmentDuration}, 4, dimension);
-      problem.addConstantConstraint(0, 0, zeroPos);
-      problem.addConstantConstraint(0, 1, segStartVel);
-      problem.addConstantConstraint(1, 0, segEndPos - segStartPos);
-      problem.addConstantConstraint(1, 1, segEndVel);
-      const auto solution = problem.fit();
-      const auto coefficients = solution.getCoefficients().front();
+        problem.addConstantConstraint(0, 0, zeroPos);
+        problem.addConstantConstraint(0, 1, segStartVel);
+        problem.addConstantConstraint(1, 0, segEndPos - segStartPos);
+        problem.addConstantConstraint(1, 1, segEndVel);
+        const auto solution = problem.fit();
+        const auto coefficients = solution.getCoefficients().front();
 
-      outputTrajectory->addSegment(coefficients, segmentDuration, segmentStartState);
-
+        outputTrajectory->addSegment(coefficients, segmentDuration, segmentStartState);
+      }
       break;
     } 
 
@@ -553,7 +554,7 @@ std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido
 
   for(std::size_t i=currSegmentIdx+1; i<traj.getNumSegments();i++)
   {
-    std::cout << "CONTINUE ADDING " << i << "-th SEGMENT" << std::endl;
+    // std::cout << "CONTINUE ADDING " << i << "-th SEGMENT" << std::endl;
     outputTrajectory->addSegment(traj.getSegmentCoefficients(i),
                                  traj.getSegmentDuration(i),
                                  traj.getSegmentState(i));
@@ -565,6 +566,10 @@ std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido
 std::unique_ptr<aikido::trajectory::Spline> concatenate(const aikido::trajectory::Spline& traj1,
                                                         const aikido::trajectory::Spline& traj2)
 {
+  auto statespace1 = traj1.getStateSpace();
+  auto dim1 = statespace1->getDimension();
+  auto statespace2 = traj2.getStateSpace();
+  auto dim2 = statespace2->getDimension();
   if(traj1.getStateSpace()->getDimension()!=traj2.getStateSpace()->getDimension())
     throw std::runtime_error("Dimension mismatch");
 
@@ -587,6 +592,8 @@ std::unique_ptr<aikido::trajectory::Spline> concatenate(const aikido::trajectory
   auto startStateInFirstSegmentInTraj2 = traj2.getSegmentState(0);
   const Eigen::VectorXd zeroPosition = Eigen::VectorXd::Zero(dimension);
   Eigen::VectorXd currPosition(dimension), nextPosition(dimension);
+  stateSpace->logMap(startStateInLastSegmentInTraj1, currPosition);
+  stateSpace->logMap(startStateInFirstSegmentInTraj2, nextPosition);
 
   using CubicSplineProblem = aikido::common::
       SplineProblem<double, int, 2, Eigen::Dynamic, Eigen::Dynamic>;

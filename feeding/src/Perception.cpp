@@ -148,7 +148,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform, bool onlyPerceiv
         currentFoodTransform.translation()
           = currentPerceivedFood->getBodyNode(0)->getWorldTransform().translation();
       
-      Eigen::Vector3d diffVector = currentFoodTransform.translation() - forqueTransform.translation();
+      Eigen::Vector3d diffVector = currentFoodTransform.translation() - forqueTransform.translation() - Eigen::Vector3d(0,0,0.07);
       diffVector *= 1.0 / diffVector.z();
       
       double currentDistFromForque = (currentFoodTransform.translation() - forqueTransform.translation()).norm();
