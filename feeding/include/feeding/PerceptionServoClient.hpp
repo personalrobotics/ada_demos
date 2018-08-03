@@ -91,6 +91,8 @@ protected:
   Eigen::VectorXd mCurrentPosition;
   Eigen::VectorXd mCurrentVelocity;
 
+  Eigen::Isometry3d mOriginalPose;
+
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
 
   std::vector<dart::dynamics::SimpleFramePtr> mFrames;

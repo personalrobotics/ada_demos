@@ -85,6 +85,8 @@ PerceptionServoClient::PerceptionServoClient(
 
   mCurrentPosition = Eigen::VectorXd::Zero(mMetaSkeleton->getNumDofs());
   mCurrentVelocity = Eigen::VectorXd::Zero(mMetaSkeleton->getNumDofs());
+
+  mOriginalPose = mBodyNode->getTransform();
 }
 
 //==============================================================================
@@ -340,11 +342,11 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   using aikido::trajectory::Spline;
 
   std::cout << "BEFORE PLANNING " << mCurrentVelocity.matrix().transpose() << std::endl;
-  Eigen::Isometry3d startPose = mBodyNode->getTransform();
+  Eigen::Isometry3d currentPose = mBodyNode->getTransform();
 
   bool useOldPlanning = false;
   if (useOldPlanning) {
-    Eigen::Vector3d difference = goalPose.translation() - startPose.translation();
+    Eigen::Vector3d difference = goalPose.translation() - currentPose.translation();
     double length = std::min(difference.norm(), difference.norm());
     if (length < 0.002) {
       ROS_INFO("aborting because end position");
@@ -407,16 +409,25 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 
     return nullptr;
   } else {
-    aikido::Trajectory trajectory1;
-    aikido::Trajectory trajectory2;
+    aikido::trajectory::TrajectoryPtr trajectory1;
+    aikido::trajectory::TrajectoryPtr trajectory2;
+
+    Eigen::Vector3d direction1 = currentPose.translation() - mOriginalPose.translation();
+
+    Eigen::Vector3d direction2 = goalPose.translation() - currentPose.translation();
+    if (direction2.norm() < 0.002) {
+      ROS_INFO("aborting because already near goal position");
+      mExecutionDone = true;
+      return nullptr;
+    }
 
     {
-      MetaSkeletonStateSaver saver1(ada->metaskeleton());
-      trajectory1 = mAdaMover->planToEndEffectorOffset(direction1, length1);
+      MetaSkeletonStateSaver saver1(mMetaSkeleton);
+      trajectory1 = mAdaMover->planToEndEffectorOffset(direction1.normalized(), direction1.norm());
     }
     {
-      MetaSkeletonStateSaver saver2(ada->metaskeleton());
-      trajectory2 = mAdaMover->planToEndEffectorOffset(direction2, length2);
+      MetaSkeletonStateSaver saver2(mMetaSkeleton);
+      trajectory2 = mAdaMover->planToEndEffectorOffset(direction2.normalized(), direction2.norm());
     }
 
     // auto concatenatedTrajectory = concatenateTrajectories(trajectory1, trajectory2);
