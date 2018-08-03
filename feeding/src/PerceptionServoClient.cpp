@@ -446,9 +446,15 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     if(concatenatedTraj==nullptr)
       return nullptr;
    
+    dumpSplinePhasePlot(*spline1, "spline1.txt", 0.01);
+    dumpSplinePhasePlot(*spline2, "spline2.txt", 0.01);
+    dumpSplinePhasePlot(*concatenatedTraj, "concatenated.txt", 0.01);
+
     auto timedTraj = computeKinodynamicTiming(*concatenatedTraj,
 	                                      mMaxVelocity,
 		                              mMaxAcceleration);
+
+    dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
     
     if(timedTraj==nullptr)
       return nullptr;
@@ -458,6 +464,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     
     auto partialTimedTraj = createPartialTrajectory(*timedTraj, refTime);
     
+    dumpSplinePhasePlot(*partialTimedTraj, "partialTimed.txt", 0.01);
     return std::move(partialTimedTraj);
   }
 }
