@@ -12,6 +12,7 @@ add_executable(feeding
   src/util.cpp
   src/PerceptionServoClient.cpp
   src/external/ParabolicRamp.cpp
+  src/CheckerboardPerception.cpp
 )
 
 include_directories(include)

@@ -5,6 +5,7 @@
 #include <aikido/perception/PoseEstimatorModule.hpp>
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
+#include "feeding/CheckerboardPerception.hpp"
 
 namespace feeding {
 
@@ -38,6 +39,8 @@ public:
 
   bool perceiveFace(Eigen::Isometry3d& faceTransform);
 
+  bool perceiveCheckerboard(Eigen::Isometry3d& checkerboardCornerTransform);
+
   bool isMouthOpen();
 
   Eigen::Isometry3d getForqueTransform();
@@ -46,6 +49,7 @@ public:
 
 private:
 
+  CheckerboardPerception mCheckerboardPerception;
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
   ros::NodeHandle& mNodeHandle;

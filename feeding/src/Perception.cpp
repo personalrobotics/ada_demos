@@ -238,4 +238,9 @@ bool Perception::isMouthOpen()
   // return mObjectDatabase->mObjData["faceStatus"].as<bool>();
   return true;
 }
+
+bool Perception::perceiveCheckerboard(Eigen::Isometry3d& checkerboardCornerTransform) {
+    return mCheckerboardPerception.perceiveCheckerboard(checkerboardCornerTransform);
+}
+
 }
