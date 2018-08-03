@@ -34,11 +34,19 @@ public:
   /// \return True if a food item was found.
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
+  bool perceiveFood(Eigen::Isometry3d& foodTransform, bool onlyPerceiveFoodRightBelow);
+
   bool perceiveFace(Eigen::Isometry3d& faceTransform);
 
   bool isMouthOpen();
 
+  Eigen::Isometry3d getForqueTransform();
+
+  Eigen::Isometry3d getOpticalToWorld();
+
 private:
+
+  tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
   ros::NodeHandle& mNodeHandle;
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFoodDetector;

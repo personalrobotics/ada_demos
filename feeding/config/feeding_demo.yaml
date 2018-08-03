@@ -29,7 +29,7 @@ plate:
   pose: [.425, 0.15, 0.0, 0, 0, 0]
 table:
   urdfUri: package://pr_ordata/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.72, 0, 0, 0]
+  pose: [0.74, 0.38, -0.71, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_ordata/data/objects/food_item.urdf
   pose: [.425, 0.15, 0.00, 0, 0, 0]
@@ -90,5 +90,5 @@ perception:
   faceDetectorTopicName: /face_pose
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
-  foodName: apricot_1
+  foodName: cherry tomato
   faceName: mouth

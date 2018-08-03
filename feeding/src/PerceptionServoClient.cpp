@@ -126,7 +126,7 @@ void PerceptionServoClient::jointStateUpdateCallback(const sensor_msgs::JointSta
     mCurrentPosition[i] = msg->position[i];  
   }
 
-  ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Joint States updated:   " << mCurrentVelocity[0] << ", "<< mCurrentVelocity[1] << ", "<< mCurrentVelocity[2]);
+  // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Joint States updated:   " << mCurrentVelocity[0] << ", "<< mCurrentVelocity[1] << ", "<< mCurrentVelocity[2]);
 }
 
 double PerceptionServoClient::getElapsedTime() {
@@ -178,7 +178,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
   }
   using aikido::planner::vectorfield::computeGeodesicDistance;
 
-  ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Update callback start");
+  // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Update callback start");
   if (mExecutionDone)
   {
     timerMutex.unlock();
@@ -216,12 +216,13 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     {
       // Generate a new reference trajectory to the goal pose
       auto start = std::chrono::steady_clock::now();
-      ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Planning start");
+      // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Planning start");
       mCurrentTrajectory = planToGoalPose(mGoalPose);
-      Eigen::VectorXd desiredVec(6);
-      mCurrentTrajectory->evaluateDerivative(0, 1, desiredVec);
-      ROS_INFO_STREAM("Timed velocity: " << desiredVec[0] << ", " << desiredVec[1] << ", " << desiredVec[2]);
-      ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Planning stop");
+      if (!mCurrentTrajectory && mExecutionDone) { return; }
+      // Eigen::VectorXd desiredVec(6);
+      // mCurrentTrajectory->evaluateDerivative(0, 1, desiredVec);
+      // ROS_INFO_STREAM("Timed velocity: " << desiredVec[0] << ", " << desiredVec[1] << ", " << desiredVec[2]);
+      // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Planning stop");
 
       // std::cout << "=======================================" << std::endl;
       // for(double t=mCurrentTrajectory->getStartTime();
@@ -244,7 +245,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 
       auto duration = std::chrono::duration_cast<std::chrono::milliseconds> 
                             (std::chrono::steady_clock::now() - start);
-      // ROS_INFO_STREAM("Planning took " << duration.count() << " millisecs");
+      ROS_INFO_STREAM("Planning took " << duration.count() << " millisecs");
 
 
       // ROS_INFO("Aborting old trajectory");
@@ -254,7 +255,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       duration = std::chrono::duration_cast<std::chrono::milliseconds> 
                             (std::chrono::steady_clock::now() - start);
      //  ROS_INFO_STREAM("Abortion took " << duration.count() << " millisecs");
-      ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Aborted old trajectory");
+      // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Aborted old trajectory");
 
 
       if (mExec.valid())
@@ -280,12 +281,12 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       // Execute the new reference trajectory
       if (mCurrentTrajectory)
       {
-      ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Waiting for trajectory to finish aborting");
+      // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Waiting for trajectory to finish aborting");
         if (mExec.valid())
           mExec.wait();
-      ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Trajectory aborted completely, sending new trajectory");
+      // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Trajectory aborted completely, sending new trajectory");
         mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
-      ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   New trajectory sent");
+      // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   New trajectory sent");
       }
       else
       {
@@ -301,7 +302,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     // updateGoalPose
     mLastGoalPose = mGoalPose;
   }
-  ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Update callback stop");
+  // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Update callback stop");
   timerMutex.unlock();
 }
 
@@ -314,11 +315,11 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
       Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())
       * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   endEffectorTransform.linear() = rotationMatrix;
-  ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Waiting for perception");
+  // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Waiting for perception");
   bool successful = mGetTransform(goalPose);
-  ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Perception done");
+  // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Perception done");
   goalPose = goalPose * endEffectorTransform;
-  if (goalPose.translation().z() < 0.235)
+  if (goalPose.translation().z() < 0.215)
   {
     ROS_WARN_STREAM("Food STILL below table!   " << goalPose.matrix());
     return false;
@@ -373,7 +374,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
       std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex, 
                                                  std::adopt_lock};
 
-      ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Copying joint velocities");
+      // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Copying joint velocities");
       currentVelocities = mCurrentVelocity;
     }
     // ROS_INFO("Timing new trajectory");
