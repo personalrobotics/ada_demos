@@ -340,103 +340,92 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   using aikido::trajectory::Spline;
 
   std::cout << "BEFORE PLANNING " << mCurrentVelocity.matrix().transpose() << std::endl;
-  Eigen::VectorXd currentVelocities = mMetaSkeleton->getVelocities();
-
-  {
-    std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex, 
-                                                 std::adopt_lock};
-
-    currentVelocities = mCurrentVelocity;
-  }
-  // ROS_INFO_STREAM("Goal pose: " << liftedGoalPose.translation().matrix());
-
   Eigen::Isometry3d startPose = mBodyNode->getTransform();
-  Eigen::Vector3d difference = goalPose.translation() - startPose.translation();
-  double length = std::min(difference.norm(), difference.norm());
-  if (length < 0.002) {
-    ROS_INFO("aborting because end position");
-    mExecutionDone = true;
-    return nullptr;
-  }
-  ROS_INFO_STREAM("planToGoalPose, length: " << length << ", norm: " << difference.norm());
 
-  auto traj = mAdaMover->planToEndEffectorOffset(difference.normalized(), length);
-
-  if (!traj) {
-    ROS_WARN("Failed to find a solution!");
-  }
-
-  if (traj)
-  {
-    Eigen::VectorXd currentVelocities = mMetaSkeleton->getVelocities();
-
-    {
-      std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex, 
-                                                 std::adopt_lock};
-
-      // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Copying joint velocities");
-      currentVelocities = mCurrentVelocity;
+  bool useOldPlanning = false;
+  if (useOldPlanning) {
+    Eigen::Vector3d difference = goalPose.translation() - startPose.translation();
+    double length = std::min(difference.norm(), difference.norm());
+    if (length < 0.002) {
+      ROS_INFO("aborting because end position");
+      mExecutionDone = true;
+      return nullptr;
     }
-    // ROS_INFO("Timing new trajectory");
-    // ROS_INFO_STREAM("Current velocities " << currentVelocities.transpose());
-    /*
-    Eigen::VectorXd endVelocities = Eigen::VectorXd::Zero(currentVelocities.rows(), currentVelocities.cols());
+    ROS_INFO_STREAM("planToGoalPose, length: " << length << ", norm: " << difference.norm());
+    auto traj = mAdaMover->planToEndEffectorOffset(difference.normalized(), length);
 
-    // time trajectory using parabolic timer
-    // (trajectory is returned by snap planner)
-    auto interpolated = dynamic_cast<const Interpolated*>(traj.get());
-    if (interpolated)
-    {
-      auto timedTraj = createTimedSplineTrajectory(
-          *interpolated, currentVelocities, endVelocities, 
-          mMaxVelocity, mMaxAcceleration);
-      std::cout << "SUCCESSFULLY TIMED THE NEW TRAJ" << std::endl;
-      return std::move(timedTraj);
+    if (!traj) {
+      ROS_WARN("Failed to find a solution!");
     }
-    else
+
+    if (traj)
     {
-      throw std::runtime_error("trajectory is not interpolated!");
-    }*/
+      Eigen::VectorXd currentVelocities = mMetaSkeleton->getVelocities();
 
-    ROS_INFO_STREAM("Current velocities: " << currentVelocities);
-
-    const Interpolated* interpolated = dynamic_cast<const Interpolated*>(traj.get());
-    if (interpolated)
-    {
-      auto timedTraj = computeKinodynamicTiming(*interpolated,
-		                                mMaxVelocity,
-		                                mMaxAcceleration,
-		                                currentVelocities);
-
-      if(timedTraj)
       {
-        Eigen::VectorXd initVel(mMaxVelocity.size());
-        timedTraj->evaluateDerivative(0.0, 1, initVel);
-       
-        return std::move(timedTraj);
+        std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex, 
+                                                  std::adopt_lock};
+        currentVelocities = mCurrentVelocity;
       }
-    }
-    else
-    {
-      const Spline* spline = dynamic_cast<const Spline*>(traj.get());
-      if(spline)
+      ROS_INFO_STREAM("Current velocities: " << currentVelocities);
+
+      const Interpolated* interpolated = dynamic_cast<const Interpolated*>(traj.get());
+      if (interpolated)
       {
-        auto timedTraj = computeKinodynamicTiming(*spline,
-		                                mMaxVelocity,
-		                                mMaxAcceleration,
-		                                currentVelocities);
+        auto timedTraj = computeKinodynamicTiming(*interpolated,
+                                      mMaxVelocity,
+                                      mMaxAcceleration,
+                                      currentVelocities);
+
         if(timedTraj)
         {
           Eigen::VectorXd initVel(mMaxVelocity.size());
           timedTraj->evaluateDerivative(0.0, 1, initVel);
-      
+        
           return std::move(timedTraj);
-        } 
+        }
+      }
+      else
+      {
+        const Spline* spline = dynamic_cast<const Spline*>(traj.get());
+        if(spline)
+        {
+          auto timedTraj = computeKinodynamicTiming(*spline,
+                                      mMaxVelocity,
+                                      mMaxAcceleration,
+                                      currentVelocities);
+          if(timedTraj)
+          {
+            Eigen::VectorXd initVel(mMaxVelocity.size());
+            timedTraj->evaluateDerivative(0.0, 1, initVel);
+        
+            return std::move(timedTraj);
+          } 
+        }
       }
     }
-  }
 
-  return nullptr;
+    return nullptr;
+  } else {
+    aikido::Trajectory trajectory1;
+    aikido::Trajectory trajectory2;
+
+    {
+      MetaSkeletonStateSaver saver1(ada->metaskeleton());
+      trajectory1 = mAdaMover->planToEndEffectorOffset(direction1, length1);
+    }
+    {
+      MetaSkeletonStateSaver saver2(ada->metaskeleton());
+      trajectory2 = mAdaMover->planToEndEffectorOffset(direction2, length2);
+    }
+
+    // auto concatenatedTrajectory = concatenateTrajectories(trajectory1, trajectory2);
+    // auto timedTrajectory = timeTrajectory(concatenatedTrajectory);
+    // auto cutTrajectory = cutTimedTrajectory(timedTrajectory);
+    // return cutTrajectory;
+
+    return nullptr;
+  }
 }
 
 std::unique_ptr<aikido::trajectory::Spline> timeTrajectoryUsingConstantVelocity(
