@@ -100,6 +100,8 @@ double findClosetStateOnTrajectory(const aikido::trajectory::Trajectory* traj,
 std::unique_ptr<aikido::trajectory::Spline> concatenate(const aikido::trajectory::Spline& traj1,
                                                         const aikido::trajectory::Spline& traj2);
 
+std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido::trajectory::Spline& traj, double partialStartTime);
+
 void printStateWithTime(
     double t,
     std::size_t dimension,

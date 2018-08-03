@@ -408,11 +408,23 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 
     return nullptr;
   } else {
-    aikido::trajectory::TrajectoryPtr trajectory1;
-    aikido::trajectory::TrajectoryPtr trajectory2;
+
+    aikido::trajectory::TrajectoryPtr trajectory1 = nullptr, trajectory2 = nullptr;
+
+    Eigen::VectorXd currentConfig = mMetaSkeleton->getPositions();
 
     Eigen::Vector3d direction1 = currentPose.translation() - mOriginalPose.translation();
 
+    {
+      MetaSkeletonStateSaver saver1(mMetaSkeleton);
+      trajectory1 = mAdaMover->planToEndEffectorOffset(direction1.normalized(), direction1.norm());
+    }
+    
+    aikido::trajectory::Spline* spline1 = dynamic_cast<aikido::trajectory::Spline*>(trajectory1.get());
+    
+    if(spline1==nullptr)
+      return nullptr;
+ 
     Eigen::Vector3d direction2 = goalPose.translation() - currentPose.translation();
     if (direction2.norm() < 0.002) {
       ROS_INFO("aborting because already near goal position");
@@ -421,20 +433,32 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     }
 
     {
-      MetaSkeletonStateSaver saver1(mMetaSkeleton);
-      trajectory1 = mAdaMover->planToEndEffectorOffset(direction1.normalized(), direction1.norm());
-    }
-    {
       MetaSkeletonStateSaver saver2(mMetaSkeleton);
       trajectory2 = mAdaMover->planToEndEffectorOffset(direction2.normalized(), direction2.norm());
     }
+    aikido::trajectory::Spline* spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
+    
 
-    // auto concatenatedTrajectory = concatenateTrajectories(trajectory1, trajectory2);
-    // auto timedTrajectory = timeTrajectory(concatenatedTrajectory);
-    // auto cutTrajectory = cutTimedTrajectory(timedTrajectory);
-    // return cutTrajectory;
+    if(spline2==nullptr)
+      return nullptr;
 
-    return nullptr;
+    auto concatenatedTraj = concatenate(*spline1, *spline2);
+    if(concatenatedTraj==nullptr)
+      return nullptr;
+   
+    auto timedTraj = computeKinodynamicTiming(*concatenatedTraj,
+	                                      mMaxVelocity,
+		                              mMaxAcceleration);
+    
+    if(timedTraj==nullptr)
+      return nullptr;
+
+    double refTime = findClosetStateOnTrajectory(timedTraj.get(),
+                                                 currentConfig);
+    
+    auto partialTimedTraj = createPartialTrajectory(*timedTraj, refTime);
+    
+    return std::move(partialTimedTraj);
   }
 }
 
