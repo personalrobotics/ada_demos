@@ -119,13 +119,13 @@ void PerceptionServoClient::start()
 //==============================================================================
 void PerceptionServoClient::jointStateUpdateCallback(const sensor_msgs::JointState::ConstPtr& msg)
 {
-  std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex, 
+  std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex,
                                                  std::adopt_lock};
   std::size_t velDimSize = mCurrentVelocity.size();
   for(std::size_t i=0; i < velDimSize; i++)
   {
     mCurrentVelocity[i] = msg->velocity[i];
-    mCurrentPosition[i] = msg->position[i];  
+    mCurrentPosition[i] = msg->position[i];
   }
 
   // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Joint States updated:   " << mCurrentVelocity[0] << ", "<< mCurrentVelocity[1] << ", "<< mCurrentVelocity[2]);
@@ -245,7 +245,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       // }
       // std::cout << "============================================================" << std::endl;
 
-      auto duration = std::chrono::duration_cast<std::chrono::milliseconds> 
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>
                             (std::chrono::steady_clock::now() - start);
       ROS_INFO_STREAM("Planning took " << duration.count() << " millisecs");
 
@@ -253,7 +253,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 
       start = std::chrono::steady_clock::now();
       mTrajectoryExecutor->abort();
-      duration = std::chrono::duration_cast<std::chrono::milliseconds> 
+      duration = std::chrono::duration_cast<std::chrono::milliseconds>
                             (std::chrono::steady_clock::now() - start);
      //  ROS_INFO_STREAM("Abortion took " << duration.count() << " millisecs");
       // ROS_INFO_STREAM("Time: " << getElapsedTime() << "    -   Aborted old trajectory");
@@ -364,7 +364,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
       Eigen::VectorXd currentVelocities = mMetaSkeleton->getVelocities();
 
       {
-        std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex, 
+        std::lock_guard<std::mutex> currPosVelLock{mJointStateUpdateMutex,
                                                   std::adopt_lock};
         currentVelocities = mCurrentVelocity;
       }
@@ -382,7 +382,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         {
           Eigen::VectorXd initVel(mMaxVelocity.size());
           timedTraj->evaluateDerivative(0.0, 1, initVel);
-        
+
           return std::move(timedTraj);
         }
       }
@@ -399,9 +399,9 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
           {
             Eigen::VectorXd initVel(mMaxVelocity.size());
             timedTraj->evaluateDerivative(0.0, 1, initVel);
-        
+
             return std::move(timedTraj);
-          } 
+          }
         }
       }
     }
@@ -409,22 +409,21 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     return nullptr;
   } else {
 
-    aikido::trajectory::TrajectoryPtr trajectory1 = nullptr, trajectory2 = nullptr;
+    aikido::trajectory::Spline* spline1, spline2;
 
     Eigen::VectorXd currentConfig = mMetaSkeleton->getPositions();
 
     Eigen::Vector3d direction1 = currentPose.translation() - mOriginalPose.translation();
 
+    if(direction1.norm()>1e-2)
     {
       MetaSkeletonStateSaver saver1(mMetaSkeleton);
-      trajectory1 = mAdaMover->planToEndEffectorOffset(direction1.normalized(), direction1.norm());
+      aikido::trajectory::TrajectoryPtr trajectory1 = mAdaMover->planToEndEffectorOffset(direction1.normalized(), direction1.norm());
+      if(trajectory1==nulltpr)
+        throw std::runtime_error("Failed in finding the first half");
+      spline1 = dynamic_cast<aikido::trajectory::Spline*>(trajectory1.get());
     }
-    
-    aikido::trajectory::Spline* spline1 = dynamic_cast<aikido::trajectory::Spline*>(trajectory1.get());
-    
-    if(spline1==nullptr)
-      return nullptr;
- 
+
     Eigen::Vector3d direction2 = goalPose.translation() - currentPose.translation();
     if (direction2.norm() < 0.002) {
       ROS_INFO("aborting because already near goal position");
@@ -434,38 +433,52 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 
     {
       MetaSkeletonStateSaver saver2(mMetaSkeleton);
-      trajectory2 = mAdaMover->planToEndEffectorOffset(direction2.normalized(), direction2.norm());
+      aikido::trajectory::TrajectoryPtr trajectory2 = mAdaMover->planToEndEffectorOffset(direction2.normalized(), direction2.norm());
+      if(trajectory2==nullptr)
+        throw std::runtime_error("Failed in finding the second half");
+      spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
     }
-    aikido::trajectory::Spline* spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
-    
 
     if(spline2==nullptr)
       return nullptr;
 
-    auto concatenatedTraj = concatenate(*spline1, *spline2);
-    if(concatenatedTraj==nullptr)
-      return nullptr;
-   
-    dumpSplinePhasePlot(*spline1, "spline1.txt", 0.01);
-    dumpSplinePhasePlot(*spline2, "spline2.txt", 0.01);
-    dumpSplinePhasePlot(*concatenatedTraj, "concatenated.txt", 0.01);
+    if(spline1)
+    {
+      auto concatenatedTraj = concatenate(*spline1, *spline2);
+      if(concatenatedTraj==nullptr)
+        return nullptr;
 
-    auto timedTraj = computeKinodynamicTiming(*concatenatedTraj,
-	                                      mMaxVelocity,
-		                              mMaxAcceleration);
+      dumpSplinePhasePlot(*spline1, "spline1.txt", 0.01);
+      dumpSplinePhasePlot(*spline2, "spline2.txt", 0.01);
+      dumpSplinePhasePlot(*concatenatedTraj, "concatenated.txt", 0.01);
 
-    dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
-    
-    if(timedTraj==nullptr)
-      return nullptr;
+      auto timedTraj = computeKinodynamicTiming(*concatenatedTraj,
+	                                              mMaxVelocity,
+		                                            mMaxAcceleration);
+      dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
 
-    double refTime = findClosetStateOnTrajectory(timedTraj.get(),
-                                                 currentConfig);
-    
-    auto partialTimedTraj = createPartialTrajectory(*timedTraj, refTime);
-    
-    dumpSplinePhasePlot(*partialTimedTraj, "partialTimed.txt", 0.01);
-    return std::move(partialTimedTraj);
+      if(timedTraj==nullptr)
+        return nullptr;
+
+      double refTime = findClosetStateOnTrajectory(timedTraj.get(),
+                                                   currentConfig);
+
+      auto partialTimedTraj = createPartialTrajectory(*timedTraj, refTime);
+
+      dumpSplinePhasePlot(*partialTimedTraj, "partialTimed.txt", 0.01);
+      return std::move(partialTimedTraj);
+    }
+    else
+    {
+      dumpSplinePhasePlot(*spline2, "spline2.txt", 0.01);
+      /*
+      auto timedTraj = computeKinodynamicTiming(*spline2,
+                                                mMaxVelocity,
+                                                mMaxAcceleration);
+      dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
+
+      return std::move(timedTraj);*/
+    }
   }
 }
 
