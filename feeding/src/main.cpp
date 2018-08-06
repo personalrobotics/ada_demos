@@ -198,6 +198,7 @@ int main(int argc, char** argv)
     }
   }
   feedingDemo.moveInFrontOfPerson();
+  nodeHandle.setParam("/feeding/facePerceptionOn", true);
 
   // while (true) {
   //     Eigen::Isometry3d faceTransform;
@@ -212,6 +213,7 @@ int main(int argc, char** argv)
     }
   }
   feedingDemo.moveTowardsPerson(&perception, viewer);
+  nodeHandle.setParam("/feeding/facePerceptionOn", false);
   ROS_WARN("Human is eating");
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
