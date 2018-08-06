@@ -42,6 +42,7 @@ int main(int argc, char** argv)
   // start node
   ros::init(argc, argv, "feeding");
   ros::NodeHandle nodeHandle("~");
+  nodeHandle.setParam("/feeding/facePerceptionOn", false);
   ros::AsyncSpinner spinner(2); // 2 threads
   spinner.start();
 
