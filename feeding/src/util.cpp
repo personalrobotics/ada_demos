@@ -639,9 +639,10 @@ std::unique_ptr<aikido::trajectory::Interpolated> concatenate(const aikido::traj
     outputTrajectory->addWaypoint(traj1.getWaypointTime(i), traj1.getWaypoint(i));
   }
   outputTrajectory->addWaypoint(traj1.getEndTime(), traj2.getWaypoint(0));
+  double endTimeOfTraj1 = traj1.getEndTime();
   for(std::size_t i=1; i<traj2.getNumWaypoints(); i++)
   {
-    outputTrajectory->addWaypoint(traj2.getWaypointTime(i), traj2.getWaypoint(i));
+    outputTrajectory->addWaypoint(endTimeOfTraj1+traj2.getWaypointTime(i), traj2.getWaypoint(i));
   }
   return outputTrajectory;
 }
