@@ -33,7 +33,6 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW
           trajectoryExecutor,
       aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
       double perceptionUpdateTime,
-      double goalPoseUpdateTolerance,
       const Eigen::VectorXd& veloctiyLimits);
   virtual ~PerceptionServoClient();
 
@@ -71,15 +70,11 @@ protected:
   std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
       mTrajectoryExecutor;
   double mPerceptionUpdateTime;
-  double mGoalPoseUpdateTolerance;
 
   aikido::trajectory::SplinePtr mCurrentTrajectory;
   std::future<void> mExec;
 
   ros::Timer mNonRealtimeTimer;
-
-  Eigen::Isometry3d mGoalPose;
-  Eigen::Isometry3d mLastGoalPose;
 
   Eigen::VectorXd mMaxVelocity;
   Eigen::VectorXd mMaxAcceleration;

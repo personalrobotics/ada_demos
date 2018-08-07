@@ -301,7 +301,6 @@ void FeedingDemo::moveIntoFood(
       rosExecutor,
       mCollisionFreeConstraint,
       0.1,
-      5e-3,
       velocityLimits);
   servoClient.start();
 
@@ -390,7 +389,6 @@ void FeedingDemo::moveTowardsPerson(
       rosExecutor,
       mCollisionFreeConstraint,
       0.2,
-      1e-3,
       velocityLimits);
   servoClient.start();
   servoClient.wait(30);
