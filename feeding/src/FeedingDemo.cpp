@@ -376,7 +376,7 @@ void FeedingDemo::moveTowardsPerson(
   int numDofs = mAda->getArm()->getMetaSkeleton()->getNumDofs();
   Eigen::VectorXd velocityLimits = Eigen::VectorXd::Zero(numDofs);
   for (int i=0; i<numDofs; i++)
-    velocityLimits[i] = 0.1;
+    velocityLimits[i] = 0.2;
 
   feeding::PerceptionServoClient servoClient(
       mNodeHandle,
@@ -387,7 +387,7 @@ void FeedingDemo::moveTowardsPerson(
       mAda->getHand()->getEndEffectorBodyNode(),
       rosExecutor,
       mCollisionFreeConstraint,
-      0.5,
+      0.2,
       1e-3,
       velocityLimits);
   servoClient.start();
@@ -404,9 +404,9 @@ void FeedingDemo::moveTowardsPerson(
 void FeedingDemo::moveAwayFromPerson()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(0, -1, 0),
+      Eigen::Vector3d(0, -1, 1).normalized(),
       getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle)
-          * 0.7);
+          * 1);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");

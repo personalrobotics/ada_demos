@@ -486,6 +486,7 @@ double findClosetStateOnTrajectory(const aikido::trajectory::Trajectory* traj,
       minDist = currDist;
     }
   }
+  ROS_INFO_STREAM("findClosestStateOnTrajectory minDist: " << minDist);
   
   return findTime;
 }

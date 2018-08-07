@@ -88,6 +88,7 @@ protected:
   Eigen::VectorXd mCurrentVelocity;
 
   Eigen::Isometry3d mOriginalPose;
+  Eigen::VectorXd mOriginalConfig;
 
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
 
