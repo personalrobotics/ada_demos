@@ -3,6 +3,8 @@
 #include <aikido/common/Spline.hpp>
 #include <aikido/common/StepSequence.hpp>
 #include <dart/common/StlHelpers.hpp>
+#include <aikido/trajectory/Interpolated.hpp>
+#include <aikido/planner/parabolic/ParabolicTimer.hpp>
 #include "external/ParabolicRamp.h"
 
 namespace po = boost::program_options;
@@ -564,9 +566,66 @@ std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido
   return outputTrajectory;
 }
 
+std::unique_ptr<aikido::trajectory::Interpolated> convertToInterpolated(const aikido::trajectory::Spline& traj)
+{
+  using dart::common::make_unique;
+  auto stateSpace = traj.getStateSpace();
+  auto dim = stateSpace->getDimension();
+   
+  auto interpolator = std::make_shared<aikido::statespace::GeodesicInterpolator>(stateSpace);
+
+  auto outputTrajectory
+      = make_unique<aikido::trajectory::Interpolated>(stateSpace, interpolator);
+
+  auto state = stateSpace->createState();
+  double t = 0.0;
+  for(std::size_t i=0; i<traj.getNumWaypoints();i++)
+  {
+    traj.getWaypoint(i, state);
+    t = traj.getWaypointTime(i);
+    outputTrajectory->addWaypoint(t, state);
+  }
+
+  return outputTrajectory;
+}
+
+std::unique_ptr<aikido::trajectory::Interpolated> concatenate(const aikido::trajectory::Interpolated& traj1,
+                                                              const aikido::trajectory::Interpolated& traj2)
+{
+  auto statespace1 = traj1.getStateSpace();
+  auto dim1 = statespace1->getDimension();
+  auto statespace2 = traj2.getStateSpace();
+  auto dim2 = statespace2->getDimension();
+  if(traj1.getStateSpace()->getDimension()!=traj2.getStateSpace()->getDimension())
+    throw std::runtime_error("Dimension mismatch");
+
+  using dart::common::make_unique;
+  auto stateSpace = traj1.getStateSpace();
+  std::size_t dimension = stateSpace->getDimension();
+
+  auto outputTrajectory
+      = make_unique<aikido::trajectory::Interpolated>(stateSpace, traj1.getInterpolator());
+
+  for(std::size_t i=0; i<traj1.getNumWaypoints()-1;i++)
+  {
+    outputTrajectory->addWaypoint(traj1.getWaypointTime(i), traj1.getWaypoint(i));
+  }
+  outputTrajectory->addWaypoint(traj1.getEndTime(), traj2.getWaypoint(0));
+  for(std::size_t i=1; i<traj2.getNumWaypoints(); i++)
+  {
+    outputTrajectory->addWaypoint(traj2.getWaypointTime(i), traj2.getWaypoint(i));
+  }
+  return outputTrajectory;
+}
+
 std::unique_ptr<aikido::trajectory::Spline> concatenate(const aikido::trajectory::Spline& traj1,
                                                         const aikido::trajectory::Spline& traj2)
 {
+  auto interpolated1 = convertToInterpolated(traj1);
+  auto interpolated2 = convertToInterpolated(traj2);
+  auto concatenatedInterpolated = concatenate(*interpolated1, *interpolated2);
+  return aikido::planner::parabolic::convertToSpline(*concatenatedInterpolated);
+  /*
   auto statespace1 = traj1.getStateSpace();
   auto dim1 = statespace1->getDimension();
   auto statespace2 = traj2.getStateSpace();
@@ -616,6 +675,7 @@ std::unique_ptr<aikido::trajectory::Spline> concatenate(const aikido::trajectory
   }
 
   return outputTrajectory;
+  */
 }
 
 }
