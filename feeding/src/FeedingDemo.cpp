@@ -410,8 +410,8 @@ void FeedingDemo::moveTowardsPerson(
 void FeedingDemo::moveAwayFromPerson()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(0, -1, 1).normalized(),
-      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle) * 1);
+      Eigen::Vector3d(0, -2.5, 0.8).normalized(),
+      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle) * 1.2);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
