@@ -354,7 +354,7 @@ void FeedingDemo::moveInFrontOfPerson()
 void FeedingDemo::moveTowardsPerson()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(0, 1, 0),
+      Eigen::Vector3d(0, 1, -0.6),
       getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle) * 0.9);
 }
 
@@ -362,6 +362,8 @@ void FeedingDemo::moveTowardsPerson()
 void FeedingDemo::moveTowardsPerson(
     Perception* perception, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
+  if (!mAdaReal) {moveTowardsPerson(); return;}
+
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
       = mAda->getTrajectoryExecutor();
   std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor
