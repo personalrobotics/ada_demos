@@ -3,12 +3,12 @@
 
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
-#include "feeding/PerceptionServoClient.hpp"
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
-#include "feeding/Perception.hpp"
-#include "feeding/Workspace.hpp"
 #include "feeding/AdaMover.hpp"
+#include "feeding/Perception.hpp"
+#include "feeding/PerceptionServoClient.hpp"
+#include "feeding/Workspace.hpp"
 
 namespace feeding {
 
