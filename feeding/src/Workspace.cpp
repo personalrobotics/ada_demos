@@ -19,8 +19,8 @@ Workspace::Workspace(
   addToWorld(mWheelchair, "wheelchair", Eigen::Isometry3d::Identity());
 
   mPersonPose = robotPose.inverse() * createIsometry(
-                                  getRosParam<std::vector<double>>(
-                                      "/person/pose", mNodeHandle));
+                                          getRosParam<std::vector<double>>(
+                                              "/person/pose", mNodeHandle));
 
   if (!adaReal)
   {

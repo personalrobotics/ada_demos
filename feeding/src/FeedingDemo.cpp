@@ -52,7 +52,8 @@ FeedingDemo::FeedingDemo(
   mCollisionFreeConstraint->addPairwiseCheck(
       armCollisionGroup, envCollisionGroup);
 
-  mAdaMover = std::unique_ptr<AdaMover>(new AdaMover(*mAda, mArmSpace, mCollisionFreeConstraint, nodeHandle));
+  mAdaMover = std::unique_ptr<AdaMover>(
+      new AdaMover(*mAda, mArmSpace, mCollisionFreeConstraint, nodeHandle));
 
   if (mAdaReal)
   {
@@ -250,7 +251,8 @@ void FeedingDemo::moveIntoFood()
 
 //==============================================================================
 void FeedingDemo::moveIntoFood(
-    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
+    Perception* perception,
+    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   ROS_INFO("Servoing into food");
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
@@ -282,16 +284,15 @@ void FeedingDemo::moveIntoFood(
       5e-3));
   servoClient->start();
 
-  servoClient->wait(20.0); 
+  servoClient->wait(20.0);
   */
 
   int numDofs = mAda->getArm()->getMetaSkeleton()->getNumDofs();
   Eigen::VectorXd velocityLimits = Eigen::VectorXd::Zero(numDofs);
-  for (int i=0; i<numDofs; i++)
-  velocityLimits[i] = 0.2;
+  for (int i = 0; i < numDofs; i++)
+    velocityLimits[i] = 0.2;
 
-  PerceptionServoClient servoClient
-  (
+  PerceptionServoClient servoClient(
       mNodeHandle,
       boost::bind(&Perception::perceiveFood, perception, _1),
       mArmSpace,
@@ -301,7 +302,6 @@ void FeedingDemo::moveIntoFood(
       rosExecutor,
       mCollisionFreeConstraint,
       0.1,
-      5e-3,
       velocityLimits);
   servoClient.start();
 
@@ -360,9 +360,14 @@ void FeedingDemo::moveTowardsPerson()
 
 //==============================================================================
 void FeedingDemo::moveTowardsPerson(
-    Perception* perception, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
+    Perception* perception,
+    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
-  if (!mAdaReal) {moveTowardsPerson(); return;}
+  if (!mAdaReal)
+  {
+    moveTowardsPerson();
+    return;
+  }
 
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
       = mAda->getTrajectoryExecutor();
@@ -377,7 +382,7 @@ void FeedingDemo::moveTowardsPerson(
 
   int numDofs = mAda->getArm()->getMetaSkeleton()->getNumDofs();
   Eigen::VectorXd velocityLimits = Eigen::VectorXd::Zero(numDofs);
-  for (int i=0; i<numDofs; i++)
+  for (int i = 0; i < numDofs; i++)
     velocityLimits[i] = 0.2;
 
   feeding::PerceptionServoClient servoClient(
@@ -390,16 +395,15 @@ void FeedingDemo::moveTowardsPerson(
       rosExecutor,
       mCollisionFreeConstraint,
       0.2,
-      1e-3,
       velocityLimits);
   servoClient.start();
   servoClient.wait(30);
 
-//   while (perception->isMouthOpen() && ros::ok())
-//   {
-//     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   }
-//   servoClient.stop();
+  //   while (perception->isMouthOpen() && ros::ok())
+  //   {
+  //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  //   }
+  //   servoClient.stop();
 }
 
 //==============================================================================
@@ -407,12 +411,10 @@ void FeedingDemo::moveAwayFromPerson()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, -1, 1).normalized(),
-      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle)
-          * 1);
+      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle) * 1);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
   }
 }
-
 };

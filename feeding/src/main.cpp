@@ -57,17 +57,17 @@ int main(int argc, char** argv)
       nodeHandle);
 
   // visualization
-  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = 
-  std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
-      feedingDemo.getWorld(),
-      getRosParam<std::string>("/visualization/topicName", nodeHandle),
-      getRosParam<std::string>("/visualization/baseFrameName", nodeHandle));
+  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer
+      = std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
+          feedingDemo.getWorld(),
+          getRosParam<std::string>("/visualization/topicName", nodeHandle),
+          getRosParam<std::string>("/visualization/baseFrameName", nodeHandle));
   viewer->setAutoUpdate(true);
 
   std::string collisionCheckResult;
   if (!feedingDemo.isCollisionFree(collisionCheckResult))
   {
-    //throw std::runtime_error(collisionCheckResult);
+    // throw std::runtime_error(collisionCheckResult);
   }
 
   ftThresholdHelper.init();
@@ -88,83 +88,81 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-
-  while(waitForUser("Run loop another time?")) {
   feedingDemo.moveAbovePlate();
 
-  // // ===== ABOVE FOOD =====
-  // if (!autoContinueDemo)
-  //   if (!waitForUser("Perceive Food"))
-  //   {
-  //     return 0;
-  //   }
+  // ===== ABOVE FOOD =====
+  if (!autoContinueDemo)
+    if (!waitForUser("Perceive Food"))
+    {
+      return 0;
+    }
 
-  // Eigen::Isometry3d foodTransform;
-  // if (adaReal)
-  // {
-  //   bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
-  //   if (!perceptionSuccessful)
-  //     throw std::runtime_error("Perception failed");
-  // }
-  // else
-  // {
-  //   foodTransform = feedingDemo.getDefaultFoodTransform();
-  // }
-  // if (!autoContinueDemo)
-  // {
-  //   if (!waitForUser("Move forque above food"))
-  //   {
-  //     return 0;
-  //   }
-  // }
-  // feedingDemo.moveAboveFood(foodTransform);
+  Eigen::Isometry3d foodTransform;
+  if (adaReal)
+  {
+    bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
+    if (!perceptionSuccessful)
+      throw std::runtime_error("Perception failed");
+  }
+  else
+  {
+    foodTransform = feedingDemo.getDefaultFoodTransform();
+  }
+  if (!autoContinueDemo)
+  {
+    if (!waitForUser("Move forque above food"))
+    {
+      return 0;
+    }
+  }
+  feedingDemo.moveAboveFood(foodTransform);
 
-  // // auto testTSR = pr_tsr::getDefaultPlateTSR();
-  // // testTSR.mT0_w = foodTransform;
-  // // testTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+  // auto testTSR = pr_tsr::getDefaultPlateTSR();
+  // testTSR.mT0_w = foodTransform;
+  // testTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
-  // // testTSR.mBw = createBwMatrixForTSR(
-  // //     0.01, 0.01, 0, 0);
-  // // testTSR.mTw_e.matrix()
-  // //     *=
-  // //     feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
-  // // feedingDemo.moveArmToTSR(testTSR);
+  // testTSR.mBw = createBwMatrixForTSR(
+  //     0.01, 0.01, 0, 0);
+  // testTSR.mTw_e.matrix()
+  //     *=
+  //     feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
+  // feedingDemo.moveArmToTSR(testTSR);
 
-  // // ===== INTO FOOD =====
-  // if (!autoContinueDemo)
-  // {
-  //   if (!waitForUser("Move forque into food"))
-  //   {
-  //     return 0;
-  //   }
-  // }
-  // if (!ftThresholdHelper.setThresholds(GRAB_FOOD_FT_THRESHOLD))
-  // {
-  //   return 1;
-  // }
-  // feedingDemo.moveIntoFood(&perception, viewer);
-  // std::this_thread::sleep_for(
-  //     std::chrono::milliseconds(
-  //         getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
-  // feedingDemo.grabFoodWithForque();
+  // ===== INTO FOOD =====
+  if (!autoContinueDemo)
+  {
+    if (!waitForUser("Move forque into food"))
+    {
+      return 0;
+    }
+  }
+  if (!ftThresholdHelper.setThresholds(GRAB_FOOD_FT_THRESHOLD))
+  {
+    return 1;
+  }
+  feedingDemo.moveIntoFood(&perception, viewer);
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(
+          getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
+  feedingDemo.grabFoodWithForque();
 
-  // // ===== OUT OF FOOD =====
-  // if (!autoContinueDemo)
-  // {
-  //   if (!waitForUser("Move forque out of food"))
-  //   {
-  //     return 0;
-  //   }
-  // }
-  // if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
-  // {
-  //   return 1;
-  // }
-  // feedingDemo.moveOutOfFood();
-  // if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
-  // {
-  //   return 1;
-  // }
+  // ===== OUT OF FOOD =====
+  if (!autoContinueDemo)
+  {
+    if (!waitForUser("Move forque out of food"))
+    {
+      return 0;
+    }
+  }
+  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
+  {
+    return 1;
+  }
+  feedingDemo.moveOutOfFood();
+  if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
+  {
+    return 1;
+  }
 
   // ===== IN FRONT OF PERSON =====
   if (!autoContinueDemo)
@@ -199,11 +197,6 @@ int main(int argc, char** argv)
 
   // ===== AWAY FROM PERSON =====
   feedingDemo.moveAwayFromPerson();
-
-  }
-
-
-  feedingDemo.moveInFrontOfPerson();
 
   // ===== BACK TO PLATE =====
   if (!autoContinueDemo)

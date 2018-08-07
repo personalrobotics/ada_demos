@@ -219,7 +219,7 @@ void from_vector(const Eigen::VectorXd& e_vector, std::vector<double>& s_vector)
 
 void to_vector(const std::vector<double>& s_vector, Eigen::VectorXd& e_vector)
 {
-  for(std::size_t i=0; i<s_vector.size(); i++)
+  for (std::size_t i = 0; i < s_vector.size(); i++)
   {
     e_vector[i] = s_vector[i];
   }
@@ -268,8 +268,9 @@ double calcMinTime(
       ParabolicRamp::Vector currPos, currVel;
       Eigen::VectorXd currPosVec(startPosition.size());
       Eigen::VectorXd currVelVec(startPosition.size());
-      for(std::vector<double>::iterator it=timeSeq.begin();
-          it!=timeSeq.end(); ++it)
+      for (std::vector<double>::iterator it = timeSeq.begin();
+           it != timeSeq.end();
+           ++it)
       {
         double t = (*it);
         ramp.Evaluate(t, currPos);
@@ -277,8 +278,9 @@ double calcMinTime(
         to_vector(currPos, currPosVec);
         to_vector(currVel, currVelVec);
 
-        //std::cout << "AT TIME " << t << " POS " << currPosVec.matrix().transpose();
-        //std::cout << " VEL " << currVelVec.matrix().transpose() << std::endl;
+        // std::cout << "AT TIME " << t << " POS " <<
+        // currPosVec.matrix().transpose();
+        // std::cout << " VEL " << currVelVec.matrix().transpose() << std::endl;
 
         posSeq.push_back(currPosVec);
         velSeq.push_back(currVelVec);
@@ -329,11 +331,10 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
       posSeq,
       velSeq);
 
-
   std::cout << "TIME SEQ: ";
-  for(std::size_t i=0; i<timeSeq.size()-1; i++)
+  for (std::size_t i = 0; i < timeSeq.size() - 1; i++)
   {
-    double segTime = timeSeq[i+1] - timeSeq[i];
+    double segTime = timeSeq[i + 1] - timeSeq[i];
     // add waypoint
     if (segTime > 0)
     {
@@ -342,12 +343,13 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
       std::cout << " CUR_POS " << posSeq[i].matrix().transpose();
       std::cout << " CUR_VEL " << velSeq[i].matrix().transpose();
       std::cout << " NEX_POS " << posSeq[i+1].matrix().transpose();
-      std::cout << " NEX_VEL " << velSeq[i+1].matrix().transpose() << std::endl;*/
+      std::cout << " NEX_VEL " << velSeq[i+1].matrix().transpose() <<
+      std::endl;*/
       CubicSplineProblem problem(Eigen::Vector2d(0, segTime), 4, dimension);
       problem.addConstantConstraint(0, 0, Eigen::VectorXd::Zero(dimension));
       problem.addConstantConstraint(0, 1, velSeq[i]);
-      problem.addConstantConstraint(1, 0, posSeq[i+1]-posSeq[i]);
-      problem.addConstantConstraint(1, 1, velSeq[i+1]);
+      problem.addConstantConstraint(1, 0, posSeq[i + 1] - posSeq[i]);
+      problem.addConstantConstraint(1, 1, velSeq[i + 1]);
       const auto spline = problem.fit();
 
       auto currState = stateSpace->createState();
@@ -369,16 +371,32 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
   auto tmpState = stateSpace->createState();
   outputTrajectory->evaluate(outputTrajectory->getStartTime(), tmpState);
   stateSpace->logMap(tmpState, startPositionOutput);
-  outputTrajectory->evaluateDerivative(outputTrajectory->getStartTime(), 1, startVelocityOutput);
-  outputTrajectory->evaluate((outputTrajectory->getStartTime() + outputTrajectory->getEndTime()) / 2, tmpState);
+  outputTrajectory->evaluateDerivative(
+      outputTrajectory->getStartTime(), 1, startVelocityOutput);
+  outputTrajectory->evaluate(
+      (outputTrajectory->getStartTime() + outputTrajectory->getEndTime()) / 2,
+      tmpState);
   stateSpace->logMap(tmpState, betweenPositionOutput);
-  outputTrajectory->evaluateDerivative((outputTrajectory->getStartTime() + outputTrajectory->getEndTime()) / 2, 1, betweenVelocityOutput);
+  outputTrajectory->evaluateDerivative(
+      (outputTrajectory->getStartTime() + outputTrajectory->getEndTime()) / 2,
+      1,
+      betweenVelocityOutput);
   outputTrajectory->evaluate(outputTrajectory->getEndTime(), tmpState);
   stateSpace->logMap(tmpState, endPositionOutput);
-  outputTrajectory->evaluateDerivative(outputTrajectory->getEndTime(), 1, endVelocityOutput);
-  ROS_INFO_STREAM("start position: " << startPositionOutput.matrix().transpose() << " velocity: " << startVelocityOutput.matrix().transpose());
-  ROS_INFO_STREAM("between position: " << betweenPositionOutput.matrix().transpose() << " velocity: " << betweenVelocityOutput.matrix().transpose());
-  ROS_INFO_STREAM("end position: " << endPositionOutput.matrix().transpose() << " velocity: " << endVelocityOutput.matrix().transpose());
+  outputTrajectory->evaluateDerivative(
+      outputTrajectory->getEndTime(), 1, endVelocityOutput);
+  ROS_INFO_STREAM(
+      "start position: " << startPositionOutput.matrix().transpose()
+                         << " velocity: "
+                         << startVelocityOutput.matrix().transpose());
+  ROS_INFO_STREAM(
+      "between position: " << betweenPositionOutput.matrix().transpose()
+                           << " velocity: "
+                           << betweenVelocityOutput.matrix().transpose());
+  ROS_INFO_STREAM(
+      "end position: " << endPositionOutput.matrix().transpose()
+                       << " velocity: "
+                       << endVelocityOutput.matrix().transpose());
 
   return outputTrajectory;
 }
@@ -401,10 +419,15 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
   interpolated.evaluate(interpolated.getEndTime(), endState);
   interpolated.getStateSpace()->logMap(startState, startConfig);
   interpolated.getStateSpace()->logMap(endState, endConfig);
-  return createTimedSplineTrajectory(startConfig, endConfig,
-                                     startVelocity, endVelocity,
-                                     maxVelocity, maxAcceleration,
-                                     stateSpace, startTime);
+  return createTimedSplineTrajectory(
+      startConfig,
+      endConfig,
+      startVelocity,
+      endVelocity,
+      maxVelocity,
+      maxAcceleration,
+      stateSpace,
+      startTime);
 }
 
 void printStateWithTime(
@@ -418,7 +441,7 @@ void printStateWithTime(
   for (std::size_t i = 0; i < dimension; i++)
   {
     cout << stateVec[i] << "," << velocityVec[i];
-    if(i<dimension-1)
+    if (i < dimension - 1)
     {
       cout << ",";
     }
@@ -438,7 +461,7 @@ void dumpSplinePhasePlot(
   std::size_t dim = stateSpace->getDimension();
 
   aikido::common::StepSequence sequence(
-        timeStep, true, true, spline.getStartTime(), spline.getEndTime());
+      timeStep, true, true, spline.getStartTime(), spline.getEndTime());
   auto state = stateSpace->createState();
   Eigen::VectorXd stateVec(dim);
   Eigen::VectorXd velocityVec(dim);
@@ -456,22 +479,22 @@ void dumpSplinePhasePlot(
   return;
 }
 
-double findClosetStateOnTrajectory(const aikido::trajectory::Trajectory* traj,
-                                   const Eigen::VectorXd& config,
-                                   double timeStep)
+double findClosetStateOnTrajectory(
+    const aikido::trajectory::Trajectory* traj,
+    const Eigen::VectorXd& config,
+    double timeStep)
 {
-  if(traj==nullptr)
+  if (traj == nullptr)
     throw std::runtime_error("Traj is nullptr");
   auto stateSpace = traj->getStateSpace();
-  if(config.size()!=stateSpace->getDimension())
+  if (config.size() != stateSpace->getDimension())
     throw std::runtime_error("Dimension mismatch");
 
   double findTime = traj->getStartTime();
   double minDist = std::numeric_limits<double>::max();
-  
-  aikido::common::StepSequence sequence(
-        timeStep, true, true, traj->getStartTime(), traj->getEndTime());
 
+  aikido::common::StepSequence sequence(
+      timeStep, true, true, traj->getStartTime(), traj->getEndTime());
 
   auto currState = stateSpace->createState();
   Eigen::VectorXd currPos(stateSpace->getDimension());
@@ -480,22 +503,24 @@ double findClosetStateOnTrajectory(const aikido::trajectory::Trajectory* traj,
     double currTime = sequence[i];
     traj->evaluate(currTime, currState);
     stateSpace->logMap(currState, currPos);
-    
-    double currDist = (config-currPos).norm();
-    if(currDist < minDist)
+
+    double currDist = (config - currPos).norm();
+    if (currDist < minDist)
     {
       findTime = currTime;
       minDist = currDist;
     }
   }
   ROS_INFO_STREAM("findClosestStateOnTrajectory minDist: " << minDist);
-  
+
   return findTime;
 }
 
-std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido::trajectory::Spline& traj, double partialStartTime)
+std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(
+    const aikido::trajectory::Spline& traj, double partialStartTime)
 {
-  if(partialStartTime < traj.getStartTime() || partialStartTime > traj.getEndTime())
+  if (partialStartTime < traj.getStartTime()
+      || partialStartTime > traj.getEndTime())
     throw std::runtime_error("Wrong partial start time");
 
   using dart::common::make_unique;
@@ -504,29 +529,30 @@ std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido
 
   auto stateSpace = traj.getStateSpace();
   std::size_t dimension = stateSpace->getDimension();
-  auto outputTrajectory
-      = make_unique<aikido::trajectory::Spline>(stateSpace, traj.getStartTime());
+  auto outputTrajectory = make_unique<aikido::trajectory::Spline>(
+      stateSpace, traj.getStartTime());
 
   double currSegmentStartTime = traj.getStartTime();
   double currSegmentEndTime = currSegmentStartTime;
   std::size_t currSegmentIdx = 0;
-  
+
   auto segmentStartState = stateSpace->createState();
   auto segmentEndState = stateSpace->createState();
   Eigen::VectorXd segStartPos(dimension), segEndPos(dimension),
-                  segStartVel(dimension), segEndVel(dimension);
+      segStartVel(dimension), segEndVel(dimension);
   const Eigen::VectorXd zeroPos = Eigen::VectorXd::Zero(dimension);
   traj.evaluate(partialStartTime, segmentStartState);
   stateSpace->logMap(segmentStartState, segStartPos);
   traj.evaluateDerivative(partialStartTime, 1, segStartVel);
 
-  while(currSegmentIdx < traj.getNumSegments())
+  while (currSegmentIdx < traj.getNumSegments())
   {
     currSegmentEndTime += traj.getSegmentDuration(currSegmentIdx);
-    if( partialStartTime >= currSegmentStartTime &&
-        partialStartTime <= currSegmentEndTime )
+    if (partialStartTime >= currSegmentStartTime
+        && partialStartTime <= currSegmentEndTime)
     {
-      std::cout << "FIND " << partialStartTime << " IN " << currSegmentIdx << "-th [" << currSegmentStartTime;
+      std::cout << "FIND " << partialStartTime << " IN " << currSegmentIdx
+                << "-th [" << currSegmentStartTime;
       std::cout << " , " << currSegmentEndTime << "]" << std::endl;
       // create new segment
       traj.evaluate(currSegmentEndTime, segmentEndState);
@@ -535,10 +561,10 @@ std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido
 
       double segmentDuration = currSegmentEndTime - partialStartTime;
 
-      if(segmentDuration > 0.0)
+      if (segmentDuration > 0.0)
       {
         CubicSplineProblem problem(
-          Eigen::Vector2d{0., segmentDuration}, 4, dimension);
+            Eigen::Vector2d{0., segmentDuration}, 4, dimension);
         problem.addConstantConstraint(0, 0, zeroPos);
         problem.addConstantConstraint(0, 1, segStartVel);
         problem.addConstantConstraint(1, 0, segEndPos - segStartPos);
@@ -546,21 +572,23 @@ std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido
         const auto solution = problem.fit();
         const auto coefficients = solution.getCoefficients().front();
 
-        outputTrajectory->addSegment(coefficients, segmentDuration, segmentStartState);
+        outputTrajectory->addSegment(
+            coefficients, segmentDuration, segmentStartState);
       }
       break;
-    } 
+    }
 
-    currSegmentIdx ++;
+    currSegmentIdx++;
     currSegmentStartTime = currSegmentEndTime;
   }
 
-  for(std::size_t i=currSegmentIdx+1; i<traj.getNumSegments();i++)
+  for (std::size_t i = currSegmentIdx + 1; i < traj.getNumSegments(); i++)
   {
     // std::cout << "CONTINUE ADDING " << i << "-th SEGMENT" << std::endl;
-    outputTrajectory->addSegment(traj.getSegmentCoefficients(i),
-                                 traj.getSegmentDuration(i),
-                                 traj.getSegmentState(i));
+    outputTrajectory->addSegment(
+        traj.getSegmentCoefficients(i),
+        traj.getSegmentDuration(i),
+        traj.getSegmentState(i));
   }
 
   return outputTrajectory;
@@ -618,8 +646,9 @@ std::unique_ptr<aikido::trajectory::Interpolated> concatenate(const aikido::traj
   return outputTrajectory;
 }
 
-std::unique_ptr<aikido::trajectory::Spline> concatenate(const aikido::trajectory::Spline& traj1,
-                                                        const aikido::trajectory::Spline& traj2)
+std::unique_ptr<aikido::trajectory::Spline> concatenate(
+    const aikido::trajectory::Spline& traj1,
+    const aikido::trajectory::Spline& traj2)
 {
   auto interpolated1 = convertToInterpolated(traj1);
   auto interpolated2 = convertToInterpolated(traj2);
@@ -630,25 +659,29 @@ std::unique_ptr<aikido::trajectory::Spline> concatenate(const aikido::trajectory
   auto dim1 = statespace1->getDimension();
   auto statespace2 = traj2.getStateSpace();
   auto dim2 = statespace2->getDimension();
-  if(traj1.getStateSpace()->getDimension()!=traj2.getStateSpace()->getDimension())
+  if (traj1.getStateSpace()->getDimension()
+      != traj2.getStateSpace()->getDimension())
     throw std::runtime_error("Dimension mismatch");
 
   using dart::common::make_unique;
   auto stateSpace = traj1.getStateSpace();
   std::size_t dimension = stateSpace->getDimension();
 
-  auto outputTrajectory
-      = make_unique<aikido::trajectory::Spline>(stateSpace, traj1.getStartTime());
+  auto outputTrajectory = make_unique<aikido::trajectory::Spline>(
+      stateSpace, traj1.getStartTime());
 
-  for(std::size_t i=0; i<traj1.getNumSegments()-1;i++)
+  for (std::size_t i = 0; i < traj1.getNumSegments() - 1; i++)
   {
-    outputTrajectory->addSegment(traj1.getSegmentCoefficients(i),
-                                 traj1.getSegmentDuration(i),
-                                 traj1.getSegmentState(i));
+    outputTrajectory->addSegment(
+        traj1.getSegmentCoefficients(i),
+        traj1.getSegmentDuration(i),
+        traj1.getSegmentState(i));
   }
 
-  auto startStateInLastSegmentInTraj1 = traj1.getSegmentState(traj1.getNumSegments()-1);
-  double durationInLastSegmentInTraj1 = traj1.getSegmentDuration(traj1.getNumSegments()-1);
+  auto startStateInLastSegmentInTraj1
+      = traj1.getSegmentState(traj1.getNumSegments() - 1);
+  double durationInLastSegmentInTraj1
+      = traj1.getSegmentDuration(traj1.getNumSegments() - 1);
   auto startStateInFirstSegmentInTraj2 = traj2.getSegmentState(0);
   const Eigen::VectorXd zeroPosition = Eigen::VectorXd::Zero(dimension);
   Eigen::VectorXd currPosition(dimension), nextPosition(dimension);
@@ -664,18 +697,21 @@ std::unique_ptr<aikido::trajectory::Spline> concatenate(const aikido::trajectory
   problem.addConstantConstraint(1, 0, nextPosition - currPosition);
   const auto solution = problem.fit();
   const auto coefficients = solution.getCoefficients().front();
- 
-  outputTrajectory->addSegment(coefficients, durationInLastSegmentInTraj1, startStateInLastSegmentInTraj1); 
-  
-  for(std::size_t i=0; i<traj2.getNumSegments();i++)
+
+  outputTrajectory->addSegment(
+      coefficients,
+      durationInLastSegmentInTraj1,
+      startStateInLastSegmentInTraj1);
+
+  for (std::size_t i = 0; i < traj2.getNumSegments(); i++)
   {
-    outputTrajectory->addSegment(traj2.getSegmentCoefficients(i),
-                                 traj2.getSegmentDuration(i),
-                                 traj2.getSegmentState(i));
+    outputTrajectory->addSegment(
+        traj2.getSegmentCoefficients(i),
+        traj2.getSegmentDuration(i),
+        traj2.getSegmentState(i));
   }
 
   return outputTrajectory;
   */
 }
-
 }

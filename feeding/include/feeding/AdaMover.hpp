@@ -3,7 +3,6 @@
 
 #include <libada/Ada.hpp>
 
-
 namespace feeding {
 
 enum TrajectoryPostprocessType
@@ -13,11 +12,15 @@ enum TrajectoryPostprocessType
   TRYOPTIMALRETIME
 };
 
-class AdaMover {
+class AdaMover
+{
 
 public:
-
-  AdaMover(ada::Ada& ada, aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace, aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint, ros::NodeHandle nodeHandle);
+  AdaMover(
+      ada::Ada& ada,
+      aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace,
+      aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
+      ros::NodeHandle nodeHandle);
 
   /// Moves the end effector to a TSR.
   /// Throws a runtime_error if no trajectory could be found.
@@ -27,8 +30,7 @@ public:
   /// Moves the end effector along a certain position offset.
   /// Throws a runtime_error if no trajectory could be found.
   /// \return True if the trajectory was completed successfully.
-  bool moveToEndEffectorOffset(
-      const Eigen::Vector3d& direction, double length);
+  bool moveToEndEffectorOffset(const Eigen::Vector3d& direction, double length);
 
   aikido::trajectory::TrajectoryPtr planToEndEffectorOffset(
       const Eigen::Vector3d& direction, double length);
@@ -46,14 +48,11 @@ public:
       TrajectoryPostprocessType postprocessType = SMOOTH);
 
 private:
-
   ada::Ada& mAda;
   ros::NodeHandle mNodeHandle;
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
-
 };
-
 }
 
 #endif

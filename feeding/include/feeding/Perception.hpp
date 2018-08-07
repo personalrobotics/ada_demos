@@ -34,7 +34,8 @@ public:
   /// \return True if a food item was found.
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
-  bool perceiveFood(Eigen::Isometry3d& foodTransform, bool onlyPerceiveFoodRightBelow);
+  bool perceiveFood(
+      Eigen::Isometry3d& foodTransform, bool onlyPerceiveFoodRightBelow);
 
   bool perceiveFace(Eigen::Isometry3d& faceTransform);
 
@@ -45,7 +46,6 @@ public:
   Eigen::Isometry3d getOpticalToWorld();
 
 private:
-
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
   ros::NodeHandle& mNodeHandle;

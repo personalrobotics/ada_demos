@@ -1,16 +1,21 @@
 #include "feeding/AdaMover.hpp"
-#include "feeding/util.hpp"
 #include <aikido/constraint/TestableIntersection.hpp>
+#include "feeding/util.hpp"
 
 namespace feeding {
 
-
 //==============================================================================
-AdaMover::AdaMover(ada::Ada& ada, aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace, aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint, ros::NodeHandle nodeHandle)
-  : mAda(ada), mArmSpace(armSpace), mCollisionFreeConstraint(collisionFreeConstraint), mNodeHandle(nodeHandle) {
-  
+AdaMover::AdaMover(
+    ada::Ada& ada,
+    aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace,
+    aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
+    ros::NodeHandle nodeHandle)
+  : mAda(ada)
+  , mArmSpace(armSpace)
+  , mCollisionFreeConstraint(collisionFreeConstraint)
+  , mNodeHandle(nodeHandle)
+{
 }
-
 
 //==============================================================================
 bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
@@ -33,7 +38,8 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
 bool AdaMover::moveToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length)
 {
-  return moveArmOnTrajectory(planToEndEffectorOffset(direction, length), TRYOPTIMALRETIME);
+  return moveArmOnTrajectory(
+      planToEndEffectorOffset(direction, length), TRYOPTIMALRETIME);
 }
 
 //==============================================================================
@@ -89,8 +95,8 @@ bool AdaMover::moveArmOnTrajectory(
   switch (postprocessType)
   {
     case RETIME:
-      timedTrajectory = mAda.retimePath(
-          mAda.getArm()->getMetaSkeleton(), trajectory.get());
+      timedTrajectory
+          = mAda.retimePath(mAda.getArm()->getMetaSkeleton(), trajectory.get());
       break;
 
     case SMOOTH:
@@ -99,16 +105,16 @@ bool AdaMover::moveArmOnTrajectory(
       break;
 
     case TRYOPTIMALRETIME:
-      timedTrajectory
-            = mAda.retimeTimeOptimalPath(mAda.getArm()->getMetaSkeleton(), trajectory.get());
-        
-        if(!timedTrajectory)
-        {
-          // If using time-optimal retining failed, back to parabolic timing
-          timedTrajectory = mAda.retimePath(
+      timedTrajectory = mAda.retimeTimeOptimalPath(
+          mAda.getArm()->getMetaSkeleton(), trajectory.get());
+
+      if (!timedTrajectory)
+      {
+        // If using time-optimal retining failed, back to parabolic timing
+        timedTrajectory = mAda.retimePath(
             mAda.getArm()->getMetaSkeleton(), trajectory.get());
-        }
-        break;
+      }
+      break;
 
     default:
       throw std::runtime_error(
@@ -127,8 +133,4 @@ bool AdaMover::moveArmOnTrajectory(
   }
   return true;
 }
-
-
-
-
 }

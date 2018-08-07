@@ -1,8 +1,8 @@
 #ifndef FEEDING_UTIL_HPP_
 #define FEEDING_UTIL_HPP_
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <Eigen/Dense>
 #include <aikido/statespace/StateSpace.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
@@ -93,14 +93,17 @@ std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(
     const Eigen::VectorXd& maxVelocity,
     const Eigen::VectorXd& maxAcceleration);
 
-double findClosetStateOnTrajectory(const aikido::trajectory::Trajectory* traj,
-                                   const Eigen::VectorXd& config,
-                                   double timeStep=0.01);
+double findClosetStateOnTrajectory(
+    const aikido::trajectory::Trajectory* traj,
+    const Eigen::VectorXd& config,
+    double timeStep = 0.01);
 
-std::unique_ptr<aikido::trajectory::Spline> concatenate(const aikido::trajectory::Spline& traj1,
-                                                        const aikido::trajectory::Spline& traj2);
+std::unique_ptr<aikido::trajectory::Spline> concatenate(
+    const aikido::trajectory::Spline& traj1,
+    const aikido::trajectory::Spline& traj2);
 
-std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(const aikido::trajectory::Spline& traj, double partialStartTime);
+std::unique_ptr<aikido::trajectory::Spline> createPartialTrajectory(
+    const aikido::trajectory::Spline& traj, double partialStartTime);
 
 void printStateWithTime(
     double t,
