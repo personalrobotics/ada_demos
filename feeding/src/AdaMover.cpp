@@ -46,6 +46,9 @@ bool AdaMover::moveToEndEffectorOffset(
 aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length)
 {
+  ROS_INFO_STREAM("Plan to end effector offset state: " << mAda.getArm()->getMetaSkeleton()->getPositions().matrix().transpose());
+  ROS_INFO_STREAM("Plan to end effector offset direction: " << direction.matrix().transpose() << ",  length: " << length);
+
   return mAda.planToEndEffectorOffset(
       mArmSpace,
       mAda.getArm()->getMetaSkeleton(),

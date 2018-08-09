@@ -47,8 +47,8 @@ public:
       aikido::trajectory::TrajectoryPtr trajectory,
       TrajectoryPostprocessType postprocessType = SMOOTH);
 
-private:
   ada::Ada& mAda;
+private:
   ros::NodeHandle mNodeHandle;
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;

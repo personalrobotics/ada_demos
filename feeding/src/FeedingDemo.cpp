@@ -305,7 +305,7 @@ void FeedingDemo::moveIntoFood(
       velocityLimits);
   servoClient.start();
 
-  servoClient.wait(10.0);
+  servoClient.wait(10000.0);
 }
 
 //==============================================================================

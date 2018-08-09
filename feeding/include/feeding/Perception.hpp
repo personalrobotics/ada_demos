@@ -45,6 +45,8 @@ public:
 
   Eigen::Isometry3d getOpticalToWorld();
 
+  bool setFoodName(std::string foodName);
+
 private:
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
@@ -56,7 +58,7 @@ private:
   Eigen::Isometry3d mLastPerceivedFoodTransform = Eigen::Isometry3d::Identity();
 
   double mPerceptionTimeout;
-  std::string mPerceivedFoodName, mPerceivedFaceName;
+  std::string mFoodNameToPerceive, mPerceivedFaceName;
 };
 }
 

@@ -49,7 +49,7 @@ Perception::Perception(
 
   mPerceptionTimeout
       = getRosParam<double>("/perception/timeoutSeconds", mNodeHandle);
-  mPerceivedFoodName
+  mFoodNameToPerceive
       = getRosParam<std::string>("/perception/foodName", mNodeHandle);
   mPerceivedFaceName
       = getRosParam<std::string>("/perception/faceName", mNodeHandle);
@@ -99,6 +99,27 @@ Eigen::Isometry3d Perception::getForqueTransform()
   return forqueTransformInWorldFrame;
 }
 
+bool Perception::setFoodName(std::string foodName) {
+  std::vector<std::string> foodNames{"carrot",
+                                     "cherry_tomato",
+                                     "grape",
+                                     "celery",
+                                     "apricot",
+                                     "banana",
+                                     "bell_pepper",
+                                     "egg",
+                                     "melon",
+                                     "blackberry",
+                                     "cantalope",
+                                     "strawberry",
+                                     "apple"};
+    if (std::find(foodNames.begin(), foodNames.end(), foodName) != foodNames.end()) {
+        mFoodNameToPerceive = foodName;
+        return true;
+    }
+    return false;
+}
+
 //==============================================================================
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 {
@@ -125,20 +146,6 @@ bool Perception::perceiveFood(
   // //   ROS_INFO_STREAM("transform: " << foodTransform.matrix());
   //   return true;
 
-  std::vector<std::string> foodNames{"carrot",
-                                     "cherry_tomato",
-                                     "grape",
-                                     "celery",
-                                     "apricot",
-                                     "banana",
-                                     "bell_pepper",
-                                     "egg",
-                                     "melon",
-                                     "blackberry",
-                                     "cantalope",
-                                     "strawberry",
-                                     "apple"};
-
   mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
   Eigen::Isometry3d forqueTransform = getForqueTransform();
 
@@ -148,13 +155,13 @@ bool Perception::perceiveFood(
 
   double distFromForque = -1;
   double diffNorm;
-  for (std::string perceivedFoodName : foodNames)
-  {
+//   for (std::string perceivedFoodName : foodNames)
+//   {
     int index = 1;
     while (true)
     {
       std::string currentFoodName
-          = perceivedFoodName + "_" + std::to_string(index);
+          = mFoodNameToPerceive + "_" + std::to_string(index);
       auto currentPerceivedFood = mWorld->getSkeleton(currentFoodName);
 
       if (!currentPerceivedFood)
@@ -197,7 +204,7 @@ bool Perception::perceiveFood(
       }
       index++;
     }
-  }
+//   }
 
   if (perceivedFood != nullptr)
   {
@@ -212,10 +219,10 @@ bool Perception::perceiveFood(
     foodTransform.setIdentity();
     foodTransform.translation()
         = perceivedFood->getBodyNode(0)->getWorldTransform().translation();
+    //ROS_WARN_STREAM("Food transform: " << foodTransform.matrix());
 
     if (foodTransform.translation().z() < 0.26 || true)
     {
-      ROS_WARN_STREAM("Food below table!   " << foodTransform.matrix());
       Eigen::Vector3d start(foodTransform.translation());
       Eigen::Vector3d end(getOpticalToWorld().translation());
       Eigen::ParametrizedLine<double, 3> line(

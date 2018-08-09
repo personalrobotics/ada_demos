@@ -73,6 +73,7 @@ int main(int argc, char** argv)
   ftThresholdHelper.init();
   feedingDemo.closeHand();
 
+
   if (!waitForUser("Startup complete."))
   {
     return 0;
@@ -91,23 +92,39 @@ int main(int argc, char** argv)
   feedingDemo.moveAbovePlate();
 
   // ===== ABOVE FOOD =====
-  if (!autoContinueDemo)
-    if (!waitForUser("Perceive Food"))
-    {
-      return 0;
-    }
 
   Eigen::Isometry3d foodTransform;
-  if (adaReal)
-  {
-    bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
-    if (!perceptionSuccessful)
-      throw std::runtime_error("Perception failed");
+  bool foodFound = false;
+  std::string foodName;
+  while (!foodFound) {
+    std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m     > ";
+    foodName = "";
+    std::cin >> foodName;
+    if (!ros::ok()) {return 0;}
+    if (!perception.setFoodName(foodName)) {
+      std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
+      continue;
+    }
+
+    if (adaReal)
+    {
+      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
+      if (!perceptionSuccessful) {
+        std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
+        continue;
+      } else {
+        foodFound = true;
+      }
+    }
+    else
+    {
+      foodTransform = feedingDemo.getDefaultFoodTransform();
+      foodFound = true;
+    }
   }
-  else
-  {
-    foodTransform = feedingDemo.getDefaultFoodTransform();
-  }
+  std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0m" << std::endl << std::endl;
+
+
   if (!autoContinueDemo)
   {
     if (!waitForUser("Move forque above food"))
