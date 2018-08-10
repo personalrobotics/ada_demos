@@ -404,12 +404,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     if (timedTraj == nullptr)
       return nullptr;
 
-    auto findingClosestStartTime = std::chrono::steady_clock::now();
     double refTime
         = findClosetStateOnTrajectory(timedTraj.get(), currentConfig);
-    auto findingClosestDuration
-        = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - findingClosestStartTime);
 
     auto partialTimedTraj = createPartialTrajectory(*timedTraj, refTime);
 
@@ -418,12 +414,16 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   else
   {
     aikido::trajectory::TrajectoryPtr trajectory2 = mAdaMover->planToEndEffectorOffset(
-        direction2.normalized(), std::min(direction2.norm(), 0.2));
+        direction2.normalized(), 
+        std::min(direction2.norm(), 0.2));
+
     if (trajectory2 == nullptr)
       throw std::runtime_error("Failed in finding the traj");
+
     spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
     if (spline2 == nullptr)
       return nullptr;
+
     auto timedTraj = computeKinodynamicTiming(
         *spline2, mMaxVelocity, mMaxAcceleration, 1e-2, 3e-3);
 
