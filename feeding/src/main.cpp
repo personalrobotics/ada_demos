@@ -6,6 +6,7 @@
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
+#include <mcheck.h>
 
 #include <aikido/statespace/Rn.hpp>
 
@@ -24,6 +25,13 @@ using namespace feeding;
 ///
 int main(int argc, char** argv)
 {
+
+
+  // if (mcheck(NULL) != 0) {
+  //   std::cout << "MCHECK FAILED!" << std::endl;
+  //   return 1;
+  // }
+
 
   // ===== STARTUP =====
 

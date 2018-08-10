@@ -382,16 +382,17 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     auto satisfiedConstraint = std::make_shared<aikido::constraint::Satisfied>(
         mMetaSkeletonStateSpace);
 
-
+    auto collision
+      = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
 
     trajectory1 = aikido::planner::vectorfield::planToEndEffectorOffset(
         *originalState,
         mMetaSkeletonStateSpace,
         mMetaSkeleton,
         mBodyNode,
-        satisfiedConstraint,
+        collision,
         direction1.normalized(),
-        direction1.norm() - 0.001,
+        0.0, // direction1.norm() - 0.001,
         direction1.norm() + 0.004,
         0.08,
         0.32,
@@ -432,32 +433,37 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
           = std::make_shared<aikido::constraint::Satisfied>(
               mMetaSkeletonStateSpace);
 
+      auto collision
+        = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
 
-      trajectory2 = aikido::planner::vectorfield::planToEndEffectorOffset(
+     aikido::planner::Planner::Result result;
+     trajectory2 = aikido::planner::vectorfield::planToEndEffectorOffset(
           *endState,
           mMetaSkeletonStateSpace,
           mMetaSkeleton,
           mBodyNode,
-          satisfiedConstraint,
+          collision,
           direction2.normalized(),
-          std::min(direction2.norm(), 0.2) - 0.001,
-          std::min(direction2.norm(), 0.2) + 0.004,
+          0.0, // std::min(direction2.norm(), 0.2) - 0.001,
+          std::min(direction2.norm(), 0.2) + 0.1,
           0.01,
           0.04,
           0.001,
           1e-3,
           1e-3,
-          std::chrono::duration<double>(5));
-
-
+          std::chrono::duration<double>(5),
+          &result);
 
       if (trajectory2 == nullptr)
+      {
+        std::cout << "RESULT : " << result.getMessage() << std::endl;
         throw std::runtime_error("Failed in finding the second half");
+      }
     }
     else
     {
       trajectory2 = mAdaMover->planToEndEffectorOffset(
-          direction2.normalized(), direction2.norm());
+          direction2.normalized(), std::min(direction2.norm(), 0.2));
       if (trajectory2 == nullptr)
         throw std::runtime_error("Failed in finding the traj");
     }
