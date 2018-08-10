@@ -11,7 +11,6 @@ add_executable(feeding
   src/Workspace.cpp
   src/util.cpp
   src/PerceptionServoClient.cpp
-  src/external/ParabolicRamp.cpp
 )
 
 include_directories(include)

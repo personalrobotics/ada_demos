@@ -301,9 +301,10 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   using aikido::trajectory::Interpolated;
   using aikido::trajectory::Spline;
 
+  /*
   auto robotSkeleton = mAdaMover->mAda.mRobotSkeleton;
   auto& mutex = robotSkeleton->getMutex();
-
+  */
 
 
   // {
