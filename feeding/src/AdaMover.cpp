@@ -27,6 +27,7 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
       mAda.getArm()->getMetaSkeleton(),
       mAda.getHand()->getEndEffectorBodyNode(),
       goalTSR,
+      // nullptr,
       mCollisionFreeConstraint,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));

@@ -43,7 +43,7 @@ FeedingDemo::FeedingDemo(
           mAda->getHand()->getEndEffectorBodyNode());
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
-          mWorkspace->getTable().get(),
+        //   mWorkspace->getTable().get(),
           mWorkspace->getWorkspaceEnvironment().get(),
           mWorkspace->getWheelchair().get());
   mCollisionFreeConstraint
@@ -306,6 +306,87 @@ void FeedingDemo::moveIntoFood(
   servoClient.start();
 
   servoClient.wait(10000.0);
+}
+
+void FeedingDemo::moveHighAboveForque() {
+  auto aboveForqueTSR = pr_tsr::getDefaultPlateTSR();
+  Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
+  forquePose.translation() = Eigen::Vector3d{0.265, -0.105, 0.30};
+  aboveForqueTSR.mT0_w = forquePose;
+  aboveForqueTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+
+  aboveForqueTSR.mBw = createBwMatrixForTSR(
+      0.001, 0.001, 0, 0);
+  aboveForqueTSR.mTw_e.matrix()
+      *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
+
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveForqueTSR);
+  if (!trajectoryCompleted)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+
+//   mAda->getHand()->executePreshape("closed").wait();
+
+  //mAda->getHand()->executePreshape("closed").wait();
+}
+
+void FeedingDemo::moveNotThatHighAboveForque() {
+  auto aboveForqueTSR = pr_tsr::getDefaultPlateTSR();
+  Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
+  forquePose.translation() = Eigen::Vector3d{0.565, 0.005, 0.15};
+  aboveForqueTSR.mT0_w = forquePose;
+  aboveForqueTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+
+  aboveForqueTSR.mBw = createBwMatrixForTSR(
+      0.001, 0.001, 0, 0);
+  aboveForqueTSR.mTw_e.matrix()
+      *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
+
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveForqueTSR);
+  if (!trajectoryCompleted)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+
+//   mAda->getHand()->executePreshape("closed").wait();
+
+  //mAda->getHand()->executePreshape("closed").wait();
+}
+
+void FeedingDemo::moveAboveForque() {
+  auto aboveForqueTSR = pr_tsr::getDefaultPlateTSR();
+  Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
+  forquePose.translation() = Eigen::Vector3d{0.565, 0.015, 0.11};
+  forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.1, Eigen::Vector3d::UnitX()));
+  aboveForqueTSR.mT0_w = forquePose;
+  aboveForqueTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+
+  aboveForqueTSR.mBw = createBwMatrixForTSR(
+      0.001, 0.001, 0, 0);
+  aboveForqueTSR.mTw_e.matrix()
+      *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
+
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveForqueTSR);
+  if (!trajectoryCompleted)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+void FeedingDemo::moveIntoForque()
+{
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+      Eigen::Vector3d(0, 0, -1), 0.067);
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
+}
+void FeedingDemo::moveOutOfForque()
+{
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+      Eigen::Vector3d(0, 0, 1), 0.08);
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
 }
 
 //==============================================================================

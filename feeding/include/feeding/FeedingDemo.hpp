@@ -103,6 +103,12 @@ public:
   /// because we expect that.
   void moveTowardsPerson();
 
+  void moveHighAboveForque();
+  void moveNotThatHighAboveForque();
+  void moveAboveForque();
+  void moveIntoForque();
+  void moveOutOfForque();
+
   void moveTowardsPerson(
       Perception* perception,
       aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);

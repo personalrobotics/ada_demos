@@ -97,7 +97,28 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  feedingDemo.moveAbovePlate();
+  // feedingDemo.moveAbovePlate();
+
+
+  //feedingDemo.moveHighAboveForque();
+  feedingDemo.moveNotThatHighAboveForque();
+
+  feedingDemo.openHand();
+  feedingDemo.moveAboveForque();
+
+
+  waitForUser("In?");
+  feedingDemo.moveIntoForque();
+
+  waitForUser("Close?");
+  feedingDemo.closeHand();
+
+  waitForUser("Out?");
+  feedingDemo.moveOutOfForque();
+
+  waitForUser("Test finished.");
+  return 0;
+
 
   // ===== ABOVE FOOD =====
 
