@@ -100,6 +100,12 @@ int main(int argc, char** argv)
   feedingDemo.moveAbovePlate();
 
   // ===== ABOVE FOOD =====
+  std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
+  std::vector<double> skeweringForces = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
+  std::unordered_map<std::string, double> foodSkeweringForces;
+  for (int i=0; i<foodNames.size(); i++) {
+    foodSkeweringForces[foodNames[i]] = skeweringForces[i];
+  }
 
   Eigen::Isometry3d foodTransform;
   bool foodFound = false;
@@ -130,7 +136,7 @@ int main(int argc, char** argv)
       foodFound = true;
     }
   }
-  std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0m" << std::endl << std::endl;
+  std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
 
 
   if (!autoContinueDemo)
@@ -165,7 +171,11 @@ int main(int argc, char** argv)
   {
     return 1;
   }
-  feedingDemo.moveIntoFood(&perception, viewer);
+  if (adaReal) {
+    feedingDemo.moveIntoFood(&perception, viewer);
+  } else {
+    feedingDemo.moveIntoFood();
+  }
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
           getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
