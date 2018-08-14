@@ -100,19 +100,7 @@ Eigen::Isometry3d Perception::getForqueTransform()
 }
 
 bool Perception::setFoodName(std::string foodName) {
-  std::vector<std::string> foodNames{"carrot",
-                                     "cherry_tomato",
-                                     "grape",
-                                     "celery",
-                                     "apricot",
-                                     "banana",
-                                     "bell_pepper",
-                                     "egg",
-                                     "melon",
-                                     "blackberry",
-                                     "cantalope",
-                                     "strawberry",
-                                     "apple"};
+  std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", mNodeHandle);
     if (std::find(foodNames.begin(), foodNames.end(), foodName) != foodNames.end()) {
         mFoodNameToPerceive = foodName;
         return true;
