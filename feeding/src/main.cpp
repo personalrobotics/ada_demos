@@ -89,10 +89,11 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
+  feedingDemo.moveAbovePlate();
   // ===== ABOVE PLATE =====
   if (!autoContinueDemo)
   {
-    if (!waitForUser("Move forque above plate"))
+    if (!waitForUser("Move forque above forque"))
     {
       return 0;
     }
@@ -101,19 +102,38 @@ int main(int argc, char** argv)
 
 
   //feedingDemo.moveHighAboveForque();
-  feedingDemo.moveNotThatHighAboveForque();
+  // feedingDemo.moveNotThatHighAboveForque();
 
-  feedingDemo.openHand();
+  feedingDemo.mAda->getHand()->executePreshape("almost_closed").wait();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   feedingDemo.moveAboveForque();
 
 
-  waitForUser("In?");
+  // waitForUser("In?");
   feedingDemo.moveIntoForque();
 
-  waitForUser("Close?");
+  // waitForUser("Close?");
   feedingDemo.closeHand();
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-  waitForUser("Out?");
+  // waitForUser("Out?");
+  feedingDemo.moveOutOfForque();
+
+  // waitForUser("Above Plate");
+  feedingDemo.moveAbovePlate();
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  // waitForUser("Above Forque");
+  feedingDemo.moveAboveForque();
+
+  // waitForUser("In?");
+  feedingDemo.moveIntoForque();
+
+  // waitForUser("Open?");
+  feedingDemo.openHand();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+  // waitForUser("Out?");
   feedingDemo.moveOutOfForque();
 
   waitForUser("Test finished.");

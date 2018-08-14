@@ -115,6 +115,7 @@ public:
 
   /// Moves the forque away from the person.
   void moveAwayFromPerson();
+  std::unique_ptr<ada::Ada> mAda;
 
 private:
   bool mAdaReal;
@@ -122,7 +123,6 @@ private:
   aikido::planner::WorldPtr mWorld;
   std::unique_ptr<AdaMover> mAdaMover;
 
-  std::unique_ptr<ada::Ada> mAda;
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
   std::unique_ptr<Workspace> mWorkspace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;

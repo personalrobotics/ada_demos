@@ -357,8 +357,8 @@ void FeedingDemo::moveNotThatHighAboveForque() {
 void FeedingDemo::moveAboveForque() {
   auto aboveForqueTSR = pr_tsr::getDefaultPlateTSR();
   Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
-  forquePose.translation() = Eigen::Vector3d{0.565, 0.015, 0.11};
-  forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.1, Eigen::Vector3d::UnitX()));
+  forquePose.translation() = Eigen::Vector3d{0.572, -0.065, -0.01};
+  forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.15, Eigen::Vector3d::UnitX()));
   aboveForqueTSR.mT0_w = forquePose;
   aboveForqueTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
@@ -377,14 +377,14 @@ void FeedingDemo::moveAboveForque() {
 void FeedingDemo::moveIntoForque()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(0, 0, -1), 0.067);
+      Eigen::Vector3d(0, 1, 0), 0.032);
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }
 void FeedingDemo::moveOutOfForque()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(0, 0, 1), 0.08);
+      Eigen::Vector3d(0, -1, 0), 0.04);
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }

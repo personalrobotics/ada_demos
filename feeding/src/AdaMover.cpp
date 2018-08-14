@@ -40,7 +40,7 @@ bool AdaMover::moveToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length)
 {
   return moveArmOnTrajectory(
-      planToEndEffectorOffset(direction, length), TRYOPTIMALRETIME);
+      planToEndEffectorOffset(direction, length), RETIME);
 }
 
 //==============================================================================
