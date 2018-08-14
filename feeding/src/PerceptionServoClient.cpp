@@ -329,13 +329,14 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     ROS_INFO_STREAM("Servoing plan to end effector offset 1 direction: " << direction1.normalized().matrix().transpose() << ",  length: " << direction1.norm());
 
     auto collisionConstraint = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
+    auto satisfiedConstraint = std::make_shared<aikido::constraint::Satisfied>(mMetaSkeletonStateSpace);
 
     trajectory1 = aikido::planner::vectorfield::planToEndEffectorOffset(
         *originalState,
         mMetaSkeletonStateSpace,
         mMetaSkeleton,
         mBodyNode,
-        collisionConstraint,
+        satisfiedConstraint,
         direction1.normalized(),
         0.0, // direction1.norm() - 0.001,
         direction1.norm() + 0.004,

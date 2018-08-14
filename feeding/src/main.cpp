@@ -148,16 +148,16 @@ int main(int argc, char** argv)
   }
   feedingDemo.moveAboveFood(foodTransform);
 
-  // auto testTSR = pr_tsr::getDefaultPlateTSR();
-  // testTSR.mT0_w = foodTransform;
-  // testTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
-
-  // testTSR.mBw = createBwMatrixForTSR(
-  //     0.01, 0.01, 0, 0);
-  // testTSR.mTw_e.matrix()
-  //     *=
-  //     feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
-  // feedingDemo.moveArmToTSR(testTSR);
+  double startForce = 0;
+  {
+    ftThresholdHelper.startDataCollection(20);
+    Eigen::Vector3d currentForce, currentTorque;
+    while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    ROS_INFO_STREAM("force before skewering: " << currentForce.matrix().transpose());
+    startForce = currentForce.z();
+  }
 
   // ===== INTO FOOD =====
   if (!autoContinueDemo)
@@ -167,7 +167,8 @@ int main(int argc, char** argv)
       return 0;
     }
   }
-  if (!ftThresholdHelper.setThresholds(GRAB_FOOD_FT_THRESHOLD))
+  double torqueThreshold = 2;
+  if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
   {
     return 1;
   }
@@ -197,6 +198,16 @@ int main(int argc, char** argv)
   if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
   {
     return 1;
+  }
+
+    {
+    ftThresholdHelper.startDataCollection(20);
+    Eigen::Vector3d currentForce, currentTorque;
+    while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    ROS_INFO_STREAM("force after skewering: " << currentForce.matrix().transpose());
+    ROS_WARN_STREAM("difference: " << (startForce - currentForce.z()));
   }
 
   // ===== IN FRONT OF PERSON =====

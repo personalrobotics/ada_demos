@@ -2,7 +2,10 @@
 #define FEEDING_FTTHRESHOLDHELPER_HPP_
 
 #include <rewd_controllers/FTThresholdClient.hpp>
+#include <geometry_msgs/WrenchStamped.h>
 #include <ros/ros.h>
+#include <Eigen/Geometry>
+#include <mutex>
 
 namespace feeding {
 
@@ -39,13 +42,31 @@ public:
   /// experienced a timeout.
   bool setThresholds(FTThreshold);
 
+  bool setThresholds(double forces, double torques);
+
+  void startDataCollection(int numberOfDataPoints);
+  bool isDataCollectionFinished(Eigen::Vector3d& forces, Eigen::Vector3d& torques);
+
 private:
   bool mUseThresholdControl;
   ros::NodeHandle mNodeHandle;
 
+  int mDataPointsToCollect = 0;
+  std::mutex mDataCollectionMutex;
+  std::vector<Eigen::Vector3d> mCollectedForces;
+  std::vector<Eigen::Vector3d> mCollectedTorques;
+
+  // \brief Gets data from the force/torque sensor
+  ros::Subscriber mForceTorqueDataSub;
+
   std::unique_ptr<rewd_controllers::FTThresholdClient> mFTThresholdClient;
 
   std::pair<double, double> getThresholdValues(FTThreshold threshold);
+
+  /**
+   * \brief Called whenever a new Force/Torque message arrives on the ros topic
+   */
+  void forceTorqueDataCallback(const geometry_msgs::WrenchStamped& msg);
 };
 }
 
