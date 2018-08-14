@@ -310,6 +310,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   Eigen::Vector3d direction1
       = currentPose.translation() - mOriginalPose.translation();
 
+
+  aikido::trajectory::TrajectoryPtr trajectory1 = nullptr;
   if (direction1.norm() > 1e-2)
   {
     MetaSkeletonStateSaver saver1(mMetaSkeleton);
@@ -328,7 +330,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 
     auto collisionConstraint = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
 
-    aikido::trajectory::TrajectoryPtr trajectory1 = aikido::planner::vectorfield::planToEndEffectorOffset(
+    trajectory1 = aikido::planner::vectorfield::planToEndEffectorOffset(
         *originalState,
         mMetaSkeletonStateSpace,
         mMetaSkeleton,
@@ -357,10 +359,12 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     return nullptr;
   }
 
+  aikido::trajectory::TrajectoryPtr trajectory2 = nullptr;
   if (spline1)
   {
     MetaSkeletonStateSaver saver2(mMetaSkeleton);
     auto endState = mMetaSkeletonStateSpace->createState();
+    auto endTime = spline1->getEndTime();
     spline1->evaluate(spline1->getEndTime(), endState);
     mMetaSkeletonStateSpace->setState(mMetaSkeleton.get(), endState);
   
@@ -368,7 +372,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
 
     aikido::planner::Planner::Result result;
-    aikido::trajectory::TrajectoryPtr trajectory2 = aikido::planner::vectorfield::planToEndEffectorOffset(
+    trajectory2 = aikido::planner::vectorfield::planToEndEffectorOffset(
         *endState,
         mMetaSkeletonStateSpace,
         mMetaSkeleton,
