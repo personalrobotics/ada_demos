@@ -123,21 +123,6 @@ int main(int argc, char** argv)
   feedingDemo.moveAbovePlate();
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-  // waitForUser("Above Forque");
-  feedingDemo.moveAboveForque();
-
-  // waitForUser("In?");
-  feedingDemo.moveIntoForque();
-
-  // waitForUser("Open?");
-  feedingDemo.openHand();
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-  // waitForUser("Out?");
-  feedingDemo.moveOutOfForque();
-
-  waitForUser("Test finished.");
-  return 0;
 
 
   // ===== ABOVE FOOD =====
@@ -229,6 +214,38 @@ int main(int argc, char** argv)
   {
     return 1;
   }
+
+
+  // waitForUser("Above Forque");
+  feedingDemo.moveAboveForque();
+
+  // waitForUser("In?");
+  feedingDemo.moveIntoForque();
+
+  // waitForUser("Open?");
+  feedingDemo.openHand();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+  // waitForUser("Out?");
+  feedingDemo.moveOutOfForque();
+
+  waitForUser("Test finished.");
+  return 0;
+  // waitForUser("Above Forque");
+  feedingDemo.moveAboveForque();
+
+  // waitForUser("In?");
+  feedingDemo.moveIntoForque();
+
+  // waitForUser("Open?");
+  feedingDemo.openHand();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+  // waitForUser("Out?");
+  feedingDemo.moveOutOfForque();
+
+  waitForUser("Test finished.");
+  return 0;
 
   // ===== IN FRONT OF PERSON =====
   if (!autoContinueDemo)
