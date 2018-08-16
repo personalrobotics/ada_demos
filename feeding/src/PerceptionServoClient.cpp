@@ -331,6 +331,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     auto collisionConstraint = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
     auto satisfiedConstraint = std::make_shared<aikido::constraint::Satisfied>(mMetaSkeletonStateSpace);
 
+    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
     trajectory1 = aikido::planner::vectorfield::planToEndEffectorOffset(
         *originalState,
         mMetaSkeletonStateSpace,
@@ -344,8 +345,9 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         0.32,
         0.001,
         1e-3,
-        1e-3,
+        1e-2,
         std::chrono::duration<double>(5));
+    // ROS_INFO_STREAM("Planning 1 took " << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - startTime).count());
 
     if (trajectory1 == nullptr)
       throw std::runtime_error("Failed in finding the first half");
@@ -374,6 +376,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     auto satisfiedConstraint = std::make_shared<aikido::constraint::Satisfied>(mMetaSkeletonStateSpace);
 
     aikido::planner::Planner::Result result;
+    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
     trajectory2 = aikido::planner::vectorfield::planToEndEffectorOffset(
         *endState,
         mMetaSkeletonStateSpace,
@@ -382,7 +385,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         satisfiedConstraint,
         direction2.normalized(),
         0.0, // std::min(direction2.norm(), 0.2) - 0.001,
-        std::min(direction2.norm(), 0.2) + 0.1,
+        std::min(direction2.norm(), 0.0) + 0.1,
         0.01,
         0.04,
         0.001,
@@ -390,6 +393,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         1e-3,
         std::chrono::duration<double>(5),
         &result);
+    // ROS_INFO_STREAM("Planning 2 took " << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - startTime).count());
 
     if (trajectory2 == nullptr)
     {
@@ -400,20 +404,24 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     if (spline2 == nullptr)
       return nullptr;
 
+
+    std::chrono::time_point<std::chrono::system_clock> timingStartTime = std::chrono::system_clock::now();
     auto concatenatedTraj = concatenate(*spline1, *spline2);
     if (concatenatedTraj == nullptr)
       return nullptr;
 
     auto timedTraj = computeKinodynamicTiming(
-        *concatenatedTraj, mMaxVelocity, mMaxAcceleration, 1e-2, 3e-3);
+        *concatenatedTraj, mMaxVelocity, mMaxAcceleration, 1e-2, 9e-3);
 
     if (timedTraj == nullptr)
       return nullptr;
 
+    currentConfig = mMetaSkeleton->getPositions();
     double refTime
         = findClosetStateOnTrajectory(timedTraj.get(), currentConfig);
 
     auto partialTimedTraj = createPartialTrajectory(*timedTraj, refTime);
+    // ROS_INFO_STREAM("Timing took " << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - timingStartTime).count());
 
     return std::move(partialTimedTraj);
   }
