@@ -214,13 +214,10 @@ int main(int argc, char** argv)
         foodPickedUp = true;
       } else {
         std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << ". Let me try again!\033[0;32m" << std::endl;
+        feedingDemo.moveAbovePlate();
         bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
         if (!perceptionSuccessful) {
-          feedingDemo.moveAbovePlate();
-          perceptionSuccessful = perception.perceiveFood(foodTransform, false);
-          if (!perceptionSuccessful) {
-            std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
-          }
+          std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
         }
       }
   }
