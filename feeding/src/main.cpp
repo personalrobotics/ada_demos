@@ -206,11 +206,11 @@ int main(int argc, char** argv)
         while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
           std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
-        forceDifference = zForceBeforeSkewering - currentForce.z();
+        forceDifference = std::fabs(zForceBeforeSkewering - currentForce.z());
       }
       ROS_WARN_STREAM("force difference: " << forceDifference);
 
-      if (forceDifference > 0.7) {
+      if (forceDifference > 0.075) {
         foodPickedUp = true;
       } else {
         std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << ". Let me try again!\033[0;32m" << std::endl;
