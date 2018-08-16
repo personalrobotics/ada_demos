@@ -53,11 +53,14 @@ void FTThresholdHelper::forceTorqueDataCallback(const geometry_msgs::WrenchStamp
 }
 
 
-  void FTThresholdHelper::startDataCollection(int numberOfDataPoints) {
+  bool FTThresholdHelper::startDataCollection(int numberOfDataPoints) {
+    if (!mUseThresholdControl)
+      return false;
     std::lock_guard<std::mutex> lock(mDataCollectionMutex);
     mDataPointsToCollect = numberOfDataPoints;
     mCollectedForces.clear();
     mCollectedTorques.clear();
+    return true;
   }
 
   bool FTThresholdHelper::isDataCollectionFinished(Eigen::Vector3d& forces, Eigen::Vector3d& torques) {

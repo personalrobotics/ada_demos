@@ -151,8 +151,7 @@ int main(int argc, char** argv)
     feedingDemo.moveAboveFood(foodTransform);
 
     double zForceBeforeSkewering = 0;
-    {
-      ftThresholdHelper.startDataCollection(20);
+    if (ftThresholdHelper.startDataCollection(20)) {
       Eigen::Vector3d currentForce, currentTorque;
       while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -202,8 +201,7 @@ int main(int argc, char** argv)
     }
 
       double forceDifference = 100;
-      {
-        ftThresholdHelper.startDataCollection(20);
+      if (ftThresholdHelper.startDataCollection(20)) {
         Eigen::Vector3d currentForce, currentTorque;
         while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
           std::this_thread::sleep_for(std::chrono::milliseconds(50));

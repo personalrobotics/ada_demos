@@ -44,7 +44,7 @@ public:
 
   bool setThresholds(double forces, double torques);
 
-  void startDataCollection(int numberOfDataPoints);
+  bool startDataCollection(int numberOfDataPoints);
   bool isDataCollectionFinished(Eigen::Vector3d& forces, Eigen::Vector3d& torques);
 
 private:

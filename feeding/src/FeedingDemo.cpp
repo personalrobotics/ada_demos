@@ -409,9 +409,13 @@ void FeedingDemo::moveTowardsPerson(
 //==============================================================================
 void FeedingDemo::moveAwayFromPerson()
 {
+  Eigen::Vector3d targetPosition = mWorkspace->getPersonPose().translation() + Eigen::Vector3d(0, -0.3, 0);
+  Eigen::Vector3d forqueTipPosition = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
+  Eigen::Vector3d direction = targetPosition - forqueTipPosition;
+
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(0, -2.5, 0.8).normalized(),
-      getRosParam<double>("/feedingDemo/distanceFromPerson", mNodeHandle) * 1.2);
+      direction.normalized(),
+      direction.norm());
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
