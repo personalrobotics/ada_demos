@@ -371,6 +371,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   
     auto collisionConstraint
         = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
+    auto satisfiedConstraint = std::make_shared<aikido::constraint::Satisfied>(mMetaSkeletonStateSpace);
 
     aikido::planner::Planner::Result result;
     trajectory2 = aikido::planner::vectorfield::planToEndEffectorOffset(
@@ -378,7 +379,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         mMetaSkeletonStateSpace,
         mMetaSkeleton,
         mBodyNode,
-        collisionConstraint,
+        satisfiedConstraint,
         direction2.normalized(),
         0.0, // std::min(direction2.norm(), 0.2) - 0.001,
         std::min(direction2.norm(), 0.2) + 0.1,
