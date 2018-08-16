@@ -138,76 +138,93 @@ int main(int argc, char** argv)
   }
   std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
 
-
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque above food"))
+  bool foodPickedUp = false;
+  while (!foodPickedUp) {
+    
+    if (!autoContinueDemo)
     {
-      return 0;
+      if (!waitForUser("Move forque above food"))
+      {
+        return 0;
+      }
     }
-  }
-  feedingDemo.moveAboveFood(foodTransform);
+    feedingDemo.moveAboveFood(foodTransform);
 
-  double startForce = 0;
-  {
-    ftThresholdHelper.startDataCollection(20);
-    Eigen::Vector3d currentForce, currentTorque;
-    while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-    ROS_INFO_STREAM("force before skewering: " << currentForce.matrix().transpose());
-    startForce = currentForce.z();
-  }
-
-  // ===== INTO FOOD =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque into food"))
+    double zForceBeforeSkewering = 0;
     {
-      return 0;
+      ftThresholdHelper.startDataCollection(20);
+      Eigen::Vector3d currentForce, currentTorque;
+      while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      }
+      zForceBeforeSkewering = currentForce.z();
     }
-  }
-  double torqueThreshold = 2;
-  if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
-  {
-    return 1;
-  }
-  if (adaReal) {
-    feedingDemo.moveIntoFood(&perception, viewer);
-  } else {
-    feedingDemo.moveIntoFood();
-  }
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(
-          getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
-  feedingDemo.grabFoodWithForque();
 
-  // ===== OUT OF FOOD =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque out of food"))
+    // ===== INTO FOOD =====
+    if (!autoContinueDemo)
     {
-      return 0;
+      if (!waitForUser("Move forque into food"))
+      {
+        return 0;
+      }
     }
-  }
-  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
-  {
-    return 1;
-  }
-  feedingDemo.moveOutOfFood();
-  if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
-  {
-    return 1;
-  }
+    double torqueThreshold = 2;
+    if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+    {
+      return 1;
+    }
+    if (adaReal) {
+      feedingDemo.moveIntoFood(&perception, viewer);
+    } else {
+      feedingDemo.moveIntoFood();
+    }
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(
+            getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
+    feedingDemo.grabFoodWithForque();
 
+    // ===== OUT OF FOOD =====
+    if (!autoContinueDemo)
     {
-    ftThresholdHelper.startDataCollection(20);
-    Eigen::Vector3d currentForce, currentTorque;
-    while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      if (!waitForUser("Move forque out of food"))
+      {
+        return 0;
+      }
     }
-    ROS_INFO_STREAM("force after skewering: " << currentForce.matrix().transpose());
-    ROS_WARN_STREAM("difference: " << (startForce - currentForce.z()));
+    if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
+    {
+      return 1;
+    }
+    feedingDemo.moveOutOfFood();
+    if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
+    {
+      return 1;
+    }
+
+      double forceDifference = 100;
+      {
+        ftThresholdHelper.startDataCollection(20);
+        Eigen::Vector3d currentForce, currentTorque;
+        while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        forceDifference = zForceBeforeSkewering - currentForce.z();
+      }
+      ROS_WARN_STREAM("force difference: " << forceDifference);
+
+      if (forceDifference > 0.7) {
+        foodPickedUp = true;
+      } else {
+        std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << ". Let me try again!\033[0;32m" << std::endl;
+        bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
+        if (!perceptionSuccessful) {
+          feedingDemo.moveAbovePlate();
+          perceptionSuccessful = perception.perceiveFood(foodTransform, false);
+          if (!perceptionSuccessful) {
+            std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
+          }
+        }
+      }
   }
 
   // ===== IN FRONT OF PERSON =====
