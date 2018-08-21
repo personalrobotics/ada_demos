@@ -333,23 +333,88 @@ void FeedingDemo::moveInFrontOfPerson()
   double verticalToleranceNearPerson = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
 
+//   for (float i= 0.25; i>=-0.01; i-=0.05) {
+    //   ROS_INFO_STREAM("trying i = " << i);
   aikido::constraint::dart::TSR personTSR;
   Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = mWorkspace->getPersonPose().translation();
+  Eigen::Vector3d personTranslation;
+// working with -0.15*M_PI rotation around X
+//   personTranslation << 0.296, 0.328, 0.70;
+//   personTranslation << 0.296, 0.278, 0.75;
+
+// working with rotation around Y and Z
+  personTranslation << 0.296, 0.328, 0.70;
+  personPose.translation() = personTranslation;
   personPose.linear()
       = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
-  personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
+  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 /*distanceToPerson*/, 0};
 
   personTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
+//   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.15, Eigen::Vector3d::UnitX()));
+//   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.5, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   personTSR.mTw_e.matrix()
-      *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
+      *= eeTransform.matrix();
 
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+    bool trajectoryCompleted = false;
+  try {
+    trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+  } catch(std::runtime_error e) {
+      
+  }
   if (!trajectoryCompleted)
   {
-    throw std::runtime_error("Trajectory execution failed");
+    // throw std::runtime_error("Trajectory execution failed");
+    ROS_WARN("failed!");
+  }
+//   }
+}
+
+void FeedingDemo::moveInFrontOfPerson2()
+{
+  double distanceToPerson
+      = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
+  double horizontalToleranceNearPerson = getRosParam<double>(
+      "/planning/tsr/horizontalToleranceNearPerson", mNodeHandle);
+  double verticalToleranceNearPerson = getRosParam<double>(
+      "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
+
+  aikido::constraint::dart::TSR personTSR;
+  Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
+  Eigen::Vector3d personTranslation;
+// working with -0.15*M_PI rotation around X
+//   personTranslation << 0.296, 0.328, 0.70;
+//   personTranslation << 0.296, 0.278, 0.75;
+
+// working with rotation around Y and Z
+//   personTranslation << 0.296, 0.328 - (i*0.3), 0.70;
+  personTranslation << 0.296, 0.328, 0.70;
+  personPose.translation() = personTranslation;
+  personPose.linear()
+      = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
+  personTSR.mT0_w = personPose;
+  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 /*distanceToPerson*/, 0};
+
+  personTSR.mBw = createBwMatrixForTSR(
+      horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
+//   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.15, Eigen::Vector3d::UnitX()));
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.5, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+  personTSR.mTw_e.matrix()
+      *= eeTransform.matrix();
+
+    bool trajectoryCompleted = false;
+  try {
+    trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+  } catch(std::runtime_error e) {
+      
+  }
+  if (!trajectoryCompleted)
+  {
+    // throw std::runtime_error("Trajectory execution failed");
+    ROS_WARN("failed!");
   }
 }
 

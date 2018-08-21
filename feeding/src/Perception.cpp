@@ -134,12 +134,12 @@ bool Perception::perceiveFood(
   // //   ROS_INFO_STREAM("transform: " << foodTransform.matrix());
   //   return true;
 
+  std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
   mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
+  ROS_INFO_STREAM("Food detection took " << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - startTime).count());
   Eigen::Isometry3d forqueTransform = getForqueTransform();
 
   dart::dynamics::SkeletonPtr perceivedFood;
-
-  ROS_INFO("Looking for food items");
 
   double distFromForque = -1;
   double diffNorm;
@@ -246,7 +246,9 @@ bool Perception::perceiveFood(
 
 bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
 {
+  std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
   mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
+  ROS_INFO_STREAM("Face detection took " << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now() - startTime).count());
 
   // just choose one for now
   auto perceivedFace = mWorld->getSkeleton(mPerceivedFaceName);
