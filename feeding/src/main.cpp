@@ -148,7 +148,7 @@ int main(int argc, char** argv)
         return 0;
       }
     }
-    feedingDemo.moveAboveFood(foodTransform);
+    feedingDemo.moveAboveFood(foodTransform, 45.0 / 180.0 * M_PI);
 
     double zForceBeforeSkewering = 0;
     if (ftThresholdHelper.startDataCollection(20)) {

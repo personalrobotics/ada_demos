@@ -196,7 +196,7 @@ bool Perception::perceiveFood(
 
   if (perceivedFood != nullptr)
   {
-    if (onlyPerceiveFoodRightBelow && diffNorm > 1.05)
+    if (onlyPerceiveFoodRightBelow && diffNorm > 1.05 && false)
     {
       ROS_WARN_STREAM(
           "discarding perceived food because diffNorm " << diffNorm

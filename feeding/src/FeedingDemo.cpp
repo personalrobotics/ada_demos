@@ -206,7 +206,7 @@ void FeedingDemo::moveAbovePlate()
 }
 
 //==============================================================================
-void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
+void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle)
 {
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
@@ -228,12 +228,15 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform)
   aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, M_PI, M_PI);
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("plate");
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.05, Eigen::Vector3d::UnitX()));
-//   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(M_PI * -0.1, Eigen::Vector3d::UnitX()));
+//   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(-angle+0.5, Eigen::Vector3d::UnitX()));
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(-angle+0.5, Eigen::Vector3d::UnitX()));
   aboveFoodTSR.mTw_e.matrix()
       *= eeTransform.matrix();
+
+  float distance = heightAboveFood - heightIntoFood;
+
   aboveFoodTSR.mTw_e.translation()
-      = Eigen::Vector3d{0, 0, heightAboveFood - heightIntoFood};
+      = Eigen::Vector3d{sin(angle) * distance, 0, cos(angle) * distance};
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
   if (!trajectoryCompleted)

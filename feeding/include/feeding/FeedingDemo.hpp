@@ -81,7 +81,7 @@ public:
   /// parameters.
   /// \param[in] foodTransform the transform of the food which the robot should
   /// move over.
-  void moveAboveFood(const Eigen::Isometry3d& foodTransform);
+  void moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle);
 
   /// Moves the forque downwards into the food.
   /// This function does not throw an exception if the trajectory is aborted,
