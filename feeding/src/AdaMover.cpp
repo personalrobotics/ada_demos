@@ -1,6 +1,7 @@
 #include "feeding/AdaMover.hpp"
 #include <aikido/constraint/TestableIntersection.hpp>
 #include "feeding/util.hpp"
+#include "aikido/robot/util.hpp"
 
 namespace feeding {
 
@@ -43,6 +44,14 @@ bool AdaMover::moveToEndEffectorOffset(
 }
 
 //==============================================================================
+bool AdaMover::moveWithEndEffectorTwist(
+    const Eigen::Vector6d& transform, double duration, double timelimit)
+{
+  return moveArmOnTrajectory(
+      planWithEndEffectorTwist(transform, duration, timelimit), RETIME);
+}
+
+//==============================================================================
 aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length)
 {
@@ -61,6 +70,25 @@ aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
           "/planning/endEffectorOffset/positionTolerance", mNodeHandle),
       getRosParam<double>(
           "/planning/endEffectorOffset/angularTolerance", mNodeHandle));
+}
+
+//==============================================================================
+aikido::trajectory::TrajectoryPtr AdaMover::planWithEndEffectorTwist(
+    const Eigen::Vector6d& transform, double duration, double timelimit)
+{
+
+    aikido::robot::util::VectorFieldPlannerParameters vfParams(
+      0.2, 0.001, 0.004, 0.001, 1e-3, 1e-3, 1.0, 0.2, 0.1);
+
+  return aikido::robot::util::planWithEndEffectorTwist(
+    mArmSpace,
+    mAda.getArm()->getMetaSkeleton(),
+    mAda.getHand()->getEndEffectorBodyNode(),
+    transform,
+    duration,
+    nullptr,
+    timelimit,
+    1, 10, vfParams);
 }
 
 //==============================================================================

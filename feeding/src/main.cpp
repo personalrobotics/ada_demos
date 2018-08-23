@@ -99,12 +99,21 @@ int main(int argc, char** argv)
   }
   feedingDemo.moveInFrontOfPerson();
 
+// if (!waitForUser("Move towards person"))
+//     {
+//       return 0;
+//     }
+//   feedingDemo.moveTowardsPerson();
 
   if (!waitForUser("Rotate towards person"))
     {
       return 0;
     }
+  
+  while (true) {
+  feedingDemo.moveInFrontOfPerson();
   feedingDemo.moveInFrontOfPerson2();
+  }
   nodeHandle.setParam("/feeding/facePerceptionOn", true);
 
 

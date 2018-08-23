@@ -32,8 +32,15 @@ public:
   /// \return True if the trajectory was completed successfully.
   bool moveToEndEffectorOffset(const Eigen::Vector3d& direction, double length);
 
+  bool moveWithEndEffectorTwist(
+    const Eigen::Vector6d& transform, double duration, double timelimit);
+
   aikido::trajectory::TrajectoryPtr planToEndEffectorOffset(
       const Eigen::Vector3d& direction, double length);
+
+
+  aikido::trajectory::TrajectoryPtr planWithEndEffectorTwist(
+    const Eigen::Vector6d& transform, double duration, double timelimit);
 
   /// Moves the robot to a configuration.
   /// Throws a runtime_error if no trajectory could be found.

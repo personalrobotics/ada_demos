@@ -326,6 +326,11 @@ void FeedingDemo::moveOutOfFood()
 //==============================================================================
 void FeedingDemo::moveInFrontOfPerson()
 {
+//   Eigen::Vector6d config;
+//   config << -2.762510048228535, 4.3929478676357565, 4.9031890261545445, -2.408192444160033, 1.662426112524599, -0.9805006790663807;
+//   mAdaMover->moveArmToConfiguration(config);
+//   return;
+
   double distanceToPerson
       = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
   double horizontalToleranceNearPerson = getRosParam<double>(
@@ -344,11 +349,11 @@ void FeedingDemo::moveInFrontOfPerson()
 
 // working with rotation around Y and Z
   personTranslation << 0.296, 0.328, 0.70;
-  personPose.translation() = personTranslation;
-  personPose.linear()
-      = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
+  personTranslation = mWorkspace->getPersonPose().translation();
+//   personPose.translation() = personTranslation;
+  personPose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
-  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 /*distanceToPerson*/, 0};
+  personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
 
   personTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
@@ -374,6 +379,19 @@ void FeedingDemo::moveInFrontOfPerson()
 
 void FeedingDemo::moveInFrontOfPerson2()
 {
+  double duration = 1;
+  double timelimit = 5;
+
+//   Eigen::Vector6d transform;
+//   transform << -30.0/180.0*M_PI, 0, 0, 0, 0, 0;
+// //   transform << 15.0/180.0*M_PI, 0, 0, 0, 0, 0;
+//   mAdaMover->moveWithEndEffectorTwist(transform, duration, timelimit);
+
+//   Eigen::Vector6d transform2;
+//   transform2 << 0, 0, -M_PI/6, 0, 0, 0;
+//   mAdaMover->moveWithEndEffectorTwist(transform2, duration, timelimit);
+
+  
   double distanceToPerson
       = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
   double horizontalToleranceNearPerson = getRosParam<double>(
@@ -395,7 +413,7 @@ void FeedingDemo::moveInFrontOfPerson2()
   personPose.linear()
       = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
-  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 /*distanceToPerson*/, 0};
+  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 , 0};
 
   personTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
