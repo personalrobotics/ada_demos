@@ -84,7 +84,9 @@ Eigen::MatrixXd createBwMatrixForTSR(
     double horizontalTolerance,
     double verticalTolerance,
     double yawMin,
-    double yawMax)
+    double yawMax,
+    double pitchMin,
+    double pitchMax)
 {
   Eigen::MatrixXd bw = Eigen::Matrix<double, 6, 2>::Zero();
   bw(0, 0) = -horizontalTolerance;
@@ -93,6 +95,8 @@ Eigen::MatrixXd createBwMatrixForTSR(
   bw(1, 1) = horizontalTolerance;
   bw(2, 0) = -verticalTolerance;
   bw(2, 1) = verticalTolerance;
+  bw(4, 0) = pitchMin;
+  bw(4, 1) = pitchMax;
   bw(5, 0) = yawMin;
   bw(5, 1) = yawMax;
   return bw;

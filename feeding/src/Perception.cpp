@@ -255,6 +255,8 @@ bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
   if (perceivedFace != nullptr)
   {
     faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
+    faceTransform.translation() = faceTransform.translation() + Eigen::Vector3d(0,-0.15, 0);
+    faceTransform.translation().y() = 0.23;
     ROS_INFO_STREAM("perceived Face: " << faceTransform.matrix());
     return true;
   }

@@ -43,9 +43,10 @@ FeedingDemo::FeedingDemo(
           mAda->getHand()->getEndEffectorBodyNode());
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
-          mWorkspace->getTable().get(),
-          mWorkspace->getWorkspaceEnvironment().get(),
-          mWorkspace->getWheelchair().get());
+          // mWorkspace->getTable().get(),
+          mWorkspace->getWorkspaceEnvironment().get()
+          ,mWorkspace->getWheelchair().get()
+          );
   mCollisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
           mArmSpace, mAda->getArm()->getMetaSkeleton(), collisionDetector);
@@ -326,10 +327,12 @@ void FeedingDemo::moveOutOfFood()
 //==============================================================================
 void FeedingDemo::moveInFrontOfPerson()
 {
+
 //   Eigen::Vector6d config;
 //   config << -2.762510048228535, 4.3929478676357565, 4.9031890261545445, -2.408192444160033, 1.662426112524599, -0.9805006790663807;
 //   mAdaMover->moveArmToConfiguration(config);
 //   return;
+
 
   double distanceToPerson
       = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
@@ -348,12 +351,13 @@ void FeedingDemo::moveInFrontOfPerson()
 //   personTranslation << 0.296, 0.278, 0.75;
 
 // working with rotation around Y and Z
-  personTranslation << 0.296, 0.328, 0.70;
+  // personTranslation << 0.296, 0.328, 0.70;
   personTranslation = mWorkspace->getPersonPose().translation();
-//   personPose.translation() = personTranslation;
+  personPose.translation() = personTranslation;
   personPose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
   personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
+  // personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
   personTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
@@ -377,7 +381,7 @@ void FeedingDemo::moveInFrontOfPerson()
 //   }
 }
 
-void FeedingDemo::moveInFrontOfPerson2()
+void FeedingDemo::moveInFrontOfPerson2(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   double duration = 1;
   double timelimit = 5;
@@ -404,24 +408,30 @@ void FeedingDemo::moveInFrontOfPerson2()
   Eigen::Vector3d personTranslation;
 // working with -0.15*M_PI rotation around X
 //   personTranslation << 0.296, 0.328, 0.70;
-//   personTranslation << 0.296, 0.278, 0.75;
+  // personTranslation << 0.296, 0.278, 0.75;
 
 // working with rotation around Y and Z
 //   personTranslation << 0.296, 0.328 - (i*0.3), 0.70;
-  personTranslation << 0.296, 0.328, 0.70;
+//   personTranslation << 0.296, 0.328, 0.70;
+  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
   personPose.translation() = personTranslation;
   personPose.linear()
       = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
   personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 , 0};
 
-  personTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
+  // personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, 0, 0, -M_PI/2, M_PI/2);
+  // personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI/4, M_PI/4, 0, 0);
+  personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI/4, 0, 0, 0);
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
-//   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.15, Eigen::Vector3d::UnitX()));
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.5, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI *-30.0/180.0, Eigen::Vector3d::UnitX()));
+  // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.3, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   personTSR.mTw_e.matrix()
       *= eeTransform.matrix();
+
+  auto markers = viewer->addTSRMarker(personTSR, 100, "personTSRSamples");
+      // std::this_thread::sleep_for(std::chrono::milliseconds(5000000));
+  
 
     bool trajectoryCompleted = false;
   try {

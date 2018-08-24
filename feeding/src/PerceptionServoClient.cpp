@@ -166,8 +166,11 @@ void PerceptionServoClient::wait(double timelimit)
     elapsedTime = std::chrono::duration_cast<std::chrono::duration<double>>(
                       std::chrono::system_clock::now() - startTime)
                       .count();
+  ROS_INFO_STREAM("mExec done: " << std::to_string(mExecutionDone));
   }
+  ROS_INFO_STREAM("finished waiting!");
   stop();
+  ROS_INFO_STREAM("finished stopping!");
 }
 
 //==============================================================================
@@ -219,6 +222,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     mCurrentTrajectory = planToGoalPose(goalPose);
     if (!mCurrentTrajectory && mExecutionDone)
     {
+        timerMutex.unlock();
       return;
     }
     auto planningDuration
@@ -325,7 +329,6 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     mMetaSkeletonStateSpace->convertPositionsToState(
         mOriginalConfig, originalState);
 
-    ROS_INFO_STREAM("Servoing plan to end effector offset 1 state: " << mMetaSkeleton->getPositions().matrix().transpose());
     ROS_INFO_STREAM("Servoing plan to end effector offset 1 direction: " << direction1.normalized().matrix().transpose() << ",  length: " << direction1.norm());
 
     auto collisionConstraint = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
@@ -355,7 +358,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   }
 
   Eigen::Vector3d direction2 = goalPose.translation() - currentPose.translation();
-  if (direction2.norm() < 0.002)
+  if (direction2.norm() < 0.05)
   {
     ROS_INFO("Visual servoing is finished because goal was position reached.");
     mExecutionDone = true;
@@ -371,6 +374,9 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     spline1->evaluate(spline1->getEndTime(), endState);
     mMetaSkeletonStateSpace->setState(mMetaSkeleton.get(), endState);
   
+
+    ROS_INFO_STREAM("Servoing plan to end effector offset 2 direction: " << direction2.normalized().matrix().transpose() << ",  length: " << direction2.norm());
+
     auto collisionConstraint
         = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
     auto satisfiedConstraint = std::make_shared<aikido::constraint::Satisfied>(mMetaSkeletonStateSpace);
@@ -382,7 +388,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         mMetaSkeletonStateSpace,
         mMetaSkeleton,
         mBodyNode,
-        satisfiedConstraint,
+        collisionConstraint,
         direction2.normalized(),
         0.0, // std::min(direction2.norm(), 0.2) - 0.001,
         std::min(direction2.norm(), 0.0) + 0.1,

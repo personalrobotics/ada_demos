@@ -73,7 +73,9 @@ Eigen::MatrixXd createBwMatrixForTSR(
     double horizontalTolerance,
     double verticalTolerance,
     double yawMin,
-    double yawMax);
+    double yawMax,
+    double pitchMin = 0,
+    double pitchMax = 0);
 
 /// Create a timed spline with only two waypoints with start/end velocities
 std::unique_ptr<aikido::trajectory::Spline> createTimedSplineTrajectory(

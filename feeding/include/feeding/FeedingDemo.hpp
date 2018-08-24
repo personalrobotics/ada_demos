@@ -97,7 +97,7 @@ public:
 
   /// Moves the forque to a position ready to approach the person.
   void moveInFrontOfPerson();
-  void moveInFrontOfPerson2();
+  void moveInFrontOfPerson2(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   /// Moves the forque towards the person.
   /// This function does not throw an exception if the trajectory is aborted,

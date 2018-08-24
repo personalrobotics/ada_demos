@@ -98,23 +98,20 @@ int main(int argc, char** argv)
     }
   }
   feedingDemo.moveInFrontOfPerson();
+  nodeHandle.setParam("/feeding/facePerceptionOn", true);
 
-// if (!waitForUser("Move towards person"))
-//     {
-//       return 0;
-//     }
-//   feedingDemo.moveTowardsPerson();
+if (!waitForUser("Move towards person"))
+    {
+      return 0;
+    }
+  feedingDemo.moveTowardsPerson(&perception, viewer);
 
   if (!waitForUser("Rotate towards person"))
     {
       return 0;
     }
   
-  while (true) {
-  feedingDemo.moveInFrontOfPerson();
-  feedingDemo.moveInFrontOfPerson2();
-  }
-  nodeHandle.setParam("/feeding/facePerceptionOn", true);
+  feedingDemo.moveInFrontOfPerson2(viewer);
 
 
   // ===== DONE =====

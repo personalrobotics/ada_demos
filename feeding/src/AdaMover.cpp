@@ -23,6 +23,7 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
 
+  ROS_WARN_STREAM("Collision constraint for moveArmToTSR: " << mCollisionFreeConstraint.get());
   auto trajectory = mAda.planToTSR(
       mArmSpace,
       mAda.getArm()->getMetaSkeleton(),
