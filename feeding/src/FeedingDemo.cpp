@@ -318,8 +318,8 @@ void FeedingDemo::moveIntoFood(
 void FeedingDemo::moveOutOfFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(0, 0, 1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle));
+      Eigen::Vector3d(1, 0, 1),
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*1.41);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");

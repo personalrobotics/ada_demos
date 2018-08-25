@@ -149,6 +149,12 @@ int main(int argc, char** argv)
       }
     }
     feedingDemo.moveAboveFood(foodTransform, 45.0 / 180.0 * M_PI);
+    bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
+    if (!perceptionSuccessful) {
+      std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
+    } else {
+      feedingDemo.moveAboveFood(foodTransform, 45.0 / 180.0 * M_PI);
+    }
 
     double zForceBeforeSkewering = 0;
     if (ftThresholdHelper.startDataCollection(20)) {
@@ -210,7 +216,7 @@ int main(int argc, char** argv)
       }
       ROS_WARN_STREAM("force difference: " << forceDifference);
 
-      if (forceDifference > 0.075) {
+      if (forceDifference > 0.022) {
         foodPickedUp = true;
       } else {
         std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << ". Let me try again!\033[0;32m" << std::endl;

@@ -219,6 +219,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     mCurrentTrajectory = planToGoalPose(goalPose);
     if (!mCurrentTrajectory && mExecutionDone)
     {
+    timerMutex.unlock();
       return;
     }
     auto planningDuration
