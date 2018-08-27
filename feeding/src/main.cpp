@@ -148,12 +148,12 @@ int main(int argc, char** argv)
         return 0;
       }
     }
-    feedingDemo.moveAboveFood(foodTransform, 45.0 / 180.0 * M_PI);
+    feedingDemo.moveAboveFood(foodTransform, 0);
     bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
     if (!perceptionSuccessful) {
       std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
     } else {
-      feedingDemo.moveAboveFood(foodTransform, 45.0 / 180.0 * M_PI);
+      feedingDemo.moveAboveFood(foodTransform, 0);
     }
 
     double zForceBeforeSkewering = 0;

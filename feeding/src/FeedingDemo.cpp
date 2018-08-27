@@ -195,8 +195,10 @@ void FeedingDemo::moveAbovePlate()
 
   abovePlateTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceAbovePlate, verticalToleranceAbovePlate, 0, 0);
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("plate");
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   abovePlateTSR.mTw_e.matrix()
-      *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
+      *= eeTransform.matrix();
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR);
   if (!trajectoryCompleted)
