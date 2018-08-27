@@ -231,7 +231,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
       horizontalToleranceNearFood, verticalToleranceNearFood, M_PI, M_PI);
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("plate");
 //   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(-angle+0.5, Eigen::Vector3d::UnitX()));
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(-angle+0.5, Eigen::Vector3d::UnitX()));
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitX()));
   aboveFoodTSR.mTw_e.matrix()
       *= eeTransform.matrix();
 
