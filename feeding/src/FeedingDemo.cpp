@@ -424,7 +424,7 @@ void FeedingDemo::moveInFrontOfPerson2(aikido::rviz::WorldInteractiveMarkerViewe
   // personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI/4, M_PI/4, 0, 0);
   personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI/4, 0, 0, 0);
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI *-30.0/180.0, Eigen::Vector3d::UnitX()));
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI *45.0/180.0, Eigen::Vector3d::UnitX()));
   // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.3, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   personTSR.mTw_e.matrix()
       *= eeTransform.matrix();
