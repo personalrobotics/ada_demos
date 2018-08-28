@@ -208,7 +208,7 @@ void FeedingDemo::moveAbovePlate()
 }
 
 //==============================================================================
-void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle)
+void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
@@ -228,9 +228,8 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
   aikido::constraint::dart::TSR aboveFoodTSR;
   aboveFoodTSR.mT0_w = foodTransform;
   aboveFoodTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceNearFood, verticalToleranceNearFood, M_PI, M_PI);
-  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("plate");
-//   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(-angle+0.5, Eigen::Vector3d::UnitX()));
+      horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitX()));
   aboveFoodTSR.mTw_e.matrix()
       *= eeTransform.matrix();
@@ -238,7 +237,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
   float distance = heightAboveFood - heightIntoFood;
 
   aboveFoodTSR.mTw_e.translation()
-      = Eigen::Vector3d{sin(angle) * distance, 0, cos(angle) * distance};
+      = Eigen::Vector3d{sin(angle) * distance, 0, -cos(angle) * distance};
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
   if (!trajectoryCompleted)
@@ -320,7 +319,7 @@ void FeedingDemo::moveIntoFood(
 void FeedingDemo::moveOutOfFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(1, 0, 1),
+      Eigen::Vector3d(0, 0, 1),
       getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*1.41);
   if (!trajectoryCompleted)
   {

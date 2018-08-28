@@ -99,6 +99,27 @@ Eigen::Isometry3d Perception::getForqueTransform()
   return forqueTransformInWorldFrame;
 }
 
+Eigen::Isometry3d Perception::getCameraToWorldTransform()
+{
+  tf::StampedTransform tfStampedTransform;
+  try
+  {
+    mTFListener.lookupTransform(
+        "/camera_color_optical_frame",
+        "/map",
+        ros::Time(0),
+        tfStampedTransform);
+  }
+  catch (tf::TransformException ex)
+  {
+    throw std::runtime_error(
+        "Failed to get TF Transform: " + std::string(ex.what()));
+  }
+  Eigen::Isometry3d forqueTransformInWorldFrame;
+  tf::transformTFToEigen(tfStampedTransform, forqueTransformInWorldFrame);
+  return forqueTransformInWorldFrame;
+}
+
 bool Perception::setFoodName(std::string foodName) {
   std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", mNodeHandle);
     if (std::find(foodNames.begin(), foodNames.end(), foodName) != foodNames.end()) {
@@ -111,12 +132,12 @@ bool Perception::setFoodName(std::string foodName) {
 //==============================================================================
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 {
-  return perceiveFood(foodTransform, true);
+  return perceiveFood(foodTransform, true, nullptr);
 }
 
 //==============================================================================
 bool Perception::perceiveFood(
-    Eigen::Isometry3d& foodTransform, bool onlyPerceiveFoodRightBelow)
+    Eigen::Isometry3d& foodTransform, bool onlyPerceiveFoodRightBelow, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
 
   //   double ms = (std::chrono::duration_cast< std::chrono::milliseconds >(
@@ -136,6 +157,7 @@ bool Perception::perceiveFood(
 
   mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
   Eigen::Isometry3d forqueTransform = getForqueTransform();
+  Eigen::Isometry3d cameraToWorldTransform = getCameraToWorldTransform();
 
   dart::dynamics::SkeletonPtr perceivedFood;
 
@@ -156,11 +178,8 @@ bool Perception::perceiveFood(
       {
         break;
       }
-      Eigen::Isometry3d currentFoodTransform;
-      currentFoodTransform.setIdentity();
-      currentFoodTransform.translation() = currentPerceivedFood->getBodyNode(0)
-                                               ->getWorldTransform()
-                                               .translation();
+      Eigen::Isometry3d currentFoodTransform = currentPerceivedFood->getBodyNode(0)
+                                               ->getWorldTransform();
 
       Eigen::Vector3d diffVector = currentFoodTransform.translation()
                                    - forqueTransform.translation()
@@ -204,9 +223,8 @@ bool Perception::perceiveFood(
       return false;
     }
 
-    foodTransform.setIdentity();
-    foodTransform.translation()
-        = perceivedFood->getBodyNode(0)->getWorldTransform().translation();
+    foodTransform = perceivedFood->getBodyNode(0)->getWorldTransform();
+    foodTransform.linear() = forqueTransform.linear() * cameraToWorldTransform.linear() * foodTransform.linear();
     //ROS_WARN_STREAM("Food transform: " << foodTransform.matrix());
 
     if (foodTransform.translation().z() < 0.26 || true)
@@ -220,10 +238,11 @@ bool Perception::perceiveFood(
       Eigen::Hyperplane<double, 3> plane(
           /*mLastPerceivedFoodTransform.linear() */ Eigen::Vector3d(0, 0, 1),
           // Eigen::Vector3d(mLastPerceivedFoodTransform.translation()));
-        //   Eigen::Vector3d(0, 0, 0.25));
-             Eigen::Vector3d(0, 0, 0.268));
+            //  Eigen::Vector3d(0, 0, 0.268));
+             Eigen::Vector3d(0, 0, 0.298));
       Eigen::Vector3d intersection = line.intersectionPoint(plane);
       foodTransform.translation() = intersection;
+
       //   ROS_INFO_STREAM("start: " << start.matrix());
       //   ROS_INFO_STREAM("end: " << end.matrix());
       //   ROS_INFO_STREAM("normal: " << (mLastPerceivedFoodTransform.linear() *

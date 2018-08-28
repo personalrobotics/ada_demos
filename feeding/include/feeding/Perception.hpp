@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <aikido/perception/PoseEstimatorModule.hpp>
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
 
@@ -35,13 +36,15 @@ public:
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
   bool perceiveFood(
-      Eigen::Isometry3d& foodTransform, bool onlyPerceiveFoodRightBelow);
+      Eigen::Isometry3d& foodTransform, bool onlyPerceiveFoodRightBelow, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   bool perceiveFace(Eigen::Isometry3d& faceTransform);
 
   bool isMouthOpen();
 
   Eigen::Isometry3d getForqueTransform();
+
+  Eigen::Isometry3d getCameraToWorldTransform();
 
   Eigen::Isometry3d getOpticalToWorld();
 
