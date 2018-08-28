@@ -238,8 +238,7 @@ bool Perception::perceiveFood(
       Eigen::Hyperplane<double, 3> plane(
           /*mLastPerceivedFoodTransform.linear() */ Eigen::Vector3d(0, 0, 1),
           // Eigen::Vector3d(mLastPerceivedFoodTransform.translation()));
-            //  Eigen::Vector3d(0, 0, 0.268));
-             Eigen::Vector3d(0, 0, 0.298));
+             Eigen::Vector3d(0, 0, 0.268));
       Eigen::Vector3d intersection = line.intersectionPoint(plane);
       foodTransform.translation() = intersection;
 
