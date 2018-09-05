@@ -36,7 +36,7 @@ public:
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
   bool perceiveFood(
-      Eigen::Isometry3d& foodTransform, bool onlyPerceiveFoodRightBelow, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+      Eigen::Isometry3d& foodTransform, bool perceiveDepthPlane, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   bool perceiveFace(Eigen::Isometry3d& faceTransform);
 
@@ -62,6 +62,11 @@ private:
 
   double mPerceptionTimeout;
   std::string mFoodNameToPerceive, mPerceivedFaceName;
+
+  Eigen::Hyperplane<double, 3> depthPlane;
+
+  std::vector<dart::dynamics::SimpleFramePtr> frames;
+  std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 };
 }
 

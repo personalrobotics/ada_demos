@@ -84,7 +84,7 @@ Eigen::Isometry3d Perception::getForqueTransform()
   try
   {
     mTFListener.lookupTransform(
-        "/world",
+        "/map",
         "/j2n6s200_forque_end_effector",
         ros::Time(0),
         tfStampedTransform);
@@ -137,7 +137,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 
 //==============================================================================
 bool Perception::perceiveFood(
-    Eigen::Isometry3d& foodTransform, bool onlyPerceiveFoodRightBelow, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
+    Eigen::Isometry3d& foodTransform, bool perceiveDepthPlane, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
 
   //   double ms = (std::chrono::duration_cast< std::chrono::milliseconds >(
@@ -164,7 +164,6 @@ bool Perception::perceiveFood(
   ROS_INFO("Looking for food items");
 
   double distFromForque = -1;
-  double diffNorm;
 //   for (std::string perceivedFoodName : foodNames)
 //   {
     int index = 1;
@@ -181,80 +180,98 @@ bool Perception::perceiveFood(
       Eigen::Isometry3d currentFoodTransform = currentPerceivedFood->getBodyNode(0)
                                                ->getWorldTransform();
 
-      Eigen::Vector3d diffVector = currentFoodTransform.translation()
-                                   - forqueTransform.translation()
-                                   - Eigen::Vector3d(0, 0, 0.07);
-      diffVector *= 1.0 / diffVector.z();
 
-      double currentDistFromForque
-          = (currentFoodTransform.translation() - forqueTransform.translation())
+      if (!perceiveDepthPlane) {
+        Eigen::Vector3d start(currentFoodTransform.translation());
+        Eigen::Vector3d end(getOpticalToWorld().translation());
+        Eigen::ParametrizedLine<double, 3> line(
+            start, (end - start).normalized());
+        Eigen::Vector3d intersection = line.intersectionPoint(depthPlane);
+        currentFoodTransform.translation() = intersection;
+      }
+
+
+
+      double currentDistFromForque = 0;
+      {
+        Eigen::Vector3d start(forqueTransform.translation());
+        Eigen::Vector3d end(forqueTransform.translation() + forqueTransform.linear() * Eigen::Vector3d(0,0,1));
+        Eigen::ParametrizedLine<double, 3> line(
+            start, (end - start).normalized());
+        Eigen::Vector3d intersection = line.intersectionPoint(depthPlane);
+        currentDistFromForque = (currentFoodTransform.translation() - intersection)
                 .norm();
-
-      ROS_INFO_STREAM(
-          currentFoodName << " current dist from forque: "
-                          << currentDistFromForque
-                          << "    diff: ("
-                          << diffVector.x()
-                          << ", "
-                          << diffVector.y()
-                          << ", "
-                          << diffVector.z()
-                          << +") norm: "
-                          << diffVector.norm());
+      }
 
       if (distFromForque < 0 || currentDistFromForque < distFromForque)
       {
         distFromForque = currentDistFromForque;
         foodTransform = currentFoodTransform;
         perceivedFood = currentPerceivedFood;
-        diffNorm = diffVector.norm();
       }
       index++;
     }
 //   }
 
+  
+
   if (perceivedFood != nullptr)
   {
-    if (onlyPerceiveFoodRightBelow && diffNorm > 1.05)
-    {
-      ROS_WARN_STREAM(
-          "discarding perceived food because diffNorm " << diffNorm
-                                                        << " too big");
+  //   if (onlyPerceiveFoodRightBelow && diffNorm > 1.05 && false)
+  //   {
+  //     ROS_WARN_STREAM(
+  //         "discarding perceived food because diffNorm " << diffNorm
+  //                                                       << " too big");
+  //     return false;
+  //   }
+
+    double distFromLastTransform = (mLastPerceivedFoodTransform.translation() - foodTransform.translation()).norm();
+    if (!perceiveDepthPlane && distFromLastTransform > 0.02) {
+      ROS_WARN("food transform too far from last one!");
       return false;
     }
 
-    foodTransform = perceivedFood->getBodyNode(0)->getWorldTransform();
-    foodTransform.linear() = forqueTransform.linear() * cameraToWorldTransform.linear() * foodTransform.linear();
+
+    foodTransform.linear() = cameraToWorldTransform.linear() * foodTransform.linear();
+    foodTransform.linear() = forqueTransform.linear()  * foodTransform.linear();
     //ROS_WARN_STREAM("Food transform: " << foodTransform.matrix());
 
-    if (foodTransform.translation().z() < 0.26 || true)
-    {
-      Eigen::Vector3d start(foodTransform.translation());
-      Eigen::Vector3d end(getOpticalToWorld().translation());
-      Eigen::ParametrizedLine<double, 3> line(
-          start, (end - start).normalized());
-      // TODO(daniel): Rotation needs to be adjusted if camera doesn't point
-      // straight downwards
-      Eigen::Hyperplane<double, 3> plane(
-          /*mLastPerceivedFoodTransform.linear() */ Eigen::Vector3d(0, 0, 1),
-          // Eigen::Vector3d(mLastPerceivedFoodTransform.translation()));
-             Eigen::Vector3d(0, 0, 0.268));
-      Eigen::Vector3d intersection = line.intersectionPoint(plane);
-      foodTransform.translation() = intersection;
-
-      //   ROS_INFO_STREAM("start: " << start.matrix());
-      //   ROS_INFO_STREAM("end: " << end.matrix());
-      //   ROS_INFO_STREAM("normal: " << (mLastPerceivedFoodTransform.linear() *
-      //   Eigen::Vector3d(0,0,1)).matrix());
-      //   ROS_INFO_STREAM("planePoint: " <<
-      //   Eigen::Vector3d(mLastPerceivedFoodTransform.translation().matrix()));
-      //   ROS_INFO_STREAM("intersectionPoint: " << intersection.matrix());
+    if (perceiveDepthPlane) {
+      Eigen::Vector3d cameraDirection = cameraToWorldTransform.linear() * Eigen::Vector3d(0,0,1);
+      depthPlane = Eigen::Hyperplane<double, 3>(cameraDirection, foodTransform.translation());
     }
 
-    // mLastPerceivedFoodTransform = foodTransform;
-    // Eigen::Vector3d foodTranslation(foodTransform.translation().x(),
-    // foodTransform.translation().y(), foodTransform.translation().z() - 0.02);
-    // foodTransform.translation() = foodTranslation;
+
+    mLastPerceivedFoodTransform = foodTransform;
+    Eigen::Vector3d foodTranslation = foodTransform.translation();
+    foodTranslation += Eigen::Vector3d(0,0,-0.01);
+    foodTransform.translation() = foodTranslation;
+
+    // if (foodTransform.translation().z() < 0.26 || true)
+    // {
+    //   Eigen::Vector3d start(foodTransform.translation());
+    //   Eigen::Vector3d end(getOpticalToWorld().translation());
+    //   Eigen::ParametrizedLine<double, 3> line(
+    //       start, (end - start).normalized());
+    //   // TODO(daniel): Rotation needs to be adjusted if camera doesn't point
+    //   // straight downwards
+    //   Eigen::Hyperplane<double, 3> plane(
+    //       /*mLastPerceivedFoodTransform.linear() */ Eigen::Vector3d(0, 0, 1),
+    //       // Eigen::Vector3d(mLastPerceivedFoodTransform.translation()));
+    //          Eigen::Vector3d(0, 0, 0.268));
+    //   Eigen::Vector3d intersection = line.intersectionPoint(plane);
+    //   foodTransform.translation() = intersection;
+
+    //   //   ROS_INFO_STREAM("start: " << start.matrix());
+    //   //   ROS_INFO_STREAM("end: " << end.matrix());
+    //   //   ROS_INFO_STREAM("normal: " << (mLastPerceivedFoodTransform.linear() *
+    //   //   Eigen::Vector3d(0,0,1)).matrix());
+    //   //   ROS_INFO_STREAM("planePoint: " <<
+    //   //   Eigen::Vector3d(mLastPerceivedFoodTransform.translation().matrix()));
+    //   //   ROS_INFO_STREAM("intersectionPoint: " << intersection.matrix());
+    // } else {
+    //   foodTransform.translation() = Eigen::Vector3d(0,0,-0.01);
+    // }
     return true;
   }
   else

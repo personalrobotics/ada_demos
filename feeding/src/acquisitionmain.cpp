@@ -50,7 +50,7 @@ int acquisitionmain(FeedingDemo& feedingDemo,
 
     if (adaReal)
     {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
       if (!perceptionSuccessful) {
         std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
         continue;
@@ -76,12 +76,16 @@ int acquisitionmain(FeedingDemo& feedingDemo,
         return 0;
       }
     }
-    feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-    bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+    feedingDemo.moveAboveFood(foodTransform, 0 /*0.25*M_PI*/, viewer);
+    if (!waitForUser("Move forque above food 2"))
+      {
+        return 0;
+      }
+    bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
     if (!perceptionSuccessful) {
       std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
     } else {
-      feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+      feedingDemo.moveAboveFood(foodTransform, 0 /*0.25*M_PI*/, viewer);
     }
 
     double zForceBeforeSkewering = 0;

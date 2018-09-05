@@ -226,18 +226,29 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
       "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
 
   aikido::constraint::dart::TSR aboveFoodTSR;
-  aboveFoodTSR.mT0_w = foodTransform;
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
+  if (fabs(angle) < 0.01) {
+    aboveFoodTSR.mT0_w = foodTransform;
+  } else {
+    Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
+    defaultFoodTransform.translation() = foodTransform.translation();
+    aboveFoodTSR.mT0_w = defaultFoodTransform;
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+  }
   aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
-  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitX()));
   aboveFoodTSR.mTw_e.matrix()
       *= eeTransform.matrix();
 
   float distance = heightAboveFood - heightIntoFood;
 
-  aboveFoodTSR.mTw_e.translation()
-      = Eigen::Vector3d{sin(angle) * distance, 0, -cos(angle) * distance};
+  if (fabs(angle) < 0.01) {
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, -distance};
+  } else {
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(angle) * distance, 0, cos(angle) * distance};
+  }
+
+//   tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
   if (!trajectoryCompleted)

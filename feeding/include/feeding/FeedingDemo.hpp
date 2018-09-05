@@ -9,6 +9,7 @@
 #include "feeding/Perception.hpp"
 #include "feeding/PerceptionServoClient.hpp"
 #include "feeding/Workspace.hpp"
+#include <aikido/rviz/TSRMarker.hpp>
 
 namespace feeding {
 
@@ -122,6 +123,8 @@ private:
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
 
   std::unique_ptr<PerceptionServoClient> mServoClient;
+
+  std::vector<aikido::rviz::TSRMarkerPtr> tsrMarkers;
 };
 }
 
