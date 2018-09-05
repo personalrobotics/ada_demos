@@ -77,16 +77,16 @@ int acquisitionmain(FeedingDemo& feedingDemo,
       }
     }
     feedingDemo.moveAboveFood(foodTransform, 0 /*0.25*M_PI*/, viewer);
-    if (!waitForUser("Move forque above food 2"))
-      {
-        return 0;
-      }
-    bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-    if (!perceptionSuccessful) {
-      std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
-    } else {
-      feedingDemo.moveAboveFood(foodTransform, 0 /*0.25*M_PI*/, viewer);
-    }
+    // if (!waitForUser("Move forque above food 2"))
+    //   {
+    //     return 0;
+    //   }
+    // bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+    // if (!perceptionSuccessful) {
+    //   std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
+    // } else {
+    //   feedingDemo.moveAboveFood(foodTransform, 0 /*0.25*M_PI*/, viewer);
+    // }
 
     double zForceBeforeSkewering = 0;
     if (ftThresholdHelper.startDataCollection(20)) {

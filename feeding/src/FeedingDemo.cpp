@@ -229,6 +229,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
   if (fabs(angle) < 0.01) {
     aboveFoodTSR.mT0_w = foodTransform;
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(0, Eigen::Vector3d::UnitX()));
   } else {
     Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
     defaultFoodTransform.translation() = foodTransform.translation();
@@ -331,7 +332,7 @@ void FeedingDemo::moveOutOfFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, 1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*1.41);
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*1);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");

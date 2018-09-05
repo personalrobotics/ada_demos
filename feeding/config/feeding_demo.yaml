@@ -96,5 +96,5 @@ perception:
   faceName: mouth
 
 foodItems:
-  names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry"]
-  forces: [25, 11.75, 7.37, 4.67, 20.99, 11.36, 6.13, 22.49, 9.07, 5.21, 5.98, 17.48, 6.63]
+  names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
+  forces: [25, 11.75, 7.37, 4.67, 20.99, 11.36, 6.13, 22.49, 9.07, 5.21, 5.98, 17.48, 6.63, 21.63, 21.63]
