@@ -225,10 +225,9 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     auto planningDuration
         = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - planningStartTime);
-    ROS_INFO_STREAM(
-        "Planning took " << planningDuration.count() << " millisecs");
+    // ROS_INFO_STREAM("Planning took " << planningDuration.count() << " millisecs");
 
-    ROS_INFO("Aborting old trajectory");
+    // ROS_INFO("Aborting old trajectory");
     mTrajectoryExecutor->abort();
 
     if (mExec.valid())
@@ -265,7 +264,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
   }
   else
   {
-    ROS_INFO("Food position didn't change much");
+    // ROS_INFO("Food position didn't change much");
   }
 
   timerMutex.unlock();
@@ -282,6 +281,7 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   endEffectorTransform.linear() = rotationMatrix;
   bool successful = mGetTransform(goalPose);
   goalPose = goalPose * endEffectorTransform;
+  ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
   if (goalPose.translation().z() < 0.215)
   {
     ROS_WARN_STREAM("Food is way too low:   " << goalPose.matrix());
@@ -326,8 +326,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     mMetaSkeletonStateSpace->convertPositionsToState(
         mOriginalConfig, originalState);
 
-    ROS_INFO_STREAM("Servoing plan to end effector offset 1 state: " << mMetaSkeleton->getPositions().matrix().transpose());
-    ROS_INFO_STREAM("Servoing plan to end effector offset 1 direction: " << direction1.normalized().matrix().transpose() << ",  length: " << direction1.norm());
+    // ROS_INFO_STREAM("Servoing plan to end effector offset 1 state: " << mMetaSkeleton->getPositions().matrix().transpose());
+    // ROS_INFO_STREAM("Servoing plan to end effector offset 1 direction: " << direction1.normalized().matrix().transpose() << ",  length: " << direction1.norm());
 
     auto collisionConstraint = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
     auto satisfiedConstraint = std::make_shared<aikido::constraint::Satisfied>(mMetaSkeletonStateSpace);

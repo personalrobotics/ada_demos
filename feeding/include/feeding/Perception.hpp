@@ -38,6 +38,12 @@ public:
   bool perceiveFood(
       Eigen::Isometry3d& foodTransform, bool perceiveDepthPlane, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
+  bool perceiveFood(Eigen::Isometry3d& foodTransform,
+                                bool perceiveDepthPlane,
+                                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                                std::string& foodName,
+                                bool perceiveAnyFood);
+
   bool perceiveFace(Eigen::Isometry3d& faceTransform);
 
   bool isMouthOpen();
@@ -67,7 +73,11 @@ private:
 
   std::vector<dart::dynamics::SimpleFramePtr> frames;
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
+
+  std::vector<std::string> mFoodNames;
+
 };
+
 }
 
 #endif
