@@ -287,6 +287,9 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
     ROS_WARN_STREAM("Food is way too low:   " << goalPose.matrix());
     return false;
   }
+  if (hasOriginalDirection) {
+    goalPose.translation() = goalPose.translation() + originalDirection * 0.02;
+  }
   return successful;
 }
 
@@ -431,6 +434,11 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     aikido::trajectory::TrajectoryPtr trajectory2 = mAdaMover->planToEndEffectorOffset(
         direction2.normalized(), 
         std::min(direction2.norm(), 0.2));
+
+    if (!hasOriginalDirection) {
+      originalDirection = direction2.normalized();
+      hasOriginalDirection = true;
+    }
 
     if (trajectory2 == nullptr)
       throw std::runtime_error("Failed in finding the traj");

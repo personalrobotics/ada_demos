@@ -99,6 +99,9 @@ protected:
   AdaMover* mAdaMover;
 
   std::chrono::time_point<std::chrono::system_clock> mStartTime;
+
+  bool hasOriginalDirection = false;
+  Eigen::Vector3d originalDirection;
 };
 }
 

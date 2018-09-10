@@ -45,6 +45,7 @@ int acquisitionmain(FeedingDemo& feedingDemo,
         if (!waitForUser("Trajectory execution failed. Try again?")) {continue;}
       }
     }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     // ===== SELECT FOOD =====
     if (!autoContinueDemo)
@@ -84,6 +85,7 @@ int acquisitionmain(FeedingDemo& feedingDemo,
     try {
       if (angledSkewering) {
         feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
         if (!perceptionSuccessful) {
           std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
@@ -93,14 +95,14 @@ int acquisitionmain(FeedingDemo& feedingDemo,
         }
       } else {
         feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        // bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-        // if (!perceptionSuccessful) {
-        //   std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
-        //   continue;
-        // } else {
-        //   feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-        // }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+        if (!perceptionSuccessful) {
+          std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
+          continue;
+        } else {
+          feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+        }
       }
       stepSuccessful = true;
     } catch (std::runtime_error) {
