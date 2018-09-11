@@ -246,13 +246,14 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   float distance = heightAboveFood - heightIntoFood;
 
-  if (fabs(angle) < 0.01 || !useAngledTranslation) {
-
+  if (fabs(angle) < 0.01) {
     // vertical
-    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, -distance};
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.01, 0, -distance};
+  } else if (!useAngledTranslation) {
     // grape style angled
-    // aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
   } else {
+    // banana style angled
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(angle) * distance, 0, cos(angle) * distance};
   }
 

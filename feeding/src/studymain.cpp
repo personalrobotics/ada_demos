@@ -64,9 +64,9 @@ int studymain(FeedingDemo& feedingDemo,
 
   nodeHandle.setParam("/deep_pose/forceFood", true);
   nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
-  nodeHandle.setParam("/deep_pose/publish_spnet", stepIdx == 1 || stepIdx == 3 || stepIdx == 5);
+  nodeHandle.setParam("/deep_pose/publish_spnet", stepIdx == 2 || stepIdx == 4 || stepIdx == 6);
   nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
-  nodeHandle.setParam("/deep_pose/invertSPNetDirection", stepIdx == 4 || stepIdx == 5);
+  nodeHandle.setParam("/deep_pose/invertSPNetDirection", stepIdx == 5 || stepIdx == 6);
   std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
   std::cout << std::endl << "\033[1;32mRunning bite transfer study for " << foodName << " beginning on step " << stepIdx << ".\033[0m" << std::endl;
@@ -98,8 +98,9 @@ int studymain(FeedingDemo& feedingDemo,
     if (adaReal)
     {
       bool foodFound = false;
+      perception.setFoodName(foodName);
       while (!foodFound) {
-        foodFound = perception.perceiveFood(foodTransform, false, viewer);
+        foodFound = perception.perceiveFood(foodTransform, true, viewer);
         if (!foodFound) {
           std::cout << "\033[1;33mI can't see the " << foodName << "\033[0m" << std::endl;
           if (!waitForUser("Try perception again?")) {return 0;}
@@ -113,6 +114,7 @@ int studymain(FeedingDemo& feedingDemo,
     std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
 
     // ===== ABOVE FOOD =====
+    bool angledSkewering = (foodName == "strawberry");
     bool foodPickedUp = false;
     while (!foodPickedUp) {
 
@@ -123,12 +125,20 @@ int studymain(FeedingDemo& feedingDemo,
           return 0;
         }
       }
-      feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+      if (angledSkewering) {
+        feedingDemo.moveAboveFood(foodTransform, -0.05*M_PI, viewer, false);
+      } else {
+        feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+      }
+      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
       if (!perceptionSuccessful) {
         std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
       } else {
-        feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+        if (angledSkewering) {
+          feedingDemo.moveAboveFood(foodTransform, -0.05*M_PI, viewer, false);
+        } else {
+          feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+        }
       }
 
       double zForceBeforeSkewering = 0;
@@ -198,7 +208,7 @@ int studymain(FeedingDemo& feedingDemo,
         bool shouldTryAgain = waitForUser("\033[1;32mDo you want me to try again?\033[0;32m");
         if (shouldTryAgain) {
           feedingDemo.moveAbovePlate();
-          bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+          bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
           if (!perceptionSuccessful) {
             std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
             return 0;
@@ -231,17 +241,19 @@ int studymain(FeedingDemo& feedingDemo,
   }
   feedingDemo.moveTowardsPerson(&perception, viewer);
   nodeHandle.setParam("/feeding/facePerceptionOn", false);
+
+  if (stepIdx == 3 || stepIdx == 4) {
+    feedingDemo.tiltUpInFrontOfPerson(viewer);
+  } else if (stepIdx == 5 || stepIdx == 6) {
+    feedingDemo.tiltDownInFrontOfPerson(viewer);
+  }
+
+  // ===== EATING =====
   ROS_WARN("Human is eating");
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
           getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
   feedingDemo.ungrabAndDeleteFood();
-
-  if (stepIdx == 2 || stepIdx == 3) {
-    feedingDemo.tiltUpInFrontOfPerson(viewer);
-  } else if (stepIdx == 4 || stepIdx == 5) {
-    feedingDemo.tiltDownInFrontOfPerson(viewer);
-  }
 
   // ===== AWAY FROM PERSON =====
   feedingDemo.moveAwayFromPerson();

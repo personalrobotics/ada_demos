@@ -165,6 +165,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
   for (std::string foodName : mFoodNames)
   {
     if (!perceiveAnyFood && mFoodNameToPerceive != foodName) {
+      // ROS_INFO_STREAM(mFoodNameToPerceive << "  " << foodName << "  " << perceiveAnyFood); 
       continue;
     }
 
