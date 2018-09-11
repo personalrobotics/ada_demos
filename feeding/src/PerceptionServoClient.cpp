@@ -284,11 +284,11 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
   if (goalPose.translation().z() < 0.215)
   {
-    ROS_WARN_STREAM("Food is way too low:   " << goalPose.matrix());
+    ROS_WARN_STREAM("Food is way too low");
     return false;
   }
   if (hasOriginalDirection) {
-    goalPose.translation() = goalPose.translation() + originalDirection * 0.02;
+    goalPose.translation() = goalPose.translation() + originalDirection * 0.1;
   }
   return successful;
 }

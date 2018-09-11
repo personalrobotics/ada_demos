@@ -17,54 +17,52 @@ int studymain(FeedingDemo& feedingDemo,
                 bool adaReal) {
 
   std::cout << std::endl << "\033[1;32m      ***** BITE TRANSFER STUDY MODE *****\033[0m" << std::endl;
-  std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m" << std::endl;
-  std::cout << "\033[0;32m1) Melon\033[0m" << std::endl;
-  std::cout << "\033[0;32m2) Cantaloupe\033[0m" << std::endl;
-  std::cout << "\033[0;32m3) Banana\033[0m" << std::endl;
-  std::cout << "\033[0;32m4) Carrot\033[0m" << std::endl;
+  // std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m" << std::endl;
+  // std::cout << "\033[0;32m1) Melon\033[0m" << std::endl;
+  // std::cout << "\033[0;32m2) Cantaloupe\033[0m" << std::endl;
+  // std::cout << "\033[0;32m3) Banana\033[0m" << std::endl;
+  // std::cout << "\033[0;32m4) Carrot\033[0m" << std::endl;
 
-  std::string foodName = "";
-  while (foodName == "") { 
-    std::cout << "> ";
-    std::string idString;
-    std::cin  >> idString;
-    try {
-      int id = std::stoi(idString);
-      if (id < 1 || id > 4) {
-        throw std::invalid_argument("");
-      }
-      switch (id) {
-        case 1: foodName = "melon";break;
-        case 2: foodName = "cantalope";break;
-        case 3: foodName = "banana";break;
-        case 4: foodName = "carrot";break;
-      }
-    } catch (const std::invalid_argument& ia) {
-      std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
-    }
-  }
+  // std::string foodName = "";
+  // while (foodName == "") { 
+  //   std::cout << "> ";
+  //   std::string idString;
+  //   std::cin  >> idString;
+  //   try {
+  //     int id = std::stoi(idString);
+  //     if (id < 1 || id > 4) {
+  //       throw std::invalid_argument("");
+  //     }
+  //     switch (id) {
+  //       case 1: foodName = "melon";break;
+  //       case 2: foodName = "cantalope";break;
+  //       case 3: foodName = "banana";break;
+  //       case 4: foodName = "carrot";break;
+  //     }
+  //   } catch (const std::invalid_argument& ia) {
+  //     std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
+  //   }
+  // }
 
-  std::cout << std::endl << "\033[1;32mWhat step should I proceed with (1-6)?\033[0m" << std::endl;
+  // std::cout << std::endl << "\033[1;32mWhat step should I proceed with (1-6)?\033[0m" << std::endl;
 
-  int stepIdx = -1;
-  while (stepIdx < 0) {
-    std::cout << "> ";
-    std::string stepIdxString;
-    std::cin  >> stepIdxString;
-    try {
-      int idx = std::stoi(stepIdxString);
-      if (idx < 1 || idx > 6) {
-        throw std::invalid_argument("");
-      }
-      stepIdx = idx;
-    } catch (const std::invalid_argument& ia) {
-      std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
-    }
-  }
+  // int stepIdx = -1;
+  // while (stepIdx < 0) {
+  //   std::cout << "> ";
+  //   std::string stepIdxString;
+  //   std::cin  >> stepIdxString;
+  //   try {
+  //     int idx = std::stoi(stepIdxString);
+  //     if (idx < 1 || idx > 6) {
+  //       throw std::invalid_argument("");
+  //     }
+  //     stepIdx = idx;
+  //   } catch (const std::invalid_argument& ia) {
+  //     std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
+  //   }
+  // }
 
-  std::cout << std::endl << "\033[1;32mRunning bite transfer study for " << foodName << " beginning on step " << stepIdx << ".\033[0m" << std::endl;
-
-  return 0;
+  // std::cout << std::endl << "\033[1;32mRunning bite transfer study for " << foodName << " beginning on step " << stepIdx << ".\033[0m" << std::endl;
 
   /*
   // ===== ABOVE PLATE =====
@@ -204,7 +202,7 @@ int studymain(FeedingDemo& feedingDemo,
           std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
         }
       }
-  }
+  }*/
 
   // ===== IN FRONT OF PERSON =====
   if (!autoContinueDemo)
@@ -217,10 +215,6 @@ int studymain(FeedingDemo& feedingDemo,
   feedingDemo.moveInFrontOfPerson();
   nodeHandle.setParam("/feeding/facePerceptionOn", true);
 
-  // while (true) {
-  //     Eigen::Isometry3d faceTransform;
-  //   bool perceptionSuccessful = perception.perceiveFace(faceTransform);
-  // }
   // ===== TOWARDS PERSON =====
   if (!autoContinueDemo)
   {
@@ -237,6 +231,8 @@ int studymain(FeedingDemo& feedingDemo,
           getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
   feedingDemo.ungrabAndDeleteFood();
 
+  feedingDemo.rotateInFrontOfPerson(viewer);
+
   // ===== AWAY FROM PERSON =====
   feedingDemo.moveAwayFromPerson();
 
@@ -251,7 +247,7 @@ int studymain(FeedingDemo& feedingDemo,
   feedingDemo.moveAbovePlate();
 
   // ===== DONE =====
-  waitForUser("Demo finished.");*/
+  waitForUser("Demo finished.");
 }
 
 };

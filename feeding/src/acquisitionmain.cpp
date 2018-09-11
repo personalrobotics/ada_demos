@@ -56,26 +56,66 @@ int acquisitionmain(FeedingDemo& feedingDemo,
       }
     }
 
-    Eigen::Isometry3d foodTransform;
-    std::string foodName;
+    // Eigen::Isometry3d foodTransform;
+    // std::string foodName;
+
+    // if (adaReal)
+    // {
+    //   bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer, foodName, true);
+    //   if (!perceptionSuccessful) {
+    //     std::cout << "\033[1;33mI can't see any food! Next trial.\033[0m" << std::endl;
+    //     continue;
+    //   }
+    // }
+    // else
+    // {
+    //   foodTransform = feedingDemo.getDefaultFoodTransform();
+    //   foodName = "apricot";
+    // }
+    // perception.setFoodName(foodName);
+    // std::cout << "\033[1;32mI'm gonna get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
+
+
+  Eigen::Isometry3d foodTransform;
+  bool foodFound = false;
+  std::string foodName;
+  while (!foodFound) {
+    std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m     > ";
+    foodName = "";
+    std::cin >> foodName;
+    if (!ros::ok()) {return 0;}
+    nodeHandle.setParam("/deep_pose/publish_spnet", true);
+    nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
+    std::this_thread::sleep_for(std::chrono::milliseconds(400));
+    if (!perception.setFoodName(foodName)) {
+      std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
+      continue;
+    }
 
     if (adaReal)
     {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer, foodName, true);
+      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+      ROS_INFO_STREAM("perceptionSuccessfulBool: " << perceptionSuccessful);
       if (!perceptionSuccessful) {
-        std::cout << "\033[1;33mI can't see any food! Next trial.\033[0m" << std::endl;
+        std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
         continue;
+      } else {
+        foodFound = true;
       }
     }
     else
     {
       foodTransform = feedingDemo.getDefaultFoodTransform();
-      foodName = "apricot";
+      foodFound = true;
     }
-    perception.setFoodName(foodName);
-    std::cout << "\033[1;32mI'm gonna get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
+  }
+  std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
 
-    bool angledSkewering = (foodName == "banana");
+  nodeHandle.setParam("/deep_pose/publish_spnet", true);
+  nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
+  std::this_thread::sleep_for(std::chrono::milliseconds(700));
+
+    bool angledSkewering = false; //(foodName == "banana");
 
 
   // ===== ABOVE FOOD =====
@@ -94,6 +134,9 @@ int acquisitionmain(FeedingDemo& feedingDemo,
           feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer);
         }
       } else {
+
+        // Grape style skewering angle: -0.05*M_PI, viewer, false
+
         feedingDemo.moveAboveFood(foodTransform, 0, viewer);
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
@@ -157,6 +200,9 @@ int acquisitionmain(FeedingDemo& feedingDemo,
     {
       return 1;
     }
+
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(5000));
   }
 
   // ===== DONE =====

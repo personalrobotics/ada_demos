@@ -208,7 +208,7 @@ void FeedingDemo::moveAbovePlate()
 }
 
 //==============================================================================
-void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
+void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
@@ -229,11 +229,15 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
   if (fabs(angle) < 0.01) {
     aboveFoodTSR.mT0_w = foodTransform;
+    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(0.5 * , Eigen::Vector3d::UnitX()));
   } else {
     Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
     defaultFoodTransform.translation() = foodTransform.translation();
     aboveFoodTSR.mT0_w = defaultFoodTransform;
-    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    // grape-style
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    // banana-style
+    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
   }
   aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -242,13 +246,17 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   float distance = heightAboveFood - heightIntoFood;
 
-  if (fabs(angle) < 0.01) {
+  if (fabs(angle) < 0.01 || !useAngledTranslation) {
+
+    // vertical
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, -distance};
+    // grape style angled
+    // aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
   } else {
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(angle) * distance, 0, cos(angle) * distance};
   }
 
-  tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
+//   tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
   if (!trajectoryCompleted)
@@ -365,6 +373,39 @@ void FeedingDemo::moveInFrontOfPerson()
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+void FeedingDemo::rotateInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer) {
+  aikido::constraint::dart::TSR personTSR;
+  Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
+  Eigen::Vector3d personTranslation;
+//   personTranslation << 0.296, 0.328, 0.70;
+  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
+  personPose.translation() = personTranslation;
+  personPose.linear()
+      = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
+  personTSR.mT0_w = personPose;
+  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 , 0};
+
+  personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI/4, M_PI/4);
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
+  personTSR.mTw_e.matrix() *= eeTransform.matrix();
+
+  auto markers = viewer->addTSRMarker(personTSR, 100, "personTSRSamples");
+  
+  bool trajectoryCompleted = false;
+  try {
+    trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+  } catch(std::runtime_error e) {
+      
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(5000000));
+  if (!trajectoryCompleted)
+  {
+    // throw std::runtime_error("Trajectory execution failed");
+    ROS_WARN("failed!");
   }
 }
 

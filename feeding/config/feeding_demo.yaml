@@ -26,14 +26,14 @@ ada:
 # Workspace parameters
 plate:
   urdfUri: package://pr_ordata/data/objects/plate.urdf
-  pose: [.475, 0.19, 0.0, 0, 0, 0]
+  pose: [.495, 0.19, 0.0, 0, 0, 0]
 table:
   urdfUri: package://pr_ordata/data/furniture/table_feeding.urdf
   pose: [0.76, 0.38, -0.735, 0, 0, 0]
   #pose: [0.74, 0.40, -0.72, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_ordata/data/objects/food_item.urdf
-  pose: [.475, 0.19, 0.00, 0, 0, 0]
+  pose: [.495, 0.19, 0.00, 0, 0, 0]
 person: # the mannequin
   urdfUri: package://pr_ordata/data/objects/tom.urdf
   pose: [0.425, -0.45, 0.502, 0, 0, 3.1415]
@@ -48,7 +48,7 @@ wheelchair:
 # Feeding demo movement parameters
 feedingDemo:
   heightAbovePlate: 0.11
-  heightAboveFood: 0.1
+  heightAboveFood: 0.09
   heightIntoFood: 0.0           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
@@ -99,4 +99,4 @@ foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [7.37,        4.67,     6.13,      22.49,  17.48,       6.63]
+  forces: [15,        15,     15,      22.49,  17.48,       15]

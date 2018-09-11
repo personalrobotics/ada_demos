@@ -82,7 +82,7 @@ public:
   /// parameters.
   /// \param[in] foodTransform the transform of the food which the robot should
   /// move over.
-  void moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  void moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
 
   /// Moves the forque downwards into the food.
   /// This function does not throw an exception if the trajectory is aborted,
@@ -98,6 +98,8 @@ public:
 
   /// Moves the forque to a position ready to approach the person.
   void moveInFrontOfPerson();
+
+  void rotateInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   /// Moves the forque towards the person.
   /// This function does not throw an exception if the trajectory is aborted,

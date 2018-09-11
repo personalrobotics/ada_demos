@@ -141,7 +141,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
                               bool perceiveDepthPlane,
                               aikido::rviz::WorldInteractiveMarkerViewerPtr viewer) {
   std::string foodName;
-  perceiveFood(foodTransform, perceiveDepthPlane, viewer, foodName, false);
+  return perceiveFood(foodTransform, perceiveDepthPlane, viewer, foodName, false);
 }
 
 //==============================================================================
@@ -161,26 +161,34 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
   ROS_INFO("Looking for food items");
 
   double distFromForque = -1;
+  std::string fullFoodName;
   for (std::string foodName : mFoodNames)
   {
     if (!perceiveAnyFood && mFoodNameToPerceive != foodName) {
       continue;
     }
 
-    int index = 1;
     for (int skeletonFrameIdx=0; skeletonFrameIdx<5; skeletonFrameIdx++) {
+      int index = 0;
       while (true)
       {
+        index++;
         std::string currentFoodName
             = foodName + "_" + std::to_string(index) + "_" + std::to_string(skeletonFrameIdx);
         auto currentPerceivedFood = mWorld->getSkeleton(currentFoodName);
 
         if (!currentPerceivedFood)
         {
-          break;
+          // ROS_INFO_STREAM(currentFoodName << " not in aikido world");
+          if (index > 10) {
+            break;
+          } else {
+            continue;
+          }
         }
         Eigen::Isometry3d currentFoodTransform = currentPerceivedFood->getBodyNode(0)
                                                 ->getWorldTransform();
+
 
         if (!perceiveDepthPlane) {
           // ROS_WARN_STREAM("Food transform before: " << currentFoodTransform.translation().matrix().transpose());
@@ -191,6 +199,11 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
           Eigen::Vector3d intersection = line.intersectionPoint(depthPlane);
           currentFoodTransform.translation() = intersection;
           // ROS_WARN_STREAM("Food transform after: " << currentFoodTransform.translation().matrix().transpose());
+        } else {
+          if (currentFoodTransform.translation().z() < 0.21) {
+            ROS_INFO_STREAM("discarding " << currentFoodName << " because of depth");
+            continue;
+          }
         }
 
         double currentDistFromForque = 0;
@@ -204,14 +217,15 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
                   .norm();
         }
 
+        // ROS_INFO_STREAM("dist from forque: " << currentDistFromForque << ", " << currentFoodName);
         if (distFromForque < 0 || currentDistFromForque < distFromForque)
         {
           distFromForque = currentDistFromForque;
           foodTransform = currentFoodTransform;
           perceivedFood = currentPerceivedFood;
           foundFoodName = foodName;
+          fullFoodName = currentFoodName;
         }
-        index++;
       }
     }
   }
@@ -241,10 +255,12 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
     // Eigen::Vector3d foodTranslation = foodTransform.translation();
     // foodTranslation += Eigen::Vector3d(0,0,-0.01);
     // foodTransform.translation() = foodTranslation;
+    ROS_INFO_STREAM("perception successful for " << fullFoodName);
     return true;
   }
   else
   {
+    ROS_WARN("perception failed");
     return false;
   }
 }
