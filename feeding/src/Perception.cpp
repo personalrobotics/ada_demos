@@ -256,12 +256,12 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
     // Eigen::Vector3d foodTranslation = foodTransform.translation();
     // foodTranslation += Eigen::Vector3d(0,0,-0.01);
     // foodTransform.translation() = foodTranslation;
-    ROS_INFO_STREAM("perception successful for " << fullFoodName);
+    ROS_INFO_STREAM("food perception successful for " << fullFoodName);
     return true;
   }
   else
   {
-    ROS_WARN("perception failed");
+    ROS_WARN("food perception failed");
     return false;
   }
 }
@@ -271,17 +271,24 @@ bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
   mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
 
   // just choose one for now
-  auto perceivedFace = mWorld->getSkeleton(mPerceivedFaceName);
-  if (perceivedFace != nullptr)
-  {
-    faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
-    ROS_INFO_STREAM("perceived Face: " << faceTransform.matrix());
-    return true;
+  for (int skeletonFrameIdx=0; skeletonFrameIdx<5; skeletonFrameIdx++) {
+    auto perceivedFace = mWorld->getSkeleton(mPerceivedFaceName + "_" + std::to_string(skeletonFrameIdx));
+    if (perceivedFace != nullptr)
+    {
+      faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
+      faceTransform.translation().y() = 0.19;
+      faceTransform.translation().z() -= 0.01;
+       faceTransform.translation().z() = faceTransform.translation().z() + mFaceZOffset;
+      ROS_INFO_STREAM("perceived Face: " << faceTransform.matrix());
+      return true;
+    }
   }
-  else
-  {
-    return false;
-  }
+  ROS_WARN("face perception failed");
+  return false;
+}
+
+void Perception::setFaceZOffset(float faceZOffset) {
+  mFaceZOffset = faceZOffset;
 }
 
 bool Perception::isMouthOpen()

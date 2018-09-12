@@ -36,15 +36,15 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
 
 //==============================================================================
 bool AdaMover::moveToEndEffectorOffset(
-    const Eigen::Vector3d& direction, double length)
+    const Eigen::Vector3d& direction, double length, bool respectCollision)
 {
   return moveArmOnTrajectory(
-      planToEndEffectorOffset(direction, length), TRYOPTIMALRETIME);
+      planToEndEffectorOffset(direction, length, respectCollision), TRYOPTIMALRETIME);
 }
 
 //==============================================================================
 aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
-    const Eigen::Vector3d& direction, double length)
+    const Eigen::Vector3d& direction, double length, bool respectCollision)
 {
   ROS_INFO_STREAM("Plan to end effector offset state: " << mAda.getArm()->getMetaSkeleton()->getPositions().matrix().transpose());
   ROS_INFO_STREAM("Plan to end effector offset direction: " << direction.matrix().transpose() << ",  length: " << length);
@@ -53,7 +53,7 @@ aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
       mArmSpace,
       mAda.getArm()->getMetaSkeleton(),
       mAda.getHand()->getEndEffectorBodyNode(),
-      nullptr,
+      respectCollision ? mCollisionFreeConstraint : nullptr,
       direction,
       length,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),

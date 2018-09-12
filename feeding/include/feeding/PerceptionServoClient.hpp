@@ -33,7 +33,9 @@ public:
           trajectoryExecutor,
       aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
       double perceptionUpdateTime,
-      const Eigen::VectorXd& veloctiyLimits);
+      const Eigen::VectorXd& veloctiyLimits,
+      float originalDirectionExtension,
+      float goalPrecision);
   virtual ~PerceptionServoClient();
 
   void start();
@@ -102,6 +104,9 @@ protected:
 
   bool hasOriginalDirection = false;
   Eigen::Vector3d originalDirection;
+
+  float mOriginalDirectionExtension = 0;
+  float mGoalPrecision = 0.01;
 };
 }
 

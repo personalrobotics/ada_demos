@@ -30,10 +30,10 @@ public:
   /// Moves the end effector along a certain position offset.
   /// Throws a runtime_error if no trajectory could be found.
   /// \return True if the trajectory was completed successfully.
-  bool moveToEndEffectorOffset(const Eigen::Vector3d& direction, double length);
+  bool moveToEndEffectorOffset(const Eigen::Vector3d& direction, double length, bool respectCollision = true);
 
   aikido::trajectory::TrajectoryPtr planToEndEffectorOffset(
-      const Eigen::Vector3d& direction, double length);
+      const Eigen::Vector3d& direction, double length, bool respectCollision = true);
 
   /// Moves the robot to a configuration.
   /// Throws a runtime_error if no trajectory could be found.

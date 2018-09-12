@@ -75,6 +75,9 @@ int studymain(FeedingDemo& feedingDemo,
   bool skipSkewering = getRosParam<bool>("/study/skipSkewering", nodeHandle);
 
   if (!skipSkewering) {
+    bool angledSkewering = (foodName == "strawberry");
+    bool foodPickedUp = false;
+    while (!foodPickedUp) {
   
     // ===== ABOVE PLATE =====
     if (!autoContinueDemo)
@@ -85,6 +88,7 @@ int studymain(FeedingDemo& feedingDemo,
       }
     }
     feedingDemo.moveAbovePlate();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
     // ===== PERCEPTION =====
     std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
@@ -114,9 +118,6 @@ int studymain(FeedingDemo& feedingDemo,
     std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
 
     // ===== ABOVE FOOD =====
-    bool angledSkewering = (foodName == "strawberry");
-    bool foodPickedUp = false;
-    while (!foodPickedUp) {
 
       if (!autoContinueDemo)
       {
@@ -130,6 +131,7 @@ int studymain(FeedingDemo& feedingDemo,
       } else {
         feedingDemo.moveAboveFood(foodTransform, 0, viewer);
       }
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
       if (!perceptionSuccessful) {
         std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
@@ -149,6 +151,7 @@ int studymain(FeedingDemo& feedingDemo,
         }
         zForceBeforeSkewering = currentForce.z();
       }
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
       // ===== INTO FOOD =====
       if (!autoContinueDemo)
@@ -201,21 +204,25 @@ int studymain(FeedingDemo& feedingDemo,
       }
       ROS_INFO_STREAM("force difference: " << forceDifference);
 
-      if (forceDifference > 0.022) {
+      // if (forceDifference > 0.022) {
+      //   foodPickedUp = true;
+      // } else {
+      //   std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << "\033[0;32m" << std::endl;
+      //   bool shouldTryAgain = waitForUser("\033[1;32mDo you want me to try again?\033[0;32m");
+      //   if (shouldTryAgain) {
+      //     feedingDemo.moveAbovePlate();
+      //     bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+      //     if (!perceptionSuccessful) {
+      //       std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
+      //       return 0;
+      //     }
+      //   } else {
+      //     foodPickedUp = true;
+      //   }
+      // }
+      bool shouldContinue = waitForUser("\033[1;32mDo you want me to continue?\033[0;32m");
+      if (shouldContinue) {
         foodPickedUp = true;
-      } else {
-        std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << "\033[0;32m" << std::endl;
-        bool shouldTryAgain = waitForUser("\033[1;32mDo you want me to try again?\033[0;32m");
-        if (shouldTryAgain) {
-          feedingDemo.moveAbovePlate();
-          bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-          if (!perceptionSuccessful) {
-            std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
-            return 0;
-          }
-        } else {
-          foodPickedUp = true;
-        }
       }
     }
   }
@@ -242,6 +249,16 @@ int studymain(FeedingDemo& feedingDemo,
   feedingDemo.moveTowardsPerson(&perception, viewer);
   nodeHandle.setParam("/feeding/facePerceptionOn", false);
 
+  if (stepIdx > 2) {
+    if (!autoContinueDemo)
+      {
+        if (!waitForUser("Tilt forque"))
+        {
+          return 0;
+        }
+      }
+  }
+
   if (stepIdx == 3 || stepIdx == 4) {
     feedingDemo.tiltUpInFrontOfPerson(viewer);
   } else if (stepIdx == 5 || stepIdx == 6) {
@@ -255,8 +272,20 @@ int studymain(FeedingDemo& feedingDemo,
           getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
   feedingDemo.ungrabAndDeleteFood();
 
+  if (!autoContinueDemo)
+      {
+        if (!waitForUser("Move away from person"))
+        {
+          return 0;
+        }
+      }
+
   // ===== AWAY FROM PERSON =====
+  try {
   feedingDemo.moveAwayFromPerson();
+  } catch (std::runtime_error) {
+    ROS_WARN("Can't move back properly!");
+  }
 
   // ===== BACK TO PLATE =====
   if (!autoContinueDemo)

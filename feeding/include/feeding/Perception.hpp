@@ -56,6 +56,8 @@ public:
 
   bool setFoodName(std::string foodName);
 
+  void setFaceZOffset(float faceZOffset);
+
 private:
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
@@ -75,6 +77,8 @@ private:
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
   std::vector<std::string> mFoodNames;
+
+  float mFaceZOffset = 0;
 
 };
 

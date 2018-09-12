@@ -329,7 +329,9 @@ void FeedingDemo::moveIntoFood(
       rosExecutor,
       mCollisionFreeConstraint,
       0.1,
-      velocityLimits);
+      velocityLimits,
+      0.1,
+      0.002);
   servoClient.start();
 
   servoClient.wait(10000.0);
@@ -340,7 +342,7 @@ void FeedingDemo::moveOutOfFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, 1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*1);
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*0.5, false);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -379,69 +381,86 @@ void FeedingDemo::moveInFrontOfPerson()
 
 //==============================================================================
 void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer) {
-  aikido::constraint::dart::TSR personTSR;
-  Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
+  printRobotConfiguration();
+  
+  Eigen::Vector3d workingPersonTranslation(0.283465, 0.199386, 0.652674);
   Eigen::Vector3d personTranslation;
-//   personTranslation << 0.296, 0.328, 0.70;
-  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
-  personPose.translation() = personTranslation;
-  personPose.linear()
-      = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
-  personTSR.mT0_w = personPose;
-  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 , 0};
+  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{-0.04, 0, -0.06};
+  Eigen::Vector3d correctionTranslation = workingPersonTranslation - personTranslation;
 
-  personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI/4, M_PI/4);
-  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
-  personTSR.mTw_e.matrix() *= eeTransform.matrix();
 
-  auto markers = viewer->addTSRMarker(personTSR, 100, "personTSRSamples");
+  for (double i=0; i<=1.0; i+=0.2) {
+    aikido::constraint::dart::TSR personTSR;
+    Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
+    personPose.translation() = personTranslation + correctionTranslation * i;
+    ROS_INFO_STREAM("personTranslation: " << personPose.translation().matrix().transpose());
+    personPose.linear()
+        = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
+    personTSR.mT0_w = personPose;
+    personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 , 0};
+
+    personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI/4, M_PI/4);
+    Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
+    personTSR.mTw_e.matrix() *= eeTransform.matrix();
+ 
+
+  // auto markers = viewer->addTSRMarker(personTSR, 100, "personTSRSamples");
   
   bool trajectoryCompleted = false;
-  try {
-    trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
-  } catch(std::runtime_error e) {
-      
-  }
-  std::this_thread::sleep_for(std::chrono::milliseconds(5000000));
-  if (!trajectoryCompleted)
-  {
-    // throw std::runtime_error("Trajectory execution failed");
-    ROS_WARN("failed!");
+    try {
+      trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+    } catch(std::runtime_error e) {
+      ROS_WARN("tilt up trajectory failed!");
+      continue;
+    }
+    if (trajectoryCompleted) {
+      return;
+    } else
+    {
+        ROS_WARN("aborting tilt up!");
+        return;
+    }
   }
 }
 
 //==============================================================================
 void FeedingDemo::tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer) {
-  aikido::constraint::dart::TSR personTSR;
-  Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
+  printRobotConfiguration();
+  Eigen::Vector3d workingPersonTranslation(0.269274, 0.191136, 0.71243);
   Eigen::Vector3d personTranslation;
-//   personTranslation << 0.296, 0.328, 0.70;
-  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
-  personPose.translation() = personTranslation;
-  personPose.linear()
-      = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
-  personTSR.mT0_w = personPose;
-  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 , 0};
+  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{0.01,0,0.06};
+  Eigen::Vector3d correctionTranslation = workingPersonTranslation - personTranslation;
 
-  personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI/4, M_PI/4);
-  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
-  personTSR.mTw_e.matrix() *= eeTransform.matrix();
+  for (double i=0; i<=1.0; i+=0.2) {
+    aikido::constraint::dart::TSR personTSR;
+    Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
+    personPose.translation() = personTranslation + correctionTranslation * i;
+    ROS_INFO_STREAM("personTranslation: " << personPose.translation().matrix().transpose());
+    personPose.linear()
+        = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
+    personTSR.mT0_w = personPose;
+    personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0 , 0};
 
-  auto markers = viewer->addTSRMarker(personTSR, 100, "personTSRSamples");
-  
-  bool trajectoryCompleted = false;
-  try {
-    trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
-  } catch(std::runtime_error e) {
-      
-  }
-  std::this_thread::sleep_for(std::chrono::milliseconds(5000000));
-  if (!trajectoryCompleted)
-  {
-    // throw std::runtime_error("Trajectory execution failed");
-    ROS_WARN("failed!");
+    personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI/4, M_PI/4);
+    Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI * 0.25, Eigen::Vector3d::UnitX()));
+    personTSR.mTw_e.matrix() *= eeTransform.matrix();
+
+    bool trajectoryCompleted = false;
+    try {
+      trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+    } catch(std::runtime_error e) {
+      ROS_WARN("tilt down trajectory failed!");
+      continue;
+    }
+    if (trajectoryCompleted) {
+      return;
+    } else
+    {
+        ROS_WARN("aborting tilt down!");
+        return;
+    }
   }
 }
 
@@ -490,7 +509,9 @@ void FeedingDemo::moveTowardsPerson(
       rosExecutor,
       mCollisionFreeConstraint,
       0.2,
-      velocityLimits);
+      velocityLimits,
+      0,
+      0.06);
   servoClient.start();
   servoClient.wait(30);
 

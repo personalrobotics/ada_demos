@@ -58,7 +58,7 @@ feedingDemo:
 # Planning parameters
 planning:
   maxNumberOfTrials: 1
-  timeoutSeconds: 5
+  timeoutSeconds: 2
   tsr:
     horizontalToleranceAbovePlate: 0.005
     verticalToleranceAbovePlate: 0.002
@@ -82,7 +82,7 @@ ftSensor:
       force: 25
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 38
+      force: 41
       torque: 2
 
 # Perception parameters
@@ -105,8 +105,7 @@ foodItems:
 
   # bite transfer
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [15,        15,     15,      22.49,  17.48,       6]
+  forces: [15,        15,     15,      28,  17.48,       6]
 
 study:
   skipSkewering: true
-
