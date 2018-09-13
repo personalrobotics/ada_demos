@@ -44,7 +44,7 @@ int studymain(FeedingDemo& feedingDemo,
     }
   }
 
-  std::cout << std::endl << "\033[1;32mWhat step should I proceed with (1-6)?\033[0m" << std::endl;
+  std::cout << std::endl << "\033[1;32mWhat step should I proceed with (1-5)?\033[0m" << std::endl;
 
   int stepIdx = -1;
   while (stepIdx < 0) {
@@ -53,7 +53,7 @@ int studymain(FeedingDemo& feedingDemo,
     std::cin  >> stepIdxString;
     try {
       int idx = std::stoi(stepIdxString);
-      if (idx < 1 || idx > 6) {
+      if (idx < 1 || idx > 5) {
         throw std::invalid_argument("");
       }
       stepIdx = idx;
@@ -64,9 +64,9 @@ int studymain(FeedingDemo& feedingDemo,
 
   nodeHandle.setParam("/deep_pose/forceFood", true);
   nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
-  nodeHandle.setParam("/deep_pose/publish_spnet", stepIdx == 2 || stepIdx == 4 || stepIdx == 6);
+  nodeHandle.setParam("/deep_pose/publish_spnet", (true));
   nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
-  nodeHandle.setParam("/deep_pose/invertSPNetDirection", stepIdx == 5 || stepIdx == 6);
+  nodeHandle.setParam("/deep_pose/invertSPNetDirection", stepIdx == 5);
   std::this_thread::sleep_for(std::chrono::milliseconds(400));
 
   std::cout << std::endl << "\033[1;32mRunning bite transfer study for " << foodName << " beginning on step " << stepIdx << ".\033[0m" << std::endl;
@@ -75,7 +75,7 @@ int studymain(FeedingDemo& feedingDemo,
   bool skipSkewering = getRosParam<bool>("/study/skipSkewering", nodeHandle);
 
   if (!skipSkewering) {
-    bool angledSkewering = (foodName == "strawberry");
+    bool angledSkewering = (stepIdx == 2);
     bool foodPickedUp = false;
     while (!foodPickedUp) {
   
@@ -127,9 +127,9 @@ int studymain(FeedingDemo& feedingDemo,
         }
       }
       if (angledSkewering) {
-        feedingDemo.moveAboveFood(foodTransform, -0.05*M_PI, viewer, false);
+          feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer, true);
       } else {
-        feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+        feedingDemo.moveAboveFood(foodTransform, 0, viewer, true);
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
@@ -137,9 +137,9 @@ int studymain(FeedingDemo& feedingDemo,
         std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
       } else {
         if (angledSkewering) {
-          feedingDemo.moveAboveFood(foodTransform, -0.05*M_PI, viewer, false);
+          feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer, true);
         } else {
-          feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+          feedingDemo.moveAboveFood(foodTransform, 0, viewer, true);
         }
       }
 
@@ -249,7 +249,10 @@ int studymain(FeedingDemo& feedingDemo,
   feedingDemo.moveTowardsPerson(&perception, viewer);
   nodeHandle.setParam("/feeding/facePerceptionOn", false);
 
-  if (stepIdx > 2) {
+
+
+
+  if (stepIdx == 1 || stepIdx == 2 || stepIdx == 4 || stepIdx == 5) {
     if (!autoContinueDemo)
       {
         if (!waitForUser("Tilt forque"))
@@ -257,13 +260,23 @@ int studymain(FeedingDemo& feedingDemo,
           return 0;
         }
       }
+    feedingDemo.tiltUpInFrontOfPerson(viewer);
   }
 
-  if (stepIdx == 3 || stepIdx == 4) {
-    feedingDemo.tiltUpInFrontOfPerson(viewer);
-  } else if (stepIdx == 5 || stepIdx == 6) {
-    feedingDemo.tiltDownInFrontOfPerson(viewer);
-  }
+  // if (stepIdx > 2) {
+    // if (!autoContinueDemo)
+    //   {
+    //     if (!waitForUser("Tilt forque"))
+    //     {
+    //       return 0;
+    //     }
+    //   }
+  // }
+  // if (stepIdx == 3 || stepIdx == 4) {
+  //   feedingDemo.tiltUpInFrontOfPerson(viewer);
+  // } else if (stepIdx == 5 || stepIdx == 6) {
+  //   feedingDemo.tiltDownInFrontOfPerson(viewer);
+  // }
 
   // ===== EATING =====
   ROS_WARN("Human is eating");

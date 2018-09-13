@@ -108,4 +108,4 @@ foodItems:
   forces: [15,        15,     15,      28,  17.48,       6]
 
 study:
-  skipSkewering: true
+  skipSkewering: false

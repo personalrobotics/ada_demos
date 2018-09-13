@@ -43,7 +43,7 @@ FeedingDemo::FeedingDemo(
           mAda->getHand()->getEndEffectorBodyNode());
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
-          mWorkspace->getTable().get(),
+          // mWorkspace->getTable().get(),
           mWorkspace->getWorkspaceEnvironment().get(),
           mWorkspace->getWheelchair().get());
   mCollisionFreeConstraint
@@ -235,7 +235,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
     defaultFoodTransform.translation() = foodTransform.translation();
     aboveFoodTSR.mT0_w = defaultFoodTransform;
     // grape-style
-    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
     // banana-style
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
   }
@@ -257,7 +257,8 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(angle) * distance, 0, cos(angle) * distance};
   }
 
-//   tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
+  // tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
+  // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
   if (!trajectoryCompleted)
@@ -385,7 +386,7 @@ void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerView
   
   Eigen::Vector3d workingPersonTranslation(0.283465, 0.199386, 0.652674);
   Eigen::Vector3d personTranslation;
-  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{-0.04, 0, -0.06};
+  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{-0.04, 0, -0.06} + Eigen::Vector3d{0, 0, 0};
   Eigen::Vector3d correctionTranslation = workingPersonTranslation - personTranslation;
 
 
@@ -429,7 +430,7 @@ void FeedingDemo::tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerVi
   printRobotConfiguration();
   Eigen::Vector3d workingPersonTranslation(0.269274, 0.191136, 0.71243);
   Eigen::Vector3d personTranslation;
-  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{0.01,0,0.06};
+  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{0.01,0,0.06} + Eigen::Vector3d{0, 0, 0.045};
   Eigen::Vector3d correctionTranslation = workingPersonTranslation - personTranslation;
 
   for (double i=0; i<=1.0; i+=0.2) {
