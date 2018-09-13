@@ -208,6 +208,38 @@ void FeedingDemo::moveAbovePlate()
 }
 
 //==============================================================================
+void FeedingDemo::moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
+{
+  double heightAbovePlate
+      = getRosParam<double>("/feedingDemo/heightAbovePlate", mNodeHandle);
+  double horizontalToleranceAbovePlate = getRosParam<double>(
+      "/planning/tsr/horizontalToleranceAbovePlate", mNodeHandle);
+  double verticalToleranceAbovePlate = getRosParam<double>(
+      "/planning/tsr/verticalToleranceAbovePlate", mNodeHandle);
+
+  auto abovePlateTSR = pr_tsr::getDefaultPlateTSR();
+  abovePlateTSR.mT0_w
+      = mWorkspace->getPlate()->getRootBodyNode()->getWorldTransform();
+  abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAbovePlate};
+
+  // abovePlateTSR.mBw = createBwMatrixForTSR(0.1, verticalToleranceAbovePlate, -M_PI, M_PI);
+  abovePlateTSR.mBw = createBwMatrixForTSR(0.005, verticalToleranceAbovePlate, 0, 0);
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("plate");
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+  abovePlateTSR.mTw_e.matrix()
+      *= eeTransform.matrix();
+
+  // tsrMarkers.push_back(viewer->addTSRMarker(abovePlateTSR, 100, "someTSRName"));
+  // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR);
+  if (!trajectoryCompleted)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+//==============================================================================
 void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
   double heightAboveFood
@@ -216,10 +248,6 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
   // little further downwards,
   // so that the MoveUntilTouchController can take care of stopping the
   // trajectory.
-  double heightIntoFood
-      = mAdaReal
-            ? getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle)
-            : 0.0;
   double horizontalToleranceNearFood = getRosParam<double>(
       "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
   double verticalToleranceNearFood = getRosParam<double>(
@@ -244,7 +272,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
   aboveFoodTSR.mTw_e.matrix()
       *= eeTransform.matrix();
 
-  float distance = heightAboveFood - heightIntoFood;
+  float distance = heightAboveFood;
 
   if (fabs(angle) < 0.01) {
     // vertical
@@ -272,7 +300,7 @@ void FeedingDemo::moveIntoFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, -1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle));
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }
@@ -344,6 +372,17 @@ void FeedingDemo::moveOutOfFood()
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, 1),
       getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*0.5, false);
+  if (!trajectoryCompleted)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+//==============================================================================
+void FeedingDemo::moveOutOfFood(float dist)
+{
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+      Eigen::Vector3d(0, 0, 1), dist, false);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -430,7 +469,7 @@ void FeedingDemo::tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerVi
   printRobotConfiguration();
   Eigen::Vector3d workingPersonTranslation(0.269274, 0.191136, 0.71243);
   Eigen::Vector3d personTranslation;
-  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{0.01,0,0.06} + Eigen::Vector3d{0, 0, 0.045};
+  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{0.01,0,0.06} + Eigen::Vector3d{0, 0, 0.0};
   Eigen::Vector3d correctionTranslation = workingPersonTranslation - personTranslation;
 
   for (double i=0; i<=1.0; i+=0.2) {

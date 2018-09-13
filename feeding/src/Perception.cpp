@@ -235,7 +235,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
   if (perceivedFood != nullptr)
   {
     double distFromLastTransform = (mLastPerceivedFoodTransform.translation() - foodTransform.translation()).norm();
-    if (!perceiveDepthPlane && distFromLastTransform > 0.02) {
+    if (!perceiveDepthPlane && distFromLastTransform > 0.05) {
       ROS_WARN("food transform too far from last one!");
       return false;
     }
@@ -277,7 +277,8 @@ bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
     {
       faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
       faceTransform.translation().y() = 0.19;
-      faceTransform.translation().z() -= 0.01;
+      faceTransform.translation().z() += 0.00;
+      // faceTransform.translation().z() += 0.0;
        faceTransform.translation().z() = faceTransform.translation().z() + mFaceZOffset;
       ROS_INFO_STREAM("perceived Face: " << faceTransform.matrix());
       return true;

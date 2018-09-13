@@ -49,7 +49,7 @@ wheelchair:
 feedingDemo:
   heightAbovePlate: 0.11
   heightAboveFood: 0.09
-  heightIntoFood: 0.0           # the real robot plans *below* the food. This parameter specifies how far
+  heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
   waitMillisecsAtFood: 1000     # short pause after skewering the food
@@ -79,10 +79,10 @@ ftSensor:
       force: 2
       torque: 2
     grabFood:       # active when going down to grab the food
-      force: 25
+      force: 22
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 41
+      force: 50
       torque: 2
 
 # Perception parameters
