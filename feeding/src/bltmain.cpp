@@ -14,6 +14,16 @@ namespace feeding {
 
 std::atomic<bool> shouldRecordImage{false};
 
+std::string return_current_time_and_date()
+{
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+    return ss.str();
+}
+
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
 
@@ -37,7 +47,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 
     static int image_count = 0;
     // std::stringstream sstream;
-    std::string imageFile = "/home/herb/Images/my_image" + std::to_string(image_count) + ".png";
+    std::string imageFile = "/home/herb/Images/" + return_current_time_and_date() + ".png";
     // sstream << imageFile;
     bool worked = cv::imwrite( imageFile,  cv_ptr->image );
     image_count++;
@@ -67,7 +77,7 @@ int bltmain(FeedingDemo& feedingDemo,
       }
     }
 
-  for (int trial=0; trial<10; trial++) {
+  for (int trial=0; trial<100; trial++) {
     std::cout << "\033[1;33mSTARTING TRIAL " << trial << "\033[0m" << std::endl;
 
     // ===== ABOVE PLATE =====
@@ -81,7 +91,7 @@ int bltmain(FeedingDemo& feedingDemo,
       }
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     shouldRecordImage.store(true);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     while (shouldRecordImage.load()) {
@@ -101,32 +111,34 @@ int bltmain(FeedingDemo& feedingDemo,
     {
       return 1;
     }
-    feedingDemo.moveIntoFood();
+    // for (int i=0; i<4; i++) {
+    //   feedingDemo.mAdaMover->moveToEndEffectorOffset(Eigen::Vector3d(0, 0, -1), -0.025, false);
+    // }
+    feedingDemo.mAdaMover->moveToEndEffectorOffset(Eigen::Vector3d(0, 0, -1), 0.07, false);
 
     // ===== OUT OF FOOD =====
     if (!autoContinueDemo)
     {
-      if (!waitForUser("Move forque out of food"))
-      {
-        return 0;
-      }
+      // if (!waitForUser("Move forque out of food"))
+      // {
+      //   return 0;
+      // }
     }
     if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
     {
       return 1;
     }
-    for (float dist = 0.08; dist>0.01; dist-=0.02) {
-     try {
-       feedingDemo.moveOutOfFood(dist);
-     } catch (std::runtime_error) {
-       continue;
-     }
-    }
+      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    feedingDemo.mAdaMover->moveToEndEffectorOffset(Eigen::Vector3d(0, 0, 1), 0.07, false);
     if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
     {
       return 1;
     }
   }
+  if (!waitForUser("Continue"))
+      {
+        return 0;
+      }
 
   // ===== DONE =====
   waitForUser("Demo finished.");

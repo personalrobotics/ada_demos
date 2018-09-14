@@ -10,7 +10,7 @@ add_executable(feeding
   src/studymain.cpp
   src/bltmain.cpp
   src/acquisitionmain.cpp
-  # src/acquisitiontiltedmain.cpp
+  src/acquisitiontiltedmain.cpp
   src/FeedingDemo.cpp
   src/AdaMover.cpp
   src/FTThresholdHelper.cpp

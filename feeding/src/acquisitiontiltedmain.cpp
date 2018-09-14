@@ -115,7 +115,7 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
   nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
   std::this_thread::sleep_for(std::chrono::milliseconds(700));
 
-    bool angledSkewering = false; //(foodName == "banana");
+  bool bananaStyleTilt = (foodName == "banana" || foodName == "celery");
 
 
   // ===== ABOVE FOOD =====
@@ -123,7 +123,7 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
   bool continueWithNextTrial = false;
   while (!stepSuccessful && !continueWithNextTrial) {
     try {
-      if (angledSkewering) {
+      if (bananaStyleTilt) {
         feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer);
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
@@ -137,14 +137,14 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
 
         // Grape style skewering angle: -0.05*M_PI, viewer, false
 
-        feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+        feedingDemo.moveAboveFood(foodTransform, -0.05*M_PI, viewer, false);
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
         if (!perceptionSuccessful) {
           std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
           continue;
         } else {
-          feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+          feedingDemo.moveAboveFood(foodTransform, -0.05*M_PI, viewer, false);
         }
       }
       stepSuccessful = true;

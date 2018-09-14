@@ -217,15 +217,23 @@ void FeedingDemo::moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerVie
   double verticalToleranceAbovePlate = getRosParam<double>(
       "/planning/tsr/verticalToleranceAbovePlate", mNodeHandle);
 
+  static std::default_random_engine generator(time(0));
+  static std::uniform_real_distribution<double> distribution(-0.08, 0.08);
+  static std::uniform_real_distribution<double> distribution2(-M_PI, M_PI);
+  double randX = distribution(generator);
+  double randY = distribution(generator);
+  double angle = distribution2(generator);
+  // double randX = 0, randY = 0;
+
   auto abovePlateTSR = pr_tsr::getDefaultPlateTSR();
   abovePlateTSR.mT0_w
       = mWorkspace->getPlate()->getRootBodyNode()->getWorldTransform();
-  abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAbovePlate};
+  abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{randX, randY, 0.07};
 
   // abovePlateTSR.mBw = createBwMatrixForTSR(0.1, verticalToleranceAbovePlate, -M_PI, M_PI);
-  abovePlateTSR.mBw = createBwMatrixForTSR(0.005, verticalToleranceAbovePlate, 0, 0);
+  abovePlateTSR.mBw = createBwMatrixForTSR(0.005, verticalToleranceAbovePlate, -M_PI*0.1, M_PI*0.1);
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("plate");
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitZ()));
   abovePlateTSR.mTw_e.matrix()
       *= eeTransform.matrix();
 
@@ -262,10 +270,14 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
     Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
     defaultFoodTransform.translation() = foodTransform.translation();
     aboveFoodTSR.mT0_w = defaultFoodTransform;
-    // grape-style
+    // celery-style
     eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    
     // banana-style
-    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+
+    // strawberry-style
+    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
   }
   aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -425,7 +437,7 @@ void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerView
   
   Eigen::Vector3d workingPersonTranslation(0.283465, 0.199386, 0.652674);
   Eigen::Vector3d personTranslation;
-  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{-0.04, 0, -0.06} + Eigen::Vector3d{0, 0, 0};
+  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{-0.04, 0, -0.06} + Eigen::Vector3d{0, 0, 0.0};
   Eigen::Vector3d correctionTranslation = workingPersonTranslation - personTranslation;
 
 

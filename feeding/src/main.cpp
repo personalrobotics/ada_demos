@@ -36,6 +36,14 @@ int acquisitionmain(FeedingDemo& feedingDemo,
                 bool autoContinueDemo,
                 bool adaReal);
 
+int acquisitiontiltedmain(FeedingDemo& feedingDemo,
+                FTThresholdHelper& ftThresholdHelper,
+                Perception& perception,
+                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                ros::NodeHandle nodeHandle,
+                bool autoContinueDemo,
+                bool adaReal);
+
 int bltmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
