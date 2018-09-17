@@ -162,10 +162,14 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
 
   double distFromForque = -1;
   std::string fullFoodName;
+
+  std::vector<std::string> fullFoodNames;
+  std::vector<Eigen::Isometry3d> foodTransforms;
+
   for (std::string foodName : mFoodNames)
   {
     if (!perceiveAnyFood && mFoodNameToPerceive != foodName) {
-      // ROS_INFO_STREAM(mFoodNameToPerceive << "  " << foodName << "  " << perceiveAnyFood); 
+      ROS_INFO_STREAM(mFoodNameToPerceive << "  " << foodName << "  " << perceiveAnyFood); 
       continue;
     }
 
@@ -180,7 +184,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
 
         if (!currentPerceivedFood)
         {
-          // ROS_INFO_STREAM(currentFoodName << " not in aikido world");
+          ROS_INFO_STREAM(currentFoodName << " not in aikido world");
           if (index > 10) {
             break;
           } else {
@@ -218,7 +222,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
                   .norm();
         }
 
-        // ROS_INFO_STREAM("dist from forque: " << currentDistFromForque << ", " << currentFoodName);
+        ROS_INFO_STREAM("dist from forque: " << currentDistFromForque << ", " << currentFoodName);
         if (distFromForque < 0 || currentDistFromForque < distFromForque)
         {
           distFromForque = currentDistFromForque;

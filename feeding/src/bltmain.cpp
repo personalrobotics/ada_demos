@@ -2,6 +2,7 @@
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
+#include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -64,6 +65,9 @@ int bltmain(FeedingDemo& feedingDemo,
                 bool autoContinueDemo,
                 bool adaReal) {
 
+    
+    bool collectData = false;
+
 
     image_transport::ImageTransport it(nodeHandle);
     // ros::Subscriber sub_info = nodeHandle.subscribe("/camera/color/camera_info", 1, cameraInfo);
@@ -80,23 +84,56 @@ int bltmain(FeedingDemo& feedingDemo,
   for (int trial=0; trial<100; trial++) {
     std::cout << "\033[1;33mSTARTING TRIAL " << trial << "\033[0m" << std::endl;
 
-    // ===== ABOVE PLATE =====
-    bool stepSuccessful = false;
-    while (!stepSuccessful) {
-      try {
-        feedingDemo.moveAbovePlateAnywhere(viewer);
-        stepSuccessful = true;
-      } catch (std::runtime_error) {
-        if (!waitForUser("Trajectory execution failed. Try again?")) {continue;}
+    if (collectData) {
+      // ===== ABOVE PLATE =====
+      bool stepSuccessful = false;
+      while (!stepSuccessful) {
+        try {
+          feedingDemo.moveAbovePlateAnywhere(viewer);
+          stepSuccessful = true;
+        } catch (std::runtime_error) {
+          if (!waitForUser("Trajectory execution failed. Try again?")) {continue;}
+        }
+      }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      shouldRecordImage.store(true);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      while (shouldRecordImage.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+    } else {
+      feedingDemo.moveAbovePlate();
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      Eigen::Isometry3d foodTransform;
+      perception.setFoodName("banana");
+      bool perceptionSuccessful = false;
+      while (!perceptionSuccessful) {
+        perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+        if (!perceptionSuccessful) {
+          if (!waitForUser("Perception failed. Try again?")) {return 0;}
+        }
+      }
+      
+      // ABOVE FOOD
+      auto aboveFoodTSR = pr_tsr::getDefaultPlateTSR();
+      aboveFoodTSR.mT0_w
+          = feedingDemo.getWorkspace().getPlate()->getRootBodyNode()->getWorldTransform();
+      aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0.07};
+      aboveFoodTSR.mBw = createBwMatrixForTSR(0.001, 0.001, 0, 0);
+      Eigen::Isometry3d eeTransform = *feedingDemo.getAda().getHand()->getEndEffectorTransform("plate");
+      aboveFoodTSR.mTw_e.matrix() *= eeTransform.matrix();
+
+      // tsrMarkers.push_back(viewer->addTSRMarker(abovePlateTSR, 100, "someTSRName"));
+      // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+
+      bool trajectoryCompleted = feedingDemo.mAdaMover->moveArmToTSR(aboveFoodTSR);
+      if (!trajectoryCompleted)
+      {
+        throw std::runtime_error("Trajectory execution failed");
       }
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    shouldRecordImage.store(true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    while (shouldRecordImage.load()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
 
 
     // ===== INTO FOOD =====
