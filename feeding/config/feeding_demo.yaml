@@ -64,8 +64,8 @@ planning:
     verticalToleranceAbovePlate: 0.002
     horizontalToleranceNearFood: 0.002
     verticalToleranceNearFood: 0.001
-    horizontalToleranceNearPerson: 0.01
-    verticalToleranceNearPerson: 0.005
+    horizontalToleranceNearPerson: 0.002
+    verticalToleranceNearPerson: 0.002
   endEffectorOffset:
     positionTolerance: 0.002
     angularTolerance: 0.04

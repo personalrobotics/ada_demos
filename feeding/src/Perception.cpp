@@ -2,6 +2,7 @@
 #include <aikido/perception/ObjectDatabase.hpp>
 #include <tf_conversions/tf_eigen.h>
 #include "feeding/util.hpp"
+#include <algorithm>
 
 namespace feeding {
 
@@ -222,22 +223,32 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
                   .norm();
         }
 
-        ROS_INFO_STREAM("dist from forque: " << currentDistFromForque << ", " << currentFoodName);
-        if (distFromForque < 0 || currentDistFromForque < distFromForque)
-        {
-          distFromForque = currentDistFromForque;
-          foodTransform = currentFoodTransform;
-          perceivedFood = currentPerceivedFood;
-          foundFoodName = foodName;
-          fullFoodName = currentFoodName;
-        }
+        fullFoodNames.push_back(currentFoodName);
+        foodTransforms.push_back(currentFoodTransform);
+
+        // ROS_INFO_STREAM("dist from forque: " << currentDistFromForque << ", " << currentFoodName);
+        // if (distFromForque < 0 || currentDistFromForque < distFromForque)
+        // {
+        //   distFromForque = currentDistFromForque;
+        //   foodTransform = currentFoodTransform;
+        //   perceivedFood = currentPerceivedFood;
+        //   foundFoodName = foodName;
+        //   fullFoodName = currentFoodName;
+        // }
       }
     }
   }
 
+  static std::default_random_engine generator(time(0));
+  static std::uniform_real_distribution<double> distribution(0,1);
+  int randomIndex = (int) std::min((distribution(generator) * fullFoodNames.size()), (double) fullFoodNames.size()-1);
+  ROS_INFO_STREAM("randIndex: " << randomIndex << ", size: " << fullFoodNames.size());
 
-  if (perceivedFood != nullptr)
+  if (fullFoodNames.size() > 0)
   {
+  foodTransform = foodTransforms[randomIndex];
+  fullFoodName = fullFoodNames[randomIndex];
+
     double distFromLastTransform = (mLastPerceivedFoodTransform.translation() - foodTransform.translation()).norm();
     if (!perceiveDepthPlane && distFromLastTransform > 0.05) {
       ROS_WARN("food transform too far from last one!");

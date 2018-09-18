@@ -22,6 +22,7 @@ int studymain(FeedingDemo& feedingDemo,
   std::cout << "\033[0;32m2) Cantaloupe\033[0m" << std::endl;
   std::cout << "\033[0;32m3) Celery\033[0m" << std::endl;
   std::cout << "\033[0;32m4) Carrot\033[0m" << std::endl;
+  std::cout << "\033[0;32m4) [Calibrate]\033[0m" << std::endl;
 
   std::string foodName = "";
   while (foodName == "") { 
@@ -38,10 +39,24 @@ int studymain(FeedingDemo& feedingDemo,
         case 2: foodName = "cantaloupe";break;
         case 3: foodName = "celery";break;
         case 4: foodName = "carrot";break;
+        case 5: foodName = "calibrate"; break;
       }
     } catch (const std::invalid_argument& ia) {
       std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
     }
+  }
+
+  if (foodName == "calibrate") {
+
+    if (!waitForUser("Move in front of person")) {return 0;}
+    feedingDemo.moveInFrontOfPerson();
+    
+
+    while (waitForUser("Next calibration")) {
+      feedingDemo.moveDirectlyToPerson();
+    }
+    waitForUser("Demo finished.");
+    return 0;
   }
 
   std::cout << std::endl << "\033[1;32mWhat step should I proceed with (1-5)?\033[0m" << std::endl;

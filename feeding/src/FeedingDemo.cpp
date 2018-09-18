@@ -516,6 +516,34 @@ void FeedingDemo::tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerVi
   }
 }
 
+void FeedingDemo::moveDirectlyToPerson()
+{
+  double distanceToPerson = 0.02;
+  double horizontalToleranceNearPerson = getRosParam<double>(
+      "/planning/tsr/horizontalToleranceNearPerson", mNodeHandle);
+  double verticalToleranceNearPerson = getRosParam<double>(
+      "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
+
+  aikido::constraint::dart::TSR personTSR;
+  Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
+  personPose.translation() = mWorkspace->getPersonPose().translation();
+  personPose.linear()
+      = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
+  personTSR.mT0_w = personPose;
+  personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
+
+  personTSR.mBw = createBwMatrixForTSR(
+      horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
+  personTSR.mTw_e.matrix()
+      *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
+
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+  if (!trajectoryCompleted)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
 //==============================================================================
 void FeedingDemo::moveTowardsPerson()
 {

@@ -106,7 +106,7 @@ int bltmain(FeedingDemo& feedingDemo,
       feedingDemo.moveAbovePlate();
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       Eigen::Isometry3d foodTransform;
-      perception.setFoodName("banana");
+      perception.setFoodName("celery");
       bool perceptionSuccessful = false;
       while (!perceptionSuccessful) {
         perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
@@ -114,18 +114,21 @@ int bltmain(FeedingDemo& feedingDemo,
           if (!waitForUser("Perception failed. Try again?")) {return 0;}
         }
       }
+
+
+  if (!waitForUser("Continue"))
+      {
+        return 0;
+      }
       
       // ABOVE FOOD
       auto aboveFoodTSR = pr_tsr::getDefaultPlateTSR();
       aboveFoodTSR.mT0_w
-          = feedingDemo.getWorkspace().getPlate()->getRootBodyNode()->getWorldTransform();
-      aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0.07};
+          = foodTransform;
+      aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, -0.03};
       aboveFoodTSR.mBw = createBwMatrixForTSR(0.001, 0.001, 0, 0);
-      Eigen::Isometry3d eeTransform = *feedingDemo.getAda().getHand()->getEndEffectorTransform("plate");
+      Eigen::Isometry3d eeTransform = *feedingDemo.getAda().getHand()->getEndEffectorTransform("food");
       aboveFoodTSR.mTw_e.matrix() *= eeTransform.matrix();
-
-      // tsrMarkers.push_back(viewer->addTSRMarker(abovePlateTSR, 100, "someTSRName"));
-      // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
 
       bool trajectoryCompleted = feedingDemo.mAdaMover->moveArmToTSR(aboveFoodTSR);
       if (!trajectoryCompleted)
@@ -137,13 +140,13 @@ int bltmain(FeedingDemo& feedingDemo,
 
 
     // ===== INTO FOOD =====
-    if (!autoContinueDemo)
-    {
-      if (!waitForUser("Move forque into food"))
-      {
-        return 0;
-      }
-    }
+    // if (!autoContinueDemo)
+    // {
+    //   if (!waitForUser("Move forque into food"))
+    //   {
+    //     return 0;
+    //   }
+    // }
     if (!ftThresholdHelper.setThresholds(25, 0.5))
     {
       return 1;
@@ -156,26 +159,22 @@ int bltmain(FeedingDemo& feedingDemo,
     // ===== OUT OF FOOD =====
     if (!autoContinueDemo)
     {
-      // if (!waitForUser("Move forque out of food"))
-      // {
-      //   return 0;
-      // }
+      if (!waitForUser("Move forque out of food"))
+      {
+        return 0;
+      }
     }
     if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
     {
       return 1;
     }
-      std::this_thread::sleep_for(std::chrono::milliseconds(500));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1500));
     feedingDemo.mAdaMover->moveToEndEffectorOffset(Eigen::Vector3d(0, 0, 1), 0.07, false);
     if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
     {
       return 1;
     }
   }
-  if (!waitForUser("Continue"))
-      {
-        return 0;
-      }
 
   // ===== DONE =====
   waitForUser("Demo finished.");

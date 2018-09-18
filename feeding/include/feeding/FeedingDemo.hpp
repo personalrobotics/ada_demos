@@ -115,6 +115,8 @@ public:
       Perception* perception,
       aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
+  void moveDirectlyToPerson();
+
   /// Moves the forque away from the person.
   void moveAwayFromPerson();
 
