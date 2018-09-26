@@ -200,7 +200,8 @@ void FeedingDemo::moveAbovePlate()
   abovePlateTSR.mTw_e.matrix()
       *= eeTransform.matrix();
 
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR);
+  std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -424,7 +425,8 @@ void FeedingDemo::moveInFrontOfPerson()
   personTSR.mTw_e.matrix()
       *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
 
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+  std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR, velocityLimits);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -436,8 +438,9 @@ void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerView
   printRobotConfiguration();
   
   Eigen::Vector3d workingPersonTranslation(0.283465, 0.199386, 0.652674);
-  Eigen::Vector3d personTranslation;
-  personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + Eigen::Vector3d{-0.04, 0, -0.06} + Eigen::Vector3d{0, 0, 0.0};
+  std::vector<double> tiltOffsetVector = getRosParam<std::vector<double>>("/study/personPose", mNodeHandle);
+  Eigen::Vector3d tiltOffset{tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]};
+  Eigen::Vector3d personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + tiltOffset;
   Eigen::Vector3d correctionTranslation = workingPersonTranslation - personTranslation;
 
 
@@ -516,7 +519,7 @@ void FeedingDemo::tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerVi
   }
 }
 
-void FeedingDemo::moveDirectlyToPerson()
+void FeedingDemo::moveDirectlyToPerson(bool tilted, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   double distanceToPerson = 0.02;
   double horizontalToleranceNearPerson = getRosParam<double>(
@@ -524,20 +527,34 @@ void FeedingDemo::moveDirectlyToPerson()
   double verticalToleranceNearPerson = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
 
+  Eigen::Isometry3d personPose = createIsometry(getRosParam<std::vector<double>>("/study/personPose", mNodeHandle));
+  if (tilted) {
+    std::vector<double> tiltOffsetVector = getRosParam<std::vector<double>>("/study/tiltOffset", mNodeHandle);
+    Eigen::Vector3d tiltOffset{tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]};
+    personPose.translation() += tiltOffset;
+  }
+
   aikido::constraint::dart::TSR personTSR;
-  Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = mWorkspace->getPersonPose().translation();
-  personPose.linear()
-      = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
   personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
 
-  personTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
-  personTSR.mTw_e.matrix()
-      *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
+  if (tilted) {
+    personTSR.mBw = createBwMatrixForTSR(
+        horizontalToleranceNearPerson, verticalToleranceNearPerson, -M_PI/4, M_PI/4);
+    Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
+      eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
+      personTSR.mTw_e.matrix() *= eeTransform.matrix();
+  } else {
+    personTSR.mBw = createBwMatrixForTSR(
+        horizontalToleranceNearPerson, verticalToleranceNearPerson, 0, 0);
+    personTSR.mTw_e.matrix()
+        *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
+  }
 
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+  // tsrMarkers.push_back(viewer->addTSRMarker(personTSR, 100, "someTSRName"));
+
+  std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR, velocityLimits);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");

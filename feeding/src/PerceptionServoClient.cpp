@@ -286,7 +286,7 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   bool successful = mGetTransform(goalPose);
   goalPose = goalPose * endEffectorTransform;
   ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
-  if (goalPose.translation().z() < 0.215)
+  if (goalPose.translation().z() < 0.115)
   {
     ROS_WARN_STREAM("Food is way too low");
     return false;

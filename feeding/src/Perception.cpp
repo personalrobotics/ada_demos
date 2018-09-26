@@ -167,6 +167,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
   std::vector<std::string> fullFoodNames;
   std::vector<Eigen::Isometry3d> foodTransforms;
 
+  int chosenIndex = -1;
   for (std::string foodName : mFoodNames)
   {
     if (!perceiveAnyFood && mFoodNameToPerceive != foodName) {
@@ -206,7 +207,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
           currentFoodTransform.translation() = intersection;
           // ROS_WARN_STREAM("Food transform after: " << currentFoodTransform.translation().matrix().transpose());
         } else {
-          if (currentFoodTransform.translation().z() < 0.21) {
+          if (currentFoodTransform.translation().z() < 0.11) {
             ROS_INFO_STREAM("discarding " << currentFoodName << " because of depth");
             continue;
           }
@@ -226,28 +227,25 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
         fullFoodNames.push_back(currentFoodName);
         foodTransforms.push_back(currentFoodTransform);
 
-        // ROS_INFO_STREAM("dist from forque: " << currentDistFromForque << ", " << currentFoodName);
-        // if (distFromForque < 0 || currentDistFromForque < distFromForque)
-        // {
-        //   distFromForque = currentDistFromForque;
-        //   foodTransform = currentFoodTransform;
-        //   perceivedFood = currentPerceivedFood;
-        //   foundFoodName = foodName;
-        //   fullFoodName = currentFoodName;
-        // }
+        ROS_INFO_STREAM("dist from forque: " << currentDistFromForque << ", " << currentFoodName);
+        if (chosenIndex < 0 || currentDistFromForque < distFromForque)
+        {
+          distFromForque = currentDistFromForque;
+          chosenIndex = fullFoodNames.size() - 1;
+        }
       }
     }
   }
 
-  static std::default_random_engine generator(time(0));
-  static std::uniform_real_distribution<double> distribution(0,1);
-  int randomIndex = (int) std::min((distribution(generator) * fullFoodNames.size()), (double) fullFoodNames.size()-1);
-  ROS_INFO_STREAM("randIndex: " << randomIndex << ", size: " << fullFoodNames.size());
+  // static std::default_random_engine generator(time(0));
+  // static std::uniform_real_distribution<double> distribution(0,1);
+  // int chosenIndex = (int) std::min((distribution(generator) * fullFoodNames.size()), (double) fullFoodNames.size()-1);
+  // ROS_INFO_STREAM("random index: " << chosenIndex << ", size: " << fullFoodNames.size());
 
   if (fullFoodNames.size() > 0)
   {
-  foodTransform = foodTransforms[randomIndex];
-  fullFoodName = fullFoodNames[randomIndex];
+  foodTransform = foodTransforms[chosenIndex];
+  fullFoodName = fullFoodNames[chosenIndex];
 
     double distFromLastTransform = (mLastPerceivedFoodTransform.translation() - foodTransform.translation()).norm();
     if (!perceiveDepthPlane && distFromLastTransform > 0.05) {

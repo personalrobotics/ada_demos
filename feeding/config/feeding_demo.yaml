@@ -52,7 +52,7 @@ feedingDemo:
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
-  waitMillisecsAtFood: 1000     # short pause after skewering the food
+  waitMillisecsAtFood: 500     # short pause after skewering the food
   waitMillisecsAtPerson: 5000   # long pause so person can take a bite
 
 # Planning parameters
@@ -109,3 +109,10 @@ foodItems:
 
 study:
   skipSkewering: false
+
+
+  # x: from operator
+  # y: towards user 0.24
+  # z: up
+  personPose: [0.295, 0.22, 0.635, 0, 0, 3.1415]
+  tiltOffset: [-0.04, 0, -0.04]
