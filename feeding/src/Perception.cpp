@@ -266,7 +266,8 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
     }
 
     // magic offset to fix bananas
-    // foodTransform.translation() += Eigen::Vector3d(-0.008, 0, 0);
+    // -0.008
+    // foodTransform.translation() += Eigen::Vector3d(-0.007, 0, 0);
 
     mLastPerceivedFoodTransform = foodTransform;
     // Eigen::Vector3d foodTranslation = foodTransform.translation();

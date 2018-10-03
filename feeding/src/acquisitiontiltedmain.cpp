@@ -139,6 +139,10 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
 
         feedingDemo.moveAboveFood(foodTransform, -0.05*M_PI, viewer, false);
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        
+        stepSuccessful = true;
+        continue;
+
         bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
         if (!perceptionSuccessful) {
           std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
