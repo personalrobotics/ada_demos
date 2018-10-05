@@ -24,7 +24,7 @@ int defaultmain(FeedingDemo& feedingDemo,
       return 0;
     }
   }
-  feedingDemo.moveAbovePlate();
+  // feedingDemo.moveAbovePlate();
 
   // ===== ABOVE FOOD =====
   std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
@@ -34,35 +34,9 @@ int defaultmain(FeedingDemo& feedingDemo,
     foodSkeweringForces[foodNames[i]] = skeweringForces[i];
   }
 
-  Eigen::Isometry3d foodTransform;
-  bool foodFound = false;
-  std::string foodName;
-  while (!foodFound) {
-    std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m     > ";
-    foodName = "";
-    std::cin >> foodName;
-    if (!ros::ok()) {return 0;}
-    if (!perception.setFoodName(foodName)) {
-      std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
-      continue;
-    }
-
-    if (adaReal)
-    {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
-      if (!perceptionSuccessful) {
-        std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
-        continue;
-      } else {
-        foodFound = true;
-      }
-    }
-    else
-    {
-      foodTransform = feedingDemo.getDefaultFoodTransform();
-      foodFound = true;
-    }
-  }
+  std::string foodName = "celery";
+  Eigen::Isometry3d foodTransform = feedingDemo.getDefaultFoodTransform();
+  bool foodFound = true;
   std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
 
   bool foodPickedUp = false;
@@ -76,12 +50,12 @@ int defaultmain(FeedingDemo& feedingDemo,
       }
     }
     feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-    bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
-    if (!perceptionSuccessful) {
-      std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
-    } else {
-      feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-    }
+    // bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+    // if (!perceptionSuccessful) {
+    //   std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
+    // } else {
+    //   feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+    // }
 
     double zForceBeforeSkewering = 0;
     if (ftThresholdHelper.startDataCollection(20)) {
@@ -89,7 +63,7 @@ int defaultmain(FeedingDemo& feedingDemo,
       while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
       }
-      zForceBeforeSkewering = currentForce.z();
+      zForceBeforeSkewering = currentForce.x();
     }
 
     // ===== INTO FOOD =====
@@ -105,7 +79,7 @@ int defaultmain(FeedingDemo& feedingDemo,
     {
       return 1;
     }
-    if (adaReal) {
+    if (adaReal && false) {
       feedingDemo.moveIntoFood(&perception, viewer);
     } else {
       feedingDemo.moveIntoFood();
@@ -134,24 +108,23 @@ int defaultmain(FeedingDemo& feedingDemo,
     }
 
       double forceDifference = 100;
+      double zForceAfter = 0;
       if (ftThresholdHelper.startDataCollection(20)) {
         Eigen::Vector3d currentForce, currentTorque;
         while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
           std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
-        forceDifference = std::fabs(zForceBeforeSkewering - currentForce.z());
+        zForceAfter = currentForce.x();
+        forceDifference = std::fabs(zForceBeforeSkewering - currentForce.x());
       }
-      ROS_WARN_STREAM("force difference: " << forceDifference);
+      ROS_WARN_STREAM("force difference: " << (zForceBeforeSkewering -zForceAfter));
 
-      if (forceDifference > 0.022) {
+      if (forceDifference > 3.022) {
         foodPickedUp = true;
+        ROS_INFO_STREAM("FOOD PICKED UP!");
       } else {
         std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << ". Let me try again!\033[0;32m" << std::endl;
         feedingDemo.moveAbovePlate();
-        bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
-        if (!perceptionSuccessful) {
-          std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
-        }
       }
   }
 

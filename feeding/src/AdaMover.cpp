@@ -38,7 +38,7 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
 bool AdaMover::moveToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length, bool respectCollision)
 {
-  return moveArmOnTrajectory(planToEndEffectorOffset(direction, length, respectCollision), TRYOPTIMALRETIME);
+  return moveArmOnTrajectory(planToEndEffectorOffset(direction, length, respectCollision), RETIME);
 }
 
 //==============================================================================
