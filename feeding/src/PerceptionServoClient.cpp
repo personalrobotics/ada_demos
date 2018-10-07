@@ -96,7 +96,7 @@ PerceptionServoClient::~PerceptionServoClient()
 {
   if (mTrajectoryExecutor)
   {
-    mTrajectoryExecutor->abort();
+    mTrajectoryExecutor->cancel();
   }
 
   if (mExec.valid())
@@ -147,7 +147,7 @@ void PerceptionServoClient::stop()
 {
   timerMutex.lock();
   // Always abort the executing trajectory when quitting
-  mTrajectoryExecutor->abort();
+  mTrajectoryExecutor->cancel();
   mNonRealtimeTimer.stop();
   mIsRunning = false;
   timerMutex.unlock();
@@ -228,7 +228,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     // ROS_INFO_STREAM("Planning took " << planningDuration.count() << " millisecs");
 
     // ROS_INFO("Aborting old trajectory");
-    mTrajectoryExecutor->abort();
+    mTrajectoryExecutor->cancel();
 
     if (mExec.valid())
     {
@@ -337,8 +337,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
 
     std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
     trajectory1 = aikido::planner::vectorfield::planToEndEffectorOffset(
-        *originalState,
         mMetaSkeletonStateSpace,
+        *originalState,
         mMetaSkeleton,
         mBodyNode,
         satisfiedConstraint,
@@ -382,8 +382,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     aikido::planner::Planner::Result result;
     std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
     trajectory2 = aikido::planner::vectorfield::planToEndEffectorOffset(
-        *endState,
         mMetaSkeletonStateSpace,
+        *endState,
         mMetaSkeleton,
         mBodyNode,
         satisfiedConstraint,
