@@ -78,6 +78,8 @@ public:
   /// Moves the forque above the plate.
   void moveAbovePlate();
 
+  void moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+
   /// Moves the forque above the food item using the values in the ros
   /// parameters.
   /// \param[in] foodTransform the transform of the food which the robot should
@@ -95,6 +97,7 @@ public:
 
   /// Moves the forque upwards above the food.
   void moveOutOfFood();
+  void moveOutOfFood(float dist);
 
   /// Moves the forque to a position ready to approach the person.
   void moveInFrontOfPerson();
@@ -112,14 +115,17 @@ public:
       Perception* perception,
       aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
+  void moveDirectlyToPerson(bool tilted, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+
   /// Moves the forque away from the person.
   void moveAwayFromPerson();
+
+  std::unique_ptr<AdaMover> mAdaMover;
 
 private:
   bool mAdaReal;
   ros::NodeHandle mNodeHandle;
   aikido::planner::WorldPtr mWorld;
-  std::unique_ptr<AdaMover> mAdaMover;
 
   std::unique_ptr<ada::Ada> mAda;
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;

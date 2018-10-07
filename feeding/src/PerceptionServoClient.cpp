@@ -47,7 +47,9 @@ PerceptionServoClient::PerceptionServoClient(
         trajectoryExecutor,
     aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
     double perceptionUpdateTime,
-    const Eigen::VectorXd& veloctiyLimits)
+    const Eigen::VectorXd& veloctiyLimits,
+    float originalDirectionExtension,
+    float goalPrecision)
   : mNode(node, "perceptionServo")
   , mGetTransform(getTransform)
   , mMetaSkeletonStateSpace(std::move(metaSkeletonStateSpace))
@@ -58,6 +60,8 @@ PerceptionServoClient::PerceptionServoClient(
   , mCollisionFreeConstraint(collisionFreeConstraint)
   , mPerceptionUpdateTime(perceptionUpdateTime)
   , mCurrentTrajectory(nullptr)
+  , mOriginalDirectionExtension(originalDirectionExtension)
+  , mGoalPrecision(goalPrecision)
 {
   mNonRealtimeTimer = mNode.createTimer(
       ros::Duration(mPerceptionUpdateTime),
@@ -282,13 +286,14 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   bool successful = mGetTransform(goalPose);
   goalPose = goalPose * endEffectorTransform;
   ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
-  if (goalPose.translation().z() < 0.215)
+  if (goalPose.translation().z() < 0.115)
   {
     ROS_WARN_STREAM("Food is way too low");
     return false;
   }
+
   if (hasOriginalDirection) {
-    goalPose.translation() = goalPose.translation() + originalDirection * 0.1;
+    goalPose.translation() = goalPose.translation() + originalDirection * mOriginalDirectionExtension;
   }
   return successful;
 }
@@ -359,7 +364,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   }
 
   Eigen::Vector3d direction2 = goalPose.translation() - currentPose.translation();
-  if (direction2.norm() < 0.002)
+  if (direction2.norm() < mGoalPrecision)
   {
     ROS_INFO("Visual servoing is finished because goal was position reached.");
     mExecutionDone = true;
@@ -433,7 +438,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   {
     aikido::trajectory::TrajectoryPtr trajectory2 = mAdaMover->planToEndEffectorOffset(
         direction2.normalized(), 
-        std::min(direction2.norm(), 0.2));
+        std::min(direction2.norm(), 0.2), false);
 
     if (!hasOriginalDirection) {
       originalDirection = direction2.normalized();

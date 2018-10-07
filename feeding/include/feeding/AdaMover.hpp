@@ -25,15 +25,15 @@ public:
   /// Moves the end effector to a TSR.
   /// Throws a runtime_error if no trajectory could be found.
   /// \return True if the trajectory was completed successfully.
-  bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr);
+  bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits = std::vector<double>());
 
   /// Moves the end effector along a certain position offset.
   /// Throws a runtime_error if no trajectory could be found.
   /// \return True if the trajectory was completed successfully.
-  bool moveToEndEffectorOffset(const Eigen::Vector3d& direction, double length);
+  bool moveToEndEffectorOffset(const Eigen::Vector3d& direction, double length, bool respectCollision = true);
 
   aikido::trajectory::TrajectoryPtr planToEndEffectorOffset(
-      const Eigen::Vector3d& direction, double length);
+      const Eigen::Vector3d& direction, double length, bool respectCollision = true);
 
   /// Moves the robot to a configuration.
   /// Throws a runtime_error if no trajectory could be found.
@@ -45,7 +45,8 @@ public:
   /// \return True if the trajectory was completed successfully.
   bool moveArmOnTrajectory(
       aikido::trajectory::TrajectoryPtr trajectory,
-      TrajectoryPostprocessType postprocessType = SMOOTH);
+      TrajectoryPostprocessType postprocessType = SMOOTH,
+      std::vector<double> smoothVelocityLimits = std::vector<double>());
 
   ada::Ada& mAda;
 private:

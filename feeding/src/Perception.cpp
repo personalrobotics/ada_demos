@@ -2,6 +2,7 @@
 #include <aikido/perception/ObjectDatabase.hpp>
 #include <tf_conversions/tf_eigen.h>
 #include "feeding/util.hpp"
+#include <algorithm>
 
 namespace feeding {
 
@@ -162,9 +163,15 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
 
   double distFromForque = -1;
   std::string fullFoodName;
+
+  std::vector<std::string> fullFoodNames;
+  std::vector<Eigen::Isometry3d> foodTransforms;
+
+  int chosenIndex = -1;
   for (std::string foodName : mFoodNames)
   {
     if (!perceiveAnyFood && mFoodNameToPerceive != foodName) {
+      ROS_INFO_STREAM(mFoodNameToPerceive << "  " << foodName << "  " << perceiveAnyFood); 
       continue;
     }
 
@@ -179,7 +186,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
 
         if (!currentPerceivedFood)
         {
-          // ROS_INFO_STREAM(currentFoodName << " not in aikido world");
+          ROS_INFO_STREAM(currentFoodName << " not in aikido world");
           if (index > 10) {
             break;
           } else {
@@ -200,7 +207,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
           currentFoodTransform.translation() = intersection;
           // ROS_WARN_STREAM("Food transform after: " << currentFoodTransform.translation().matrix().transpose());
         } else {
-          if (currentFoodTransform.translation().z() < 0.21) {
+          if (currentFoodTransform.translation().z() < 0.11) {
             ROS_INFO_STREAM("discarding " << currentFoodName << " because of depth");
             continue;
           }
@@ -217,24 +224,31 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
                   .norm();
         }
 
-        // ROS_INFO_STREAM("dist from forque: " << currentDistFromForque << ", " << currentFoodName);
-        if (distFromForque < 0 || currentDistFromForque < distFromForque)
+        fullFoodNames.push_back(currentFoodName);
+        foodTransforms.push_back(currentFoodTransform);
+
+        ROS_INFO_STREAM("dist from forque: " << currentDistFromForque << ", " << currentFoodName);
+        if (chosenIndex < 0 || currentDistFromForque < distFromForque)
         {
           distFromForque = currentDistFromForque;
-          foodTransform = currentFoodTransform;
-          perceivedFood = currentPerceivedFood;
-          foundFoodName = foodName;
-          fullFoodName = currentFoodName;
+          chosenIndex = fullFoodNames.size() - 1;
         }
       }
     }
   }
 
+  // static std::default_random_engine generator(time(0));
+  // static std::uniform_real_distribution<double> distribution(0,1);
+  // int chosenIndex = (int) std::min((distribution(generator) * fullFoodNames.size()), (double) fullFoodNames.size()-1);
+  // ROS_INFO_STREAM("random index: " << chosenIndex << ", size: " << fullFoodNames.size());
 
-  if (perceivedFood != nullptr)
+  if (fullFoodNames.size() > 0)
   {
+  foodTransform = foodTransforms[chosenIndex];
+  fullFoodName = fullFoodNames[chosenIndex];
+
     double distFromLastTransform = (mLastPerceivedFoodTransform.translation() - foodTransform.translation()).norm();
-    if (!perceiveDepthPlane && distFromLastTransform > 0.02) {
+    if (!perceiveDepthPlane && distFromLastTransform > 0.05) {
       ROS_WARN("food transform too far from last one!");
       return false;
     }
@@ -251,16 +265,20 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
       depthPlane = Eigen::Hyperplane<double, 3>(cameraDirection, foodTransform.translation());
     }
 
+    // magic offset to fix bananas
+    // -0.008
+    // foodTransform.translation() += Eigen::Vector3d(-0.007, 0, 0);
+
     mLastPerceivedFoodTransform = foodTransform;
     // Eigen::Vector3d foodTranslation = foodTransform.translation();
     // foodTranslation += Eigen::Vector3d(0,0,-0.01);
     // foodTransform.translation() = foodTranslation;
-    ROS_INFO_STREAM("perception successful for " << fullFoodName);
+    ROS_INFO_STREAM("food perception successful for " << fullFoodName);
     return true;
   }
   else
   {
-    ROS_WARN("perception failed");
+    ROS_WARN("food perception failed");
     return false;
   }
 }
@@ -270,17 +288,25 @@ bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
   mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
 
   // just choose one for now
-  auto perceivedFace = mWorld->getSkeleton(mPerceivedFaceName);
-  if (perceivedFace != nullptr)
-  {
-    faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
-    ROS_INFO_STREAM("perceived Face: " << faceTransform.matrix());
-    return true;
+  for (int skeletonFrameIdx=0; skeletonFrameIdx<5; skeletonFrameIdx++) {
+    auto perceivedFace = mWorld->getSkeleton(mPerceivedFaceName + "_" + std::to_string(skeletonFrameIdx));
+    if (perceivedFace != nullptr)
+    {
+      faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
+      faceTransform.translation().y() = 0.19;
+      faceTransform.translation().z() += 0.00;
+      // faceTransform.translation().z() += 0.0;
+       faceTransform.translation().z() = faceTransform.translation().z() + mFaceZOffset;
+      ROS_INFO_STREAM("perceived Face: " << faceTransform.matrix());
+      return true;
+    }
   }
-  else
-  {
-    return false;
-  }
+  ROS_WARN("face perception failed");
+  return false;
+}
+
+void Perception::setFaceZOffset(float faceZOffset) {
+  mFaceZOffset = faceZOffset;
 }
 
 bool Perception::isMouthOpen()

@@ -18,7 +18,7 @@ AdaMover::AdaMover(
 }
 
 //==============================================================================
-bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
+bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
 
@@ -31,20 +31,19 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
 
-  return moveArmOnTrajectory(trajectory);
+  return moveArmOnTrajectory(trajectory, SMOOTH, velocityLimits);
 }
 
 //==============================================================================
 bool AdaMover::moveToEndEffectorOffset(
-    const Eigen::Vector3d& direction, double length)
+    const Eigen::Vector3d& direction, double length, bool respectCollision)
 {
-  return moveArmOnTrajectory(
-      planToEndEffectorOffset(direction, length), TRYOPTIMALRETIME);
+  return moveArmOnTrajectory(planToEndEffectorOffset(direction, length, respectCollision), TRYOPTIMALRETIME);
 }
 
 //==============================================================================
 aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
-    const Eigen::Vector3d& direction, double length)
+    const Eigen::Vector3d& direction, double length, bool respectCollision)
 {
   ROS_INFO_STREAM("Plan to end effector offset state: " << mAda.getArm()->getMetaSkeleton()->getPositions().matrix().transpose());
   ROS_INFO_STREAM("Plan to end effector offset direction: " << direction.matrix().transpose() << ",  length: " << length);
@@ -53,7 +52,7 @@ aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
       mArmSpace,
       mAda.getArm()->getMetaSkeleton(),
       mAda.getHand()->getEndEffectorBodyNode(),
-      nullptr,
+      respectCollision ? mCollisionFreeConstraint : nullptr,
       direction,
       length,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
@@ -79,7 +78,8 @@ bool AdaMover::moveArmToConfiguration(const Eigen::Vector6d& configuration)
 //==============================================================================
 bool AdaMover::moveArmOnTrajectory(
     aikido::trajectory::TrajectoryPtr trajectory,
-    TrajectoryPostprocessType postprocessType)
+    TrajectoryPostprocessType postprocessType,
+    std::vector<double> smoothVelocityLimits)
 {
   if (!trajectory)
   {
@@ -103,8 +103,21 @@ bool AdaMover::moveArmOnTrajectory(
       break;
 
     case SMOOTH:
-      timedTrajectory = mAda.smoothPath(
-          mAda.getArm()->getMetaSkeleton(), trajectory.get(), testable);
+      if (smoothVelocityLimits.size() == 6) {
+        Eigen::Vector6d velocityLimits;
+        velocityLimits << smoothVelocityLimits[0], smoothVelocityLimits[1], smoothVelocityLimits[2], smoothVelocityLimits[3], smoothVelocityLimits[4], smoothVelocityLimits[5];
+        Eigen::VectorXd previousLowerLimits = mAda.getArm()->getMetaSkeleton()->getVelocityLowerLimits();
+        Eigen::VectorXd previousUpperLimits = mAda.getArm()->getMetaSkeleton()->getVelocityUpperLimits();
+        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(-velocityLimits);
+        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(velocityLimits);
+        timedTrajectory = mAda.smoothPath(
+            mAda.getArm()->getMetaSkeleton(), trajectory.get(), testable);
+        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(previousLowerLimits);
+        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(previousUpperLimits);
+      } else {
+        timedTrajectory = mAda.smoothPath(
+            mAda.getArm()->getMetaSkeleton(), trajectory.get(), testable);
+      }
       break;
 
     case TRYOPTIMALRETIME:

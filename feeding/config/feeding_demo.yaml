@@ -49,23 +49,23 @@ wheelchair:
 feedingDemo:
   heightAbovePlate: 0.11
   heightAboveFood: 0.09
-  heightIntoFood: 0.0           # the real robot plans *below* the food. This parameter specifies how far
+  heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
-  waitMillisecsAtFood: 1000     # short pause after skewering the food
+  waitMillisecsAtFood: 500     # short pause after skewering the food
   waitMillisecsAtPerson: 5000   # long pause so person can take a bite
 
 # Planning parameters
 planning:
   maxNumberOfTrials: 1
-  timeoutSeconds: 5
+  timeoutSeconds: 2
   tsr:
     horizontalToleranceAbovePlate: 0.005
     verticalToleranceAbovePlate: 0.002
     horizontalToleranceNearFood: 0.002
     verticalToleranceNearFood: 0.001
-    horizontalToleranceNearPerson: 0.01
-    verticalToleranceNearPerson: 0.005
+    horizontalToleranceNearPerson: 0.002
+    verticalToleranceNearPerson: 0.002
   endEffectorOffset:
     positionTolerance: 0.002
     angularTolerance: 0.04
@@ -79,10 +79,10 @@ ftSensor:
       force: 2
       torque: 2
     grabFood:       # active when going down to grab the food
-      force: 25
+      force: 22
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 38
+      force: 50
       torque: 2
 
 # Perception parameters
@@ -98,9 +98,21 @@ perception:
 foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
+  
+  # bite acquistion
+  # names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
+  # forces: [15,        15,     15,      22.49,  17.48,       15]
+
+  # bite transfer
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [15,        15,     15,      22.49,  17.48,       15]
+  forces: [15,        15,     15,      28,  17.48,       6]
 
 study:
-  skipSkewering: true
+  skipSkewering: false
 
+
+  # x: from operator
+  # y: towards user 0.24
+  # z: up
+  personPose: [0.295, 0.24, 0.68, 0, 0, 3.1415]
+  tiltOffset: [-0.04, 0, -0.04]
