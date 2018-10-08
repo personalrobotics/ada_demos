@@ -48,7 +48,7 @@ wheelchair:
 # Feeding demo movement parameters
 feedingDemo:
   heightAbovePlate: 0.11
-  heightAboveFood: 0.09
+  heightAboveFood: 0.07
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
@@ -104,8 +104,8 @@ foodItems:
   # forces: [15,        15,     15,      22.49,  17.48,       15]
 
   # bite transfer
-  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [15,        15,     15,      28,  17.48,       6]
+  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "grape_green"]
+  forces: [15,        15,     15,      28,  17.48,       6, 10]
 
 study:
   skipSkewering: false
