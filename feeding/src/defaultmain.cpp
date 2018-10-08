@@ -76,15 +76,17 @@ int defaultmain(FeedingDemo& feedingDemo,
       }
     }
     feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-    bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
-    if (!perceptionSuccessful) {
-      std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
-    } else {
-      feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+    if (adaReal) {
+      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+      if (!perceptionSuccessful) {
+        std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
+      } else {
+        feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+      }
     }
 
     double zForceBeforeSkewering = 0;
-    if (ftThresholdHelper.startDataCollection(20)) {
+    if (adaReal && ftThresholdHelper.startDataCollection(20)) {
       Eigen::Vector3d currentForce, currentTorque;
       while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -134,7 +136,7 @@ int defaultmain(FeedingDemo& feedingDemo,
     }
 
       double forceDifference = 100;
-      if (ftThresholdHelper.startDataCollection(20)) {
+      if (adaReal && ftThresholdHelper.startDataCollection(20)) {
         Eigen::Vector3d currentForce, currentTorque;
         while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
           std::this_thread::sleep_for(std::chrono::milliseconds(50));
