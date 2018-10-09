@@ -17,8 +17,13 @@ AdaMover::AdaMover(
 {
 }
 
+bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits) {
+  Eigen::Vector6d nominalConfiguration(0);
+  return moveArmToTSR(tsr, velocityLimits, nominalConfiguration);
+}
+
 //==============================================================================
-bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const Eigen::VectorXd& nominalConfiguration, const std::vector<double>& velocityLimits)
+bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits, const Eigen::VectorXd& nominalConfiguration)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
 
