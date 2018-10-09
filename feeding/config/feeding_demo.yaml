@@ -105,7 +105,7 @@ foodItems:
 
   # bite transfer
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "celery"]
-  forces: [15,        15,     15,      28,  17.48,       6, 3]
+  forces: [15,        15,     15,      28,  17.48,       6, 8]
 
 study:
   skipSkewering: false

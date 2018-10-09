@@ -57,15 +57,6 @@ int defaultmain(FeedingDemo& feedingDemo,
     //   feedingDemo.moveAboveFood(foodTransform, 0, viewer);
     // }
 
-    double zForceBeforeSkewering = 0;
-    if (ftThresholdHelper.startDataCollection(20)) {
-      Eigen::Vector3d currentForce, currentTorque;
-      while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-      }
-      zForceBeforeSkewering = currentForce.x();
-    }
-
     // ===== INTO FOOD =====
     if (!autoContinueDemo)
     {
@@ -73,6 +64,15 @@ int defaultmain(FeedingDemo& feedingDemo,
       {
         return 0;
       }
+    }
+
+    double zForceBeforeSkewering = 0;
+    if (ftThresholdHelper.startDataCollection(50)) {
+      Eigen::Vector3d currentForce, currentTorque;
+      while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      }
+      zForceBeforeSkewering = currentForce.x();
     }
     double torqueThreshold = 2;
     if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
@@ -109,7 +109,7 @@ int defaultmain(FeedingDemo& feedingDemo,
 
       double forceDifference = 100;
       double zForceAfter = 0;
-      if (ftThresholdHelper.startDataCollection(20)) {
+      if (ftThresholdHelper.startDataCollection(50)) {
         Eigen::Vector3d currentForce, currentTorque;
         while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
           std::this_thread::sleep_for(std::chrono::milliseconds(50));
