@@ -25,7 +25,9 @@ public:
   /// Moves the end effector to a TSR.
   /// Throws a runtime_error if no trajectory could be found.
   /// \return True if the trajectory was completed successfully.
-  bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const Eigen::VectorXd& nominalConfiguration = Eigen::VectorXd::Zero(0), const std::vector<double>& velocityLimits = std::vector<double>());
+  bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits = std::vector<double>());
+
+  bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits, const Eigen::VectorXd& nominalConfiguration);
 
   /// Moves the end effector along a certain position offset.
   /// Throws a runtime_error if no trajectory could be found.
