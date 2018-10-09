@@ -131,7 +131,7 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
-  return feeding::studydmain(feedingDemo,
+  return feeding::acquisitiontiltedmain(feedingDemo,
                      ftThresholdHelper,
                      perception,
                      viewer,
