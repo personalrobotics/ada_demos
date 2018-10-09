@@ -17,9 +17,9 @@ AdaMover::AdaMover(
 {
 }
 
+//==============================================================================
 bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits) {
-  Eigen::Vector6d nominalConfiguration(0);
-  return moveArmToTSR(tsr, velocityLimits, nominalConfiguration);
+  return moveArmToTSR(tsr, velocityLimits, Eigen::Vector6d(0));
 }
 
 //==============================================================================
