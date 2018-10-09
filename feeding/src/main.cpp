@@ -51,6 +51,14 @@ int bltmain(FeedingDemo& feedingDemo,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
+
+int demomain(FeedingDemo& feedingDemo,
+                FTThresholdHelper& ftThresholdHelper,
+                Perception& perception,
+                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                ros::NodeHandle nodeHandle,
+                bool autoContinueDemo,
+                bool adaReal);
 };
 
 
@@ -131,7 +139,7 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
-  return feeding::defaultmain(feedingDemo,
+  return feeding::demomain(feedingDemo,
                      ftThresholdHelper,
                      perception,
                      viewer,

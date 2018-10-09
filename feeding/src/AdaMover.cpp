@@ -18,7 +18,7 @@ AdaMover::AdaMover(
 }
 
 //==============================================================================
-bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits)
+bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const Eigen::VectorXd& nominalConfiguration, const std::vector<double>& velocityLimits)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
 
@@ -27,6 +27,7 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
       mAda.getArm()->getMetaSkeleton(),
       mAda.getHand()->getEndEffectorBodyNode(),
       goalTSR,
+      nominalConfiguration,
       mCollisionFreeConstraint,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
@@ -77,14 +78,16 @@ bool AdaMover::moveArmToConfiguration(const Eigen::Vector6d& configuration)
 
 //==============================================================================
 bool AdaMover::moveArmOnTrajectory(
-    aikido::trajectory::TrajectoryPtr trajectory,
+    aikido::trajectory::TrajectoryPtr path,
     TrajectoryPostprocessType postprocessType,
     std::vector<double> smoothVelocityLimits)
 {
-  if (!trajectory)
+  if (!path)
   {
     throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
   }
+
+  auto trajectory = mAda.convertTrajectory(mAda.getArm()->getMetaSkeleton(), path.get());
 
   std::vector<aikido::constraint::ConstTestablePtr> constraints;
   if (mCollisionFreeConstraint)

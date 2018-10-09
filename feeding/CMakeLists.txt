@@ -8,6 +8,7 @@ add_executable(feeding
   src/main.cpp
   src/defaultmain.cpp
   src/studymain.cpp
+  src/demomain.cpp
   src/bltmain.cpp
   src/acquisitionmain.cpp
   src/acquisitiontiltedmain.cpp
