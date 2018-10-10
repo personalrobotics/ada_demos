@@ -44,9 +44,9 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
     throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
   }
 
-  auto trajectory = mAda.convertTrajectory(mAda.getArm()->getMetaSkeleton(), path.get());
+  // auto trajectory = mAda.convertTrajectory(mAda.getArm()->getMetaSkeleton(), path.get());
 
-  return moveArmOnTrajectory(trajectory, SMOOTH, velocityLimits);
+  return moveArmOnTrajectory(path, TRYOPTIMALRETIME, velocityLimits);
 }
 
 //==============================================================================

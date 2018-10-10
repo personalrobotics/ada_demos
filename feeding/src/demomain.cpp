@@ -16,6 +16,18 @@ int demomain(FeedingDemo& feedingDemo,
                 bool autoContinueDemo,
                 bool adaReal) {
 
+
+  Eigen::Vector6d source, target;
+  source << -2.39304, 3.34645, 2.28738, -1.39666, 3.12, 2.49281;
+  target << -2.39304, 3.34645, 2.28738, -1.39666, 3.16, 2.49281;
+  feedingDemo.mAdaMover->moveArmToConfiguration(source);
+  waitForUser("Start Reached");
+  feedingDemo.mAdaMover->moveArmToConfiguration(target);
+  waitForUser("Goal Reached");
+  return 0;
+
+
+
   std::cout << std::endl << "\033[1;32m      ***** DEMO MODE *****\033[0m" << std::endl;
 
   std::string foodName = "cantaloupe";
