@@ -18,6 +18,7 @@ add_executable(feeding
   src/Workspace.cpp
   src/util.cpp
   src/PerceptionServoClient.cpp
+  src/nipsmain.cpp
 )
 
 include_directories(include)

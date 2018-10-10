@@ -104,8 +104,12 @@ foodItems:
   # forces: [15,        15,     15,      22.49,  17.48,       15]
 
   # bite transfer
+  #names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
+  #forces: [15,        15,     15,      28,  17.48,       6]
+
+  # Finger Vision
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [15,        15,     15,      28,  17.48,       6]
+  forces: [          3,     3,         3,        3,        3,            3]
 
 study:
   skipSkewering: false
