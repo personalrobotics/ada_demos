@@ -86,16 +86,16 @@ bool AdaMover::moveArmToConfiguration(const Eigen::Vector6d& configuration)
 
 //==============================================================================
 bool AdaMover::moveArmOnTrajectory(
-    aikido::trajectory::TrajectoryPtr path,
+    aikido::trajectory::TrajectoryPtr trajectory,
     TrajectoryPostprocessType postprocessType,
     std::vector<double> smoothVelocityLimits)
 {
-  if (!path)
+  if (!trajectory)
   {
     throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
   }
 
-  auto trajectory = mAda.convertTrajectory(mAda.getArm()->getMetaSkeleton(), path.get());
+//  auto trajectory = mAda.convertTrajectory(mAda.getArm()->getMetaSkeleton(), path.get());
 
   std::vector<aikido::constraint::ConstTestablePtr> constraints;
   if (mCollisionFreeConstraint)
