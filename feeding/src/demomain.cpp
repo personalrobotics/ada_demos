@@ -230,6 +230,10 @@ int demomain(FeedingDemo& feedingDemo,
   } else {
     feedingDemo.moveTowardsPerson();
   }
+
+  if (tilted) {
+    feedingDemo.tiltUpInFrontOfPerson(viewer);
+  }
   
 
   // ===== EATING =====

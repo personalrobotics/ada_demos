@@ -622,7 +622,7 @@ void FeedingDemo::moveTowardsPerson(
 //==============================================================================
 void FeedingDemo::moveAwayFromPerson()
 {
-  Eigen::Vector3d targetPosition = mWorkspace->getPersonPose().translation() + Eigen::Vector3d(0, -0.3, 0);
+  Eigen::Vector3d targetPosition = mWorkspace->getPersonPose().translation() + Eigen::Vector3d(0, -0.2, 0);
   Eigen::Vector3d forqueTipPosition = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
   Eigen::Vector3d direction = targetPosition - forqueTipPosition;
 
