@@ -22,11 +22,12 @@ public:
       aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
       ros::NodeHandle nodeHandle);
 
+
+  bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits = std::vector<double>());
+
   /// Moves the end effector to a TSR.
   /// Throws a runtime_error if no trajectory could be found.
   /// \return True if the trajectory was completed successfully.
-  bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits = std::vector<double>());
-
   bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits, const Eigen::VectorXd& nominalConfiguration);
 
   /// Moves the end effector along a certain position offset.
