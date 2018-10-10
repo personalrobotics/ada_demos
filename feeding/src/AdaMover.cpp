@@ -19,7 +19,7 @@ AdaMover::AdaMover(
 
 //==============================================================================
 bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits) {
-  auto nominalConfiguration = Eigen::Vector6d(0);
+  auto nominalConfiguration = Eigen::VectorXd(0);
   return moveArmToTSR(tsr, velocityLimits, nominalConfiguration);
 }
 
@@ -28,7 +28,7 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
 
-  auto trajectory = mAda.planToTSR(
+  auto path = mAda.planToTSR(
       mArmSpace,
       mAda.getArm()->getMetaSkeleton(),
       mAda.getHand()->getEndEffectorBodyNode(),
@@ -37,6 +37,14 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
       mCollisionFreeConstraint,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
+
+
+  if (!path)
+  {
+    throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
+  }
+
+  auto trajectory = mAda.convertTrajectory(mAda.getArm()->getMetaSkeleton(), path.get());
 
   return moveArmOnTrajectory(trajectory, SMOOTH, velocityLimits);
 }
@@ -84,17 +92,10 @@ bool AdaMover::moveArmToConfiguration(const Eigen::Vector6d& configuration)
 
 //==============================================================================
 bool AdaMover::moveArmOnTrajectory(
-    aikido::trajectory::TrajectoryPtr path,
+    aikido::trajectory::TrajectoryPtr trajectory,
     TrajectoryPostprocessType postprocessType,
     std::vector<double> smoothVelocityLimits)
 {
-  if (!path)
-  {
-    throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
-  }
-
-  auto trajectory = mAda.convertTrajectory(mAda.getArm()->getMetaSkeleton(), path.get());
-
   std::vector<aikido::constraint::ConstTestablePtr> constraints;
   if (mCollisionFreeConstraint)
   {

@@ -295,7 +295,10 @@ bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
       faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
 
       // fixed distance:
-      // faceTransform.translation().y() = 0.19;
+      double fixedFaceY = getRosParam<double>("/feedingDemo/fixedFaceY", mNodeHandle);
+      if (fixedFaceY > 0) {
+        faceTransform.translation().y() = fixedFaceY;
+      }
       
       faceTransform.translation().z() += 0.00;
       // faceTransform.translation().z() += 0.0;
