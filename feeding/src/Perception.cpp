@@ -293,7 +293,10 @@ bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
     if (perceivedFace != nullptr)
     {
       faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
-      faceTransform.translation().y() = 0.19;
+
+      // fixed distance:
+      // faceTransform.translation().y() = 0.19;
+      
       faceTransform.translation().z() += 0.00;
       // faceTransform.translation().z() += 0.0;
        faceTransform.translation().z() = faceTransform.translation().z() + mFaceZOffset;

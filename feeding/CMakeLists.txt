@@ -34,4 +34,6 @@ target_link_libraries(feeding
   ${OpenCV_LIBRARIES}
   libada)
 
+target_compile_options(feeding PUBLIC -Wl,--no-undefined)
+
 install(TARGETS feeding RUNTIME DESTINATION bin)
