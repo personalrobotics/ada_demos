@@ -229,7 +229,12 @@ int demomain(FeedingDemo& feedingDemo,
   
   
   bool tilted = (stepIdx != 3);
-  feedingDemo.moveTowardsPerson(&perception, viewer);
+  if (adaReal) {
+    feedingDemo.moveTowardsPerson(&perception, viewer);
+  } else {
+    feedingDemo.moveTowardsPerson();
+  }
+  
 
   // ===== EATING =====
   ROS_WARN("Human is eating");
