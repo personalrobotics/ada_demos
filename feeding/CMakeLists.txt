@@ -6,15 +6,15 @@ find_package(OpenCV REQUIRED)
 
 add_executable(feeding
   src/main.cpp
-  src/defaultmain.cpp
-  src/studymain.cpp
+  #src/defaultmain.cpp
+  #src/studymain.cpp
   src/demomain.cpp
-  src/bltmain.cpp
-  src/acquisitionmain.cpp
-  src/acquisitiontiltedmain.cpp
+  #src/bltmain.cpp
+  #src/acquisitionmain.cpp
+  #src/acquisitiontiltedmain.cpp
   src/FeedingDemo.cpp
   src/AdaMover.cpp
-  src/FTThresholdHelper.cpp
+  #src/FTThresholdHelper.cpp
   src/Perception.cpp
   src/Workspace.cpp
   src/util.cpp
@@ -27,11 +27,11 @@ target_link_libraries(feeding
   ${DART_LIBRARIES}
   ${aikido_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${rewd_controllers_LIBRARIES}
+  #${rewd_controllers_LIBRARIES}
   ${tf_conversions_LIBRARIES}
-  ${image_transport_LIBRARIES}
-  ${cv_bridge_LIBRARIES}
-  ${OpenCV_LIBRARIES}
+  #${image_transport_LIBRARIES}
+  #${cv_bridge_LIBRARIES}
+  #${OpenCV_LIBRARIES}
   libada)
 
 target_compile_options(feeding PUBLIC -Wl,--no-undefined)

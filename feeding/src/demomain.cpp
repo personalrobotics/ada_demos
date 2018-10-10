@@ -1,5 +1,5 @@
 
-#include "feeding/FTThresholdHelper.hpp"
+// #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
@@ -9,12 +9,23 @@
 namespace feeding {
 
 int demomain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
+                // FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal) {
+
+
+  Eigen::Vector6d source, target;
+  source << -2.39304, 3.34645, 2.28738, -1.39666, 3.12, 2.49281;
+  target << -2.39304, 3.34645, 2.28738, -1.39666, 3.16, 2.49281;
+  feedingDemo.mAdaMover->moveArmToConfiguration(source);
+  waitForUser("Start Reached");
+  feedingDemo.mAdaMover->moveArmToConfiguration(target);
+  waitForUser("Goal Reached");
+  return 0;
+
 
   std::cout << std::endl << "\033[1;32m      ***** DEMO MODE *****\033[0m" << std::endl;
   std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m" << std::endl;
@@ -172,10 +183,10 @@ int demomain(FeedingDemo& feedingDemo,
         }
       }
       double torqueThreshold = 2;
-      if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
-      {
-        return 1;
-      }
+      // if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+      // {
+        // return 1;
+      // }
       if (adaReal) {
         feedingDemo.moveIntoFood(&perception, viewer);
       } else {
@@ -194,15 +205,15 @@ int demomain(FeedingDemo& feedingDemo,
           return 0;
         }
       }
-      if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
-      {
-        return 1;
-      }
+      // if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
+      // {
+        // return 1;
+      // }
       feedingDemo.moveOutOfFood();
-      if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
-      {
-        return 1;
-      }
+      // if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
+      // {
+        // return 1;
+      // }
 
       bool shouldContinue = waitForUser("\033[1;32mDo you want me to continue?\033[0;32m");
       if (shouldContinue) {

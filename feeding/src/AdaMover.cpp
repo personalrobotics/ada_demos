@@ -18,15 +18,17 @@ AdaMover::AdaMover(
 }
 
 //==============================================================================
-bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits) {
-  auto nominalConfiguration = Eigen::Vector6d(0);
-  return moveArmToTSR(tsr, velocityLimits, nominalConfiguration);
+bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits) 
+{
+  return moveArmToTSR(tsr, velocityLimits, Eigen::VectorXd(0));
 }
 
 //==============================================================================
 bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits, const Eigen::VectorXd& nominalConfiguration)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
+  std::cout << "Size " << nominalConfiguration.size() << std::endl;
+  std::cin.get();
 
   auto trajectory = mAda.planToTSR(
       mArmSpace,
@@ -79,7 +81,7 @@ bool AdaMover::moveArmToConfiguration(const Eigen::Vector6d& configuration)
       mCollisionFreeConstraint,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle));
 
-  return moveArmOnTrajectory(trajectory, SMOOTH);
+  return moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
 }
 
 //==============================================================================
