@@ -308,6 +308,15 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
   }
 }
 
+void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
+{
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+      Eigen::Vector3d(0.2, 0, -1),
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
+}
+
 //==============================================================================
 void FeedingDemo::moveIntoFood()
 {
@@ -377,6 +386,16 @@ void FeedingDemo::moveIntoFood(
   servoClient.start();
 
   servoClient.wait(10000.0);
+}
+
+//==============================================================================
+void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
+{
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+      Eigen::Vector3d(-0.1, 0, 0),
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
 }
 
 //==============================================================================
