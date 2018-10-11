@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
-  feedingDemo.moveAbovePlate();
+  // feedingDemo.moveAbovePlate();
   // ===== ABOVE PLATE =====
   if (!autoContinueDemo)
   {
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
   // feedingDemo.moveAbovePlate();
 
 
-  //feedingDemo.moveHighAboveForque();
+  feedingDemo.moveHighAboveForque();
   // feedingDemo.moveNotThatHighAboveForque();
 
   feedingDemo.mAda->getHand()->executePreshape("almost_closed").wait();
@@ -124,98 +124,9 @@ int main(int argc, char** argv)
   std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
 
+  waitForUser("Move it back.");
 
-  // ===== ABOVE FOOD =====
-
-  Eigen::Isometry3d foodTransform;
-  bool foodFound = false;
-  std::string foodName;
-  while (!foodFound) {
-    std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m     > ";
-    foodName = "";
-    std::cin >> foodName;
-    if (!ros::ok()) {return 0;}
-    if (!perception.setFoodName(foodName)) {
-      std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
-      continue;
-    }
-
-    if (adaReal)
-    {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false);
-      if (!perceptionSuccessful) {
-        std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
-        continue;
-      } else {
-        foodFound = true;
-      }
-    }
-    else
-    {
-      foodTransform = feedingDemo.getDefaultFoodTransform();
-      foodFound = true;
-    }
-  }
-  std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0m" << std::endl << std::endl;
-
-
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque above food"))
-    {
-      return 0;
-    }
-  }
-  feedingDemo.moveAboveFood(foodTransform);
-
-  // auto testTSR = pr_tsr::getDefaultPlateTSR();
-  // testTSR.mT0_w = foodTransform;
-  // testTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
-
-  // testTSR.mBw = createBwMatrixForTSR(
-  //     0.01, 0.01, 0, 0);
-  // testTSR.mTw_e.matrix()
-  //     *=
-  //     feedingDemo.getAda().getHand()->getEndEffectorTransform("plate")->matrix();
-  // feedingDemo.moveArmToTSR(testTSR);
-
-  // ===== INTO FOOD =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque into food"))
-    {
-      return 0;
-    }
-  }
-  if (!ftThresholdHelper.setThresholds(GRAB_FOOD_FT_THRESHOLD))
-  {
-    return 1;
-  }
-  feedingDemo.moveIntoFood(&perception, viewer);
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(
-          getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
-  feedingDemo.grabFoodWithForque();
-
-  // ===== OUT OF FOOD =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque out of food"))
-    {
-      return 0;
-    }
-  }
-  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
-  {
-    return 1;
-  }
-  feedingDemo.moveOutOfFood();
-  if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
-  {
-    return 1;
-  }
-
-
+  
   // waitForUser("Above Forque");
   feedingDemo.moveAboveForque();
 

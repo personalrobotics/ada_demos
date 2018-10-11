@@ -44,8 +44,9 @@ FeedingDemo::FeedingDemo(
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
         //   mWorkspace->getTable().get(),
-          mWorkspace->getWorkspaceEnvironment().get(),
-          mWorkspace->getWheelchair().get());
+          // mWorkspace->getWorkspaceEnvironment().get(),
+          // mWorkspace->getWheelchair().get()
+          );
   mCollisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
           mArmSpace, mAda->getArm()->getMetaSkeleton(), collisionDetector);
