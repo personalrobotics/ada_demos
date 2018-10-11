@@ -16,6 +16,8 @@ FeedingDemo::FeedingDemo(
                                           ? "move_until_touch_topic_controller"
                                           : "rewd_trajectory_controller";
 
+    // std::string armTrajectoryExecutor = "trajectory_controller";
+
   mAda = std::unique_ptr<ada::Ada>(
       new ada::Ada(
           mWorld,
@@ -43,9 +45,9 @@ FeedingDemo::FeedingDemo(
           mAda->getHand()->getEndEffectorBodyNode());
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
-          // mWorkspace->getTable().get(),
-          // mWorkspace->getWorkspaceEnvironment().get(),
-          // mWorkspace->getWheelchair().get()
+          mWorkspace->getTable().get(),
+          mWorkspace->getWorkspaceEnvironment().get(),
+          mWorkspace->getWheelchair().get()
           );
   mCollisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
