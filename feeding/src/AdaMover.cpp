@@ -40,7 +40,7 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
 
-  return moveArmOnTrajectory(trajectory, SMOOTH, velocityLimits);
+  return moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
 }
 
 //==============================================================================

@@ -45,9 +45,9 @@ FeedingDemo::FeedingDemo(
           mAda->getHand()->getEndEffectorBodyNode());
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
-          mWorkspace->getTable().get(),
-          mWorkspace->getWorkspaceEnvironment().get(),
-          mWorkspace->getWheelchair().get()
+          // mWorkspace->getTable().get(),
+          // mWorkspace->getWorkspaceEnvironment().get(),
+          // mWorkspace->getWheelchair().get()
           );
   mCollisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
