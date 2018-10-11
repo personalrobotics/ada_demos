@@ -201,7 +201,7 @@ void FeedingDemo::moveAbovePlate()
       *= eeTransform.matrix();
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits);
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");

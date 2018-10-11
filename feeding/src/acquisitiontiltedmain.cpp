@@ -39,7 +39,7 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
     bool stepSuccessful = false;
     while (!stepSuccessful) {
       try {
-        feedingDemo.moveAbovePlate();
+        // feedingDemo.moveAbovePlate();
         stepSuccessful = true;
       } catch (std::runtime_error) {
         if (!waitForUser("Trajectory execution failed. Try again?")) {continue;}
@@ -168,7 +168,9 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
       }
     }
     double torqueThreshold = 2;
-    if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+    double forceThreshold = 6;
+    // if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+    if (!ftThresholdHelper.setThresholds(forceThreshold, torqueThreshold))
     {
       return 1;
     }
