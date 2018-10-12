@@ -38,7 +38,6 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
 
-
   if (!path)
   {
     throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
@@ -146,6 +145,24 @@ bool AdaMover::moveArmOnTrajectory(
       throw std::runtime_error(
           "Feeding demo: Unexpected trajectory post processing type!");
   }
+
+
+  // print trajectory
+  for (double t=0; t<timedTrajectory->getDuration(); t+=0.2) {
+    aikido::statespace::dart::MetaSkeletonStateSpace stateSpace(mAda.getArm()->getMetaSkeleton().get());
+    auto state = stateSpace.createState();
+    timedTrajectory->evaluate(t, state);
+    Eigen::VectorXd positions;
+    stateSpace.convertStateToPositions(state, positions);
+    std::cout << "t: " << std::fixed << std::setprecision(2) << t << ",  pos: ";
+    for (int i=0; i<positions.size(); i++) {
+      std::cout << positions(i);
+      if (i == positions.size()-1) {std::cout << std::endl;} else {std::cout << ", ";}
+    }
+
+  }
+  
+
 
   auto future = mAda.executeTrajectory(std::move(timedTrajectory));
   try

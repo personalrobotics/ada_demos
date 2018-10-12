@@ -17,23 +17,12 @@ int demomain(FeedingDemo& feedingDemo,
                 bool adaReal) {
 
 
-  Eigen::Vector6d source, target;
-  source << -2.39304, 3.34645, 2.28738, -1.39666, 3.12, 2.49281;
-  target << -2.39304, 3.34645, 2.28738, -1.39666, 3.16, 2.49281;
-  feedingDemo.mAdaMover->moveArmToConfiguration(source);
-  waitForUser("Start Reached");
-  feedingDemo.mAdaMover->moveArmToConfiguration(target);
-  waitForUser("Goal Reached");
-  return 0;
-
 
 
   std::cout << std::endl << "\033[1;32m      ***** DEMO MODE *****\033[0m" << std::endl;
 
   std::string foodName = "cantaloupe";
 
-
-  std::cout << std::endl << "\033[1;32mWhat step should I proceed with (1-5)?\033[0m" << std::endl;
 
   int stepIdx = 1;
 
@@ -47,49 +36,49 @@ int demomain(FeedingDemo& feedingDemo,
   std::cout << std::endl << "\033[1;32mRunning bite transfer study for " << foodName << " beginning on step " << stepIdx << ".\033[0m" << std::endl;
 
 
-  bool skipSkewering = getRosParam<bool>("/study/skipSkewering", nodeHandle);
+//  bool skipSkewering = getRosParam<bool>("/study/skipSkewering", nodeHandle);
+//
+//    bool angledSkewering = (stepIdx == 2);
+//    bool foodPickedUp = true;
+//  
+//    // ===== ABOVE PLATE =====
+//    if (!autoContinueDemo)
+//    {
+//      if (!waitForUser("Move forque above plate"))
+//      {
+//        return 0;
+//      }
+//    }
+//    feedingDemo.moveAbovePlate();
+//    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+//
+//    // ===== PERCEPTION =====
+//    std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
+//    std::vector<double> skeweringForces = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
+//    std::unordered_map<std::string, double> foodSkeweringForces;
+//    for (int i=0; i<foodNames.size(); i++) {
+//      foodSkeweringForces[foodNames[i]] = skeweringForces[i];
+//    }
+//
+//    Eigen::Isometry3d foodTransform;
+//      foodTransform = feedingDemo.getDefaultFoodTransform();
+//    std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
 
-    bool angledSkewering = (stepIdx == 2);
-    bool foodPickedUp = true;
-  
-    // ===== ABOVE PLATE =====
-    if (!autoContinueDemo)
-    {
-      if (!waitForUser("Move forque above plate"))
-      {
-        return 0;
-      }
-    }
-    feedingDemo.moveAbovePlate();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    // ===== PERCEPTION =====
-    std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
-    std::vector<double> skeweringForces = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
-    std::unordered_map<std::string, double> foodSkeweringForces;
-    for (int i=0; i<foodNames.size(); i++) {
-      foodSkeweringForces[foodNames[i]] = skeweringForces[i];
-    }
-
-    Eigen::Isometry3d foodTransform;
-      foodTransform = feedingDemo.getDefaultFoodTransform();
-    std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
-
-    // ===== ABOVE FOOD =====
-
-      if (!autoContinueDemo)
-      {
-        if (!waitForUser("Move forque above food"))
-        {
-          return 0;
-        }
-      }
-      if (angledSkewering) {
-          feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer, true);
-      } else {
-        feedingDemo.moveAboveFood(foodTransform, 0, viewer, true);
-      }
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+//    // ===== ABOVE FOOD =====
+//
+//      if (!autoContinueDemo)
+//      {
+//        if (!waitForUser("Move forque above food"))
+//        {
+//          return 0;
+//        }
+//      }
+//      if (angledSkewering) {
+//          feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer, true);
+//      } else {
+//        feedingDemo.moveAboveFood(foodTransform, 0, viewer, true);
+//      }
+//      std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 
 
@@ -101,8 +90,10 @@ int demomain(FeedingDemo& feedingDemo,
       return 0;
     }
   }
-  nodeHandle.setParam("/feeding/facePerceptionOn", true);
+
   feedingDemo.moveInFrontOfPerson();
+return 0;
+
 
     
   bool tilted = (stepIdx != 3);
