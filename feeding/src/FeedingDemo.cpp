@@ -251,6 +251,8 @@ void FeedingDemo::moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerVie
 //==============================================================================
 void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
+  ROS_INFO_STREAM(foodTransform.matrix());
+
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
   // If the robot is not simulated, we want to plan the trajectory to move a
@@ -310,11 +312,61 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
 void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
-  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(0.2, 0, -1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
-  // trajectoryCompleted might be false because the forque hit the food
-  // along the way and the trajectory was aborted
+  double heightAboveFood
+      = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
+  // If the robot is not simulated, we want to plan the trajectory to move a
+  // little further downwards,
+  // so that the MoveUntilTouchController can take care of stopping the
+  // trajectory.
+  double horizontalToleranceNearFood = getRosParam<double>(
+      "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
+  double verticalToleranceNearFood = getRosParam<double>(
+      "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
+
+  aikido::constraint::dart::TSR nextToFoodTSR;
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
+  if (fabs(angle) < 0.01) {
+    nextToFoodTSR.mT0_w = foodTransform;
+    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(0.5 * , Eigen::Vector3d::UnitX()));
+  } else {
+    Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
+    defaultFoodTransform.translation() = foodTransform.translation();
+    nextToFoodTSR.mT0_w = defaultFoodTransform;
+    // celery-style
+    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    
+    // banana-style
+    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+
+    // strawberry-style
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+  }
+  nextToFoodTSR.mBw = createBwMatrixForTSR(
+      horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
+  nextToFoodTSR.mTw_e.matrix()
+      *= eeTransform.matrix();
+
+  float distance = heightAboveFood*0.85;
+
+  if (fabs(angle) < 0.01) {
+    // vertical
+    nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.05, 0, 0};
+  } else if (!useAngledTranslation) {
+    // grape style angled
+    nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
+  } else {
+    // banana style angled
+    nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(angle) * distance, 0, cos(angle) * distance};
+  }
+
+  // tsrMarkers.push_back(viewer->addTSRMarker(nextToFoodTSR, 100, "someTSRName"));
+  // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(nextToFoodTSR);
+  if (!trajectoryCompleted)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
 }
 
 //==============================================================================

@@ -112,10 +112,10 @@ int pushingmain(FeedingDemo& feedingDemo,
         return 0;
       }
     }
-    if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+    /*if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
     {
       return 1;
-    }
+    }*/
     feedingDemo.grabFoodWithForque();
     feedingDemo.pushFood(foodTransform, 0, viewer);
     break;
