@@ -12,10 +12,16 @@ FTThresholdHelper::FTThresholdHelper(
   if (!mUseThresholdControl)
     return;
 
+
+#ifdef REWD_CONTROLLERS_FOUND
   std::string ftThresholdTopic = getRosParam<std::string>(
               "/ftSensor/controllerFTThresholdTopic", mNodeHandle);
   mFTThresholdClient = std::unique_ptr<rewd_controllers::FTThresholdClient>(
       new rewd_controllers::FTThresholdClient(ftThresholdTopic));
+#else
+  ROS_WARN_STREAM("Package rewd_controllers not found. The F/T sensor connection is not going to work.");
+  mUseThresholdControl = false;
+#endif
 }
 
 //==============================================================================
@@ -24,13 +30,16 @@ void FTThresholdHelper::init()
   if (!mUseThresholdControl)
     return;
 
+  #ifdef REWD_CONTROLLERS_FOUND
   auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
   mFTThresholdClient->trySetThresholdsRepeatedly(
       thresholdPair.first, thresholdPair.second);
 
+
   std::string ftTopic = getRosParam<std::string>(
               "/ftSensor/ftTopic", mNodeHandle);
   mForceTorqueDataSub = mNodeHandle.subscribe(ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
+  #endif
 }
 
 //=============================================================================
@@ -92,9 +101,11 @@ bool FTThresholdHelper::setThresholds(FTThreshold threshold)
   if (!mUseThresholdControl)
     return true;
 
+  #ifdef REWD_CONTROLLERS_FOUND
   auto thresholdPair = getThresholdValues(threshold);
   return mFTThresholdClient->setThresholds(
       thresholdPair.first, thresholdPair.second);
+  #endif
 }
 
 //==============================================================================
@@ -102,8 +113,10 @@ bool FTThresholdHelper::setThresholds(double forces, double torques)
 {
   if (!mUseThresholdControl)
     return true;
-
+  
+  #ifdef REWD_CONTROLLERS_FOUND
   return mFTThresholdClient->setThresholds(forces, torques);
+  #endif
 }
 
 //==============================================================================
