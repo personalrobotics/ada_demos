@@ -58,6 +58,14 @@ int demomain(FeedingDemo& feedingDemo,
     feedingDemo.moveAbovePlate();
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+    feedingDemo.moveAboveForque();
+    waitForUser("Move back to plate");
+    feedingDemo.moveAbovePlate();
+    waitForUser("Exit");
+
+    return 0;
+
+
     // ===== PERCEPTION =====
     std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
     std::vector<double> skeweringForces = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
