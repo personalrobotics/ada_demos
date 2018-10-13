@@ -17,14 +17,14 @@ int demomain(FeedingDemo& feedingDemo,
                 bool adaReal) {
 
 
-  // Eigen::Vector6d source, target;
-  // source << -2.3114, 3.26176, 1.7677, -0.675144, 2.02327, 0.156122;
-  // target << -2.3114, 3.26176, 1.7677, -0.675144, -2.0, 0.156122;
-  // feedingDemo.mAdaMover->moveArmToConfiguration(source);
-  // waitForUser("Start Reached");
-  // feedingDemo.mAdaMover->moveArmToConfiguration(target);
-  // waitForUser("Goal Reached");
-  // return 0;
+  Eigen::Vector6d source, target;
+  source << -2.3114, 3.26176, 1.7677, -0.675144, 2.02327, 0.156122;
+  target << -2.3114, 3.26176, 1.7677, -0.675144, -2.0, 0.156122;
+  feedingDemo.mAdaMover->moveArmToConfiguration(source);
+  waitForUser("Start Reached");
+  feedingDemo.mAdaMover->moveArmToConfiguration(target);
+  waitForUser("Goal Reached");
+  return 0;
 
 
   std::cout << std::endl << "\033[1;32m      ***** DEMO MODE *****\033[0m" << std::endl;
