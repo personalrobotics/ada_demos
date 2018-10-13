@@ -27,8 +27,6 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
 bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits, const Eigen::VectorXd& nominalConfiguration)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
-  std::cout << "Size " << nominalConfiguration.size() << std::endl;
-  std::cin.get();
 
   auto trajectory = mAda.planToTSR(
       mArmSpace,
