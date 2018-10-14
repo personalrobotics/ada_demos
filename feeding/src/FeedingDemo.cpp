@@ -197,7 +197,7 @@ void FeedingDemo::moveAbovePlate()
       horizontalToleranceAbovePlate, verticalToleranceAbovePlate, 0, 0);
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("plate");
   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
-  abovePlateTSR.mTw_e.matrix()
+  abovePlateTSR.mTw_e.matrix()  // wrong?
       *= eeTransform.matrix();
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
@@ -328,6 +328,7 @@ void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float a
   if (fabs(angle) < 0.01) {
     nextToFoodTSR.mT0_w = foodTransform;
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(0.5 * , Eigen::Vector3d::UnitX()));
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   } else {
     Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
     defaultFoodTransform.translation() = foodTransform.translation();
@@ -350,7 +351,7 @@ void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float a
 
   if (fabs(angle) < 0.01) {
     // vertical
-    nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.05, 0, 0};
+    nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.05, 0, 0.01};
   } else if (!useAngledTranslation) {
     // grape style angled
     nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
