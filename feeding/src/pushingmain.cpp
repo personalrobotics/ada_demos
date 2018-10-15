@@ -102,7 +102,11 @@ int pushingmain(FeedingDemo& feedingDemo,
         return 0;
       }
     }
-    feedingDemo.moveNextToFood(foodTransform, 0, viewer);
+    if (adaReal) {
+        feedingDemo.moveNextToFood(&perception, viewer);
+    } else {
+        feedingDemo.moveNextToFood(foodTransform, 0, viewer);
+    }
 
     // ===== PUSH FOOD ====
     if (!autoContinueDemo)
