@@ -104,7 +104,8 @@ int main(int argc, char** argv)
   feedingDemo.moveHighAboveForque();
   // feedingDemo.moveNotThatHighAboveForque();
 
-  feedingDemo.mAda->getHand()->executePreshape("almost_closed").wait();
+  // feedingDemo.mAda->getHand()->executePreshape("almost_closed").wait();
+  feedingDemo.openHand();
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   feedingDemo.moveAboveForque();
 

@@ -360,10 +360,10 @@ void FeedingDemo::moveAboveForque() {
   Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
 // y positive is closer to wheelchair
 // z 
-//   forquePose.translation() = Eigen::Vector3d{0.572, -0.019, 0.014};
-  //forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.15, Eigen::Vector3d::UnitX()));
-  forquePose.translation() = Eigen::Vector3d{0.57, -0.019, 0.012};
-  forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.15, Eigen::Vector3d::UnitX()));
+  // forquePose.translation() = Eigen::Vector3d{0.57, -0.019, 0.012};
+  // forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.15, Eigen::Vector3d::UnitX()));
+  forquePose.translation() = Eigen::Vector3d{0.568, -0.031, 0.003};
+  forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.09, Eigen::Vector3d::UnitX()));
   aboveForqueTSR.mT0_w = forquePose;
   aboveForqueTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
