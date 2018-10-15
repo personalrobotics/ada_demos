@@ -95,6 +95,12 @@ int pushingmain(FeedingDemo& feedingDemo,
     }
 
     // ===== NEXT TO FOOD ====
+    std::cout << std::endl << "\033[1;32mWhat angle do you want to push food at in degrees?\033[0m     > ";
+    float angle = 0;
+    std::cin >> angle;
+    angle *= M_PI / 180.0;
+    if (!ros::ok()) {return 0;}
+
     if (!autoContinueDemo)
     {
       if (!waitForUser("Move forque next to food"))
@@ -105,7 +111,7 @@ int pushingmain(FeedingDemo& feedingDemo,
     if (adaReal) {
         feedingDemo.moveNextToFood(&perception, viewer);
     } else {
-        feedingDemo.moveNextToFood(foodTransform, 0, viewer);
+        feedingDemo.moveNextToFood(foodTransform, angle, viewer);
     }
 
     // ===== PUSH FOOD ====
@@ -121,7 +127,7 @@ int pushingmain(FeedingDemo& feedingDemo,
       return 1;
     }*/
     feedingDemo.grabFoodWithForque();
-    feedingDemo.pushFood(foodTransform, 0, viewer);
+    feedingDemo.pushFood(foodTransform, angle, viewer);
     break;
   }
   // ===== DONE =====
