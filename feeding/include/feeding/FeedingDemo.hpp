@@ -8,6 +8,7 @@
 #include "feeding/AdaMover.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/PerceptionServoClient.hpp"
+#include "feeding/PerceptionPreProcess.hpp"
 #include "feeding/Workspace.hpp"
 #include <aikido/rviz/TSRMarker.hpp>
 
@@ -87,6 +88,11 @@ public:
   void moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
 
   void moveNextToFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
+
+  void moveNextToFood(
+      Perception* perception,
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+
   void pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
 
   /// Moves the forque downwards into the food.

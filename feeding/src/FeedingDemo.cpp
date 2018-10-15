@@ -371,6 +371,49 @@ void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float a
 }
 
 //==============================================================================
+void FeedingDemo::moveNextToFood(
+    Perception* perception,
+    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
+{
+  ROS_INFO("Servoing into food");
+  std::shared_ptr<aikido::control::TrajectoryExecutor> executor
+      = mAda->getTrajectoryExecutor();
+
+  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor> rosExecutor
+      = std::dynamic_pointer_cast<aikido::control::ros::RosTrajectoryExecutor>(
+          executor);
+
+  if (rosExecutor == nullptr)
+  {
+    throw std::runtime_error("no ros executor");
+  }
+
+  int numDofs = mAda->getArm()->getMetaSkeleton()->getNumDofs();
+  Eigen::VectorXd velocityLimits = Eigen::VectorXd::Zero(numDofs);
+  for (int i = 0; i < numDofs; i++)
+    velocityLimits[i] = 0.2;
+
+  PerceptionPreProcess offsetApplier(boost::bind(&Perception::perceiveFood, perception, _1));
+
+  PerceptionServoClient servoClient(
+      mNodeHandle,
+      boost::bind(&PerceptionPreProcess::applyOffset, &offsetApplier),
+      mArmSpace,
+      mAdaMover.get(),
+      mAda->getArm()->getMetaSkeleton(),
+      mAda->getHand()->getEndEffectorBodyNode(),
+      rosExecutor,
+      mCollisionFreeConstraint,
+      0.1,
+      velocityLimits,
+      0.1,
+      0.002);
+  servoClient.start();
+
+  servoClient.wait(10000.0);
+}
+
+//==============================================================================
 void FeedingDemo::moveIntoFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
