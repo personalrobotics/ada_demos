@@ -91,6 +91,7 @@ public:
 
   void moveNextToFood(
       Perception* perception,
+      float angle,
       aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   void pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);

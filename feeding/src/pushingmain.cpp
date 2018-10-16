@@ -109,7 +109,7 @@ int pushingmain(FeedingDemo& feedingDemo,
       }
     }
     if (adaReal) {
-        feedingDemo.moveNextToFood(&perception, viewer);
+        feedingDemo.moveNextToFood(&perception, angle, viewer);
     } else {
         feedingDemo.moveNextToFood(foodTransform, angle, viewer);
     }

@@ -22,12 +22,13 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   PerceptionPreProcess(
-      boost::function<bool(Eigen::Isometry3d&)> getTransform);
+      boost::function<bool(Eigen::Isometry3d&)> getTransform, float angle);
 
   bool applyOffset();
 
 protected:
   boost::function<bool(Eigen::Isometry3d&)> mGetTransform;
+  float mAngle;
 };
 }
 

@@ -350,6 +350,7 @@ void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float a
 //==============================================================================
 void FeedingDemo::moveNextToFood(
     Perception* perception,
+    float angle,
     aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   ROS_INFO("Servoing into food");
@@ -370,7 +371,7 @@ void FeedingDemo::moveNextToFood(
   for (int i = 0; i < numDofs; i++)
     velocityLimits[i] = 0.2;
 
-  PerceptionPreProcess offsetApplier(boost::bind(&Perception::perceiveFood, perception, _1));
+  PerceptionPreProcess offsetApplier(boost::bind(&Perception::perceiveFood, perception, _1), angle);
 
   PerceptionServoClient servoClient(
       mNodeHandle,

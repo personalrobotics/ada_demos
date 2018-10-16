@@ -36,9 +36,11 @@ Eigen::VectorXd getSymmetricLimits(
 
 //==============================================================================
 PerceptionPreProcess::PerceptionPreProcess(
-    boost::function<bool(Eigen::Isometry3d&)> getTransform)
+    boost::function<bool(Eigen::Isometry3d&)> getTransform,
+    float angle)
 {
   mGetTransform = getTransform;
+  mAngle = angle;
 }
 
 bool PerceptionPreProcess::applyOffset()
@@ -46,7 +48,10 @@ bool PerceptionPreProcess::applyOffset()
     Eigen::Isometry3d foodTransform;
     if (mGetTransform(foodTransform))
     {
-        foodTransform.translation() += Eigen::Vector3d(-0.05, 0, 0);
+        float xOff = cos(mAngle) * 0.05;
+        float yOff = sin(mAngle) * 0.05;
+        foodTransform.translation() += Eigen::Vector3d(-xOff, yOff, 0.01);
+        foodTransform.linear() *= Eigen::Matrix3d(Eigen::AngleAxisd( (-M_PI * 0.5) - mAngle, Eigen::Vector3d::UnitZ()));
         return true;
     }
     ROS_INFO("Error");
