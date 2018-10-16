@@ -12,6 +12,8 @@
 
 static std::string JOINT_STATE_TOPIC_NAME = "/joint_states";
 
+#define THRESHOLD 5 // s to wait for good frame
+
 namespace feeding {
 
 namespace {
@@ -120,7 +122,9 @@ void PerceptionServoClient::start()
   mExecutionDone = false;
   mNonRealtimeTimer.start();
   mIsRunning = true;
+  mNotFailed = true;
   mStartTime = std::chrono::system_clock::now();
+  mLastSuccess = mStartTime;
 }
 
 //==============================================================================
@@ -157,7 +161,7 @@ void PerceptionServoClient::stop()
   timerMutex.unlock();
 }
 
-void PerceptionServoClient::wait(double timelimit)
+bool PerceptionServoClient::wait(double timelimit)
 {
   double elapsedTime = 0.0;
   std::chrono::time_point<std::chrono::system_clock> startTime
@@ -172,6 +176,7 @@ void PerceptionServoClient::wait(double timelimit)
                       .count();
   }
   stop();
+  return mNotFailed;
 }
 
 //==============================================================================
@@ -218,6 +223,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
   Eigen::Isometry3d goalPose;
   if (updatePerception(goalPose))
   {
+    mLastSuccess = std::chrono::system_clock::now();
     // Generate a new reference trajectory to the goal pose
     auto planningStartTime = std::chrono::steady_clock::now();
     mCurrentTrajectory = planToGoalPose(goalPose);
@@ -268,7 +274,14 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
   }
   else
   {
-    // ROS_INFO("Food position didn't change much");
+    double sinceLast = std::chrono::duration_cast<std::chrono::duration<double>>(
+                      std::chrono::system_clock::now() - mLastSuccess)
+                      .count();
+    if (sinceLast > THRESHOLD) {
+      ROS_WARN("Lost perception for too long. Reporting failure...");
+      mExecutionDone = true;
+      mNotFailed = false;
+    }
   }
 
   timerMutex.unlock();

@@ -89,9 +89,9 @@ public:
   /// Moves the forque downwards into the food.
   /// This function does not throw an exception if the trajectory is aborted,
   /// because we expect that.
-  void moveIntoFood();
+  bool moveIntoFood();
 
-  void moveIntoFood(
+  bool moveIntoFood(
       Perception* perception,
       aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
@@ -109,9 +109,9 @@ public:
   /// Moves the forque towards the person.
   /// This function does not throw an exception if the trajectory is aborted,
   /// because we expect that.
-  void moveTowardsPerson();
+  bool moveTowardsPerson();
 
-  void moveTowardsPerson(
+  bool moveTowardsPerson(
       Perception* perception,
       aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 

@@ -44,7 +44,7 @@ public:
 
   bool isRunning();
 
-  void wait(double timelimit);
+  bool wait(double timelimit);
 
 protected:
   void nonRealtimeCallback(const ros::TimerEvent& event);
@@ -93,6 +93,7 @@ protected:
   std::vector<aikido::rviz::FrameMarkerPtr> mFrameMarkers;
   bool mExecutionDone;
   bool mIsRunning;
+  bool mNotFailed;
 
   ros::Subscriber mSub;
   std::mutex mJointStateUpdateMutex;
@@ -101,6 +102,7 @@ protected:
   AdaMover* mAdaMover;
 
   std::chrono::time_point<std::chrono::system_clock> mStartTime;
+  std::chrono::time_point<std::chrono::system_clock> mLastSuccess;
 
   bool hasOriginalDirection = false;
   Eigen::Vector3d originalDirection;

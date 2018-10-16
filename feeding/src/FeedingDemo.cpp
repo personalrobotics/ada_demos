@@ -309,17 +309,18 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 }
 
 //==============================================================================
-void FeedingDemo::moveIntoFood()
+bool FeedingDemo::moveIntoFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, -1),
       getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
+  return true;
 }
 
 //==============================================================================
-void FeedingDemo::moveIntoFood(
+bool FeedingDemo::moveIntoFood(
     Perception* perception,
     aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
@@ -376,7 +377,7 @@ void FeedingDemo::moveIntoFood(
       0.002);
   servoClient.start();
 
-  servoClient.wait(10000.0);
+  return servoClient.wait(10000.0);
 }
 
 //==============================================================================
@@ -562,22 +563,22 @@ void FeedingDemo::moveDirectlyToPerson(bool tilted, aikido::rviz::WorldInteracti
 }
 
 //==============================================================================
-void FeedingDemo::moveTowardsPerson()
+bool FeedingDemo::moveTowardsPerson()
 {
-  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+  return mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 1, -0.6),
       getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle) * 0.9);
 }
 
 //==============================================================================
-void FeedingDemo::moveTowardsPerson(
+bool FeedingDemo::moveTowardsPerson(
     Perception* perception,
     aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   if (!mAdaReal)
   {
     moveTowardsPerson();
-    return;
+    return true;
   }
 
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
@@ -610,13 +611,7 @@ void FeedingDemo::moveTowardsPerson(
       0,
       0.06);
   servoClient.start();
-  servoClient.wait(30);
-
-  //   while (perception->isMouthOpen() && ros::ok())
-  //   {
-  //     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  //   }
-  //   servoClient.stop();
+  return servoClient.wait(30);
 }
 
 //==============================================================================
