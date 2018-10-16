@@ -135,6 +135,8 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         if (!waitForUser("Move forque above food")) {
           return 0;
         }
+      } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       }
       if (angledSkewering) {
         feedingDemo.moveAboveFood(foodTransform, 0.25 * M_PI, viewer, true);
@@ -171,6 +173,8 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         if (!waitForUser("Move forque into food")) {
           return 0;
         }
+      } else {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       }
       double torqueThreshold = 2;
       if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName],
@@ -220,7 +224,7 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
       }
       ROS_WARN_STREAM("force difference: " << forceDifference);
 
-      if (forceDifference > 0.1) {
+      if (forceDifference > 0.08) {
         foodPickedUp = true;
       } else {
         if (tries == 1) {
