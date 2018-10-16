@@ -137,7 +137,16 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
 
         // Grape style skewering angle: -0.05*M_PI, viewer, false
 
+
+
+
         feedingDemo.moveAboveFood(foodTransform, -0.05*M_PI, viewer, false);
+        // feedingDemo.moveAboveFood(foodTransform, 0, viewer, false);
+
+
+
+
+
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         
         stepSuccessful = true;
@@ -168,7 +177,7 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
       }
     }
     double torqueThreshold = 2;
-    double forceThreshold = 6;
+    double forceThreshold = 15;
     // if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
     if (!ftThresholdHelper.setThresholds(forceThreshold, torqueThreshold))
     {

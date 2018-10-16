@@ -105,7 +105,7 @@ foodItems:
 
   # bite transfer
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "grape_green"]
-  forces: [15,        15,     15,      28,  22,       6, 10]
+  forces: [15,        15,     15,      28,  9,       6, 10]
 
 study:
   skipSkewering: false
