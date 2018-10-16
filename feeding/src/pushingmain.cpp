@@ -49,7 +49,7 @@ int pushingmain(FeedingDemo& feedingDemo,
 
     if (adaReal)
     {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
       if (!perceptionSuccessful) {
         std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
         continue;
@@ -67,7 +67,7 @@ int pushingmain(FeedingDemo& feedingDemo,
 
   bool foodPickedUp = false;
   while (!foodPickedUp) {
-    
+
     if (!autoContinueDemo)
     {
       if (!waitForUser("Move forque above food"))
@@ -77,7 +77,7 @@ int pushingmain(FeedingDemo& feedingDemo,
     }
     feedingDemo.moveAboveFood(foodTransform, 0, viewer);
     if (adaReal) {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
       if (!perceptionSuccessful) {
         std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
       } else {

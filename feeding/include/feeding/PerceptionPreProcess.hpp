@@ -24,7 +24,7 @@ public:
   PerceptionPreProcess(
       boost::function<bool(Eigen::Isometry3d&)> getTransform, float angle);
 
-  bool applyOffset();
+  bool applyOffset(Eigen::Isometry3d& foodTransform);
 
 protected:
   boost::function<bool(Eigen::Isometry3d&)> mGetTransform;

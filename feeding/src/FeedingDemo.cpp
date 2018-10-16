@@ -275,7 +275,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
     aboveFoodTSR.mT0_w = defaultFoodTransform;
     // celery-style
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
-    
+
     // banana-style
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
 
@@ -375,7 +375,7 @@ void FeedingDemo::moveNextToFood(
 
   PerceptionServoClient servoClient(
       mNodeHandle,
-      boost::bind(&PerceptionPreProcess::applyOffset, &offsetApplier),
+      boost::bind(&PerceptionPreProcess::applyOffset, &offsetApplier, _1),
       mArmSpace,
       mAdaMover.get(),
       mAda->getArm()->getMetaSkeleton(),
@@ -532,7 +532,7 @@ void FeedingDemo::moveInFrontOfPerson()
 //==============================================================================
 void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer) {
   printRobotConfiguration();
-  
+
   Eigen::Vector3d workingPersonTranslation(0.283465, 0.199386, 0.652674);
   std::vector<double> tiltOffsetVector = getRosParam<std::vector<double>>("/study/personPose", mNodeHandle);
   Eigen::Vector3d tiltOffset{tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]};
@@ -554,10 +554,10 @@ void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerView
     Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("person");
     eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
     personTSR.mTw_e.matrix() *= eeTransform.matrix();
- 
+
 
   // auto markers = viewer->addTSRMarker(personTSR, 100, "personTSRSamples");
-  
+
   bool trajectoryCompleted = false;
     try {
       trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);

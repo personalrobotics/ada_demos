@@ -43,15 +43,16 @@ PerceptionPreProcess::PerceptionPreProcess(
   mAngle = angle;
 }
 
-bool PerceptionPreProcess::applyOffset()
+bool PerceptionPreProcess::applyOffset(Eigen::Isometry3d& foodTransform)
 {
-    Eigen::Isometry3d foodTransform;
     if (mGetTransform(foodTransform))
     {
-        float xOff = cos(mAngle) * 0.05;
-        float yOff = sin(mAngle) * 0.05;
-        foodTransform.translation() += Eigen::Vector3d(-xOff, yOff, 0.01);
+        ROS_INFO_STREAM(foodTransform.matrix());
+        float xOff = cos(mAngle) * 0.10;
+        float yOff = sin(mAngle) * 0.10;
+        foodTransform.translation() += Eigen::Vector3d(-xOff, yOff, 0);
         foodTransform.linear() *= Eigen::Matrix3d(Eigen::AngleAxisd( (-M_PI * 0.5) - mAngle, Eigen::Vector3d::UnitZ()));
+        ROS_INFO_STREAM(foodTransform.matrix());
         return true;
     }
     ROS_INFO("Error");

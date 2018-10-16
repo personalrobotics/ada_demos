@@ -284,7 +284,9 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
       * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   endEffectorTransform.linear() = rotationMatrix;
   bool successful = mGetTransform(goalPose);
+  ROS_INFO_STREAM("servo client pose: " << goalPose.matrix());
   goalPose = goalPose * endEffectorTransform;
+  ROS_INFO_STREAM("servo client pose: " << goalPose.matrix());
   ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
   if (goalPose.translation().z() < 0.115)
   {
@@ -379,7 +381,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     auto endTime = spline1->getEndTime();
     spline1->evaluate(spline1->getEndTime(), endState);
     mMetaSkeletonStateSpace->setState(mMetaSkeleton.get(), endState);
-  
+
     auto collisionConstraint
         = mAdaMover->mAda.getArm()->getFullCollisionConstraint(mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
     auto satisfiedConstraint = std::make_shared<aikido::constraint::Satisfied>(mMetaSkeletonStateSpace);
@@ -437,7 +439,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   else
   {
     aikido::trajectory::TrajectoryPtr trajectory2 = mAdaMover->planToEndEffectorOffset(
-        direction2.normalized(), 
+        direction2.normalized(),
         std::min(direction2.norm(), 0.2), false);
 
     if (!hasOriginalDirection) {
@@ -459,7 +461,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
       return nullptr;
 
     return std::move(timedTraj);
-  } 
+  }
 }
 
 } // namespace feeding
