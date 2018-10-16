@@ -204,7 +204,10 @@ void FeedingDemo::moveAbovePlate()
       *= eeTransform.matrix();
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits);
+  Eigen::VectorXd nominalConfiguration(6);
+  nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
+  // 0.7823, 3.0054, 4.4148, 2.3930, 2.1522, 0.03480;
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits, nominalConfiguration);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -212,21 +215,28 @@ void FeedingDemo::moveAbovePlate()
 }
 
 //==============================================================================
-void FeedingDemo::moveAboveForque()
+void FeedingDemo::moveAboveForque() 
 {
   auto aboveForqueTSR = pr_tsr::getDefaultPlateTSR();
   Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
-  forquePose.translation() = Eigen::Vector3d{0.572, 0.015, -0.01};
+// y positive is closer to wheelchair
+// z 
+//   forquePose.translation() = Eigen::Vector3d{0.572, -0.019, 0.014};
+  //forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.15, Eigen::Vector3d::UnitX()));
+  forquePose.translation() = Eigen::Vector3d{0.57, -0.019, 0.012};
   forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.15, Eigen::Vector3d::UnitX()));
   aboveForqueTSR.mT0_w = forquePose;
   aboveForqueTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
   aboveForqueTSR.mBw = createBwMatrixForTSR(
-      0.001, 0.001, 0, 0);
+      0.0001, 0.0001, 0, 0);
   aboveForqueTSR.mTw_e.matrix()
       *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
 
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveForqueTSR);
+  std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+  Eigen::VectorXd nominalConfiguration(6);
+  nominalConfiguration << -2.87596, 4.042, 1.93808, -2.95247, -1.2728, 2.2712;
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveForqueTSR, velocityLimits, nominalConfiguration);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");

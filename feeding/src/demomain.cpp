@@ -14,12 +14,13 @@ int demomain(FeedingDemo& feedingDemo,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
-                bool adaReal) {
+                bool adaReal) 
+{
 
 
   // Eigen::Vector6d source, target;
-  // source << -2.3114, 3.26176, 1.7677, -0.675144, 2.02327, 0.156122;
-  // target << -2.3114, 3.26176, 1.7677, -0.675144, -2.0, 0.156122;
+  // source << 3.14, 0, 0, 0, 0, 0;
+  // target << 0, 0, 0, 0, 0, 0;
   // feedingDemo.mAdaMover->moveArmToConfiguration(source);
   // waitForUser("Start Reached");
   // feedingDemo.mAdaMover->moveArmToConfiguration(target);
@@ -61,9 +62,11 @@ int demomain(FeedingDemo& feedingDemo,
     feedingDemo.moveAboveForque();
     waitForUser("Move back to plate");
     feedingDemo.moveAbovePlate();
-    waitForUser("Exit");
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-    return 0;
+    // waitForUser("Exit");
+
+    // return 0;
 
 
     // ===== PERCEPTION =====
