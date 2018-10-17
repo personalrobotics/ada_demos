@@ -310,6 +310,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
   }
 }
 
+//==============================================================================
 void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
   double heightAboveFood
@@ -322,6 +323,9 @@ void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float a
       "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
   double verticalToleranceNearFood = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
+
+  double distBeforePush
+      = getRosParam<double>("/feedingDemo/distBeforePush", mNodeHandle);
 
   aikido::constraint::dart::TSR nextToFoodTSR;
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
@@ -336,8 +340,8 @@ void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float a
 
   float distance = heightAboveFood*0.85;
 
-  float xOff = cos(angle) * 0.05;
-  float yOff = sin(angle) * 0.05;
+  float xOff = cos(angle) * distBeforePush;
+  float yOff = sin(angle) * distBeforePush;
   nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{-xOff, yOff, 0.01};
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(nextToFoodTSR);
@@ -353,6 +357,9 @@ void FeedingDemo::moveNextToFood(
     float angle,
     aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
+  double distBeforePush
+      = getRosParam<double>("/feedingDemo/distBeforePush", mNodeHandle);
+
   ROS_INFO("Servoing into food");
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
       = mAda->getTrajectoryExecutor();
@@ -371,7 +378,7 @@ void FeedingDemo::moveNextToFood(
   for (int i = 0; i < numDofs; i++)
     velocityLimits[i] = 0.2;
 
-  PerceptionPreProcess offsetApplier(boost::bind(&Perception::perceiveFood, perception, _1), angle);
+  PerceptionPreProcess offsetApplier(boost::bind(&Perception::perceiveFood, perception, _1), angle, distBeforePush);
 
   PerceptionServoClient servoClient(
       mNodeHandle,
@@ -389,6 +396,46 @@ void FeedingDemo::moveNextToFood(
   servoClient.start();
 
   servoClient.wait(10000.0);
+}
+
+//==============================================================================
+void FeedingDemo::rotateForque(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
+{
+  double heightAboveFood
+      = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
+  // If the robot is not simulated, we want to plan the trajectory to move a
+  // little further downwards,
+  // so that the MoveUntilTouchController can take care of stopping the
+  // trajectory.
+  double horizontalToleranceNearFood = getRosParam<double>(
+      "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
+  double verticalToleranceNearFood = getRosParam<double>(
+      "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
+  double distBeforePush
+      = getRosParam<double>("/feedingDemo/distBeforePush", mNodeHandle);
+
+  aikido::constraint::dart::TSR nextToFoodTSR;
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
+
+  nextToFoodTSR.mT0_w = foodTransform;
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( (-M_PI * 0.5) - angle, Eigen::Vector3d::UnitZ()));
+
+  nextToFoodTSR.mBw = createBwMatrixForTSR(
+      horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
+  nextToFoodTSR.mTw_e.matrix()
+      *= eeTransform.matrix();
+
+  float distance = heightAboveFood*0.85;
+
+  float xOff = cos(angle) * distBeforePush;
+  float yOff = sin(angle) * distBeforePush;
+  nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, -distance};
+
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(nextToFoodTSR);
+  if (!trajectoryCompleted)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
 }
 
 //==============================================================================
@@ -465,8 +512,11 @@ void FeedingDemo::moveIntoFood(
 //==============================================================================
 void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
-  float xOff = cos(angle) * 0.05;
-  float yOff = sin(angle) * 0.05;
+  double distAfterPush
+      = getRosParam<double>("/feedingDemo/distAfterPush", mNodeHandle);
+
+  float xOff = cos(angle) * distAfterPush;
+  float yOff = sin(angle) * distAfterPush;
 
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(-xOff, -yOff, 0),

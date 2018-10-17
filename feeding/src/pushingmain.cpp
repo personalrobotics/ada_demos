@@ -94,13 +94,28 @@ int pushingmain(FeedingDemo& feedingDemo,
       zForceBeforeSkewering = currentForce.z();
     }
 
-    // ===== NEXT TO FOOD ====
+    // ===== ROTATE FORQUE ====
     std::cout << std::endl << "\033[1;32mWhat angle do you want to push food at in degrees?\033[0m     > ";
     float angle = 0;
     std::cin >> angle;
     angle *= M_PI / 180.0;
     if (!ros::ok()) {return 0;}
 
+    if (!autoContinueDemo)
+    {
+      if (!waitForUser("Rotate forque in orientation to push food"))
+      {
+        return 0;
+      }
+    }
+    feedingDemo.rotateForque(foodTransform, angle, viewer);
+    /*if (adaReal) {
+        feedingDemo.moveNextToFood(&perception, angle, viewer);
+    } else {
+        feedingDemo.moveNextToFood(foodTransform, angle, viewer);
+    }*/
+
+    // ===== NEXT TO FOOD ====
     if (!autoContinueDemo)
     {
       if (!waitForUser("Move forque next to food"))
