@@ -1,5 +1,5 @@
 
-// #include "feeding/FTThresholdHelper.hpp"
+#include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
@@ -9,7 +9,7 @@
 namespace feeding {
 
 int demomain(FeedingDemo& feedingDemo,
-                // FTThresholdHelper& ftThresholdHelper,
+                FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,

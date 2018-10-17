@@ -28,7 +28,7 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
 
-  auto path = mAda.planToTSR(
+  auto trajectory = mAda.planToTSR(
       mArmSpace,
       mAda.getArm()->getMetaSkeleton(),
       mAda.getHand()->getEndEffectorBodyNode(),
@@ -135,6 +135,7 @@ bool AdaMover::moveArmOnTrajectory(
 
       if (!timedTrajectory)
       {
+        throw std::runtime_error("retiming failed!");
         // If using time-optimal retining failed, back to parabolic timing
         timedTrajectory = mAda.retimePath(
             mAda.getArm()->getMetaSkeleton(), trajectory.get());
