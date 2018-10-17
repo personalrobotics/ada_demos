@@ -130,7 +130,7 @@ void FeedingDemo::printRobotConfiguration()
       " << ",
       ";");
   auto defaultPose = mAda->getArm()->getMetaSkeleton()->getPositions();
-  ROS_INFO_STREAM("Current configuration" << defaultPose.format(CommaInitFmt));
+  ROS_WARN_STREAM("Current configuration" << defaultPose.format(CommaInitFmt));
 }
 
 //==============================================================================
@@ -205,9 +205,9 @@ void FeedingDemo::moveAbovePlate()
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
   Eigen::VectorXd nominalConfiguration(6);
-  nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
+  // nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
   // 0.7823, 3.0054, 4.4148, 2.3930, 2.1522, 0.03480;
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits, nominalConfiguration);
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits);//, nominalConfiguration);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
