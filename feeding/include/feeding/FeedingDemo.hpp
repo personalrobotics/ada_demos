@@ -75,6 +75,10 @@ public:
   /// parameter.
   void moveToStartConfiguration();
 
+  void moveAboveForque();
+  void moveIntoForque();
+  void moveOutOfForque();
+
   /// Moves the forque above the plate.
   void moveAbovePlate();
 

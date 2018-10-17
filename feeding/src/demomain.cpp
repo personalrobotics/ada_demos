@@ -91,6 +91,29 @@ int demomain(FeedingDemo& feedingDemo,
   std::cout << std::endl << "\033[1;32mRunning bite transfer study for " << foodName << " beginning on step " << stepIdx << ".\033[0m" << std::endl;
 
 
+
+  // ===== FORQUE PICKUP =====
+
+  feedingDemo.openHand();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  feedingDemo.moveAboveForque();
+
+
+  // waitForUser("In?");
+  feedingDemo.moveIntoForque();
+
+  // waitForUser("Close?");
+  feedingDemo.closeHand();
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
+  // waitForUser("Out?");
+  feedingDemo.moveOutOfForque();
+
+
+
+
+
+
   bool skipSkewering = getRosParam<bool>("/study/skipSkewering", nodeHandle);
 
   if (!skipSkewering) {
@@ -171,6 +194,14 @@ int demomain(FeedingDemo& feedingDemo,
           return 0;
         }
       }
+      double zForceBeforeSkewering = 0;
+      if (ftThresholdHelper.startDataCollection(50)) {
+        Eigen::Vector3d currentForce, currentTorque;
+        while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        zForceBeforeSkewering = currentForce.x();
+      }
       double torqueThreshold = 2;
       if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
       {
@@ -204,10 +235,30 @@ int demomain(FeedingDemo& feedingDemo,
         return 1;
       }
 
-      bool shouldContinue = waitForUser("\033[1;32mDo you want me to continue?\033[0;32m");
-      if (shouldContinue) {
-        foodPickedUp = true;
+      double forceDifference = 100;
+      double zForceAfter = 0;
+      if (ftThresholdHelper.startDataCollection(50)) {
+        Eigen::Vector3d currentForce, currentTorque;
+        while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        zForceAfter = currentForce.x();
+        forceDifference = std::fabs(zForceBeforeSkewering - currentForce.x());
       }
+      ROS_WARN_STREAM("force difference: " << (zForceBeforeSkewering -zForceAfter));
+
+      if (forceDifference > 3.022) {
+        foodPickedUp = true;
+        ROS_INFO_STREAM("FOOD PICKED UP!");
+      } else {
+        std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << ". Let me try again!\033[0;32m" << std::endl;
+        feedingDemo.moveAbovePlate();
+      }
+
+      // bool shouldContinue = waitForUser("\033[1;32mDo you want me to continue?\033[0;32m");
+      // if (shouldContinue) {
+      //   foodPickedUp = true;
+      // }
     }
   }
 
