@@ -49,18 +49,23 @@ int demomain(FeedingDemo& feedingDemo,
   // ===== FORQUE PICKUP =====
 
   feedingDemo.openHand();
+
+  waitForUser("Above Plate?");
+  feedingDemo.moveAbovePlate();
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+  waitForUser("Forque?");
   feedingDemo.moveAboveForque();
 
 
-  // waitForUser("In?");
+  waitForUser("In?");
   feedingDemo.moveIntoForque();
 
-  // waitForUser("Close?");
+  waitForUser("Close?");
   feedingDemo.closeHand();
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-  // waitForUser("Out?");
+  waitForUser("Out?");
   feedingDemo.moveOutOfForque();
 
 
