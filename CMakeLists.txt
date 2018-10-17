@@ -44,8 +44,10 @@ include_directories(${aikido_INCLUDE_DIRS})
 find_package(libada REQUIRED)
 include_directories(${libada_INCLUDE_DIRS})
 
-find_package(rewd_controllers REQUIRED)
-include_directories(${rewd_controllers_INCLUDE_DIRS})
+find_package(rewd_controllers)
+IF (rewd_controllers_FOUND)
+  include_directories(${rewd_controllers_INCLUDE_DIRS})
+ENDIF()
 
 find_package(pr_ordata REQUIRED)
 include_directories(${pr_ordata_INCLUDE_DIRS})

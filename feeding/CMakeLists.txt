@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(feeding)
 
+IF (rewd_controllers_FOUND)
+  add_definitions(-LREWD_CONTROLLERS_FOUND)
+ENDIF()
 
 find_package(OpenCV REQUIRED)
 
@@ -27,13 +30,14 @@ target_link_libraries(feeding
   ${DART_LIBRARIES}
   ${aikido_LIBRARIES}
   ${Boost_LIBRARIES}
-  ${rewd_controllers_LIBRARIES}
   ${tf_conversions_LIBRARIES}
   ${image_transport_LIBRARIES}
   ${cv_bridge_LIBRARIES}
   ${OpenCV_LIBRARIES}
   libada)
 
-target_compile_options(feeding PUBLIC -Wl,--no-undefined)
+IF (rewd_controllers_FOUND)
+  target_link_libraries(feeding ${rewd_controllers_LIBRARIES})
+ENDIF()
 
 install(TARGETS feeding RUNTIME DESTINATION bin)
