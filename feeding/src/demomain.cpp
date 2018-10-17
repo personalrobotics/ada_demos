@@ -17,18 +17,25 @@ int demomain(FeedingDemo& feedingDemo,
                 bool adaReal) 
 {
 
+  // std::cout << std::endl << "\033[1;32m      ***** DEMO MODE *****\033[0m" << std::endl;
 
-  // Eigen::Vector6d source, target;
-  // source << 3.14, 0, 0, 0, 0, 0;
-  // target << 0, 0, 0, 0, 0, 0;
-  // feedingDemo.mAdaMover->moveArmToConfiguration(source);
-  // waitForUser("Start Reached");
-  // feedingDemo.mAdaMover->moveArmToConfiguration(target);
-  // waitForUser("Goal Reached");
-  // return 0;
+  // while (true) {
+
+  //   std::cout << std::endl << "\033[1;32m      ***** BITE TRANSFER STUDY MODE *****\033[0m" << std::endl;
+  //   std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m" << std::endl;
+  //   std::cout << "\033[0;32m1) Strawberry\033[0m" << std::endl;
+  //   std::cout << "\033[0;32m2) Melon\033[0m" << std::endl;
+  //   std::cout << "\033[0;32m3) Cantaloupe\033[0m" << std::endl;
+  //   std::cout << "\033[0;32m4) Celery\033[0m" << std::endl;
+  //   std::cout << "\033[0;32m5) Carrot\033[0m" << std::endl;
+  //   std::cout << "\033[0;32m6) [Calibrate to person]\033[0m" << std::endl;
+  //   std::cout << "\033[0;32m7) [Pick up fork]\033[0m" << std::endl;
+  //   std::cout << "\033[0;32m8) [Put down fork]\033[0m" << std::endl;
+
+  // }
 
 
-  std::cout << std::endl << "\033[1;32m      ***** DEMO MODE *****\033[0m" << std::endl;
+  
   
 
   std::string foodName = "celery";
@@ -68,6 +75,11 @@ int demomain(FeedingDemo& feedingDemo,
   waitForUser("Out?");
   feedingDemo.moveOutOfForque();
 
+
+  waitForUser("Above Plate?");
+  feedingDemo.moveAbovePlate();
+
+  return 0;
 
 
 
