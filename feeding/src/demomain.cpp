@@ -1,5 +1,5 @@
 
-#include "feeding/FTThresholdHelper.hpp"
+// #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
@@ -9,77 +9,31 @@
 namespace feeding {
 
 int demomain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
+                // FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
-                bool adaReal) {
+                bool adaReal) 
+{
+
+
+  // Eigen::Vector6d source, target;
+  // source << 3.14, 0, 0, 0, 0, 0;
+  // target << 0, 0, 0, 0, 0, 0;
+  // feedingDemo.mAdaMover->moveArmToConfiguration(source);
+  // waitForUser("Start Reached");
+  // feedingDemo.mAdaMover->moveArmToConfiguration(target);
+  // waitForUser("Goal Reached");
+  // return 0;
+
 
   std::cout << std::endl << "\033[1;32m      ***** DEMO MODE *****\033[0m" << std::endl;
-  std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m" << std::endl;
-  std::cout << "\033[0;32m1) Strawberry\033[0m" << std::endl;
-  std::cout << "\033[0;32m2) Cantaloupe\033[0m" << std::endl;
-  std::cout << "\033[0;32m3) Celery\033[0m" << std::endl;
-  std::cout << "\033[0;32m4) Carrot\033[0m" << std::endl;
-  std::cout << "\033[0;32m5) [Calibrate]\033[0m" << std::endl;
+  
 
-  std::string foodName = "";
-  while (foodName == "") { 
-    std::cout << "> ";
-    std::string idString;
-    std::cin  >> idString;
-    try {
-      int id = std::stoi(idString);
-      if (id < 1 || id > 5) {
-        throw std::invalid_argument("");
-      }
-      switch (id) {
-        case 1: foodName = "strawberry";break;
-        case 2: foodName = "cantaloupe";break;
-        case 3: foodName = "celery";break;
-        case 4: foodName = "carrot";break;
-        case 5: foodName = "calibrate"; break;
-      }
-    } catch (const std::invalid_argument& ia) {
-      std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
-    }
-  }
+  std::string foodName = "celery";
 
-  if (foodName == "calibrate") {
-
-    if (!waitForUser("Move in front of person")) {return 0;}
-    feedingDemo.moveInFrontOfPerson();
-    
-
-    while (waitForUser("Next calibration")) {
-      try {
-        feedingDemo.moveDirectlyToPerson(true, viewer);
-      } catch (std::runtime_error) {
-
-      }
-    }
-    waitForUser("Demo finished.");
-    return 0;
-  }
-
-  std::cout << std::endl << "\033[1;32mWhat step should I proceed with (1-5)?\033[0m" << std::endl;
-
-  int stepIdx = -1;
-  while (stepIdx < 0) {
-    std::cout << "> ";
-    std::string stepIdxString;
-    std::cin  >> stepIdxString;
-    try {
-      int idx = std::stoi(stepIdxString);
-      if (idx < 1 || idx > 5) {
-        throw std::invalid_argument("");
-      }
-      stepIdx = idx;
-    } catch (const std::invalid_argument& ia) {
-      std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
-    }
-  }
+  int stepIdx = 1;
 
   nodeHandle.setParam("/deep_pose/forceFood", true);
   nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
@@ -119,6 +73,7 @@ int demomain(FeedingDemo& feedingDemo,
   if (!skipSkewering) {
     bool angledSkewering = (stepIdx == 2);
     bool foodPickedUp = false;
+
     while (!foodPickedUp) {
   
     // ===== ABOVE PLATE =====
@@ -132,6 +87,16 @@ int demomain(FeedingDemo& feedingDemo,
     feedingDemo.moveAbovePlate();
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+    feedingDemo.moveAboveForque();
+    waitForUser("Move back to plate");
+    feedingDemo.moveAbovePlate();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    // waitForUser("Exit");
+
+    // return 0;
+
+
     // ===== PERCEPTION =====
     std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
     std::vector<double> skeweringForces = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
@@ -141,23 +106,7 @@ int demomain(FeedingDemo& feedingDemo,
     }
 
     Eigen::Isometry3d foodTransform;
-    if (adaReal)
-    {
-      bool foodFound = false;
-      perception.setFoodName(foodName);
-      while (!foodFound) {
-        foodFound = perception.perceiveFood(foodTransform, true, viewer);
-        if (!foodFound) {
-          std::cout << "\033[1;33mI can't see the " << foodName << "\033[0m" << std::endl;
-          if (!waitForUser("Try perception again?")) {return 0;}
-        }
-      }
-    }
-    else
-    {
       foodTransform = feedingDemo.getDefaultFoodTransform();
-    }
-    std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
 
     // ===== ABOVE FOOD =====
 
@@ -276,11 +225,7 @@ int demomain(FeedingDemo& feedingDemo,
 
     
   bool tilted = (stepIdx != 3);
-  if (adaReal) {
-    feedingDemo.moveTowardsPerson(&perception, viewer);
-  } else {
-    feedingDemo.moveTowardsPerson();
-  }
+  feedingDemo.moveTowardsPerson();
 
   if (tilted) {
     feedingDemo.tiltUpInFrontOfPerson(viewer);
@@ -305,6 +250,8 @@ int demomain(FeedingDemo& feedingDemo,
           return 0;
         }
       }
+
+  feedingDemo.moveAwayFromPerson();
 
   // ===== BACK TO PLATE =====
   if (!autoContinueDemo)

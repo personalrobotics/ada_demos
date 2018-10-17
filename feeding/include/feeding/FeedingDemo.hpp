@@ -82,6 +82,9 @@ public:
   /// Moves the forque above the plate.
   void moveAbovePlate();
 
+  /// Moves above the forque holder.
+  void moveAboveForque();
+
   void moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   /// Moves the forque above the food item using the values in the ros

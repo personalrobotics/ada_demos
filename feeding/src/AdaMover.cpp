@@ -18,9 +18,9 @@ AdaMover::AdaMover(
 }
 
 //==============================================================================
-bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits) {
-  auto nominalConfiguration = Eigen::VectorXd(0);
-  return moveArmToTSR(tsr, velocityLimits, nominalConfiguration);
+bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits) 
+{
+  return moveArmToTSR(tsr, velocityLimits, Eigen::VectorXd(0));
 }
 
 //==============================================================================
@@ -38,15 +38,7 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
 
-
-  if (!path)
-  {
-    throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
-  }
-
-  auto trajectory = mAda.convertTrajectory(mAda.getArm()->getMetaSkeleton(), path.get());
-
-  return moveArmOnTrajectory(trajectory, SMOOTH, velocityLimits);
+  return moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
 }
 
 //==============================================================================
@@ -87,7 +79,7 @@ bool AdaMover::moveArmToConfiguration(const Eigen::Vector6d& configuration)
       mCollisionFreeConstraint,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle));
 
-  return moveArmOnTrajectory(trajectory, SMOOTH);
+  return moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
 }
 
 //==============================================================================
@@ -96,6 +88,13 @@ bool AdaMover::moveArmOnTrajectory(
     TrajectoryPostprocessType postprocessType,
     std::vector<double> smoothVelocityLimits)
 {
+  if (!trajectory)
+  {
+    throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
+  }
+
+//  auto trajectory = mAda.convertTrajectory(mAda.getArm()->getMetaSkeleton(), path.get());
+
   std::vector<aikido::constraint::ConstTestablePtr> constraints;
   if (mCollisionFreeConstraint)
   {
