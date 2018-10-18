@@ -18,31 +18,44 @@ int demomain(FeedingDemo& feedingDemo,
 {
 
   // std::cout << std::endl << "\033[1;32m      ***** DEMO MODE *****\033[0m" << std::endl;
+    std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m" << std::endl;
+    std::cout << "\033[0;32m1) Strawberry\033[0m" << std::endl;
+    std::cout << "\033[0;32m2) Melon\033[0m" << std::endl;
+    std::cout << "\033[0;32m3) Cantaloupe\033[0m" << std::endl;
+    std::cout << "\033[0;32m4) Celery\033[0m" << std::endl;
+    std::cout << "\033[0;32m5) Carrot\033[0m" << std::endl;
+    std::cout << "\033[0;32m6) [Calibrate to person]\033[0m" << std::endl;
+    std::cout << "\033[0;32m7) [Pick up fork]\033[0m" << std::endl;
+    std::cout << "\033[0;32m8) [Put down fork]\033[0m" << std::endl;
 
-  // while (true) {
-
-  //   std::cout << std::endl << "\033[1;32m      ***** BITE TRANSFER STUDY MODE *****\033[0m" << std::endl;
-  //   std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m" << std::endl;
-  //   std::cout << "\033[0;32m1) Strawberry\033[0m" << std::endl;
-  //   std::cout << "\033[0;32m2) Melon\033[0m" << std::endl;
-  //   std::cout << "\033[0;32m3) Cantaloupe\033[0m" << std::endl;
-  //   std::cout << "\033[0;32m4) Celery\033[0m" << std::endl;
-  //   std::cout << "\033[0;32m5) Carrot\033[0m" << std::endl;
-  //   std::cout << "\033[0;32m6) [Calibrate to person]\033[0m" << std::endl;
-  //   std::cout << "\033[0;32m7) [Pick up fork]\033[0m" << std::endl;
-  //   std::cout << "\033[0;32m8) [Put down fork]\033[0m" << std::endl;
-
-  // }
-
-
-  
-  
-
-  std::string foodName = "celery";
+  std::string foodName = "";
+  while (foodName == "") { 
+    std::cout << "> ";
+    std::string idString;
+    std::cin  >> idString;
+    try {
+      int id = std::stoi(idString);
+      if (id < 1 || id > 8) {
+        throw std::invalid_argument("");
+      }
+      switch (id) {
+        case 1: foodName = "strawberry";break;
+        case 2: foodName = "melon";break;
+        case 3: foodName = "cantaloupe";break;
+        case 4: foodName = "celery";break;
+        case 5: foodName = "carrot";break;
+        case 6: foodName = "calibrate"; break;
+        case 7: foodName = "pickupfork"; break;
+        case 8: foodName = "putdownfork"; break;
+      }
+    } catch (const std::invalid_argument& ia) {
+      std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
+    }
+  }
 
   int stepIdx = 1;
 
-  nodeHandle.setParam("/deep_pose/forceFood", true);
+  nodeHandle.setParam("/deep_pose/forceFood", false);
   nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
   nodeHandle.setParam("/deep_pose/publish_spnet", (true));
   nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
@@ -55,31 +68,36 @@ int demomain(FeedingDemo& feedingDemo,
 
   // ===== FORQUE PICKUP =====
 
-  feedingDemo.openHand();
+  bool doForkPickup = foodName == "pickupfork"; //getRosParam<bool>("/study/doForkPickup", nodeHandle);
 
-  waitForUser("Above Plate?");
-  feedingDemo.moveAbovePlate();
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  if (doForkPickup) {
+    feedingDemo.openHand();
 
-  waitForUser("Forque?");
-  feedingDemo.moveAboveForque();
+    // waitForUser("Above Plate?");
+    // feedingDemo.moveAbovePlate(viewer);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-
-  waitForUser("In?");
-  feedingDemo.moveIntoForque();
-
-  waitForUser("Close?");
-  feedingDemo.closeHand();
-  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-
-  waitForUser("Out?");
-  feedingDemo.moveOutOfForque();
+    waitForUser("Forque?");
+    feedingDemo.moveAboveForque();
 
 
-  waitForUser("Above Plate?");
-  feedingDemo.moveAbovePlate();
+    waitForUser("In?");
+    feedingDemo.moveIntoForque();
+  
+    if (waitForUser("Close?")) {
+    feedingDemo.closeHand();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    }
 
-  return 0;
+    waitForUser("Out?");
+    feedingDemo.moveOutOfForque();
+
+
+    waitForUser("Above Plate?");
+    feedingDemo.moveAbovePlate(viewer);
+
+    return 0;
+  }
 
 
 
@@ -101,17 +119,7 @@ int demomain(FeedingDemo& feedingDemo,
         return 0;
       }
     }
-    feedingDemo.moveAbovePlate();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    feedingDemo.moveAboveForque();
-    waitForUser("Move back to plate");
-    feedingDemo.moveAbovePlate();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    // waitForUser("Exit");
-
-    // return 0;
+    feedingDemo.moveAbovePlate(viewer);
 
 
     // ===== PERCEPTION =====
@@ -122,8 +130,15 @@ int demomain(FeedingDemo& feedingDemo,
       foodSkeweringForces[foodNames[i]] = skeweringForces[i];
     }
 
+    perception.setFoodName(foodName);
     Eigen::Isometry3d foodTransform;
-      foodTransform = feedingDemo.getDefaultFoodTransform();
+    bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+    if (!perceptionSuccessful) {
+      std::cout << "\033[1;33mI can't see the " << foodName << "...\033[0m" << std::endl;
+      continue;
+    }
+    
+    foodTransform = feedingDemo.getDefaultFoodTransform();
 
     // ===== ABOVE FOOD =====
 
@@ -139,10 +154,12 @@ int demomain(FeedingDemo& feedingDemo,
       } else {
         feedingDemo.moveAboveFood(foodTransform, 0, viewer, true);
       }
+
       std::this_thread::sleep_for(std::chrono::milliseconds(800));
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+      perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
       if (!perceptionSuccessful) {
         std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
+        continue;
       } else {
         if (angledSkewering) {
           feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer, true);
@@ -209,16 +226,16 @@ int demomain(FeedingDemo& feedingDemo,
           std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
         zForceAfter = currentForce.x();
-        forceDifference = std::fabs(zForceBeforeSkewering - currentForce.x());
+        forceDifference = zForceBeforeSkewering - currentForce.x();
       }
       ROS_WARN_STREAM("force difference: " << (zForceBeforeSkewering -zForceAfter));
 
-      if (forceDifference > 3.022) {
+      if (forceDifference < 0) {
         foodPickedUp = true;
         ROS_INFO_STREAM("FOOD PICKED UP!");
       } else {
         std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << ". Let me try again!\033[0;32m" << std::endl;
-        feedingDemo.moveAbovePlate();
+        feedingDemo.moveAbovePlate(viewer);
       }
 
       // bool shouldContinue = waitForUser("\033[1;32mDo you want me to continue?\033[0;32m");
@@ -242,7 +259,7 @@ int demomain(FeedingDemo& feedingDemo,
 
     
   bool tilted = (stepIdx != 3);
-  feedingDemo.moveTowardsPerson();
+  feedingDemo.moveTowardsPerson(&perception, viewer);
 
   if (tilted) {
     feedingDemo.tiltUpInFrontOfPerson(viewer);
@@ -268,7 +285,9 @@ int demomain(FeedingDemo& feedingDemo,
         }
       }
 
-  feedingDemo.moveAwayFromPerson();
+  if (!tilted) {
+    feedingDemo.moveAwayFromPerson();
+  }
 
   // ===== BACK TO PLATE =====
   if (!autoContinueDemo)
@@ -278,7 +297,7 @@ int demomain(FeedingDemo& feedingDemo,
       return 0;
     }
   }
-  feedingDemo.moveAbovePlate();
+  feedingDemo.moveAbovePlate(viewer);
 
   // ===== DONE =====
   waitForUser("Demo finished.");

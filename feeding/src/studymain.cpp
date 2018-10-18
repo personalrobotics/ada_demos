@@ -106,7 +106,7 @@ int studymain(FeedingDemo& feedingDemo,
         return 0;
       }
     }
-    feedingDemo.moveAbovePlate();
+    feedingDemo.moveAbovePlate(viewer);
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     // ===== PERCEPTION =====
@@ -252,7 +252,7 @@ int studymain(FeedingDemo& feedingDemo,
       return 0;
     }
   }
-  feedingDemo.moveAbovePlate();
+  feedingDemo.moveAbovePlate(viewer);
 
   // ===== DONE =====
   waitForUser("Demo finished.");

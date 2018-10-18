@@ -183,14 +183,20 @@ void FeedingDemo::moveToStartConfiguration()
 
 //==============================================================================
 void FeedingDemo::moveAboveForque() {
+
+  double forkHolderAngle = getRosParam<double>("/study/forkHolderAngle", mNodeHandle);
+  std::vector<double> forkHolderTranslation = getRosParam<std::vector<double>>("/study/forkHolderTranslation", mNodeHandle);
+
+
   auto aboveForqueTSR = pr_tsr::getDefaultPlateTSR();
   Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
 // y positive is closer to wheelchair
 // z 
   // forquePose.translation() = Eigen::Vector3d{0.57, -0.019, 0.012};
   // forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.15, Eigen::Vector3d::UnitX()));
-  forquePose.translation() = Eigen::Vector3d{0.568, -0.031, 0.003};
-  forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.09, Eigen::Vector3d::UnitX()));
+  forquePose.translation() = Eigen::Vector3d{forkHolderTranslation[0], forkHolderTranslation[1], forkHolderTranslation[2]};
+  ROS_INFO_STREAM("fork holder angle: " << forkHolderAngle);
+  forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(forkHolderAngle, Eigen::Vector3d::UnitX()));
   aboveForqueTSR.mT0_w = forquePose;
   aboveForqueTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
@@ -225,7 +231,7 @@ void FeedingDemo::moveOutOfForque()
 }
 
 //==============================================================================
-void FeedingDemo::moveAbovePlate()
+void FeedingDemo::moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   double heightAbovePlate
       = getRosParam<double>("/feedingDemo/heightAbovePlate", mNodeHandle);
@@ -245,6 +251,8 @@ void FeedingDemo::moveAbovePlate()
   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   abovePlateTSR.mTw_e.matrix()
       *= eeTransform.matrix();
+
+  // tsrMarkers.push_back(viewer->addTSRMarker(abovePlateTSR, 100, "someTSRName"));
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
   Eigen::VectorXd nominalConfiguration(6);

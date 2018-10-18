@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8.12)
 project(feeding)
 
 IF (rewd_controllers_FOUND)
+  message("rewd controllers found!")
   add_definitions(-LREWD_CONTROLLERS_FOUND)
+ELSE()
+message("rewd controllers not found!")
 ENDIF()
 
 find_package(OpenCV REQUIRED)

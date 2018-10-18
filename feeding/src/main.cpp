@@ -97,6 +97,11 @@ int main(int argc, char** argv)
   handleArguments(argc, argv, adaReal, autoContinueDemo, useFTSensing);
   ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
+  #ifndef REWD_CONTROLLERS_FOUND
+    ROS_WARN_STREAM("Package rewd_controllers not found. The F/T sensor connection is not going to work.");
+    //useFTSensing = false;
+  #endif
+
   // start node
   ros::init(argc, argv, "feeding");
   ros::NodeHandle nodeHandle("~");

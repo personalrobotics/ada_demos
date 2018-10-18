@@ -19,7 +19,6 @@ FTThresholdHelper::FTThresholdHelper(
   mFTThresholdClient = std::unique_ptr<rewd_controllers::FTThresholdClient>(
       new rewd_controllers::FTThresholdClient(ftThresholdTopic));
 #else
-  ROS_WARN_STREAM("Package rewd_controllers not found. The F/T sensor connection is not going to work.");
   mUseThresholdControl = false;
 #endif
 }

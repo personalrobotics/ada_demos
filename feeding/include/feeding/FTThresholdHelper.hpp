@@ -2,6 +2,8 @@
 #define FEEDING_FTTHRESHOLDHELPER_HPP_
 
 #include <geometry_msgs/WrenchStamped.h>
+// TODO
+#define REWD_CONTROLLERS_FOUND
 #ifdef REWD_CONTROLLERS_FOUND
   #include <rewd_controllers/FTThresholdClient.hpp>
 #endif

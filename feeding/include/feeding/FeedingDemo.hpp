@@ -80,7 +80,7 @@ public:
   void moveOutOfForque();
 
   /// Moves the forque above the plate.
-  void moveAbovePlate();
+  void moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   void moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
