@@ -124,7 +124,7 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
   while (!stepSuccessful && !continueWithNextTrial) {
     try {
       if (bananaStyleTilt) {
-        feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer);
+        feedingDemo.moveAboveFood(foodTransform, 0, viewer);
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         // bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
         // if (!perceptionSuccessful) {
@@ -140,7 +140,7 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
 
 
 
-        feedingDemo.moveAboveFood(foodTransform, -0.05*M_PI, viewer, false);
+        feedingDemo.moveAboveFood(foodTransform, 0, viewer, false);
         // feedingDemo.moveAboveFood(foodTransform, 0, viewer, false);
 
 
@@ -177,7 +177,7 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
       }
     }
     double torqueThreshold = 2;
-    double forceThreshold = 15;
+    double forceThreshold = 6;
     // if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
     if (!ftThresholdHelper.setThresholds(forceThreshold, torqueThreshold))
     {

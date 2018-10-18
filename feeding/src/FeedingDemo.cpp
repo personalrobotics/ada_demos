@@ -44,8 +44,9 @@ FeedingDemo::FeedingDemo(
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
           // mWorkspace->getTable().get(),
-          mWorkspace->getWorkspaceEnvironment().get(),
-          mWorkspace->getWheelchair().get());
+          // mWorkspace->getWorkspaceEnvironment().get(),
+          // mWorkspace->getWheelchair().get()
+          );
   mCollisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
           mArmSpace, mAda->getArm()->getMetaSkeleton(), collisionDetector);
@@ -266,7 +267,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
   if (fabs(angle) < 0.01) {
     aboveFoodTSR.mT0_w = foodTransform;
-    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(0.5 * , Eigen::Vector3d::UnitX()));
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()));
   } else {
     Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
     defaultFoodTransform.translation() = foodTransform.translation();
@@ -289,7 +290,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   if (fabs(angle) < 0.01) {
     // vertical
-    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.01, 0, -distance};
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.01, 0, distance};
   } else if (!useAngledTranslation) {
     // grape style angled
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
@@ -384,7 +385,7 @@ void FeedingDemo::moveOutOfFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, 1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*2, false);
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*1.2, false);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
