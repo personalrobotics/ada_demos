@@ -117,6 +117,8 @@ void dumpSplinePhasePlot(
     const std::string& filename,
     double timeStep);
 
+aikido::trajectory::UniqueSplinePtr posePostprocessingForSO2(const aikido::trajectory::Spline& input);
+
 } // feeding
 
 #endif

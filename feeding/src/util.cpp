@@ -5,6 +5,10 @@
 #include <dart/common/StlHelpers.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
 #include <aikido/planner/parabolic/ParabolicTimer.hpp>
+#include "aikido/distance/DistanceMetric.hpp"
+#include "aikido/distance/defaults.hpp"
+#include "aikido/statespace/CartesianProduct.hpp"
+#include "aikido/statespace/dart/MetaSkeletonStateSpace.hpp"
 
 namespace po = boost::program_options;
 
@@ -282,6 +286,12 @@ double findClosetStateOnTrajectory(
   if (traj == nullptr)
     throw std::runtime_error("Traj is nullptr");
   auto stateSpace = traj->getStateSpace();
+
+  auto distanceMetric = aikido::distance::createDistanceMetricFor(
+      std::dynamic_pointer_cast<aikido::statespace::CartesianProduct>(
+          std::const_pointer_cast<aikido::statespace::StateSpace>(
+              stateSpace)));
+
   if (config.size() != stateSpace->getDimension())
     throw std::runtime_error("Dimension mismatch");
 
@@ -291,6 +301,9 @@ double findClosetStateOnTrajectory(
   aikido::common::StepSequence sequence(
       timeStep, true, true, traj->getStartTime(), traj->getEndTime());
 
+  auto dartState = stateSpace->createState();
+  stateSpace->expMap(config, dartState);
+
   auto currState = stateSpace->createState();
   Eigen::VectorXd currPos(stateSpace->getDimension());
   for (std::size_t i = 0; i < sequence.getLength(); i++)
@@ -299,7 +312,8 @@ double findClosetStateOnTrajectory(
     traj->evaluate(currTime, currState);
     stateSpace->logMap(currState, currPos);
 
-    double currDist = (config - currPos).norm();
+    // double currDist = (config - currPos).norm();
+    double currDist = distanceMetric->distance(dartState, currState);
     if (currDist < minDist)
     {
       findTime = currTime;
@@ -442,6 +456,42 @@ std::unique_ptr<aikido::trajectory::Interpolated> concatenate(const aikido::traj
   return outputTrajectory;
 }
 
+aikido::trajectory::UniqueSplinePtr posePostprocessingForSO2(const aikido::trajectory::Spline& spline) {
+
+  auto tmpState = spline.getStateSpace()->createState();
+  Eigen::VectorXd tmpVec(spline.getStateSpace()->getDimension());
+
+  std::vector<Eigen::VectorXd> waypoints;
+  spline.getWaypoint(0, tmpState);
+  spline.getStateSpace()->logMap(tmpState, tmpVec);
+  waypoints.push_back(tmpVec);
+
+  auto interpolator
+    = std::make_shared<aikido::statespace::GeodesicInterpolator>(
+          spline.getStateSpace());
+
+  for (std::size_t i = 0; i < spline.getNumWaypoints() - 1; ++i)
+  {
+    auto state = spline.getStateSpace()->createState();
+    spline.getStateSpace()->expMap(tmpVec, tmpState);
+    spline.getWaypoint(i + 1, state);
+    auto diff = interpolator->getTangentVector(tmpState, state);
+    tmpVec += diff;
+    waypoints.push_back(tmpVec);
+  }
+
+  auto interpolated = std::make_shared<aikido::trajectory::Interpolated>(spline.getStateSpace(),
+                                                                 interpolator);
+  
+  auto newState = spline.getStateSpace()->createState();
+  for(size_t i=0; i<waypoints.size(); i++)
+  {
+      spline.getStateSpace()->expMap(waypoints[i], newState);
+      interpolated->addWaypoint(i, newState);
+  }
+  return aikido::planner::parabolic::convertToSpline(*interpolated);
+}
+
 std::unique_ptr<aikido::trajectory::Spline> concatenate(
     const aikido::trajectory::Spline& traj1,
     const aikido::trajectory::Spline& traj2)
@@ -450,64 +500,6 @@ std::unique_ptr<aikido::trajectory::Spline> concatenate(
   auto interpolated2 = convertToInterpolated(traj2);
   auto concatenatedInterpolated = concatenate(*interpolated1, *interpolated2);
   return aikido::planner::parabolic::convertToSpline(*concatenatedInterpolated);
-  /*
-  auto statespace1 = traj1.getStateSpace();
-  auto dim1 = statespace1->getDimension();
-  auto statespace2 = traj2.getStateSpace();
-  auto dim2 = statespace2->getDimension();
-  if (traj1.getStateSpace()->getDimension()
-      != traj2.getStateSpace()->getDimension())
-    throw std::runtime_error("Dimension mismatch");
 
-  using dart::common::make_unique;
-  auto stateSpace = traj1.getStateSpace();
-  std::size_t dimension = stateSpace->getDimension();
-
-  auto outputTrajectory = make_unique<aikido::trajectory::Spline>(
-      stateSpace, traj1.getStartTime());
-
-  for (std::size_t i = 0; i < traj1.getNumSegments() - 1; i++)
-  {
-    outputTrajectory->addSegment(
-        traj1.getSegmentCoefficients(i),
-        traj1.getSegmentDuration(i),
-        traj1.getSegmentState(i));
-  }
-
-  auto startStateInLastSegmentInTraj1
-      = traj1.getSegmentState(traj1.getNumSegments() - 1);
-  double durationInLastSegmentInTraj1
-      = traj1.getSegmentDuration(traj1.getNumSegments() - 1);
-  auto startStateInFirstSegmentInTraj2 = traj2.getSegmentState(0);
-  const Eigen::VectorXd zeroPosition = Eigen::VectorXd::Zero(dimension);
-  Eigen::VectorXd currPosition(dimension), nextPosition(dimension);
-  stateSpace->logMap(startStateInLastSegmentInTraj1, currPosition);
-  stateSpace->logMap(startStateInFirstSegmentInTraj2, nextPosition);
-
-  using CubicSplineProblem = aikido::common::
-      SplineProblem<double, int, 2, Eigen::Dynamic, Eigen::Dynamic>;
-
-  CubicSplineProblem problem(
-      Eigen::Vector2d{0., durationInLastSegmentInTraj1}, 2, dimension);
-  problem.addConstantConstraint(0, 0, zeroPosition);
-  problem.addConstantConstraint(1, 0, nextPosition - currPosition);
-  const auto solution = problem.fit();
-  const auto coefficients = solution.getCoefficients().front();
-
-  outputTrajectory->addSegment(
-      coefficients,
-      durationInLastSegmentInTraj1,
-      startStateInLastSegmentInTraj1);
-
-  for (std::size_t i = 0; i < traj2.getNumSegments(); i++)
-  {
-    outputTrajectory->addSegment(
-        traj2.getSegmentCoefficients(i),
-        traj2.getSegmentDuration(i),
-        traj2.getSegmentState(i));
-  }
-
-  return outputTrajectory;
-  */
 }
 }

@@ -56,11 +56,28 @@ aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
   ROS_INFO_STREAM("Plan to end effector offset state: " << mAda.getArm()->getMetaSkeleton()->getPositions().matrix().transpose());
   ROS_INFO_STREAM("Plan to end effector offset direction: " << direction.matrix().transpose() << ",  length: " << length);
 
-  return mAda.planToEndEffectorOffset(
-      mArmSpace,
-      mAda.getArm()->getMetaSkeleton(),
+  auto skeleton = mAda.getArm()->getMetaSkeleton();
+
+  std::vector<int> indices{0,3,4,5};
+  std::vector<double> tempLower{-6.28, -6.28, -6.28, -6.28};
+  std::vector<double> tempUpper{6.28, 6.28, 6.28, 6.28};
+  auto llimits = skeleton->getPositionLowerLimits();
+  auto ulimits = skeleton->getPositionUpperLimits();
+  for (int i = 0; i < indices.size(); ++i)
+  {
+      llimits(indices[i]) = tempLower[i];
+      ulimits(indices[i]) = tempUpper[i];
+  }
+  skeleton->setPositionLowerLimits(llimits);
+  skeleton->setPositionUpperLimits(ulimits);
+
+  auto space = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(skeleton.get());
+
+  auto trajectory = mAda.planToEndEffectorOffset(
+      space,
+      skeleton,
       mAda.getHand()->getEndEffectorBodyNode(),
-      respectCollision ? mCollisionFreeConstraint : nullptr,
+      nullptr,
       direction,
       length,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
@@ -68,6 +85,16 @@ aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
           "/planning/endEffectorOffset/positionTolerance", mNodeHandle),
       getRosParam<double>(
           "/planning/endEffectorOffset/angularTolerance", mNodeHandle));
+
+    for (int i = 0; i < indices.size(); ++i)
+    {
+        llimits(indices[i]) = -dart::math::constantsd::inf();
+        ulimits(indices[i]) = dart::math::constantsd::inf();
+    }
+    mAda.getArm()->getMetaSkeleton()->setPositionLowerLimits(llimits);
+    mAda.getArm()->getMetaSkeleton()->setPositionUpperLimits(ulimits);
+
+    return trajectory;
 }
 
 //==============================================================================
