@@ -1,6 +1,7 @@
 #include "feeding/AdaMover.hpp"
 #include <aikido/constraint/TestableIntersection.hpp>
 #include "feeding/util.hpp"
+#include <memory>
 
 namespace feeding {
 
@@ -140,6 +141,14 @@ bool AdaMover::moveArmOnTrajectory(
         timedTrajectory = mAda.retimePath(
             mAda.getArm()->getMetaSkeleton(), trajectory.get());
       }
+      // {
+      // aikido::trajectory::SplinePtr traj = std::dynamic_pointer_cast<aikido::trajectory::Spline>(timedTrajectory);
+      //   if (traj) {
+      //     dumpSplinePhasePlot(*traj, "moveAboveFork.txt", 0.01);
+      //   } else {
+      //     ROS_INFO_STREAM("timed spline is null");
+      //   }
+      // }
       break;
 
     default:

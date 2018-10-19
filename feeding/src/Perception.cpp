@@ -303,7 +303,7 @@ bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
       faceTransform.translation().z() += 0.00;
       // faceTransform.translation().z() += 0.0;
        faceTransform.translation().z() = faceTransform.translation().z() + mFaceZOffset;
-      ROS_INFO_STREAM("perceived Face: " << faceTransform.matrix());
+      ROS_INFO_STREAM("perceived Face: " << faceTransform.translation().matrix().transpose());
       return true;
     }
   }

@@ -88,7 +88,7 @@ public:
   /// parameters.
   /// \param[in] foodTransform the transform of the food which the robot should
   /// move over.
-  void moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
+  void moveAboveFood(const Eigen::Isometry3d& foodTransform, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
 
   /// Moves the forque downwards into the food.
   /// This function does not throw an exception if the trajectory is aborted,
@@ -124,9 +124,12 @@ public:
   /// Moves the forque away from the person.
   void moveAwayFromPerson();
 
+  void setFTSensingEnabled(bool enabled);
+
   std::unique_ptr<AdaMover> mAdaMover;
 
 private:
+  bool mIsFTSensingEnabled = false;
   bool mAdaReal;
   ros::NodeHandle mNodeHandle;
   aikido::planner::WorldPtr mWorld;

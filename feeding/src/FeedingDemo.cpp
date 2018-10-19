@@ -12,11 +12,7 @@ FeedingDemo::FeedingDemo(
 
   mWorld = std::make_shared<aikido::planner::World>("feeding");
 
-  std::string armTrajectoryExecutor = useFTSensing
-                                          ? "move_until_touch_topic_controller"
-                                          : "rewd_trajectory_controller";
-
-    // std::string armTrajectoryExecutor = "trajectory_controller";
+  std::string armTrajectoryExecutor = useFTSensing ? "move_until_touch_topic_controller" : "rewd_trajectory_controller";
 
   mAda = std::unique_ptr<ada::Ada>(
       new ada::Ada(
@@ -306,7 +302,7 @@ void FeedingDemo::moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerVie
 }
 
 //==============================================================================
-void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
+void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
@@ -321,7 +317,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   aikido::constraint::dart::TSR aboveFoodTSR;
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
-  if (fabs(angle) < 0.01) {
+  if (pickupAngleMode == 0) {
     aboveFoodTSR.mT0_w = foodTransform;
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(0.5 * , Eigen::Vector3d::UnitX()));
   } else {
@@ -335,7 +331,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
 
     // strawberry-style
-    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI + 0.5, Eigen::Vector3d::UnitX()));
   }
   aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -344,15 +340,15 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   float distance = heightAboveFood*0.85;
 
-  if (fabs(angle) < 0.01) {
+  if (pickupAngleMode == 0) {
     // vertical
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.01, 0, -distance};
-  } else if (!useAngledTranslation) {
+  } else if (pickupAngleMode == 1) {
     // grape style angled
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
   } else {
     // banana style angled
-    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(angle) * distance, 0, cos(angle) * distance};
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(M_PI*0.25) * distance, 0, cos(M_PI*0.25) * distance};
   }
 
   // tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
@@ -691,4 +687,26 @@ void FeedingDemo::moveAwayFromPerson()
     throw std::runtime_error("Trajectory execution failed");
   }
 }
+
+//==============================================================================
+void FeedingDemo::setFTSensingEnabled(bool enabled) {
+  return;
+  bool switchSuccessful = false;
+  if (enabled && !mIsFTSensingEnabled) {
+    switchSuccessful = mAda->switchControllers(
+      std::vector<std::string>{"move_until_touch_topic_controller"},
+      std::vector<std::string>{"rewd_trajectory_controller"},
+      "move_until_touch_topic_controller");
+      mIsFTSensingEnabled = true;
+  } else if (mIsFTSensingEnabled) {
+    switchSuccessful = mAda->switchControllers(
+      std::vector<std::string>{"rewd_trajectory_controller"},
+      std::vector<std::string>{"move_until_touch_topic_controller"},
+      "rewd_trajectory_controller");
+      mIsFTSensingEnabled = false;
+  }
+
+  ROS_WARN_STREAM("Controller switch successful: " << switchSuccessful);
+}
+
 };

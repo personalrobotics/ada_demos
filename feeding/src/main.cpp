@@ -133,10 +133,6 @@ int main(int argc, char** argv)
     // throw std::runtime_error(collisionCheckResult);
   }
 
-  ftThresholdHelper.init();
-  feedingDemo.closeHand();
-
-
   if (!waitForUser("Startup complete."))
   {
     return 0;

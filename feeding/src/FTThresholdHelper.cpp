@@ -33,6 +33,7 @@ void FTThresholdHelper::init()
   auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
   mFTThresholdClient->trySetThresholdsRepeatedly(
       thresholdPair.first, thresholdPair.second);
+  ROS_WARN_STREAM("trySetThresholdsRepeatedly finished");
 
 
   std::string ftTopic = getRosParam<std::string>(

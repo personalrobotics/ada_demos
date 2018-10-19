@@ -22,10 +22,10 @@ Workspace::Workspace(
                                           getRosParam<std::vector<double>>(
                                               "/person/pose", mNodeHandle));
 
-    addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
-    mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
   if (!adaReal)
   {
+    addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
+    mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
     addToWorld(mPerson, "person", robotPose);
   }
 }

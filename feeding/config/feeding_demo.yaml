@@ -75,7 +75,7 @@ ftSensor:
   ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 1
+      force: 3
       torque: 2
     grabFood:       # active when going down to grab the food
       force: 22
@@ -111,8 +111,17 @@ study:
   doForkPickup: false
   # y positive is closer to wheelchair
   # z 
-  forkHolderTranslation: [0.568, -0.036, 0.028]
+  forkHolderTranslation: [0.558, -0.032, 0.028]
   forkHolderAngle: 0.0
+
+  # 0 straight
+  # 1 strawberry-style
+  # 2 banana-style
+  pickupAngleMode: 1
+
+
+
+
 
   # x: from operator
   # y: towards user 0.24
