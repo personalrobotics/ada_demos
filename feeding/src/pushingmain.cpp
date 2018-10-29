@@ -123,6 +123,10 @@ int pushingmain(FeedingDemo& feedingDemo,
         return 0;
       }
     }
+    if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+    {
+      return 1;
+    }
     if (adaReal) {
         feedingDemo.moveNextToFood(&perception, angle, viewer);
     } else {
@@ -137,10 +141,10 @@ int pushingmain(FeedingDemo& feedingDemo,
         return 0;
       }
     }
-    /*if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+    if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
     {
       return 1;
-    }*/
+    }
     feedingDemo.grabFoodWithForque();
     feedingDemo.pushFood(foodTransform, angle, viewer);
     break;
