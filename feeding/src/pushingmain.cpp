@@ -16,6 +16,10 @@ int pushingmain(FeedingDemo& feedingDemo,
                 bool autoContinueDemo,
                 bool adaReal) {
 
+  // Set Standard Threshold
+  if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD)) {
+    return 1;
+  }
   // ===== ABOVE PLATE =====
   if (!autoContinueDemo)
   {

@@ -75,16 +75,16 @@ planning:
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
-  ftTopic: /forque/forqueSensor
+  ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
       force: 2
       torque: 2
     grabFood:       # active when going down to grab the food
-      force: 22
+      force: 3
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 50
+      force: 3
       torque: 2
 
 # Perception parameters
@@ -106,9 +106,12 @@ foodItems:
   # forces: [15,        15,     15,      22.49,  17.48,       15]
 
   # bite transfer
-  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [15,        15,     15,      28,  17.48,       6]
+  #names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
+  #forces: [15,        15,     15,      28,  17.48,       6]
 
+  #fingerVision
+  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "grape_green"]
+  forces: [3,        3,     3,      3,  3,       3, 3]
 study:
   skipSkewering: false
 
