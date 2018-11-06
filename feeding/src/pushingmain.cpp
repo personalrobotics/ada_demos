@@ -127,6 +127,7 @@ int pushingmain(FeedingDemo& feedingDemo,
         return 0;
       }
     }
+    double torqueThreshold = 2;
     if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
     {
       return 1;
@@ -153,6 +154,20 @@ int pushingmain(FeedingDemo& feedingDemo,
     feedingDemo.pushFood(foodTransform, angle, viewer);
     break;
   }
+  // ===== OUT OF FOOD =====
+  if (!autoContinueDemo)
+  {
+    if (!waitForUser("Move forque out of food"))
+    {
+      return 0;
+    }
+  }
+  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
+  {
+    return 1;
+  }
+  feedingDemo.moveOutOfFood();
+
   // ===== DONE =====
   waitForUser("Demo finished.");
 }
