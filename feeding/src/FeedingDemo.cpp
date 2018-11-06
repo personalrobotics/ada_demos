@@ -196,9 +196,11 @@ void FeedingDemo::moveAbovePlate()
   abovePlateTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceAbovePlate, verticalToleranceAbovePlate, 0, 0);
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("plate");
+  ROS_INFO_STREAM("move above plate" << eeTransform.linear() << mAda->getArm()->getMetaSkeleton()->getPositions().matrix().transpose());
   eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   abovePlateTSR.mTw_e.matrix()  // wrong?
       *= eeTransform.matrix();
+  ROS_INFO_STREAM("move above plate 2" << eeTransform.linear() << mAda->getArm()->getMetaSkeleton()->getPositions().matrix().transpose());
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits);
@@ -252,6 +254,7 @@ void FeedingDemo::moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerVie
 void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
   ROS_INFO_STREAM(foodTransform.matrix());
+  printRobotConfiguration();
 
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
@@ -266,6 +269,12 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   aikido::constraint::dart::TSR aboveFoodTSR;
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
+  ROS_INFO_STREAM("move above food food" << foodTransform.translation());
+  Eigen::Matrix3d mat;
+ // mat = mAda->getArm()->getMetaSkeleton()->getPositions().matrix();
+ // Eigen::AngleAxisd newAngleAxis(mat);
+  //ROS_INFO_STREAM("move above food" << mAda->getArm()->getMetaSkeleton()->getPositions().matrix() << "\n\n" << newAngleAxis.angle() << newAngleAxis.axis());
+  ROS_INFO_STREAM("move above food " << eeTransform.linear());
   if (fabs(angle) < 0.01) {
     aboveFoodTSR.mT0_w = foodTransform;
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(0.5 * , Eigen::Vector3d::UnitX()));
@@ -331,7 +340,9 @@ void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float a
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
 
   nextToFoodTSR.mT0_w = foodTransform;
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( (-M_PI * 0.5) - angle, Eigen::Vector3d::UnitZ()));
+  ROS_INFO_STREAM(eeTransform.linear());
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( /*(-M_PI * 0.5) -*/ -angle, Eigen::Vector3d::UnitZ()));
+  ROS_INFO_STREAM(eeTransform.linear());
 
   nextToFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -340,8 +351,8 @@ void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float a
 
   float distance = heightAboveFood*0.85;
 
-  float xOff = cos(angle) * distBeforePush;
-  float yOff = sin(angle) * distBeforePush;
+  float xOff = cos(angle - M_PI * 0.5) * distBeforePush;
+  float yOff = sin(angle - M_PI * 0.5) * distBeforePush;
   nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{-xOff, yOff, 0.01};
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(nextToFoodTSR);
@@ -355,7 +366,8 @@ void FeedingDemo::moveNextToFood(const Eigen::Isometry3d& foodTransform, float a
 void FeedingDemo::moveNextToFood(
     Perception* perception,
     float angle,
-    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
+    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+    Eigen::Isometry3d forqueTransform)
 {
   double distBeforePush
       = getRosParam<double>("/feedingDemo/distBeforePush", mNodeHandle);
@@ -378,7 +390,7 @@ void FeedingDemo::moveNextToFood(
   for (int i = 0; i < numDofs; i++)
     velocityLimits[i] = 0.2;
 
-  PerceptionPreProcess offsetApplier(boost::bind(&Perception::perceiveFood, perception, _1), angle, distBeforePush);
+  PerceptionPreProcess offsetApplier(boost::bind(&Perception::perceiveFood, perception, _1), angle, distBeforePush, forqueTransform);
 
   PerceptionServoClient servoClient(
       mNodeHandle,
@@ -418,7 +430,7 @@ void FeedingDemo::rotateForque(const Eigen::Isometry3d& foodTransform, float ang
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
 
   nextToFoodTSR.mT0_w = foodTransform;
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( (-M_PI * 0.5) - angle, Eigen::Vector3d::UnitZ()));
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( /*(-M_PI * 0.5) -*/ -angle, Eigen::Vector3d::UnitZ()));
 
   nextToFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -515,12 +527,37 @@ void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, 
   double distAfterPush
       = getRosParam<double>("/feedingDemo/distAfterPush", mNodeHandle);
 
-  float xOff = cos(angle) * distAfterPush;
-  float yOff = sin(angle) * distAfterPush;
+  float xOff = cos(angle - M_PI * 0.5) * distAfterPush;
+  float yOff = sin(angle - M_PI * 0.5) * distAfterPush;
 
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(-xOff, -yOff, 0),
       getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
+}
+
+//==============================================================================
+void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, Eigen::Isometry3d forqueTransform, bool useAngledTranslation)
+{
+  double distAfterPush
+      = getRosParam<double>("/feedingDemo/distAfterPush", mNodeHandle);
+
+  float xOff = cos(angle) * distAfterPush;
+  float yOff = sin(angle) * distAfterPush;
+
+  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
+  Eigen::Vector3d forqueTipPosition = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
+
+  Eigen::Vector3d start(forqueTransform.translation());
+  Eigen::Vector3d end(forqueTransform.translation() + forqueTransform.linear() * Eigen::Vector3d(0,1,0));
+  Eigen::Vector3d diff = end - start;
+
+  ROS_INFO_STREAM("push food 1" << forqueTipPosition);
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+      forqueTransform.inverse().linear() * diff,
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
+  ROS_INFO_STREAM("push food 2" << forqueTipPosition);
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }

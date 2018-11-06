@@ -132,8 +132,12 @@ int pushingmain(FeedingDemo& feedingDemo,
     {
       return 1;
     }
+    Eigen::Isometry3d forqueTransform;
     if (adaReal) {
-        feedingDemo.moveNextToFood(&perception, angle, viewer);
+        forqueTransform = perception.getForqueTransform();
+    }
+    if (adaReal) {
+        feedingDemo.moveNextToFood(&perception, angle, viewer, forqueTransform);
     } else {
         feedingDemo.moveNextToFood(foodTransform, angle, viewer);
     }
@@ -151,7 +155,11 @@ int pushingmain(FeedingDemo& feedingDemo,
       return 1;
     }
     feedingDemo.grabFoodWithForque();
-    feedingDemo.pushFood(foodTransform, angle, viewer);
+    if (adaReal) {
+        feedingDemo.pushFood(foodTransform, angle, viewer, forqueTransform);
+    } else {
+        feedingDemo.pushFood(foodTransform, angle, viewer);
+    }
     break;
   }
   // ===== OUT OF FOOD =====

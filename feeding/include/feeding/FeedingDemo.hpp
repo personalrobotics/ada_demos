@@ -94,9 +94,12 @@ public:
   void moveNextToFood(
       Perception* perception,
       float angle,
-      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+      Eigen::Isometry3d forqueTransform);
 
   void pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
+
+  void pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, Eigen::Isometry3d forqueTransform, bool useAngledTranslation = true);
 
   /// Moves the forque downwards into the food.
   /// This function does not throw an exception if the trajectory is aborted,
