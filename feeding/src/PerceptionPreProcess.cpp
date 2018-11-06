@@ -36,11 +36,12 @@ Eigen::VectorXd getSymmetricLimits(
 
 //==============================================================================
 PerceptionPreProcess::PerceptionPreProcess(
-    boost::function<bool(Eigen::Isometry3d&)> getTransform, float angle, float distBeforePush)
+    boost::function<bool(Eigen::Isometry3d&)> getTransform, float angle, float distBeforePush, Eigen::Isometry3d forqueTransform)
 {
   mGetTransform = getTransform;
   mAngle = angle;
   mDistBeforePush = distBeforePush;
+  mForqueTransform = forqueTransform;
 }
 
 bool PerceptionPreProcess::applyOffset(Eigen::Isometry3d& foodTransform)
@@ -48,10 +49,10 @@ bool PerceptionPreProcess::applyOffset(Eigen::Isometry3d& foodTransform)
     if (mGetTransform(foodTransform))
     {
         ROS_INFO_STREAM(foodTransform.matrix());
-        Eigen::Vector3d start(forqueTransform.translation());
-        Eigen::Vector3d end(forqueTransform.translation() + forqueTransform.linear() * Eigen::Vector3d(0,1,0));
+        Eigen::Vector3d start(mForqueTransform.translation());
+        Eigen::Vector3d end(mForqueTransform.translation() + mForqueTransform.linear() * Eigen::Vector3d(-0.01,0,0));
         Eigen::Vector3d diff = end - start;
-        foodTransform.translation() += forqueTransform.inverse().linear() * diff;
+        foodTransform.translation() += mForqueTransform.inverse().linear() * diff;
        // float xOff = cos(mAngle) * mDistBeforePush;
        // float yOff = sin(mAngle) * mDistBeforePush;
        // foodTransform.translation() += Eigen::Vector3d(-xOff, yOff, 0);

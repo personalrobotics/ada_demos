@@ -550,7 +550,7 @@ void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, 
   Eigen::Vector3d forqueTipPosition = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
 
   Eigen::Vector3d start(forqueTransform.translation());
-  Eigen::Vector3d end(forqueTransform.translation() + forqueTransform.linear() * Eigen::Vector3d(0,1,0));
+  Eigen::Vector3d end(forqueTransform.translation() + forqueTransform.linear() * Eigen::Vector3d(0.5,0,0));
   Eigen::Vector3d diff = end - start;
 
   ROS_INFO_STREAM("push food 1" << forqueTipPosition);
