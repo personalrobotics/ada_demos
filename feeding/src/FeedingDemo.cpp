@@ -451,6 +451,16 @@ void FeedingDemo::rotateForque(const Eigen::Isometry3d& foodTransform, float ang
 }
 
 //==============================================================================
+void FeedingDemo::moveOutOfPlate()
+{
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+      Eigen::Vector3d(0, 0, 0.005),
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
+}
+
+//==============================================================================
 void FeedingDemo::moveIntoFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(

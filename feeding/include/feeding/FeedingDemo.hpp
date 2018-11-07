@@ -101,6 +101,8 @@ public:
 
   void pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, Eigen::Isometry3d forqueTransform, bool useAngledTranslation = true);
 
+  void moveOutOfPlate();
+
   /// Moves the forque downwards into the food.
   /// This function does not throw an exception if the trajectory is aborted,
   /// because we expect that.
