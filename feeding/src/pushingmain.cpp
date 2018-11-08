@@ -20,172 +20,185 @@ int pushingmain(FeedingDemo& feedingDemo,
   if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD)) {
     return 1;
   }
-  // ===== ABOVE PLATE =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque above plate"))
+
+  bool done = false;
+  while (!done) {
+    // ===== ABOVE PLATE =====
+    if (!autoContinueDemo)
     {
-      return 0;
+      if (!waitForUser("Move forque above plate"))
+      {
+        return 0;
+      }
     }
-  }
-  feedingDemo.moveAbovePlate();
+    feedingDemo.moveAbovePlate();
 
-  // ===== ABOVE FOOD =====
-  std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
-  std::vector<double> skeweringForces = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
-  std::unordered_map<std::string, double> foodSkeweringForces;
-  for (int i=0; i<foodNames.size(); i++) {
-    foodSkeweringForces[foodNames[i]] = skeweringForces[i];
-  }
-
-  Eigen::Isometry3d foodTransform;
-  bool foodFound = false;
-  std::string foodName;
-  while (!foodFound) {
-    std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m     > ";
-    foodName = "";
-    std::cin >> foodName;
-    if (!ros::ok()) {return 0;}
-    if (!perception.setFoodName(foodName)) {
-      std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
-      continue;
+    // ===== ABOVE FOOD =====
+    std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
+    std::vector<double> skeweringForces = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
+    std::unordered_map<std::string, double> foodSkeweringForces;
+    for (int i=0; i<foodNames.size(); i++) {
+      foodSkeweringForces[foodNames[i]] = skeweringForces[i];
     }
 
-    if (adaReal)
-    {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-      if (!perceptionSuccessful) {
-        std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
+    Eigen::Isometry3d foodTransform;
+    bool foodFound = false;
+    std::string foodName;
+    while (!foodFound) {
+      std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m     > ";
+      foodName = "";
+      std::cin >> foodName;
+      if (!ros::ok()) {return 0;}
+      if (!perception.setFoodName(foodName)) {
+        std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
         continue;
-      } else {
+      }
+
+      if (adaReal)
+      {
+        bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+        if (!perceptionSuccessful) {
+          std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
+          continue;
+        } else {
+          foodFound = true;
+        }
+      }
+      else
+      {
+        foodTransform = feedingDemo.getDefaultFoodTransform();
         foodFound = true;
       }
     }
-    else
-    {
-      foodTransform = feedingDemo.getDefaultFoodTransform();
-      foodFound = true;
-    }
-  }
-  std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
+    std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
 
-  bool foodPickedUp = false;
-  while (!foodPickedUp) {
+    bool foodPickedUp = false;
+    while (!foodPickedUp) {
 
-    if (!autoContinueDemo)
-    {
-      if (!waitForUser("Move forque above food"))
+      if (!autoContinueDemo)
       {
-        return 0;
+        if (!waitForUser("Move forque above food"))
+        {
+          return 0;
+        }
       }
-    }
-    feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-    if (adaReal) {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-      if (!perceptionSuccessful) {
-        std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
+      feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+      if (adaReal) {
+        bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+        if (!perceptionSuccessful) {
+          std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
+        } else {
+          feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+        }
+      }
+
+      double zForceBeforeSkewering = 0;
+      if (adaReal && ftThresholdHelper.startDataCollection(20)) {
+        Eigen::Vector3d currentForce, currentTorque;
+        while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        zForceBeforeSkewering = currentForce.z();
+      }
+
+      // ===== ROTATE FORQUE ====
+      std::cout << std::endl << "\033[1;32mWhat angle do you want to push food at in degrees?\033[0m     > ";
+      float angle = 0;
+      std::cin >> angle;
+      angle *= M_PI / 180.0;
+      if (!ros::ok()) {return 0;}
+
+      if (!autoContinueDemo)
+      {
+        if (!waitForUser("Rotate forque in orientation to push food"))
+        {
+          return 0;
+        }
+      }
+      feedingDemo.rotateForque(foodTransform, angle, viewer);
+      /*if (adaReal) {
+          feedingDemo.moveNextToFood(&perception, angle, viewer);
       } else {
-        feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+          feedingDemo.moveNextToFood(foodTransform, angle, viewer);
+      }*/
+
+      // ===== NEXT TO FOOD ====
+      if (!autoContinueDemo)
+      {
+        if (!waitForUser("Move forque next to food"))
+        {
+          return 0;
+        }
+      }
+      double torqueThreshold = 2;
+      if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+      {
+        return 1;
+      }
+      Eigen::Isometry3d forqueTransform;
+      if (adaReal) {
+          forqueTransform = perception.getForqueTransform();
+      }
+      if (adaReal) {
+          feedingDemo.moveNextToFood(&perception, angle, viewer, forqueTransform);
+      } else {
+          feedingDemo.moveNextToFood(foodTransform, angle, viewer);
+      }
+
+      // ===== MOVE OUT OF PLATE ====
+      if (!autoContinueDemo)
+      {
+        if (!waitForUser("Move Out of Plate"))
+        {
+          return 0;
+        }
+      }
+      feedingDemo.moveOutOfPlate();
+
+      // ===== PUSH FOOD ====
+      if (!autoContinueDemo)
+      {
+        if (!waitForUser("Push food"))
+        {
+          return 0;
+        }
+      }
+      if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+      {
+        return 1;
+      }
+      //feedingDemo.grabFoodWithForque();
+
+      if (adaReal) {
+          feedingDemo.pushFood(foodTransform, angle, viewer, forqueTransform);
+      } else {
+          feedingDemo.pushFood(foodTransform, angle, viewer);
+      }
+      break;
+    }
+    // ===== OUT OF FOOD =====
+    if (!autoContinueDemo)
+    {
+      if (!waitForUser("Move forque out of food"))
+      {
+        return 0;
       }
     }
-
-    double zForceBeforeSkewering = 0;
-    if (adaReal && ftThresholdHelper.startDataCollection(20)) {
-      Eigen::Vector3d currentForce, currentTorque;
-      while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-      }
-      zForceBeforeSkewering = currentForce.z();
+    if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
+    {
+      return 1;
     }
+    feedingDemo.moveOutOfFood();
 
-    // ===== ROTATE FORQUE ====
-    std::cout << std::endl << "\033[1;32mWhat angle do you want to push food at in degrees?\033[0m     > ";
-    float angle = 0;
-    std::cin >> angle;
-    angle *= M_PI / 180.0;
+    std::string doneResponse;
+    std::cout << std::endl << "\033[1;32mShould we keep going? [y/n]\033[0m     > ";
+    doneResponse = "";
+    std::cin >> doneResponse;
     if (!ros::ok()) {return 0;}
-
-    if (!autoContinueDemo)
-    {
-      if (!waitForUser("Rotate forque in orientation to push food"))
-      {
-        return 0;
-      }
-    }
-    feedingDemo.rotateForque(foodTransform, angle, viewer);
-    /*if (adaReal) {
-        feedingDemo.moveNextToFood(&perception, angle, viewer);
-    } else {
-        feedingDemo.moveNextToFood(foodTransform, angle, viewer);
-    }*/
-
-    // ===== NEXT TO FOOD ====
-    if (!autoContinueDemo)
-    {
-      if (!waitForUser("Move forque next to food"))
-      {
-        return 0;
-      }
-    }
-    double torqueThreshold = 2;
-    if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
-    {
-      return 1;
-    }
-    Eigen::Isometry3d forqueTransform;
-    if (adaReal) {
-        forqueTransform = perception.getForqueTransform();
-    }
-    if (adaReal) {
-        feedingDemo.moveNextToFood(&perception, angle, viewer, forqueTransform);
-    } else {
-        feedingDemo.moveNextToFood(foodTransform, angle, viewer);
-    }
-
-    // ===== MOVE OUT OF PLATE ====
-    if (!autoContinueDemo)
-    {
-      if (!waitForUser("Move Out of Plate"))
-      {
-        return 0;
-      }
-    }
-    feedingDemo.moveOutOfPlate();
-
-    // ===== PUSH FOOD ====
-    if (!autoContinueDemo)
-    {
-      if (!waitForUser("Push food"))
-      {
-        return 0;
-      }
-    }
-    if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
-    {
-      return 1;
-    }
-    feedingDemo.grabFoodWithForque();
-
-    if (adaReal) {
-        feedingDemo.pushFood(foodTransform, angle, viewer, forqueTransform);
-    } else {
-        feedingDemo.pushFood(foodTransform, angle, viewer);
-    }
-    break;
-  }
-  // ===== OUT OF FOOD =====
-  if (!autoContinueDemo)
-  {
-    if (!waitForUser("Move forque out of food"))
-    {
-      return 0;
+    if (doneResponse == "n") {
+      done = true;
     }
   }
-  if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
-  {
-    return 1;
-  }
-  feedingDemo.moveOutOfFood();
 
   // ===== DONE =====
   waitForUser("Demo finished.");
