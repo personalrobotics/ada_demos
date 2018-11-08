@@ -22,14 +22,14 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   PerceptionPreProcess(
-      boost::function<bool(Eigen::Isometry3d&)> getTransform, float angle, float distBeforePush, Eigen::Isometry3d forqueTransform);
+      boost::function<bool(Eigen::Isometry3d&)> getTransform, float angle, float prePushOffset, Eigen::Isometry3d forqueTransform);
 
   bool applyOffset(Eigen::Isometry3d& foodTransform);
 
 protected:
   boost::function<bool(Eigen::Isometry3d&)> mGetTransform;
   float mAngle;
-  float mDistBeforePush;
+  float mPrePushOffset;
   Eigen::Isometry3d mForqueTransform;
 };
 }
