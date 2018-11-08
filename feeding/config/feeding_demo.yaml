@@ -50,6 +50,7 @@ feedingDemo:
   heightAbovePlate: 0.11
   heightAboveFood: 0.09
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
+  heightOutOfPlate: 0.001
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
   distBeforePush: 0.05

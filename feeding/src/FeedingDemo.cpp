@@ -300,7 +300,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   if (fabs(angle) < 0.01) {
     // vertical
-    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.01, 0, -distance};
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, -distance};
   } else if (!useAngledTranslation) {
     // grape style angled
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
@@ -413,6 +413,9 @@ void FeedingDemo::moveNextToFood(
 //==============================================================================
 void FeedingDemo::rotateForque(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
+  if (angle == 0) {
+      return;
+  }
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
   // If the robot is not simulated, we want to plan the trajectory to move a
@@ -453,9 +456,11 @@ void FeedingDemo::rotateForque(const Eigen::Isometry3d& foodTransform, float ang
 //==============================================================================
 void FeedingDemo::moveOutOfPlate()
 {
+  double heightOutOfPlate
+      = getRosParam<double>("/feedingDemo/heightOutOfPlate", mNodeHandle);
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
-      Eigen::Vector3d(0, 0, 0.005),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
+      Eigen::Vector3d(0, 0, 1),
+      heightOutOfPlate);
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }
@@ -540,9 +545,11 @@ void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, 
   float xOff = cos(angle - M_PI * 0.5) * distAfterPush;
   float yOff = sin(angle - M_PI * 0.5) * distAfterPush;
 
+  std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(-xOff, -yOff, 0),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle), velocityLimits);
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }

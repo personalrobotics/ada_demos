@@ -32,6 +32,8 @@ public:
   /// \return True if the trajectory was completed successfully.
   bool moveToEndEffectorOffset(const Eigen::Vector3d& direction, double length, bool respectCollision = true);
 
+  bool moveToEndEffectorOffset(const Eigen::Vector3d& direction, double length, const std::vector<double>& velocityLimits, bool respectCollision = true);
+
   aikido::trajectory::TrajectoryPtr planToEndEffectorOffset(
       const Eigen::Vector3d& direction, double length, bool respectCollision = true);
 

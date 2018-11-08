@@ -42,6 +42,13 @@ bool AdaMover::moveToEndEffectorOffset(
 }
 
 //==============================================================================
+bool AdaMover::moveToEndEffectorOffset(
+    const Eigen::Vector3d& direction, double length, const std::vector<double>& velocityLimits, bool respectCollision)
+{
+  return moveArmOnTrajectory(planToEndEffectorOffset(direction, length, respectCollision), TRYOPTIMALRETIME, velocityLimits);
+}
+
+//==============================================================================
 aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length, bool respectCollision)
 {
@@ -121,14 +128,37 @@ bool AdaMover::moveArmOnTrajectory(
       break;
 
     case TRYOPTIMALRETIME:
-      timedTrajectory = mAda.retimeTimeOptimalPath(
-          mAda.getArm()->getMetaSkeleton(), trajectory.get());
+      if (smoothVelocityLimits.size() == 6) {
+        Eigen::Vector6d velocityLimits;
+        velocityLimits << smoothVelocityLimits[0], smoothVelocityLimits[1], smoothVelocityLimits[2], smoothVelocityLimits[3], smoothVelocityLimits[4], smoothVelocityLimits[5];
+        Eigen::VectorXd previousLowerLimits = mAda.getArm()->getMetaSkeleton()->getVelocityLowerLimits();
+        Eigen::VectorXd previousUpperLimits = mAda.getArm()->getMetaSkeleton()->getVelocityUpperLimits();
+        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(-velocityLimits);
+        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(velocityLimits);
 
-      if (!timedTrajectory)
-      {
-        // If using time-optimal retining failed, back to parabolic timing
-        timedTrajectory = mAda.retimePath(
+        timedTrajectory = mAda.retimeTimeOptimalPath(
             mAda.getArm()->getMetaSkeleton(), trajectory.get());
+
+        if (!timedTrajectory)
+        {
+          // If using time-optimal retining failed, back to parabolic timing
+          timedTrajectory = mAda.retimePath(
+              mAda.getArm()->getMetaSkeleton(), trajectory.get());
+        }
+
+        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(previousLowerLimits);
+        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(previousUpperLimits);
+      } else {
+       
+        timedTrajectory = mAda.retimeTimeOptimalPath(
+            mAda.getArm()->getMetaSkeleton(), trajectory.get());
+
+        if (!timedTrajectory)
+        {
+          // If using time-optimal retining failed, back to parabolic timing
+          timedTrajectory = mAda.retimePath(
+              mAda.getArm()->getMetaSkeleton(), trajectory.get());
+        }
       }
       break;
 

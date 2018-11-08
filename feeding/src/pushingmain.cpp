@@ -142,6 +142,16 @@ int pushingmain(FeedingDemo& feedingDemo,
         feedingDemo.moveNextToFood(foodTransform, angle, viewer);
     }
 
+    // ===== MOVE OUT OF PLATE ====
+    if (!autoContinueDemo)
+    {
+      if (!waitForUser("Move Out of Plate"))
+      {
+        return 0;
+      }
+    }
+    feedingDemo.moveOutOfPlate();
+
     // ===== PUSH FOOD ====
     if (!autoContinueDemo)
     {
@@ -155,15 +165,6 @@ int pushingmain(FeedingDemo& feedingDemo,
       return 1;
     }
     feedingDemo.grabFoodWithForque();
-
-    if (!autoContinueDemo)
-    {
-      if (!waitForUser("Move Out of Plate"))
-      {
-        return 0;
-      }
-    }
-    feedingDemo.moveOutOfPlate();
 
     if (adaReal) {
         feedingDemo.pushFood(foodTransform, angle, viewer, forqueTransform);
