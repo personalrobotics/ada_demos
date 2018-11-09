@@ -177,7 +177,7 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
       }
     }
     double torqueThreshold = 2;
-    double forceThreshold = 6;
+    double forceThreshold = 3;
     // if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
     if (!ftThresholdHelper.setThresholds(forceThreshold, torqueThreshold))
     {
