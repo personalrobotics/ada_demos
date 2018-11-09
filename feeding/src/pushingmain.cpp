@@ -153,6 +153,10 @@ int pushingmain(FeedingDemo& feedingDemo,
           return 0;
         }
       }
+      if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
+    {
+      return 1;
+    }
       feedingDemo.moveOutOfPlate();
 
       // ===== PUSH FOOD ====

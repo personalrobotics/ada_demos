@@ -7,7 +7,7 @@
 #     All rotations are in radians.
 #     All robot configurations specify 6 joint angles in a list
 #     All transform use the format [x,y,z,rx,ry,rz] of positions and rotations in a list.
-# 
+#
 
 
 # Visualization parameters
@@ -50,13 +50,13 @@ feedingDemo:
   heightAbovePlate: 0.11
   heightAboveFood: 0.09
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
-  heightOutOfPlate: 0.001
+  heightOutOfPlate: 0.02
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
   distBeforePush: 0.05
   distAfterPush: 0.05
-  prePushOffset: -0.01
-  distToPush: 0.07
+  prePushOffset: -0.007
+  distToPush: 0.05
   pushVelLimit: 0.2
   waitMillisecsAtFood: 500     # short pause after skewering the food
   waitMillisecsAtPerson: 5000   # long pause so person can take a bite
@@ -79,7 +79,7 @@ planning:
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
-  ftTopic: /fingervision/fv_3_l/wrench
+  ftTopic: /forque/forqueSensor #/fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
       force: 2
@@ -88,7 +88,7 @@ ftSensor:
       force: 3
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 3
+      force: 6 #3
       torque: 2
 
 # Perception parameters
@@ -104,7 +104,7 @@ perception:
 foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
-  
+
   # bite acquistion
   # names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
   # forces: [15,        15,     15,      22.49,  17.48,       15]

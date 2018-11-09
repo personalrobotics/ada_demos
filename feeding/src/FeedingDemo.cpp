@@ -570,21 +570,15 @@ void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, 
   double pushVelLimit
       = getRosParam<double>("/feedingDemo/pushVelLimit", mNodeHandle);
 
-  Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
-  Eigen::Vector3d forqueTipPosition = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
-
-  Eigen::Vector3d start(forqueTransform.translation());
-  Eigen::Vector3d end(forqueTransform.translation() + forqueTransform.linear() * Eigen::Vector3d(1,0,0));
-  Eigen::Vector3d diff = end - start;
+  // Positive y in forque frame is forward
+  Eigen::Vector3d diff(0,1,0);
 
   std::vector<double> velocityLimits{pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit};
 
-  ROS_INFO_STREAM("push food 1" << forqueTipPosition);
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       forqueTransform.inverse().linear() * diff,
       distToPush,
       velocityLimits);
-  ROS_INFO_STREAM("push food 2" << forqueTipPosition);
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }

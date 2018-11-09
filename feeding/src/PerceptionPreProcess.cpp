@@ -49,9 +49,7 @@ bool PerceptionPreProcess::applyOffset(Eigen::Isometry3d& foodTransform)
     if (mGetTransform(foodTransform))
     {
         ROS_INFO_STREAM(foodTransform.matrix());
-        Eigen::Vector3d start(mForqueTransform.translation());
-        Eigen::Vector3d end(mForqueTransform.translation() + mForqueTransform.linear() * Eigen::Vector3d(mPrePushOffset,0,0));
-        Eigen::Vector3d diff = end - start;
+        Eigen::Vector3d diff(0,mPrePushOffset,0);
         foodTransform.translation() += mForqueTransform.inverse().linear() * diff;
        // float xOff = cos(mAngle) * mDistBeforePush;
        // float yOff = sin(mAngle) * mDistBeforePush;
