@@ -28,6 +28,7 @@ Workspace::Workspace(
     addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
     mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
   }
+  mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
 }
 
 //==============================================================================

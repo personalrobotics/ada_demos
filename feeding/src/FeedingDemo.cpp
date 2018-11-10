@@ -468,9 +468,10 @@ void FeedingDemo::moveOutOfPlate()
 //==============================================================================
 void FeedingDemo::moveIntoFood()
 {
+  std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.2};
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, -1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle));
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle) + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle), velocityLimits);
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }
@@ -537,13 +538,19 @@ void FeedingDemo::moveIntoFood(
 }
 
 //==============================================================================
-void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
+void FeedingDemo::pushFood(float angle, bool useAngledTranslation)
+{
+  double distToPush
+      = getRosParam<double>("/feedingDemo/distToPush", mNodeHandle);
+
+  FeedingDemo::pushFood(angle, distToPush, useAngledTranslation);
+}
+
+//==============================================================================
+void FeedingDemo::pushFood(float angle, double pushDist, bool useAngledTranslation)
 {
   double distAfterPush
       = getRosParam<double>("/feedingDemo/distAfterPush", mNodeHandle);
-
-  double distToPush
-      = getRosParam<double>("/feedingDemo/distToPush", mNodeHandle);
 
   double pushVelLimit
       = getRosParam<double>("/feedingDemo/pushVelLimit", mNodeHandle);
@@ -551,33 +558,50 @@ void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, 
   float xOff = cos(angle - M_PI * 0.5) * distAfterPush;
   float yOff = sin(angle - M_PI * 0.5) * distAfterPush;
 
+  if (pushDist < 0) {
+      xOff *= -1;
+      yOff *= -1;
+      pushDist *= -1;
+  }
+
   std::vector<double> velocityLimits{pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit};
 
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(-xOff, -yOff, 0),
-      distToPush,
+      pushDist,
       velocityLimits);
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }
 
 //==============================================================================
-void FeedingDemo::pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, Eigen::Isometry3d forqueTransform, bool useAngledTranslation)
+void FeedingDemo::pushFood(float angle, Eigen::Isometry3d forqueTransform, bool useAngledTranslation)
 {
   double distToPush
       = getRosParam<double>("/feedingDemo/distToPush", mNodeHandle);
 
+  FeedingDemo::pushFood(angle, distToPush, forqueTransform, useAngledTranslation);
+}
+
+//==============================================================================
+void FeedingDemo::pushFood(float angle, double pushDist, Eigen::Isometry3d forqueTransform, bool useAngledTranslation)
+{
   double pushVelLimit
       = getRosParam<double>("/feedingDemo/pushVelLimit", mNodeHandle);
 
   // Positive y in forque frame is forward
   Eigen::Vector3d diff(0,1,0);
 
+  if (pushDist < 0) {
+      pushDist *= -1;
+      diff = Eigen::Vector3d(0,-1,0);
+  }
+
   std::vector<double> velocityLimits{pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit};
 
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       forqueTransform.inverse().linear() * diff,
-      distToPush,
+      pushDist,
       velocityLimits);
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted

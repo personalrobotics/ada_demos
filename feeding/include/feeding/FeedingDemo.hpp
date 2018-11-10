@@ -97,9 +97,13 @@ public:
       aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
       Eigen::Isometry3d forqueTransform);
 
-  void pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
+  void pushFood(float angle, bool useAngledTranslation = true);
 
-  void pushFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, Eigen::Isometry3d forqueTransform, bool useAngledTranslation = true);
+  void pushFood(float angle, Eigen::Isometry3d forqueTransform, bool useAngledTranslation = true);
+
+  void pushFood(float angle, double pushDist, bool useAngledTranslation = true);
+
+  void pushFood(float angle, double pushDist, Eigen::Isometry3d forqueTransform, bool useAngledTranslation = true);
 
   void moveOutOfPlate();
 

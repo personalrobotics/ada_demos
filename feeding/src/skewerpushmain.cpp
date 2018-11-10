@@ -8,7 +8,7 @@
 
 namespace feeding {
 
-int pushingmain(FeedingDemo& feedingDemo,
+int skewerpushmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
@@ -44,33 +44,7 @@ int pushingmain(FeedingDemo& feedingDemo,
     Eigen::Isometry3d foodTransform;
     bool foodFound = false;
     std::string foodName;
-    while (!foodFound) {
-      std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m     > ";
-      foodName = "";
-      std::cin >> foodName;
-      if (!ros::ok()) {return 0;}
-      if (!perception.setFoodName(foodName)) {
-        std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
-        continue;
-      }
-
-      if (adaReal)
-      {
-        bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-        if (!perceptionSuccessful) {
-          std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
-          continue;
-        } else {
-          foodFound = true;
-        }
-      }
-      else
-      {
-        foodTransform = feedingDemo.getDefaultFoodTransform();
-        foodFound = true;
-      }
-    }
-    std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
+    foodTransform = feedingDemo.getDefaultFoodTransform();
 
     bool foodPickedUp = false;
     while (!foodPickedUp) {
@@ -83,14 +57,6 @@ int pushingmain(FeedingDemo& feedingDemo,
         }
       }
       feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-      if (adaReal) {
-        bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-        if (!perceptionSuccessful) {
-          std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
-        } else {
-          feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-        }
-      }
 
       double zForceBeforeSkewering = 0;
       if (adaReal && ftThresholdHelper.startDataCollection(20)) {
@@ -116,16 +82,11 @@ int pushingmain(FeedingDemo& feedingDemo,
         }
       }
       feedingDemo.rotateForque(foodTransform, angle, viewer);
-      /*if (adaReal) {
-          feedingDemo.moveNextToFood(&perception, angle, viewer);
-      } else {
-          feedingDemo.moveNextToFood(foodTransform, angle, viewer);
-      }*/
 
-      // ===== NEXT TO FOOD ====
+      // ===== INTO TO FOOD ====
       if (!autoContinueDemo)
       {
-        if (!waitForUser("Move forque next to food"))
+        if (!waitForUser("Move forque into to food"))
         {
           return 0;
         }
@@ -136,14 +97,7 @@ int pushingmain(FeedingDemo& feedingDemo,
         return 1;
       }
       Eigen::Isometry3d forqueTransform;
-      if (adaReal) {
-          forqueTransform = perception.getForqueTransform();
-      }
-      if (adaReal) {
-          feedingDemo.moveNextToFood(&perception, angle, viewer, forqueTransform);
-      } else {
-          feedingDemo.moveNextToFood(foodTransform, angle, viewer);
-      }
+      feedingDemo.moveIntoFood();
 
       // ===== MOVE OUT OF PLATE ====
       if (!autoContinueDemo)
@@ -154,29 +108,32 @@ int pushingmain(FeedingDemo& feedingDemo,
         }
       }
       if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
-    {
-      return 1;
-    }
-      feedingDemo.moveOutOfPlate();
-
-      // ===== PUSH FOOD ====
-      if (!autoContinueDemo)
-      {
-        if (!waitForUser("Push food"))
-        {
-          return 0;
-        }
-      }
-      if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
       {
         return 1;
       }
-      //feedingDemo.grabFoodWithForque();
+      feedingDemo.moveOutOfPlate();
 
-      if (adaReal) {
-          feedingDemo.pushFood(angle, forqueTransform);
-      } else {
-          feedingDemo.pushFood(angle);
+      // keep pushing until user says no, get feedback on how far to move
+      // ===== PUSH FOOD ====
+      while (1) {
+        double pushDist = 0.0;
+        std::cout << std::endl << "\033[1;32mHow far do you want to push? (enter 0 to stop)\033[0m     > ";
+        std::cin >> pushDist;
+        if (pushDist == 0.0) {
+          break;
+        }
+
+        if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+        {
+          return 1;
+        }
+        //feedingDemo.grabFoodWithForque();
+
+        if (adaReal) {
+            feedingDemo.pushFood(angle, pushDist, forqueTransform);
+        } else {
+            feedingDemo.pushFood(angle, pushDist);
+        }
       }
       break;
     }

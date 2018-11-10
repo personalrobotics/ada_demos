@@ -28,6 +28,14 @@ int pushingmain(FeedingDemo& feedingDemo,
                 bool autoContinueDemo,
                 bool adaReal);
 
+int skewerpushmain(FeedingDemo& feedingDemo,
+                FTThresholdHelper& ftThresholdHelper,
+                Perception& perception,
+                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                ros::NodeHandle nodeHandle,
+                bool autoContinueDemo,
+                bool adaReal);
+
 int studymain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
@@ -139,7 +147,7 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
-  return feeding::pushingmain(feedingDemo,
+  return feeding::skewerpushmain(feedingDemo,
                      ftThresholdHelper,
                      perception,
                      viewer,
