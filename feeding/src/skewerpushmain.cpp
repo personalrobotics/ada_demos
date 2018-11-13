@@ -92,11 +92,14 @@ int skewerpushmain(FeedingDemo& feedingDemo,
         }
       }
       double torqueThreshold = 2;
-      if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+      if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
       {
         return 1;
       }
       Eigen::Isometry3d forqueTransform;
+      if (adaReal) {
+          forqueTransform = perception.getForqueTransform();
+      }
       feedingDemo.moveIntoFood();
 
       // ===== MOVE OUT OF PLATE ====
@@ -123,7 +126,7 @@ int skewerpushmain(FeedingDemo& feedingDemo,
           break;
         }
 
-        if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+        if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
         {
           return 1;
         }

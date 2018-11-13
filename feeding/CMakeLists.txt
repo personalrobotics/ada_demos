@@ -8,6 +8,7 @@ add_executable(feeding
   src/main.cpp
   src/defaultmain.cpp
   src/pushingmain.cpp
+  src/skewerpushmain.cpp
   src/studymain.cpp
   src/bltmain.cpp
   src/acquisitionmain.cpp
