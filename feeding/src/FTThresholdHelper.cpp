@@ -132,6 +132,12 @@ std::pair<double, double> FTThresholdHelper::getThresholdValues(
       torqueThreshold = getRosParam<double>(
           "/ftSensor/thresholds/afterGrabFood/torque", mNodeHandle);
       break;
+    case PUSH_FOOD_FT_THRESHOLD:
+      forceThreshold = getRosParam<double>(
+          "/ftSensor/thresholds/pushFood/force", mNodeHandle);
+      torqueThreshold = getRosParam<double>(
+          "/ftSensor/thresholds/pushFood/torque", mNodeHandle);
+      break;
     default:
       throw std::runtime_error(
           "Unknown F/T Threshold type: " + std::to_string(threshold));

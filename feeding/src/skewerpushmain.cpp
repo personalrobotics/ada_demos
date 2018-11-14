@@ -126,7 +126,7 @@ int skewerpushmain(FeedingDemo& feedingDemo,
           break;
         }
 
-        if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
+        if (!ftThresholdHelper.setThresholds(PUSH_FOOD_FT_THRESHOLD))
         {
           return 1;
         }

@@ -13,7 +13,8 @@ enum FTThreshold
 {
   STANDARD_FT_THRESHOLD,
   GRAB_FOOD_FT_THRESHOLD,
-  AFTER_GRAB_FOOD_FT_THRESHOLD
+  AFTER_GRAB_FOOD_FT_THRESHOLD,
+  PUSH_FOOD_FT_THRESHOLD
 };
 
 /// The FTThresholdHelper configures the MoveUntilTouchController's
