@@ -49,7 +49,7 @@ int defaultmain(FeedingDemo& feedingDemo,
 
     if (adaReal)
     {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
       if (!perceptionSuccessful) {
         std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
         continue;
@@ -77,7 +77,7 @@ int defaultmain(FeedingDemo& feedingDemo,
     }
     feedingDemo.moveAboveFood(foodTransform, 0, viewer);
     if (adaReal) {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
       if (!perceptionSuccessful) {
         std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
       } else {
@@ -150,7 +150,7 @@ int defaultmain(FeedingDemo& feedingDemo,
       } else {
         std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << ". Let me try again!\033[0;32m" << std::endl;
         feedingDemo.moveAbovePlate(viewer);
-        bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
+        bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
         if (!perceptionSuccessful) {
           std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
         }
