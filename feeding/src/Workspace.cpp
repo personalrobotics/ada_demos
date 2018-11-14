@@ -24,10 +24,15 @@ Workspace::Workspace(
 
   if (!adaReal)
   {
-    addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
-    mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
+    // addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
+    // mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
     addToWorld(mPerson, "person", robotPose);
   }
+}
+
+void Workspace::addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose) {
+  addToWorldAtPose(mDefaultFoodItem, "defaultFoodItem", pose);
+  mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
 }
 
 //==============================================================================
@@ -36,14 +41,22 @@ void Workspace::addToWorld(
     const std::string& name,
     const Eigen::Isometry3d& robotPose)
 {
-  const auto resourceRetriever
-      = std::make_shared<aikido::io::CatkinResourceRetriever>();
-  std::string urdfUri
-      = getRosParam<std::string>("/" + name + "/urdfUri", mNodeHandle);
   Eigen::Isometry3d pose
       = robotPose.inverse() * createIsometry(
                                   getRosParam<std::vector<double>>(
                                       "/" + name + "/pose", mNodeHandle));
+  addToWorldAtPose(skeleton, name, pose);
+}
+
+void Workspace::addToWorldAtPose(
+    dart::dynamics::SkeletonPtr& skeleton,
+    const std::string& name,
+    const Eigen::Isometry3d& pose)
+{
+  const auto resourceRetriever
+      = std::make_shared<aikido::io::CatkinResourceRetriever>();
+  std::string urdfUri
+      = getRosParam<std::string>("/" + name + "/urdfUri", mNodeHandle);
   skeleton = loadSkeletonFromURDF(resourceRetriever, urdfUri, pose);
   mWorld->addSkeleton(skeleton);
 }

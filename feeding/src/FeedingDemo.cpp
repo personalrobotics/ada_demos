@@ -144,20 +144,18 @@ void FeedingDemo::closeHand()
 //==============================================================================
 void FeedingDemo::grabFoodWithForque()
 {
-  if (!mAdaReal && mWorkspace->getDefaultFoodItem())
+  if (!mWorkspace->getDefaultFoodItem())
   {
-    mAda->getHand()->grab(mWorkspace->getDefaultFoodItem());
+    mWorkspace->addDefaultFoodItemAtPose(mAda->getHand()->getEndEffectorBodyNode()->getTransform());
   }
+  mAda->getHand()->grab(mWorkspace->getDefaultFoodItem());
 }
 
 //==============================================================================
 void FeedingDemo::ungrabAndDeleteFood()
 {
-  if (!mAdaReal)
-  {
-    mAda->getHand()->ungrab();
-    mWorkspace->deleteFood();
-  }
+  mAda->getHand()->ungrab();
+  mWorkspace->deleteFood();
 }
 
 //==============================================================================
