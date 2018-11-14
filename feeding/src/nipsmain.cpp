@@ -144,8 +144,13 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         feedingDemo.moveAboveFood(foodTransform, 0, viewer, true);
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(800));
-      bool perceptionSuccessful =
-          perception.perceiveFood(foodTransform, true, viewer);
+
+      bool perceptionSuccessful = true;
+      if (adaReal) {
+        perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
+      } else {
+        foodTransform = feedingDemo.getDefaultFoodTransform();
+      }
       if (!perceptionSuccessful) {
         std::cout << "\033[1;33mI can't see the " << foodName
                   << " anymore...\033[0m" << std::endl;

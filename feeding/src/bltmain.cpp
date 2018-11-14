@@ -103,7 +103,7 @@ int bltmain(FeedingDemo& feedingDemo,
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
       }
     } else {
-      feedingDemo.moveAbovePlate();
+      feedingDemo.moveAbovePlate(viewer);
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       Eigen::Isometry3d foodTransform;
       perception.setFoodName("celery");

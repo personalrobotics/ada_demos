@@ -24,7 +24,7 @@ int defaultmain(FeedingDemo& feedingDemo,
       return 0;
     }
   }
-  feedingDemo.moveAbovePlate();
+  feedingDemo.moveAbovePlate(viewer);
 
   // ===== ABOVE FOOD =====
   std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
@@ -149,7 +149,7 @@ int defaultmain(FeedingDemo& feedingDemo,
         foodPickedUp = true;
       } else {
         std::cout << "\033[1;32mOoops! I think I didn't manage to pick up the " << foodName << ". Let me try again!\033[0;32m" << std::endl;
-        feedingDemo.moveAbovePlate();
+        feedingDemo.moveAbovePlate(viewer);
         bool perceptionSuccessful = perception.perceiveFood(foodTransform, false, viewer);
         if (!perceptionSuccessful) {
           std::cout << "\033[1;32mOoops! I can't find the " << foodName << " anymore! I think I lost it :(\033[0;32m" << std::endl;
@@ -199,7 +199,7 @@ int defaultmain(FeedingDemo& feedingDemo,
       return 0;
     }
   }
-  feedingDemo.moveAbovePlate();
+  feedingDemo.moveAbovePlate(viewer);
 
   // ===== DONE =====
   waitForUser("Demo finished.");

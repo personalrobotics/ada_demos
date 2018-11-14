@@ -59,6 +59,14 @@ int bltmain(FeedingDemo& feedingDemo,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
+
+int demomain(FeedingDemo& feedingDemo,
+                FTThresholdHelper& ftThresholdHelper,
+                Perception& perception,
+                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                ros::NodeHandle nodeHandle,
+                bool autoContinueDemo,
+                bool adaReal);
 };
 
 
@@ -97,6 +105,11 @@ int main(int argc, char** argv)
   handleArguments(argc, argv, adaReal, autoContinueDemo, useFTSensing);
   ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
+  #ifndef REWD_CONTROLLERS_FOUND
+    ROS_WARN_STREAM("Package rewd_controllers not found. The F/T sensor connection is not going to work.");
+    //useFTSensing = false;
+  #endif
+
   // start node
   ros::init(argc, argv, "feeding");
   ros::NodeHandle nodeHandle("~");
@@ -127,10 +140,6 @@ int main(int argc, char** argv)
   {
     // throw std::runtime_error(collisionCheckResult);
   }
-
-  ftThresholdHelper.init();
-  feedingDemo.closeHand();
-
 
   if (!waitForUser("Startup complete."))
   {

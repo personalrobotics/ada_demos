@@ -12,9 +12,7 @@ FeedingDemo::FeedingDemo(
 
   mWorld = std::make_shared<aikido::planner::World>("feeding");
 
-  std::string armTrajectoryExecutor = useFTSensing
-                                          ? "move_until_touch_topic_controller"
-                                          : "rewd_trajectory_controller";
+  std::string armTrajectoryExecutor = useFTSensing ? "move_until_touch_topic_controller" : "rewd_trajectory_controller";
 
   mAda = std::unique_ptr<ada::Ada>(
       new ada::Ada(
@@ -43,9 +41,10 @@ FeedingDemo::FeedingDemo(
           mAda->getHand()->getEndEffectorBodyNode());
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
-          // mWorkspace->getTable().get(),
+          mWorkspace->getTable().get(),
           mWorkspace->getWorkspaceEnvironment().get(),
-          mWorkspace->getWheelchair().get());
+          mWorkspace->getWheelchair().get()
+          );
   mCollisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
           mArmSpace, mAda->getArm()->getMetaSkeleton(), collisionDetector);
@@ -179,7 +178,56 @@ void FeedingDemo::moveToStartConfiguration()
 }
 
 //==============================================================================
-void FeedingDemo::moveAbovePlate()
+void FeedingDemo::moveAboveForque() {
+
+  double forkHolderAngle = getRosParam<double>("/study/forkHolderAngle", mNodeHandle);
+  std::vector<double> forkHolderTranslation = getRosParam<std::vector<double>>("/study/forkHolderTranslation", mNodeHandle);
+
+
+  auto aboveForqueTSR = pr_tsr::getDefaultPlateTSR();
+  Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
+// y positive is closer to wheelchair
+// z 
+  // forquePose.translation() = Eigen::Vector3d{0.57, -0.019, 0.012};
+  // forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.15, Eigen::Vector3d::UnitX()));
+  forquePose.translation() = Eigen::Vector3d{forkHolderTranslation[0], forkHolderTranslation[1], forkHolderTranslation[2]};
+  ROS_INFO_STREAM("fork holder angle: " << forkHolderAngle);
+  forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(forkHolderAngle, Eigen::Vector3d::UnitX()));
+  aboveForqueTSR.mT0_w = forquePose;
+  aboveForqueTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
+
+  aboveForqueTSR.mBw = createBwMatrixForTSR(
+      0.0001, 0.0001, 0, 0);
+  aboveForqueTSR.mTw_e.matrix()
+      *= mAda->getHand()->getEndEffectorTransform("plate")->matrix();
+
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveForqueTSR);
+  if (!trajectoryCompleted)
+  {
+    throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+//==============================================================================
+void FeedingDemo::moveIntoForque()
+{
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+      Eigen::Vector3d(0, 1, 0), 0.032);
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
+}
+
+//==============================================================================
+void FeedingDemo::moveOutOfForque()
+{
+  bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
+      Eigen::Vector3d(0, -1, 0), 0.04);
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
+}
+
+//==============================================================================
+void FeedingDemo::moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   double heightAbovePlate
       = getRosParam<double>("/feedingDemo/heightAbovePlate", mNodeHandle);
@@ -200,8 +248,15 @@ void FeedingDemo::moveAbovePlate()
   abovePlateTSR.mTw_e.matrix()
       *= eeTransform.matrix();
 
+  if (viewer) {
+    // tsrMarkers.push_back(viewer->addTSRMarker(abovePlateTSR, 100, "someTSRName"));
+  }
+
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits);
+  Eigen::VectorXd nominalConfiguration(6);
+  nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
+  // 0.7823, 3.0054, 4.4148, 2.3930, 2.1522, 0.03480;
+  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits, nominalConfiguration);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -238,8 +293,9 @@ void FeedingDemo::moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerVie
   abovePlateTSR.mTw_e.matrix()
       *= eeTransform.matrix();
 
-  // tsrMarkers.push_back(viewer->addTSRMarker(abovePlateTSR, 100, "someTSRName"));
-  // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+  if (viewer) {
+    // tsrMarkers.push_back(viewer->addTSRMarker(abovePlateTSR, 100, "someTSRName"));
+  }
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR);
   if (!trajectoryCompleted)
@@ -249,7 +305,7 @@ void FeedingDemo::moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerVie
 }
 
 //==============================================================================
-void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
+void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
@@ -264,7 +320,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   aikido::constraint::dart::TSR aboveFoodTSR;
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
-  if (fabs(angle) < 0.01) {
+  if (pickupAngleMode == 0) {
     aboveFoodTSR.mT0_w = foodTransform;
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(0.5 * , Eigen::Vector3d::UnitX()));
   } else {
@@ -278,7 +334,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
 
     // strawberry-style
-    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI + 0.5, Eigen::Vector3d::UnitX()));
   }
   aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -287,15 +343,15 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   float distance = heightAboveFood*0.85;
 
-  if (fabs(angle) < 0.01) {
+  if (pickupAngleMode == 0) {
     // vertical
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.01, 0, -distance};
-  } else if (!useAngledTranslation) {
+  } else if (pickupAngleMode == 1) {
     // grape style angled
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
   } else {
     // banana style angled
-    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(angle) * distance, 0, cos(angle) * distance};
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(M_PI*0.25) * distance, 0, cos(M_PI*0.25) * distance};
   }
 
   // tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
@@ -617,7 +673,7 @@ bool FeedingDemo::moveTowardsPerson(
 //==============================================================================
 void FeedingDemo::moveAwayFromPerson()
 {
-  Eigen::Vector3d targetPosition = mWorkspace->getPersonPose().translation() + Eigen::Vector3d(0, -0.3, 0);
+  Eigen::Vector3d targetPosition = mWorkspace->getPersonPose().translation() + Eigen::Vector3d(0, -0.2, 0);
   Eigen::Vector3d forqueTipPosition = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
   Eigen::Vector3d direction = targetPosition - forqueTipPosition;
 
@@ -629,4 +685,5 @@ void FeedingDemo::moveAwayFromPerson()
     throw std::runtime_error("Trajectory execution failed");
   }
 }
+
 };

@@ -39,7 +39,7 @@ int acquisitionmain(FeedingDemo& feedingDemo,
     bool stepSuccessful = false;
     while (!stepSuccessful) {
       try {
-        feedingDemo.moveAbovePlate();
+        feedingDemo.moveAbovePlate(viewer);
         stepSuccessful = true;
       } catch (std::runtime_error) {
         if (!waitForUser("Trajectory execution failed. Try again?")) {continue;}
