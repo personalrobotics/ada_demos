@@ -12,6 +12,11 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
              Perception& perception,
              aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
              ros::NodeHandle nodeHandle, bool autoContinueDemo, bool adaReal) {
+
+  // Print Robot Configuration
+  feedingDemo.printRobotConfiguration();
+  // current configuration << -1.47602, 2.90687, 1.00054, -2.07884, 1.44243, 1.32228;
+
   std::cout << std::endl
             << "\033[1;32m      ***** BITE TRANSFER NIPS DEMO *****\033[0m"
             << std::endl;
@@ -170,7 +175,7 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
                                                            currentTorque)) {
           std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
-        zForceBeforeSkewering = currentForce.z();
+        zForceBeforeSkewering = currentForce.x();
       }
 
       // ===== INTO FOOD =====
@@ -225,7 +230,7 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
                                                            currentTorque)) {
           std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
-        forceDifference = std::fabs(zForceBeforeSkewering - currentForce.z());
+        forceDifference = std::fabs(zForceBeforeSkewering - currentForce.x());
       }
       ROS_WARN_STREAM("force difference: " << forceDifference);
 

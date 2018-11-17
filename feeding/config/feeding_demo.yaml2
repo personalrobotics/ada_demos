@@ -21,7 +21,7 @@ ada:
   srdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.srdf
   endEffectorName: j2n6s200_forque_end_effector
   homeConfiguration: [3.89015, 3.34645, 2.28738, -1.39666, 2.96761, 2.49281]      # the start configuration of the robot joints
-  baseFramePose: [0.7, -0.15, -0.19, 0, 0, 3.1415]                                 # the transform between the robot base and the left front corner of the table
+  baseFramePose: [0.7, -0.1, -0.27, 0, 0, 3.1415]                                 # the transform between the robot base and the left front corner of the table
 
 # Workspace parameters
 plate:
@@ -30,29 +30,32 @@ plate:
 table:
   urdfUri: package://pr_ordata/data/furniture/table_feeding.urdf
   pose: [0.76, 0.38, -0.735, 0, 0, 0]
+  #pose: [0.74, 0.40, -0.72, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_ordata/data/objects/food_item.urdf
   pose: [.495, 0.19, 0.015, 3.1415, 0, 0]
 person: # the mannequin
   urdfUri: package://pr_ordata/data/objects/tom.urdf
-  pose: [0.425, -0.45, 0.502, 0, 3.1415, 3.1415]
+  pose: [0.425, -0.45, 0.502, 0, 0, 3.1415]
+  #pose: [0.425, -0.45, 0.472, 0, 0, 3.1415]
 workspaceEnvironment:
   urdfUri: package://pr_ordata/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0, 0, 0, 0]
 wheelchair:
   urdfUri: package://pr_ordata/data/furniture/wheelchair.urdf
-  pose: [0.0, 0.0, 0, 0, 0, 0]
+  pose: [0, 0, 0, 0, 0, 0]
 
 # Feeding demo movement parameters
 feedingDemo:
-  heightAbovePlate: 0.09
+  heightAbovePlate: 0.11
   heightAboveFood: 0.09
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
-  waitMillisecsAtFood: 00     # short pause after skewering the food
+  distBeforePush: 0.05
+  distAfterPush: 0.05
+  waitMillisecsAtFood: 500     # short pause after skewering the food
   waitMillisecsAtPerson: 5000   # long pause so person can take a bite
-  fixedFaceY: 0.23
 
 # Planning parameters
 planning:
@@ -72,16 +75,16 @@ planning:
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
-  ftTopic: /fingervision/fv_3_l/wrench
+  ftTopic: /forque/forqueSensor #/fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 3
+      force: 2
       torque: 2
     grabFood:       # active when going down to grab the food
       force: 3
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 5
+      force: 6 #3
       torque: 2
 
 # Perception parameters
@@ -97,30 +100,24 @@ perception:
 foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
-  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [3,3,3,3,3,3]
 
+  # bite acquistion
+  # names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
+  # forces: [15,        15,     15,      22.49,  17.48,       15]
+
+  # bite transfer
+  #names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
+  #forces: [15,        15,     15,      28,  17.48,       6]
+
+  #fingerVision
+  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "grape_green"]
+  forces: [3,        3,     3,      3,  3,       3, 3]
 study:
   skipSkewering: false
-  doForkPickup: false
-  # y positive is closer to wheelchair
-  # z 
-  forkHolderTranslation: [0.558, -0.023, 0.037]
-  forkHolderAngle: 0.0
-
-  # 0 straight
-  # 1 strawberry-style
-  # 2 banana-style
-  pickupAngleMode: 1
-
-
-
 
 
   # x: from operator
   # y: towards user 0.24
   # z: up
-
-  # 0.73
-  personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
+  personPose: [0.295, 0.24, 0.68, 0, 0, 3.1415]
   tiltOffset: [-0.04, 0, -0.04]
