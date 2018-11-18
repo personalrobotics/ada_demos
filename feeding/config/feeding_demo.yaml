@@ -45,7 +45,7 @@ wheelchair:
 
 # Feeding demo movement parameters
 feedingDemo:
-  heightAbovePlate: 0.09
+  heightAbovePlate: 0.15
   heightAboveFood: 0.09
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
@@ -75,13 +75,13 @@ ftSensor:
   ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 3
+      force: 5
       torque: 2
     grabFood:       # active when going down to grab the food
-      force: 3
+      force: 5
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 5
+      force: 35
       torque: 2
 
 # Perception parameters
@@ -98,7 +98,7 @@ foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [3,3,3,3,3,3]
+  forces: [3,3,3,3,10,3]
 
 study:
   skipSkewering: false

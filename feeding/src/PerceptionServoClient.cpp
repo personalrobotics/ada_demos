@@ -12,7 +12,7 @@
 
 static std::string JOINT_STATE_TOPIC_NAME = "/joint_states";
 
-#define THRESHOLD 5 // s to wait for good frame
+#define THRESHOLD 0.25 // s to wait for good frame
 
 namespace feeding {
 
@@ -281,6 +281,8 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
       ROS_WARN("Lost perception for too long. Reporting failure...");
       mExecutionDone = true;
       mNotFailed = false;
+    } else {
+      ROS_WARN_STREAM("Perception Failed. Since Last: " << sinceLast);
     }
   }
 

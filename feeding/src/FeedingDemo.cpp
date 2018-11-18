@@ -227,7 +227,7 @@ void FeedingDemo::moveOutOfForque()
 }
 
 //==============================================================================
-void FeedingDemo::moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
+bool FeedingDemo::moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
 {
   double heightAbovePlate
       = getRosParam<double>("/feedingDemo/heightAbovePlate", mNodeHandle);
@@ -256,11 +256,8 @@ void FeedingDemo::moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr v
   Eigen::VectorXd nominalConfiguration(6);
   nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
   // 0.7823, 3.0054, 4.4148, 2.3930, 2.1522, 0.03480;
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits, nominalConfiguration);
-  if (!trajectoryCompleted)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
+  // TODO: Remove this, return bool, ask user to press [ENTER] to retry or ^\ to quit.
+  return mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits, nominalConfiguration);
 }
 
 //==============================================================================

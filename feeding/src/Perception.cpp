@@ -285,7 +285,11 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
 
 bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
 {
-  mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
+  bool any_detected = mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
+  if(!any_detected) {
+    ROS_WARN("face perception failed");
+    return false;
+  }
 
   // just choose one for now
   for (int skeletonFrameIdx=0; skeletonFrameIdx<5; skeletonFrameIdx++) {
