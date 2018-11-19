@@ -61,6 +61,8 @@ feedingDemo:
   waitMillisecsAtFood: 500     # short pause after skewering the food
   waitMillisecsAtPerson: 5000   # long pause so person can take a bite
 
+numTrials: 100
+
 # Planning parameters
 planning:
   maxNumberOfTrials: 1

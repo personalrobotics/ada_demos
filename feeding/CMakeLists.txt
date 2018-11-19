@@ -11,6 +11,8 @@ add_executable(feeding
   src/skewerpushmain.cpp
   src/studymain.cpp
   src/bltmain.cpp
+  src/bltskewerpushmain.cpp
+  src/bltpushingmain.cpp
   src/acquisitionmain.cpp
   src/acquisitiontiltedmain.cpp
   src/FeedingDemo.cpp
