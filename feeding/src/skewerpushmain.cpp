@@ -118,12 +118,20 @@ int skewerpushmain(FeedingDemo& feedingDemo,
 
       // keep pushing until user says no, get feedback on how far to move
       // ===== PUSH FOOD ====
-      while (1) {
-        double pushDist = 0.0;
-        std::cout << std::endl << "\033[1;32mHow far do you want to push? (enter 0 to stop)\033[0m     > ";
-        std::cin >> pushDist;
-        if (pushDist == 0.0) {
-          break;
+//      while (1) {
+      std::string pushResponse;
+      std::cout << std::endl << "\033[1;32mShould we push? [y/n]\033[0m     > ";
+      pushResponse = "";
+      std::cin >> pushResponse;
+      if (!ros::ok()) {return 0;}
+      if (pushResponse == "y") {
+
+        if (!autoContinueDemo)
+        {
+          if (!waitForUser("Push Food"))
+          {
+            return 0;
+          }
         }
 
         if (!ftThresholdHelper.setThresholds(PUSH_FOOD_FT_THRESHOLD))
@@ -133,11 +141,12 @@ int skewerpushmain(FeedingDemo& feedingDemo,
         //feedingDemo.grabFoodWithForque();
 
         if (adaReal) {
-            feedingDemo.pushFood(angle, pushDist, forqueTransform);
+            feedingDemo.pushFood(angle, forqueTransform);
         } else {
-            feedingDemo.pushFood(angle, pushDist);
+            feedingDemo.pushFood(angle);
         }
       }
+ //     }
       break;
     }
     // ===== OUT OF FOOD =====

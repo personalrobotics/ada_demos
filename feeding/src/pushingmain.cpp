@@ -173,6 +173,11 @@ int pushingmain(FeedingDemo& feedingDemo,
       }
       //feedingDemo.grabFoodWithForque();
 
+      if (!ftThresholdHelper.setThresholds(PUSH_FOOD_FT_THRESHOLD))
+      {
+        return 1;
+      }
+
       if (adaReal) {
           feedingDemo.pushFood(angle, forqueTransform);
       } else {
