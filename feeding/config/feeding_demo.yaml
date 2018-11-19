@@ -56,7 +56,7 @@ feedingDemo:
   distBeforePush: 0.05
   distAfterPush: 0.05
   prePushOffset: -0.007
-  distToPush: 0.25
+  distToPush: 0.20
   pushVelLimit: 0.2
   waitMillisecsAtFood: 500     # short pause after skewering the food
   waitMillisecsAtPerson: 5000   # long pause so person can take a bite

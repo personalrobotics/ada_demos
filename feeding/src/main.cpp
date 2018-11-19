@@ -163,7 +163,7 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
-  return feeding::pushingmain(feedingDemo,
+  return feeding::skewerpushmain(feedingDemo,
                      ftThresholdHelper,
                      perception,
                      viewer,
