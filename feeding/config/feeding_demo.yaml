@@ -21,7 +21,7 @@ ada:
   srdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.srdf
   endEffectorName: j2n6s200_forque_end_effector
   homeConfiguration: [3.89015, 3.34645, 2.28738, -1.39666, 2.96761, 2.49281]      # the start configuration of the robot joints
-  baseFramePose: [0.7, -0.1, -0.27, 0, 0, 3.1415]                                 # the transform between the robot base and the left front corner of the table
+  baseFramePose: [0.7, -0.1, -0.25, 0, 0, 3.1415]                                 # the transform between the robot base and the left front corner of the table
 
 # Workspace parameters
 plate:
@@ -47,7 +47,7 @@ wheelchair:
 
 # Feeding demo movement parameters
 feedingDemo:
-  heightAbovePlate: 0.11
+  heightAbovePlate: 0.13
   heightAboveFood: 0.09
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   heightOutOfPlate: 0.01
@@ -79,19 +79,20 @@ planning:
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
-  ftTopic: /forque/forqueSensor #/fingervision/fv_3_l/wrench
+  # ftTopic: /forque/forqueSensor
+  ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 12
+      force: 10
       torque: 2
     grabFood:       # active when going down to grab the food
-      force: 3
+      force: 15
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
       force: 25 #3
       torque: 2
     pushFood:
-      force:  8
+      force:  25
       torque: 2
 
 # Perception parameters
