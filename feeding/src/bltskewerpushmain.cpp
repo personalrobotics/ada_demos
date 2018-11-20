@@ -1,14 +1,63 @@
-
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
+#include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
+#include <image_transport/image_transport.h>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 
 namespace feeding {
 
-int skewerpushmain(FeedingDemo& feedingDemo,
+std::atomic<bool> shouldRecordImage2{false};
+
+std::string return_current_time_and_date2()
+{
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+    return ss.str();
+}
+
+void imageCallback2(const sensor_msgs::ImageConstPtr& msg)
+{
+
+  if (shouldRecordImage2.load()) {
+    ROS_ERROR("recording image!");
+
+    cv_bridge::CvImagePtr cv_ptr;
+    try
+    {
+      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    }
+    catch (cv_bridge::Exception& e)
+    {
+      ROS_ERROR("cv_bridge exception: %s", e.what());
+      return;
+    }
+
+    // cv::namedWindow("image", WINDOW_AUTOSIZE);
+    // cv::imshow("image", cv_ptr->image);
+    // cv::waitKey(30);
+
+    static int image_count = 0;
+    // std::stringstream sstream;
+    std::string imageFile = "/home/herb/Images/" + return_current_time_and_date2() + ".png";
+    // sstream << imageFile;
+    bool worked = cv::imwrite( imageFile,  cv_ptr->image );
+    image_count++;
+    ROS_INFO_STREAM("image saved to " << imageFile << ", worked: " << worked);
+    shouldRecordImage2.store(false);
+  }
+}
+
+int bltskewerpushmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
@@ -21,8 +70,15 @@ int skewerpushmain(FeedingDemo& feedingDemo,
     return 1;
   }
 
-  bool done = false;
-  while (!done) {
+  image_transport::ImageTransport it(nodeHandle);
+  // ros::Subscriber sub_info = nodeHandle.subscribe("/camera/color/camera_info", 1, cameraInfo);
+  image_transport::Subscriber sub = it.subscribe("/data_collection/target_image", 1, imageCallback2/*, image_transport::TransportHints("compressed")*/);
+
+  int numTrials = getRosParam<int>("/numTrials", nodeHandle);
+  for (int trial=0; trial<numTrials; trial++)
+  {
+    std::cout << "\033[1;33mSTARTING TRIAL " << trial << "\033[0m" << std::endl;
+  
     // ===== ABOVE PLATE =====
     if (!autoContinueDemo)
     {
@@ -32,6 +88,13 @@ int skewerpushmain(FeedingDemo& feedingDemo,
       }
     }
     feedingDemo.moveAbovePlate();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    shouldRecordImage2.store(true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    while (shouldRecordImage2.load()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 
     // ===== ABOVE FOOD =====
     std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
@@ -58,6 +121,13 @@ int skewerpushmain(FeedingDemo& feedingDemo,
       }
       feedingDemo.moveAboveFood(foodTransform, 0, viewer);
 
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      shouldRecordImage2.store(true);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      while (shouldRecordImage2.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+
       double zForceBeforeSkewering = 0;
       if (adaReal && ftThresholdHelper.startDataCollection(20)) {
         Eigen::Vector3d currentForce, currentTorque;
@@ -83,6 +153,13 @@ int skewerpushmain(FeedingDemo& feedingDemo,
       }
       feedingDemo.rotateForque(foodTransform, angle, viewer);
 
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      shouldRecordImage2.store(true);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      while (shouldRecordImage2.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+
       // ===== INTO TO FOOD ====
       if (!autoContinueDemo)
       {
@@ -102,6 +179,13 @@ int skewerpushmain(FeedingDemo& feedingDemo,
       }
       feedingDemo.moveIntoFood();
 
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      shouldRecordImage2.store(true);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      while (shouldRecordImage2.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+
       // ===== MOVE OUT OF PLATE ====
       if (!autoContinueDemo)
       {
@@ -115,6 +199,13 @@ int skewerpushmain(FeedingDemo& feedingDemo,
         return 1;
       }
       feedingDemo.moveOutOfPlate();
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      shouldRecordImage2.store(true);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      while (shouldRecordImage2.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
 
       // keep pushing until user says no, get feedback on how far to move
       // ===== PUSH FOOD ====
@@ -163,14 +254,21 @@ int skewerpushmain(FeedingDemo& feedingDemo,
     }
     feedingDemo.moveOutOfFood();
 
-    std::string doneResponse;
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    shouldRecordImage2.store(true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    while (shouldRecordImage2.load()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+
+/*    std::string doneResponse;
     std::cout << std::endl << "\033[1;32mShould we keep going? [y/n]\033[0m     > ";
     doneResponse = "";
     std::cin >> doneResponse;
     if (!ros::ok()) {return 0;}
     if (doneResponse == "n") {
       done = true;
-    }
+    }*/
   }
 
   // ===== DONE =====

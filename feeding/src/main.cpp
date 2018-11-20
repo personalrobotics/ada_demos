@@ -67,6 +67,22 @@ int bltmain(FeedingDemo& feedingDemo,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
+
+int bltskewerpushmain(FeedingDemo& feedingDemo,
+                FTThresholdHelper& ftThresholdHelper,
+                Perception& perception,
+                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                ros::NodeHandle nodeHandle,
+                bool autoContinueDemo,
+                bool adaReal);
+
+int bltpushingmain(FeedingDemo& feedingDemo,
+                FTThresholdHelper& ftThresholdHelper,
+                Perception& perception,
+                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                ros::NodeHandle nodeHandle,
+                bool autoContinueDemo,
+                bool adaReal);
 };
 
 
