@@ -95,7 +95,8 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
           return 0;
         }
       }
-      feedingDemo.moveAbovePlate();
+      if (!viewer) {ROS_INFO("nipsmain: viewer null");} else {ROS_INFO("nipsmain: viewer not null");}
+      feedingDemo.moveAbovePlate(viewer);
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
       // ===== PERCEPTION =====

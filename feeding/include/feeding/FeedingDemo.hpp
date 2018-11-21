@@ -140,6 +140,8 @@ private:
   std::unique_ptr<PerceptionServoClient> mServoClient;
 
   std::vector<aikido::rviz::TSRMarkerPtr> tsrMarkers;
+
+  aikido::rviz::FrameMarkerPtr frameMarker;
 };
 }
 
