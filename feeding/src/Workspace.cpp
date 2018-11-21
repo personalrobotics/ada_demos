@@ -24,8 +24,8 @@ Workspace::Workspace(
 
   if (!adaReal)
   {
-    // addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
-    // mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
+    addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
+    mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
     addToWorld(mPerson, "person", robotPose);
   }
 }

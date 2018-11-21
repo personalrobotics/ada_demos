@@ -1,5 +1,6 @@
 #include "feeding/FeedingDemo.hpp"
 #include <pr_tsr/plate.hpp>
+#include <aikido/rviz/TrajectoryMarker.hpp>
 #include "feeding/util.hpp"
 
 namespace feeding {
@@ -254,7 +255,34 @@ void FeedingDemo::moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr v
   Eigen::VectorXd nominalConfiguration(6);
   nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
   // 0.7823, 3.0054, 4.4148, 2.3930, 2.1522, 0.03480;
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits, nominalConfiguration);
+
+  // bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits, nominalConfiguration);
+
+  bool trajectoryCompleted = false;
+  auto trajectory = mAdaMover->planArmToTSR(abovePlateTSR, nominalConfiguration);
+
+  aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
+  dart::dynamics::BodyNodePtr endEffector = mAda->getMetaSkeleton()->getBodyNode("j2n6s200_forque_end_effector");
+  // aikido::rviz::FrameMarkerPtr frameMarker;
+
+  // if (trajectory && endEffector) {
+  //   // trajectoryMarkerPtr = viewer->addTrajectoryMarker(trajectory, mAda->getMetaSkeleton(), *endEffector, Eigen::Vector4d{1,1,1,1}, 0.01, 16u);
+  //   frameMarker = viewer->addFrame(endEffector);
+  // }
+
+  // trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
+  
+  if (!viewer) {
+    ROS_WARN("viewer is nullptr");
+  } else if (!endEffector) {
+    ROS_WARN("endEffector is nullptr");
+  } else if (!trajectory) {
+    ROS_WARN("trajectory is nullptr");
+  } else {
+    trajectoryMarkerPtr = viewer->addTrajectoryMarker(trajectory, mAda->getArm()->getMetaSkeleton(), *endEffector, Eigen::Vector4d{1,1,1,1}, 0.01, 16u);
+  }
+  trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
+
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
