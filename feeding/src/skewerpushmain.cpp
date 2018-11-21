@@ -57,16 +57,7 @@ int skewerpushmain(FeedingDemo& feedingDemo,
         }
       }
       feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-
-      double zForceBeforeSkewering = 0;
-      if (adaReal && ftThresholdHelper.startDataCollection(20)) {
-        Eigen::Vector3d currentForce, currentTorque;
-        while (!ftThresholdHelper.isDataCollectionFinished(currentForce, currentTorque)) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        }
-        zForceBeforeSkewering = currentForce.z();
-      }
-
+      
       // ===== ROTATE FORQUE ====
       std::cout << std::endl << "\033[1;32mWhat angle do you want to push food at in degrees?\033[0m     > ";
       float angle = 0;

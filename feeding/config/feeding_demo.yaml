@@ -50,7 +50,7 @@ feedingDemo:
   heightAbovePlate: 0.13
   heightAboveFood: 0.09
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
-  heightOutOfPlate: 0.01
+  heightOutOfPlate: 0.012
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
   distBeforePush: 0.05
@@ -85,16 +85,16 @@ ftSensor:
   ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 10
+      force: 20
       torque: 2
     grabFood:       # active when going down to grab the food
       force: 15
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 25 #3
+      force: 50 #3
       torque: 2
     pushFood:
-      force:  25
+      force:  2
       torque: 2
 
 # Perception parameters
