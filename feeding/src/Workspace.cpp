@@ -65,6 +65,7 @@ void Workspace::addToWorldAtPose(
 void Workspace::deleteFood()
 {
   mWorld->removeSkeleton(mDefaultFoodItem);
+  mDefaultFoodItem = nullptr;
 }
 
 //==============================================================================

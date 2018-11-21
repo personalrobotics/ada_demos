@@ -121,6 +121,7 @@ int main(int argc, char** argv)
   FeedingDemo feedingDemo(adaReal, useFTSensing, nodeHandle);
 
   FTThresholdHelper ftThresholdHelper(adaReal && useFTSensing, nodeHandle);
+  ftThresholdHelper.init();
 
   Perception perception(
       feedingDemo.getWorld(),

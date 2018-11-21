@@ -38,6 +38,7 @@ void FTThresholdHelper::init()
 
   std::string ftTopic = getRosParam<std::string>(
               "/ftSensor/ftTopic", mNodeHandle);
+  ROS_INFO_STREAM("FTThresholdHelper is listening for " << ftTopic);
   mForceTorqueDataSub = mNodeHandle.subscribe(ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
   #endif
 }
