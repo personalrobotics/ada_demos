@@ -64,7 +64,18 @@ void Workspace::addToWorldAtPose(
 //==============================================================================
 void Workspace::deleteFood()
 {
-  mWorld->removeSkeleton(mDefaultFoodItem);
+  auto freeJoint
+        = dynamic_cast<dart::dynamics::FreeJoint*>(mDefaultFoodItem->getRootJoint());
+
+  if (!freeJoint)
+    throw std::runtime_error(
+        "Unable to cast Skeleton's root joint to FreeJoint.");
+
+  // for some reason the visualisation doesn't disappear properly
+  Eigen::Isometry3d nowhere = Eigen::Isometry3d::Identity();
+  nowhere.translation() = Eigen::Vector3d(0,0,-10000);
+  freeJoint->setTransform(nowhere);
+  //mWorld->removeSkeleton(mDefaultFoodItem);
   mDefaultFoodItem = nullptr;
 }
 
