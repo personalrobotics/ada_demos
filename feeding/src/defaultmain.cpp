@@ -11,10 +11,11 @@ namespace feeding {
 int defaultmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal) {
+
+  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
 
   // ===== ABOVE PLATE =====
   if (!autoContinueDemo)

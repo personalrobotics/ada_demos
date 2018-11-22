@@ -11,13 +11,13 @@ namespace feeding {
 int demomain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal) 
 {
     ftThresholdHelper.init();
 
+  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
 
   std::cout << std::endl << "\033[1;32m      ***** DEMO MODE *****\033[0m" << std::endl;
 

@@ -10,8 +10,10 @@ namespace feeding {
 
 int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
              Perception& perception,
-             aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
              ros::NodeHandle nodeHandle, bool autoContinueDemo, bool adaReal) {
+
+  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
+
   std::cout << std::endl
             << "\033[1;32m      ***** BITE TRANSFER NIPS DEMO *****\033[0m"
             << std::endl;

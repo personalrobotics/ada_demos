@@ -126,6 +126,10 @@ public:
 
   std::unique_ptr<AdaMover> mAdaMover;
 
+  void visualizeTrajectory(aikido::trajectory::TrajectoryPtr trajectory);
+
+  aikido::rviz::WorldInteractiveMarkerViewerPtr getViewer();
+
 private:
   bool mIsFTSensingEnabled = false;
   bool mAdaReal;
@@ -141,7 +145,9 @@ private:
 
   std::vector<aikido::rviz::TSRMarkerPtr> tsrMarkers;
 
+  aikido::rviz::WorldInteractiveMarkerViewerPtr mViewer;
   aikido::rviz::FrameMarkerPtr frameMarker;
+  aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
 };
 }
 

@@ -55,6 +55,14 @@ FeedingDemo::FeedingDemo(
   mAdaMover = std::unique_ptr<AdaMover>(
       new AdaMover(*mAda, mArmSpace, mCollisionFreeConstraint, nodeHandle));
 
+  // visualization
+  mViewer
+      = std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
+          mWorld,
+          getRosParam<std::string>("/visualization/topicName", nodeHandle),
+          getRosParam<std::string>("/visualization/baseFrameName", nodeHandle));
+  mViewer->setAutoUpdate(true);
+
   if (mAdaReal)
   {
     mAda->startTrajectoryExecutor();
@@ -258,34 +266,29 @@ void FeedingDemo::moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr v
 
   // bool trajectoryCompleted = mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits, nominalConfiguration);
 
-  bool trajectoryCompleted = false;
   auto trajectory = mAdaMover->planArmToTSR(abovePlateTSR, nominalConfiguration);
-
-  aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
-  dart::dynamics::BodyNodePtr endEffector = mAda->getMetaSkeleton()->getBodyNode("j2n6s200_forque_end_effector");
-  // aikido::rviz::FrameMarkerPtr frameMarker;
-
-  // if (trajectory && endEffector) {
-  //   // trajectoryMarkerPtr = viewer->addTrajectoryMarker(trajectory, mAda->getMetaSkeleton(), *endEffector, Eigen::Vector4d{1,1,1,1}, 0.01, 16u);
-  //   frameMarker = viewer->addFrame(endEffector);
-  // }
-
-  // trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
-  
-  if (!viewer) {
-    ROS_WARN("viewer is nullptr");
-  } else if (!endEffector) {
-    ROS_WARN("endEffector is nullptr");
-  } else if (!trajectory) {
-    ROS_WARN("trajectory is nullptr");
-  } else {
-    trajectoryMarkerPtr = viewer->addTrajectoryMarker(trajectory, mAda->getArm()->getMetaSkeleton(), *endEffector, Eigen::Vector4d{1,1,1,1}, 0.01, 16u);
-  }
-  trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
+  visualizeTrajectory(trajectory);
+  bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
 
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
+  }
+}
+
+void FeedingDemo::visualizeTrajectory(aikido::trajectory::TrajectoryPtr trajectory) {
+  dart::dynamics::BodyNodePtr endEffector = mAda->getMetaSkeleton()->getBodyNode("j2n6s200_forque_end_effector");
+
+  if (!mViewer) {
+    ROS_WARN("Visualize trajectory: viewer is nullptr");
+  } else if (!endEffector) {
+    ROS_WARN("Visualize trajectory: endEffector is nullptr");
+  } else if (!trajectory) {
+    ROS_WARN("Visualize trajectory: trajectory is nullptr");
+  } else {
+    mViewer->removeTrajectoryMarker(trajectoryMarkerPtr);
+    trajectoryMarkerPtr = nullptr;
+    trajectoryMarkerPtr = mViewer->addTrajectoryMarker(trajectory, mAda->getArm()->getMetaSkeleton(), *endEffector, Eigen::Vector4d{1,1,1,1}, 0.01, 16u);
   }
 }
 
@@ -383,7 +386,10 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, int pick
   // tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
   // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
 
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
+  auto trajectory = mAdaMover->planArmToTSR(aboveFoodTSR);
+  visualizeTrajectory(trajectory);
+  bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
+
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -509,7 +515,9 @@ void FeedingDemo::moveInFrontOfPerson()
       *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR, velocityLimits);
+  auto trajectory = mAdaMover->planArmToTSR(personTSR);
+  visualizeTrajectory(trajectory);
+  bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -547,7 +555,9 @@ void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerView
   
   bool trajectoryCompleted = false;
     try {
-      trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+      auto trajectory = mAdaMover->planArmToTSR(personTSR);
+      visualizeTrajectory(trajectory);
+      bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
     } catch(std::runtime_error e) {
       ROS_WARN("tilt up trajectory failed!");
       continue;
@@ -587,7 +597,9 @@ void FeedingDemo::tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerVi
 
     bool trajectoryCompleted = false;
     try {
-      trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+      auto trajectory = mAdaMover->planArmToTSR(personTSR);
+      visualizeTrajectory(trajectory);
+      bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
     } catch(std::runtime_error e) {
       ROS_WARN("tilt down trajectory failed!");
       continue;
@@ -637,7 +649,9 @@ void FeedingDemo::moveDirectlyToPerson(bool tilted, aikido::rviz::WorldInteracti
   // tsrMarkers.push_back(viewer->addTSRMarker(personTSR, 100, "someTSRName"));
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR, velocityLimits);
+  auto trajectory = mAdaMover->planArmToTSR(personTSR);
+  visualizeTrajectory(trajectory);
+  bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -710,6 +724,10 @@ void FeedingDemo::moveAwayFromPerson()
   {
     throw std::runtime_error("Trajectory execution failed");
   }
+}
+
+aikido::rviz::WorldInteractiveMarkerViewerPtr FeedingDemo::getViewer() {
+  return mViewer;
 }
 
 };

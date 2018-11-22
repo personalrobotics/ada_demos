@@ -339,8 +339,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   auto ulimits = mMetaSkeleton->getPositionUpperLimits();
   for (int i = 0; i < indices.size(); ++i)
   {
-      llimits(i) = tempLower[i];
-      ulimits(i) = tempUpper[i];
+      llimits(indices[i]) = tempLower[i];
+      ulimits(indices[i]) = tempUpper[i];
   }
   mMetaSkeleton->setPositionLowerLimits(llimits);
   mMetaSkeleton->setPositionUpperLimits(ulimits);
