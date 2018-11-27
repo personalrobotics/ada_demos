@@ -13,7 +13,7 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
              ros::NodeHandle nodeHandle, bool autoContinueDemo, bool adaReal) {
 
   aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
-  
+
   while(true) {
     // Print Robot Configuration
     feedingDemo.printRobotConfiguration();
@@ -245,6 +245,7 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         if (forceDifference > 0) {
           foodPickedUp = true;
         } else {
+          feedingDemo.ungrabAndDeleteFood();
           if (tries == 1) {
             std::cout
                 << "\033[1;32mOoops! I think I didn't manage to pick up the "
