@@ -11,6 +11,9 @@ namespace feeding {
 int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
              Perception& perception,
              ros::NodeHandle nodeHandle, bool autoContinueDemo, bool adaReal) {
+
+  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
+  
   while(true) {
     // Print Robot Configuration
     feedingDemo.printRobotConfiguration();
