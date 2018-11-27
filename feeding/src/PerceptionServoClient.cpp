@@ -226,7 +226,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     mLastSuccess = std::chrono::system_clock::now();
     // Generate a new reference trajectory to the goal pose
     auto planningStartTime = std::chrono::steady_clock::now();
-    mCurrentTrajectory = planToGoalPose(goalPose);
+    mCurrentTrajectory = planToGoalPoseAndResetMetaSkeleton(goalPose);
     if (!mCurrentTrajectory && mExecutionDone)
     {
     timerMutex.unlock();
@@ -309,6 +309,24 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
     goalPose.translation() = goalPose.translation() + originalDirection * mOriginalDirectionExtension;
   }
   return successful;
+}
+
+aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPoseAndResetMetaSkeleton(const Eigen::Isometry3d& goalPose) {
+  auto trajectory = planToGoalPose(goalPose);
+
+  std::vector<int> indices{0,3,4,5};
+  auto llimits = mMetaSkeleton->getPositionLowerLimits();
+  auto ulimits = mMetaSkeleton->getPositionUpperLimits();
+
+  for (int i = 0; i < indices.size(); ++i)
+    {
+        llimits(indices[i]) = -dart::math::constantsd::inf();
+        ulimits(indices[i]) = dart::math::constantsd::inf();
+    }
+    mMetaSkeleton->setPositionLowerLimits(llimits);
+    mMetaSkeleton->setPositionUpperLimits(ulimits);
+
+    return trajectory;
 }
 
 //==============================================================================

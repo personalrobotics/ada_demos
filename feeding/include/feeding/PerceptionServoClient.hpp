@@ -52,10 +52,13 @@ protected:
   void jointStateUpdateCallback(const sensor_msgs::JointState::ConstPtr& msg);
 
   bool updatePerception(Eigen::Isometry3d& goalPose);
+  
   aikido::trajectory::SplinePtr planToGoalPose(
       const Eigen::Isometry3d& goalPose);
 
   double getElapsedTime();
+
+  aikido::trajectory::SplinePtr planToGoalPoseAndResetMetaSkeleton(const Eigen::Isometry3d& goalPose);
 
   ::ros::NodeHandle mNode;
   boost::function<bool(Eigen::Isometry3d&)> mGetTransform;
