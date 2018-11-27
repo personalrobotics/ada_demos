@@ -23,6 +23,8 @@ public:
       ros::NodeHandle nodeHandle);
 
 
+  aikido::trajectory::TrajectoryPtr planArmToTSR(const aikido::constraint::dart::TSR& tsr, const Eigen::VectorXd& nominalConfiguration = Eigen::VectorXd(0));
+
   bool moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits = std::vector<double>());
 
   /// Moves the end effector to a TSR.

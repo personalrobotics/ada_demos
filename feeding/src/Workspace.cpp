@@ -30,20 +30,33 @@ Workspace::Workspace(
   }
 }
 
+void Workspace::addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose) {
+  addToWorldAtPose(mDefaultFoodItem, "defaultFoodItem", pose);
+  mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
+}
+
 //==============================================================================
 void Workspace::addToWorld(
     dart::dynamics::SkeletonPtr& skeleton,
     const std::string& name,
     const Eigen::Isometry3d& robotPose)
 {
-  const auto resourceRetriever
-      = std::make_shared<aikido::io::CatkinResourceRetriever>();
-  std::string urdfUri
-      = getRosParam<std::string>("/" + name + "/urdfUri", mNodeHandle);
   Eigen::Isometry3d pose
       = robotPose.inverse() * createIsometry(
                                   getRosParam<std::vector<double>>(
                                       "/" + name + "/pose", mNodeHandle));
+  addToWorldAtPose(skeleton, name, pose);
+}
+
+void Workspace::addToWorldAtPose(
+    dart::dynamics::SkeletonPtr& skeleton,
+    const std::string& name,
+    const Eigen::Isometry3d& pose)
+{
+  const auto resourceRetriever
+      = std::make_shared<aikido::io::CatkinResourceRetriever>();
+  std::string urdfUri
+      = getRosParam<std::string>("/" + name + "/urdfUri", mNodeHandle);
   skeleton = loadSkeletonFromURDF(resourceRetriever, urdfUri, pose);
   mWorld->addSkeleton(skeleton);
 }
@@ -51,7 +64,19 @@ void Workspace::addToWorld(
 //==============================================================================
 void Workspace::deleteFood()
 {
-  mWorld->removeSkeleton(mDefaultFoodItem);
+  auto freeJoint
+        = dynamic_cast<dart::dynamics::FreeJoint*>(mDefaultFoodItem->getRootJoint());
+
+  if (!freeJoint)
+    throw std::runtime_error(
+        "Unable to cast Skeleton's root joint to FreeJoint.");
+
+  // for some reason the visualisation doesn't disappear properly
+  Eigen::Isometry3d nowhere = Eigen::Isometry3d::Identity();
+  nowhere.translation() = Eigen::Vector3d(0,0,-10000);
+  freeJoint->setTransform(nowhere);
+  //mWorld->removeSkeleton(mDefaultFoodItem);
+  mDefaultFoodItem = nullptr;
 }
 
 //==============================================================================

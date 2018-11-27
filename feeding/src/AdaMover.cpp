@@ -25,6 +25,24 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
 }
 
 //==============================================================================
+aikido::trajectory::TrajectoryPtr AdaMover::planArmToTSR(const aikido::constraint::dart::TSR& tsr, const Eigen::VectorXd& nominalConfiguration)
+{
+  auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
+
+  auto trajectory = mAda.planToTSR(
+      mArmSpace,
+      mAda.getArm()->getMetaSkeleton(),
+      mAda.getHand()->getEndEffectorBodyNode(),
+      goalTSR,
+      nominalConfiguration,
+      mCollisionFreeConstraint,
+      getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
+      getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
+
+  return trajectory;
+}
+
+//==============================================================================
 bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits, const Eigen::VectorXd& nominalConfiguration)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);

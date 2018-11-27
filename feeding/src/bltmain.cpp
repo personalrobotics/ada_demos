@@ -60,11 +60,11 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 int bltmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal) {
 
+  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
     
     bool collectData = false;
 

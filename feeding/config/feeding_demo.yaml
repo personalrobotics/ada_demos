@@ -45,8 +45,8 @@ wheelchair:
 
 # Feeding demo movement parameters
 feedingDemo:
-  heightAbovePlate: 0.15
-  heightAboveFood: 0.09
+  heightAbovePlate: 0.13
+  heightAboveFood: 0.06
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
@@ -72,7 +72,8 @@ planning:
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
-  ftTopic: /fingervision/fv_3_l/wrench
+  ftTopic: /forque/forqueSensor
+  # ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
       force: 5
@@ -98,7 +99,7 @@ foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [3,3,3,3,10,3]
+  forces: [3,3,3,3,22,3]
 
 study:
   skipSkewering: false

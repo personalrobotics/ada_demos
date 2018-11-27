@@ -1,5 +1,6 @@
 #include "feeding/FeedingDemo.hpp"
 #include <pr_tsr/plate.hpp>
+#include <aikido/rviz/TrajectoryMarker.hpp>
 #include "feeding/util.hpp"
 
 namespace feeding {
@@ -53,6 +54,14 @@ FeedingDemo::FeedingDemo(
 
   mAdaMover = std::unique_ptr<AdaMover>(
       new AdaMover(*mAda, mArmSpace, mCollisionFreeConstraint, nodeHandle));
+
+  // visualization
+  mViewer
+      = std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
+          mWorld,
+          getRosParam<std::string>("/visualization/topicName", nodeHandle),
+          getRosParam<std::string>("/visualization/baseFrameName", nodeHandle));
+  mViewer->setAutoUpdate(true);
 
   if (mAdaReal)
   {
@@ -144,20 +153,18 @@ void FeedingDemo::closeHand()
 //==============================================================================
 void FeedingDemo::grabFoodWithForque()
 {
-  if (!mAdaReal && mWorkspace->getDefaultFoodItem())
+  if (!mWorkspace->getDefaultFoodItem())
   {
-    mAda->getHand()->grab(mWorkspace->getDefaultFoodItem());
+    mWorkspace->addDefaultFoodItemAtPose(mAda->getHand()->getEndEffectorBodyNode()->getTransform());
   }
+  mAda->getHand()->grab(mWorkspace->getDefaultFoodItem());
 }
 
 //==============================================================================
 void FeedingDemo::ungrabAndDeleteFood()
 {
-  if (!mAdaReal)
-  {
-    mAda->getHand()->ungrab();
-    mWorkspace->deleteFood();
-  }
+  mAda->getHand()->ungrab();
+  mWorkspace->deleteFood();
 }
 
 //==============================================================================
@@ -256,8 +263,26 @@ bool FeedingDemo::moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr v
   Eigen::VectorXd nominalConfiguration(6);
   nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
   // 0.7823, 3.0054, 4.4148, 2.3930, 2.1522, 0.03480;
-  // TODO: Remove this, return bool, ask user to press [ENTER] to retry or ^\ to quit.
-  return mAdaMover->moveArmToTSR(abovePlateTSR, velocityLimits, nominalConfiguration);
+
+  auto trajectory = mAdaMover->planArmToTSR(abovePlateTSR, nominalConfiguration);
+  visualizeTrajectory(trajectory);
+  return mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
+}
+
+void FeedingDemo::visualizeTrajectory(aikido::trajectory::TrajectoryPtr trajectory) {
+  dart::dynamics::BodyNodePtr endEffector = mAda->getMetaSkeleton()->getBodyNode("j2n6s200_forque_end_effector");
+
+  if (!mViewer) {
+    ROS_WARN("Visualize trajectory: viewer is nullptr");
+  } else if (!endEffector) {
+    ROS_WARN("Visualize trajectory: endEffector is nullptr");
+  } else if (!trajectory) {
+    ROS_WARN("Visualize trajectory: trajectory is nullptr");
+  } else {
+    mViewer->removeTrajectoryMarker(trajectoryMarkerPtr);
+    trajectoryMarkerPtr = nullptr;
+    trajectoryMarkerPtr = mViewer->addTrajectoryMarker(trajectory, mAda->getArm()->getMetaSkeleton(), *endEffector, Eigen::Vector4d{1,1,1,1}, 0.01, 16u);
+  }
 }
 
 //==============================================================================
@@ -354,7 +379,10 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, int pick
   // tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
   // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
 
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
+  auto trajectory = mAdaMover->planArmToTSR(aboveFoodTSR);
+  visualizeTrajectory(trajectory);
+  bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
+
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -480,7 +508,9 @@ void FeedingDemo::moveInFrontOfPerson()
       *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR, velocityLimits);
+  auto trajectory = mAdaMover->planArmToTSR(personTSR);
+  visualizeTrajectory(trajectory);
+  bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -518,7 +548,9 @@ void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerView
   
   bool trajectoryCompleted = false;
     try {
-      trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+      auto trajectory = mAdaMover->planArmToTSR(personTSR);
+      visualizeTrajectory(trajectory);
+      bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
     } catch(std::runtime_error e) {
       ROS_WARN("tilt up trajectory failed!");
       continue;
@@ -558,7 +590,9 @@ void FeedingDemo::tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerVi
 
     bool trajectoryCompleted = false;
     try {
-      trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR);
+      auto trajectory = mAdaMover->planArmToTSR(personTSR);
+      visualizeTrajectory(trajectory);
+      bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
     } catch(std::runtime_error e) {
       ROS_WARN("tilt down trajectory failed!");
       continue;
@@ -608,7 +642,9 @@ void FeedingDemo::moveDirectlyToPerson(bool tilted, aikido::rviz::WorldInteracti
   // tsrMarkers.push_back(viewer->addTSRMarker(personTSR, 100, "someTSRName"));
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(personTSR, velocityLimits);
+  auto trajectory = mAdaMover->planArmToTSR(personTSR);
+  visualizeTrajectory(trajectory);
+  bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -681,6 +717,10 @@ void FeedingDemo::moveAwayFromPerson()
   {
     throw std::runtime_error("Trajectory execution failed");
   }
+}
+
+aikido::rviz::WorldInteractiveMarkerViewerPtr FeedingDemo::getViewer() {
+  return mViewer;
 }
 
 };

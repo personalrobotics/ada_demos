@@ -11,11 +11,11 @@ namespace feeding {
 int acquisitionmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal) {
 
+  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
 
   std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
   std::vector<double> skeweringForces = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);

@@ -15,7 +15,6 @@ namespace feeding {
 int defaultmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
@@ -23,7 +22,6 @@ int defaultmain(FeedingDemo& feedingDemo,
 int nipsmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
@@ -31,7 +29,6 @@ int nipsmain(FeedingDemo& feedingDemo,
 int studymain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
@@ -39,7 +36,6 @@ int studymain(FeedingDemo& feedingDemo,
 int acquisitionmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
@@ -47,7 +43,6 @@ int acquisitionmain(FeedingDemo& feedingDemo,
 int acquisitiontiltedmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
@@ -55,7 +50,6 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
 int bltmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
@@ -63,7 +57,6 @@ int bltmain(FeedingDemo& feedingDemo,
 int demomain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
@@ -121,19 +114,12 @@ int main(int argc, char** argv)
   FeedingDemo feedingDemo(adaReal, useFTSensing, nodeHandle);
 
   FTThresholdHelper ftThresholdHelper(adaReal && useFTSensing, nodeHandle);
+  ftThresholdHelper.init();
 
   Perception perception(
       feedingDemo.getWorld(),
       feedingDemo.getAda().getMetaSkeleton(),
       nodeHandle);
-
-  // visualization
-  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer
-      = std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
-          feedingDemo.getWorld(),
-          getRosParam<std::string>("/visualization/topicName", nodeHandle),
-          getRosParam<std::string>("/visualization/baseFrameName", nodeHandle));
-  viewer->setAutoUpdate(true);
 
   std::string collisionCheckResult;
   if (!feedingDemo.isCollisionFree(collisionCheckResult))
@@ -153,7 +139,6 @@ int main(int argc, char** argv)
   return feeding::nipsmain(feedingDemo,
                      ftThresholdHelper,
                      perception,
-                     viewer,
                      nodeHandle,
                      autoContinueDemo,
                      adaReal);
