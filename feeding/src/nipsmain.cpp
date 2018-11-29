@@ -303,7 +303,9 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         }    // end food difference < threshold
         tries++;
       }  // end while (!foodPickedUp)
-    }    // end if (!skipSkewering)
+    } else {   // else (!skipSkewering)
+      feedingDemo.grabFoodWithForque();
+    }   // end if (!skipSkewering)
 
     // ===== IN FRONT OF PERSON =====
     if (!autoContinueDemo) {
@@ -346,10 +348,11 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
       std::cout << "Servoing failed. Falling back to direct movement..."
                 << std::endl;
       feedingDemo.moveInFrontOfPerson();
-      bool tilted = (stepIdx != 3);
-      feedingDemo.moveDirectlyToPerson(tilted, viewer);
     }
     */
+
+   bool tilted = (stepIdx != 3);
+   feedingDemo.moveDirectlyToPerson(tilted, viewer);
 
     // ===== EATING =====
     ROS_WARN("Human is eating");

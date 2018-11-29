@@ -71,14 +71,25 @@ bool AdaMover::moveToEndEffectorOffset(
 aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length, bool respectCollision)
 {
+  Eigen::IOFormat CommaInitFmt(
+      Eigen::StreamPrecision,
+      Eigen::DontAlignCols,
+      ", ",
+      ", ",
+      "",
+      "",
+      " << ",
+      ";");
+  auto defaultPose = mAda.getArm()->getMetaSkeleton()->getPositions();
+  ROS_INFO_STREAM("Current configuration" << defaultPose.format(CommaInitFmt));
   ROS_INFO_STREAM("Plan to end effector offset state: " << mAda.getArm()->getMetaSkeleton()->getPositions().matrix().transpose());
   ROS_INFO_STREAM("Plan to end effector offset direction: " << direction.matrix().transpose() << ",  length: " << length);
 
   auto skeleton = mAda.getArm()->getMetaSkeleton();
 
   std::vector<int> indices{0,3,4,5};
-  std::vector<double> tempLower{-6.28, -6.28, -6.28, -6.28};
-  std::vector<double> tempUpper{6.28, 6.28, 6.28, 6.28};
+  std::vector<double> tempLower{-12.56, -12.56, -12.56, -12.56};
+  std::vector<double> tempUpper{12.56, 12.56, 12.56, 12.56};
   auto llimits = skeleton->getPositionLowerLimits();
   auto ulimits = skeleton->getPositionUpperLimits();
   for (int i = 0; i < indices.size(); ++i)

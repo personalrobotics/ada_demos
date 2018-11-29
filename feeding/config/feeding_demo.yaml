@@ -45,8 +45,8 @@ wheelchair:
 
 # Feeding demo movement parameters
 feedingDemo:
-  heightAbovePlate: 0.13
-  heightAboveFood: 0.06
+  heightAbovePlate: 0.15
+  heightAboveFood: 0.07
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
@@ -82,7 +82,7 @@ ftSensor:
       force: 5
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 35
+      force: 45
       torque: 2
 
 # Perception parameters
@@ -102,7 +102,7 @@ foodItems:
   forces: [3,3,3,3,22,3]
 
 study:
-  skipSkewering: false
+  skipSkewering: true
   doForkPickup: false
   # y positive is closer to wheelchair
   # z 
@@ -124,4 +124,4 @@ study:
 
   # 0.73
   personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
-  tiltOffset: [-0.04, 0, -0.04]
+  tiltOffset: [-0.04, 0, -0.11]

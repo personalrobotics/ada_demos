@@ -353,8 +353,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
       = currentPose.translation() - mOriginalPose.translation();
 
   std::vector<int> indices{0,3,4,5};
-  std::vector<double> tempLower{-6.28, -6.28, -6.28, -6.28};
-  std::vector<double> tempUpper{6.28, 6.28, 6.28, 6.28};
+  std::vector<double> tempLower{-12.56, -12.56, -12.56, -12.56};
+  std::vector<double> tempUpper{12.56, 12.56, 12.56, 12.56};
   auto llimits = mMetaSkeleton->getPositionLowerLimits();
   auto ulimits = mMetaSkeleton->getPositionUpperLimits();
   for (int i = 0; i < indices.size(); ++i)
