@@ -12,7 +12,8 @@
 
 static std::string JOINT_STATE_TOPIC_NAME = "/joint_states";
 
-#define THRESHOLD 0.25 // s to wait for good frame
+// #define THRESHOLD 0.25 // s to wait for good frame
+#define THRESHOLD 50 // s to wait for good frame
 
 namespace feeding {
 
