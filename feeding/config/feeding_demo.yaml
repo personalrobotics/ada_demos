@@ -21,7 +21,7 @@ ada:
   srdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.srdf
   endEffectorName: j2n6s200_forque_end_effector
   # homeConfiguration: [3.89015, 3.34645, 2.28738, -1.39666, 2.96761, 2.49281]      # the start configuration of the robot joints
-  homeConfiguration: [-1.47592, 2.92294, 1.0031, -2.08511, 1.45103, 1.32185]      # the start configuration of the robot joints
+  homeConfiguration: [-2.06327, 4.48606, 4.37505, 2.94449, 2.0534, -0.947885]      # the start configuration of the robot joints
   baseFramePose: [0.7, -0.15, -0.19, 0, 0, 3.1415]                                 # the transform between the robot base and the left front corner of the table
 
 # Workspace parameters

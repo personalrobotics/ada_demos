@@ -474,14 +474,14 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     if (concatenatedTraj == nullptr)
       return nullptr;
 
-    dumpSplinePhasePlot(*spline1, "spline1.txt", 0.01);
-    dumpSplinePhasePlot(*spline2, "spline2.txt", 0.01);
-    dumpSplinePhasePlot(*concatenatedTraj, "concatenated.txt", 0.01);
+    // dumpSplinePhasePlot(*spline1, "spline1.txt", 0.01);
+    // dumpSplinePhasePlot(*spline2, "spline2.txt", 0.01);
+    // dumpSplinePhasePlot(*concatenatedTraj, "concatenated.txt", 0.01);
 
     auto timedTraj = computeKinodynamicTiming(
         *concatenatedTraj, mMaxVelocity, mMaxAcceleration, 1e-2, 9e-3);
 
-    dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
+    // dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
 
     if (timedTraj == nullptr)
       return nullptr;
@@ -507,7 +507,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   {
     aikido::trajectory::TrajectoryPtr trajectory2 = mAdaMover->planToEndEffectorOffset(
         direction2.normalized(), 
-        std::min(direction2.norm(), 0.2), false);
+        std::min(direction2.norm(), 0.08), false);
 
     if (!hasOriginalDirection) {
       originalDirection = direction2.normalized();

@@ -14,6 +14,18 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
 
   aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
 
+  // feedingDemo.moveInFrontOfPerson();
+
+  // Eigen::Vector3d direction{-0.00252998, 0.999293, -0.0375164};
+  // // auto result = feedingDemo.mAdaMover->planToEndEffectorOffset(direction, 0.180372, false);
+  // auto result = feedingDemo.mAdaMover->planToEndEffectorOffset(direction, 0.08, false);
+
+  // ROS_ERROR_STREAM("Result: " << std::to_string(result != nullptr));
+
+  // waitForUser("\033[1;32mDemo finished. Go again? ('n' to quit)\033[0;32m");
+
+  // return 0;
+
   while(true) {
     // Print Robot Configuration
     feedingDemo.printRobotConfiguration();

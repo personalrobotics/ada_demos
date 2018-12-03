@@ -496,7 +496,7 @@ void FeedingDemo::moveInFrontOfPerson()
 
   aikido::constraint::dart::TSR personTSR;
   Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
-  personPose.translation() = mWorkspace->getPersonPose().translation();
+  personPose.translation() = mWorkspace->getPersonPose().translation(); // + Eigen::Vector3d(0,0.2,0);
   personPose.linear()
       = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
