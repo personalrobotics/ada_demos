@@ -103,7 +103,7 @@ foodItems:
   forces: [3,3,3,3,4.4,3]
 
 study:
-  skipSkewering: true
+  skipSkewering: false
   doForkPickup: false
   # y positive is closer to wheelchair
   # z 
