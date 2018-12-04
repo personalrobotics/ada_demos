@@ -193,7 +193,7 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
                                                             currentTorque)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
           }
-          zForceBeforeSkewering = currentForce.x();
+          zForceBeforeSkewering = currentForce.z();
         }
 
         ROS_WARN_STREAM("force before food: " << zForceBeforeSkewering);
@@ -250,7 +250,7 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
                                                             currentTorque)) {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
           }
-          forceDifference = currentForce.x() - zForceBeforeSkewering;
+          forceDifference = currentForce.z() - zForceBeforeSkewering;
         }
         ROS_WARN_STREAM("force difference: " << forceDifference);
 

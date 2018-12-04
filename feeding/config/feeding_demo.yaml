@@ -73,8 +73,8 @@ planning:
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
-  # ftTopic: /forque/forqueSensor
-  ftTopic: /fingervision/fv_3_l/wrench
+  ftTopic: /forque/forqueSensor
+  # ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
       force: 5
@@ -100,7 +100,7 @@ foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [3,3,3,3,4.4,3]
+  forces: [10, 10, 10, 10, 10, 10]
 
 study:
   skipSkewering: false
