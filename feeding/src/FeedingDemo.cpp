@@ -254,11 +254,8 @@ void FeedingDemo::moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerVie
 }
 
 //==============================================================================
-void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
+void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float rotAngle, float angle, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
-  ROS_INFO_STREAM(foodTransform.matrix());
-  printRobotConfiguration();
-
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
   // If the robot is not simulated, we want to plan the trajectory to move a
@@ -272,13 +269,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   aikido::constraint::dart::TSR aboveFoodTSR;
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
-  ROS_INFO_STREAM("move above food food" << foodTransform.translation());
-  Eigen::Matrix3d mat;
- // mat = mAda->getArm()->getMetaSkeleton()->getPositions().matrix();
- // Eigen::AngleAxisd newAngleAxis(mat);
-  //ROS_INFO_STREAM("move above food" << mAda->getArm()->getMetaSkeleton()->getPositions().matrix() << "\n\n" << newAngleAxis.angle() << newAngleAxis.axis());
-  ROS_INFO_STREAM("move above food " << eeTransform.linear());
-  if (fabs(angle) < 0.01) {
+  if (pickupAngleMode == 0) {
     aboveFoodTSR.mT0_w = foodTransform;
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(0.5 * , Eigen::Vector3d::UnitX()));
   } else {
@@ -288,11 +279,13 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
     // celery-style
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
 
-    // banana-style
-    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
-
-    // strawberry-style
-    eeTransform.linear() = /*eeTransform.linear() * */Eigen::Matrix3d(/*Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * */Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    if(pickupAngleMode == 1) {
+      // strawberry-style
+      eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -rotAngle/*-M_PI * 0.5*/, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI + 0.5, Eigen::Vector3d::UnitX()));
+    } else {
+      // banana-style
+      eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -rotAngle/*M_PI * 0.5*/, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    }
   }
   aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -301,21 +294,24 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
 
   float distance = heightAboveFood*0.85;
 
-  if (fabs(angle) < 0.01) {
+  if (pickupAngleMode == 0) {
     // vertical
-    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, -distance};
-  } else if (!useAngledTranslation) {
-    // grape style angled
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.01, 0, -distance};
+  } else if (pickupAngleMode == 1) {
+    // strawberry style angled
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
   } else {
     // banana style angled
-    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, /*-sin(angle) * distance,*/ cos(angle) * distance};
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(M_PI*0.25) * distance, 0, cos(M_PI*0.25) * distance};
   }
 
   // tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
   // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
+  //visualizeTrajectory(trajectory);
+  //bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
+
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -414,11 +410,8 @@ void FeedingDemo::moveNextToFood(
 }
 
 //==============================================================================
-void FeedingDemo::rotateForque(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
+void FeedingDemo::rotateForque(const Eigen::Isometry3d& foodTransform, float angle, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
-  if (angle == 0) {
-      return;
-  }
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
   // If the robot is not simulated, we want to plan the trajectory to move a
@@ -435,8 +428,27 @@ void FeedingDemo::rotateForque(const Eigen::Isometry3d& foodTransform, float ang
   aikido::constraint::dart::TSR nextToFoodTSR;
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("food");
 
-  nextToFoodTSR.mT0_w = foodTransform;
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( /*(-M_PI * 0.5) -*/ -angle, Eigen::Vector3d::UnitZ()));
+ // Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
+  //defaultFoodTransform.translation() = foodTransform.translation();
+  nextToFoodTSR.mT0_w = foodTransform; //defaultFoodTransform;
+  if (pickupAngleMode != 0) {
+    Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
+    defaultFoodTransform.translation() = foodTransform.translation();
+    nextToFoodTSR.mT0_w = defaultFoodTransform;
+  }
+
+  Eigen::AngleAxisd rotation = /*Eigen::Matrix3d(*/Eigen::AngleAxisd(-angle, Eigen::Vector3d::UnitZ())/*)*/;
+  if (pickupAngleMode == 0) {
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(rotation);
+  } else if (pickupAngleMode == 1) {
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(rotation * Eigen::AngleAxisd(M_PI + 0.5, rotation * Eigen::Vector3d::UnitX()));
+        //Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI + 0.5, Eigen::Vector3d::UnitX()) * Eigen::AngleAxisd((M_PI * 0.5) -angle, Eigen::Vector3d::UnitZ()));
+
+  } else {
+    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(rotation * Eigen::AngleAxisd(M_PI - angle + 0.5, rotation * Eigen::Vector3d::UnitX()));// Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()) * Eigen::AngleAxisd((-M_PI * 0.5) -angle, Eigen::Vector3d::UnitZ()));
+
+    //eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ(), Eigen::AngleAxisd( /*(-M_PI * 0.5) -*/ -angle, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+  }
 
   nextToFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -447,7 +459,14 @@ void FeedingDemo::rotateForque(const Eigen::Isometry3d& foodTransform, float ang
 
   float xOff = cos(angle) * distBeforePush;
   float yOff = sin(angle) * distBeforePush;
-  nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, -distance};
+  if (pickupAngleMode == 0) {
+    nextToFoodTSR.mTw_e.translation() = /*rotation **/ Eigen::Vector3d{-0.01, 0, -distance};
+  } else if (pickupAngleMode == 1) {
+    nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
+  } else {
+    nextToFoodTSR.mTw_e.translation() = rotation * Eigen::Vector3d{-sin(M_PI*0.25) * distance, 0, cos(M_PI*0.25) * distance};
+  }
+  //nextToFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, -distance};
 
   bool trajectoryCompleted = mAdaMover->moveArmToTSR(nextToFoodTSR);
   if (!trajectoryCompleted)
@@ -616,7 +635,7 @@ void FeedingDemo::pushFood(float angle, double pushDist, Eigen::Isometry3d forqu
   double pushVelLimit
       = getRosParam<double>("/feedingDemo/pushVelLimit", mNodeHandle);
 
-  auto twist 
+  auto twist
       = getRosParam<std::vector<double>>("/ada/twist", mNodeHandle);
 
   Eigen::Vector6d foo(twist.data());
@@ -735,7 +754,7 @@ void FeedingDemo::pushFood(float angle, double pushDist, Eigen::Isometry3d forqu
       for (i = 0; i < foo3; i++) {
         std::getline(data, line);
       }
-    }    
+    }
   }*/
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted

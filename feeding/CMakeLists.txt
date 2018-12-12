@@ -7,17 +7,17 @@ find_package(rosbag REQUIRED)
 
 add_executable(feeding
   src/main.cpp
-  src/defaultmain.cpp
-  src/pushingmain.cpp
-  src/skewerpushmain.cpp
+  #  src/defaultmain.cpp
+  # src/pushingmain.cpp
+  #src/skewerpushmain.cpp
   src/datacollectionmain.cpp
   #src/scoopmain.cpp
-  src/studymain.cpp
+  # src/studymain.cpp
 #  src/bltmain.cpp
   #src/bltskewerpushmain.cpp
   #src/bltpushingmain.cpp
-  src/acquisitionmain.cpp
-  src/acquisitiontiltedmain.cpp
+  #src/acquisitionmain.cpp
+  #src/acquisitiontiltedmain.cpp
   src/FeedingDemo.cpp
   src/AdaMover.cpp
   src/FTThresholdHelper.cpp

@@ -12,7 +12,7 @@
 
 namespace feeding {
 
-int defaultmain(FeedingDemo& feedingDemo,
+/*int defaultmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
@@ -34,7 +34,7 @@ int skewerpushmain(FeedingDemo& feedingDemo,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
-                bool adaReal);
+                bool adaReal);*/
 
 int datacollectionmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
@@ -52,7 +52,7 @@ int scoopmain(FeedingDemo& feedingDemo,
                 bool autoContinueDemo,
                 bool adaReal);
 */
-int studymain(FeedingDemo& feedingDemo,
+/*int studymain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
@@ -75,7 +75,7 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
-
+*/
 /*int bltmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,

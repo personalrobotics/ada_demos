@@ -35,7 +35,7 @@ std::string return_current_time_and_date()
     return ss.str();
 }
 
-void infoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::string folder, std::vector<std::string> foods, 
+void infoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
                    std::vector<std::string> angleNames)
 {
 
@@ -51,7 +51,7 @@ void infoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::s
     std::string direction = angleNames[curdirection.load()];
     int trial = curtrial.load();
     //std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
-    std::string infoFile = "/home/herb/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
+    std::string infoFile = "/home/herb/Workspace/ryan_ws/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
     // sstream << imageFile;
 
     rosbag::Bag bag;
@@ -61,7 +61,7 @@ void infoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::s
   }
 }
 
-void infoCallback2(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::string folder, std::vector<std::string> foods, 
+void infoCallback2(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
                    std::vector<std::string> angleNames)
 {
 
@@ -77,7 +77,7 @@ void infoCallback2(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::
     std::string direction = angleNames[curdirection.load()];
     int trial = curtrial.load();
     //std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
-    std::string infoFile = "/home/herb/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
+    std::string infoFile = "/home/herb/Workspace/ryan_ws/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
     // sstream << imageFile;
 
     rosbag::Bag bag;
@@ -87,7 +87,7 @@ void infoCallback2(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::
   }
 }
 
-void imageCallback(const sensor_msgs::ImageConstPtr& msg, int type, std::string folder, std::vector<std::string> foods, 
+void imageCallback(const sensor_msgs::ImageConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
                    std::vector<std::string> angleNames)
 {
 
@@ -119,7 +119,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg, int type, std::string 
     std::string food = foods[curfood.load()];
     std::string direction = angleNames[curdirection.load()];
     int trial = curtrial.load();
-    std::string imageFile = "/home/herb/Images/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".png";
+    std::string imageFile = "/home/herb/Workspace/ryan_ws/Images/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".png";
     // sstream << imageFile;
     bool worked = cv::imwrite( imageFile,  cv_ptr->image );
     image_count++;
@@ -147,6 +147,7 @@ int datacollectionmain(FeedingDemo& feedingDemo,
   int numTrials = getRosParam<int>("/data/numTrials", nodeHandle);
   std::vector<std::string> foods = getRosParam<std::vector<std::string>>("/data/foods", nodeHandle);
   std::vector<double> tiltAngles = getRosParam<std::vector<double>>("/data/tiltAngles", nodeHandle);
+  std::vector<int> tiltModes = getRosParam<std::vector<int>>("/data/tiltModes", nodeHandle);
   std::vector<double> directions = getRosParam<std::vector<double>>("/data/directions", nodeHandle);
   std::vector<std::string> angleNames = getRosParam<std::vector<std::string>>("/data/angleNames", nodeHandle);
 
@@ -182,7 +183,7 @@ int datacollectionmain(FeedingDemo& feedingDemo,
           }
         }
         feedingDemo.moveAbovePlate();
-        
+
         if (adaReal) {
           std::this_thread::sleep_for(std::chrono::milliseconds(2000));
           isAfterPush.store(false);
@@ -216,7 +217,7 @@ int datacollectionmain(FeedingDemo& feedingDemo,
             std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
             continue;
           }
-    
+
           if (adaReal)
           {
             bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
@@ -246,8 +247,9 @@ int datacollectionmain(FeedingDemo& feedingDemo,
               return 0;
             }
           }
-          feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-          
+          float angle = directions[j] * M_PI / 180.0;
+          feedingDemo.moveAboveFood(foodTransform, angle, 0, 0, viewer);
+
           // ===== ROTATE FORQUE ====
           if (!autoContinueDemo)
           {
@@ -256,8 +258,7 @@ int datacollectionmain(FeedingDemo& feedingDemo,
               return 0;
             }
           }
-          float angle = directions[j];
-          feedingDemo.rotateForque(foodTransform, angle, viewer);
+          feedingDemo.rotateForque(foodTransform, angle, 0, viewer);
 
           // ===== INTO TO FOOD ====
           if (!autoContinueDemo)
@@ -364,7 +365,7 @@ int datacollectionmain(FeedingDemo& feedingDemo,
             std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
             continue;
           }
-    
+
           if (adaReal)
           {
             bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
@@ -394,7 +395,7 @@ int datacollectionmain(FeedingDemo& feedingDemo,
               return 0;
             }
           }
-          feedingDemo.moveAboveFood(foodTransform, tiltAngles[i], viewer);
+          feedingDemo.moveAboveFood(foodTransform, directions[j] * M_PI / 180.0, tiltAngles[i], tiltModes[i], /*tiltAngles[i], tiltModes[i],*/ viewer);
 
           // ===== ROTATE FORQUE ====
           if (!autoContinueDemo)
@@ -404,8 +405,8 @@ int datacollectionmain(FeedingDemo& feedingDemo,
               return 0;
             }
           }
-          feedingDemo.rotateForque(foodTransform, directions[j], viewer);
-          
+          feedingDemo.rotateForque(foodTransform, directions[j] * M_PI / 180.0, tiltModes[i], viewer);
+
           // ===== INTO TO FOOD ====
           if (!autoContinueDemo)
           {

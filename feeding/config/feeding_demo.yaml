@@ -12,9 +12,10 @@
 data:
   numTrials: 2
   foods: ["cantaloupe", "celery", "strawberry"]
-  tiltAngles: [0.78, 0, 0.78]
-  directions: [0, 45] #, 90, 135, 180, 225, 270, 315]
-  angleNames: ["W", "SW"] #, "S", "SE", "E", "NE", "N", "NW"]
+  tiltAngles: [0.00, 0, 0.78]
+  tiltModes: [0, 0, 1]
+  directions: [0, 0, 45] #, 90, 135, 180, 225, 270, 315]
+  angleNames: ["0", "0", "45"] #, "S", "SE", "E", "NE", "N", "NW"]
 
 # Visualization parameters
 visualization:
@@ -116,7 +117,7 @@ feedingDemo:
   heightAbovePlate: 0.13
   heightAboveFood: 0.09
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
-  heightOutOfPlate: 0.012
+  heightOutOfPlate: 0.01
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
   distBeforePush: 0.05
@@ -150,20 +151,20 @@ planning:
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
-  # ftTopic: /forque/forqueSensor
-  ftTopic: /fingervision/fv_3_l/wrench
+  ftTopic: /forque/forqueSensor
+  #ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 20
+      force: 10
       torque: 2
     grabFood:       # active when going down to grab the food
       force: 15
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 50 #3
+      force: 25 #3
       torque: 2
     pushFood:
-      force:  2
+      force:  25
       torque: 2
 
 # Perception parameters
