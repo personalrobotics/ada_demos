@@ -9,6 +9,12 @@
 #     All transform use the format [x,y,z,rx,ry,rz] of positions and rotations in a list.
 #
 
+data:
+  numTrials: 2
+  foods: ["cantaloupe", "celery", "strawberry"]
+  tiltAngles: [0.78, 0, 0.78]
+  directions: [0, 45] #, 90, 135, 180, 225, 270, 315]
+  angleNames: ["W", "SW"] #, "S", "SE", "E", "NE", "N", "NW"]
 
 # Visualization parameters
 visualization:
@@ -22,6 +28,7 @@ ada:
   endEffectorName: j2n6s200_forque_end_effector
   homeConfiguration: [3.89015, 3.34645, 2.28738, -1.39666, 2.96761, 2.49281]      # the start configuration of the robot joints
   baseFramePose: [0.7, -0.1, -0.25, 0, 0, 3.1415]                                 # the transform between the robot base and the left front corner of the table
+  twist: [-0.0, -0.78, -1.57, 0.00, -0.00, 0.00]
 
 # Workspace parameters
 plate:
@@ -47,6 +54,65 @@ wheelchair:
 
 # Feeding demo movement parameters
 feedingDemo:
+  # a and b may be reversed
+#  a: 0 #1.57
+#  b: 0
+#  c: 1.57
+#  d: 0 #1
+#  e: 0
+#  f: 0
+#  g: 1.0
+  #3a: 5
+  #3b: 4
+  #3c: 3
+  #3d: 0
+  #3e: 2
+  #3f: 1
+  #3g: 1
+  #3h: 0
+  #3i: 15 # 381
+  #3aa: 0.0
+  #3bb: -1.0
+  #3cc: 0.0
+  #3dd: -1.0
+  #3ee: -1.0
+  #3ff: 1.0
+  a: 5
+  b: 4
+  c: 3
+  d: 0
+  e: 2
+  f: 1
+  g: 1
+  h: 0
+  i: 15 # 381
+  aa: 0 #-1.0
+  bb: 1.0 #-1.0
+  cc: 0 #1.0
+  dd: 0 #-1.0
+  ee: 0 #-1.0
+  ff: 0 #1.0
+  #aa: -1.0
+  #bb: -1.0
+  #cc: 1.0
+  #dd: -1.0
+  #ee: -1.0
+  #ff: 1.0
+  #a: 5
+  #b: 3
+  #c: 4
+  #d: 2
+  #e: 0
+  #f: 1
+  #g: 0.2
+  #h: 23
+  #aa: 1.0
+  #bb: -1.0
+  #cc: 1.0
+  #dd: 1.0
+  #ee: -1.0
+  #ff: 1.0
+
   heightAbovePlate: 0.13
   heightAboveFood: 0.09
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
@@ -77,6 +143,9 @@ planning:
   endEffectorOffset:
     positionTolerance: 0.002
     angularTolerance: 0.04
+  endEffectorTwist:
+    positionTolerance: 0.0002
+    angularTolerance: 0.004
 
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:

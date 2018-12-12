@@ -36,6 +36,22 @@ int skewerpushmain(FeedingDemo& feedingDemo,
                 bool autoContinueDemo,
                 bool adaReal);
 
+int datacollectionmain(FeedingDemo& feedingDemo,
+                FTThresholdHelper& ftThresholdHelper,
+                Perception& perception,
+                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                ros::NodeHandle nodeHandle,
+                bool autoContinueDemo,
+                bool adaReal);
+/*
+int scoopmain(FeedingDemo& feedingDemo,
+                FTThresholdHelper& ftThresholdHelper,
+                Perception& perception,
+                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                ros::NodeHandle nodeHandle,
+                bool autoContinueDemo,
+                bool adaReal);
+*/
 int studymain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
@@ -60,14 +76,14 @@ int acquisitiontiltedmain(FeedingDemo& feedingDemo,
                 bool autoContinueDemo,
                 bool adaReal);
 
-int bltmain(FeedingDemo& feedingDemo,
+/*int bltmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
-                bool adaReal);
-
+                bool adaReal);*/
+/*
 int bltskewerpushmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
@@ -82,7 +98,7 @@ int bltpushingmain(FeedingDemo& feedingDemo,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
-                bool adaReal);
+                bool adaReal);*/
 };
 
 
@@ -163,7 +179,7 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
-  return feeding::skewerpushmain(feedingDemo,
+  return feeding::datacollectionmain(feedingDemo,
                      ftThresholdHelper,
                      perception,
                      viewer,

@@ -1,6 +1,9 @@
 #include "feeding/FeedingDemo.hpp"
 #include <pr_tsr/plate.hpp>
 #include "feeding/util.hpp"
+#include <iostream>
+#include <fstream>
+#include <string>
 
 namespace feeding {
 
@@ -289,7 +292,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
 
     // strawberry-style
-    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    eeTransform.linear() = /*eeTransform.linear() * */Eigen::Matrix3d(/*Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * */Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
   }
   aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -306,7 +309,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float an
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
   } else {
     // banana style angled
-    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-sin(angle) * distance, 0, cos(angle) * distance};
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, /*-sin(angle) * distance,*/ cos(angle) * distance};
   }
 
   // tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
@@ -606,6 +609,137 @@ void FeedingDemo::pushFood(float angle, double pushDist, Eigen::Isometry3d forqu
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
 }
+
+//==============================================================================
+/*void FeedingDemo::scoopFood()
+{
+  double pushVelLimit
+      = getRosParam<double>("/feedingDemo/pushVelLimit", mNodeHandle);
+
+  auto twist 
+      = getRosParam<std::vector<double>>("/ada/twist", mNodeHandle);
+
+  Eigen::Vector6d foo(twist.data());
+        //Eigen::Vector6d(home.data()));
+  //}
+
+
+  double a
+      = getRosParam<double>("/feedingDemo/a", mNodeHandle);
+
+  double b
+      = getRosParam<double>("/feedingDemo/b", mNodeHandle);
+
+  double c
+      = getRosParam<double>("/feedingDemo/c", mNodeHandle);
+
+  double d
+      = getRosParam<double>("/feedingDemo/d", mNodeHandle);
+
+  double e
+      = getRosParam<double>("/feedingDemo/e", mNodeHandle);
+
+  double f
+      = getRosParam<double>("/feedingDemo/f", mNodeHandle);
+
+  //Eigen::Vector6d foo(a, b, c, d, e, f);
+
+  double foo2
+      = getRosParam<double>("/feedingDemo/g", mNodeHandle);
+
+
+  //std::vector<double> velocityLimits{pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit, pushVelLimit};
+
+  bool trajectoryCompleted = mAdaMover->moveWithEndEffectorTwist(
+      foo,
+      foo2); //,
+    // velocityLimits);
+
+
+  int a
+      = getRosParam<int>("/feedingDemo/a", mNodeHandle);
+
+  int b
+      = getRosParam<int>("/feedingDemo/b", mNodeHandle);
+
+  int c
+      = getRosParam<int>("/feedingDemo/c", mNodeHandle);
+
+  int d
+      = getRosParam<int>("/feedingDemo/d", mNodeHandle);
+
+  int e
+      = getRosParam<int>("/feedingDemo/e", mNodeHandle);
+
+  int f
+      = getRosParam<int>("/feedingDemo/f", mNodeHandle);
+
+  double aa
+      = getRosParam<double>("/feedingDemo/aa", mNodeHandle);
+
+  double bb
+      = getRosParam<double>("/feedingDemo/bb", mNodeHandle);
+
+  double cc
+      = getRosParam<double>("/feedingDemo/cc", mNodeHandle);
+
+  double dd
+      = getRosParam<double>("/feedingDemo/dd", mNodeHandle);
+
+  double ee
+      = getRosParam<double>("/feedingDemo/ee", mNodeHandle);
+
+  double ff
+      = getRosParam<double>("/feedingDemo/ff", mNodeHandle);
+
+  double foo2
+      = getRosParam<double>("/feedingDemo/g", mNodeHandle);
+  int foo3
+      = getRosParam<int>("/feedingDemo/h", mNodeHandle);
+  int foo4
+      = getRosParam<int>("/feedingDemo/i", mNodeHandle);
+
+  std::string line;
+  std::ifstream data; // ("traj.txt");
+  data.open("traj.txt");
+  ROS_INFO_STREAM("asdflkajsdflaksjdf");
+  if (data.is_open())
+  {
+    ROS_INFO_STREAM("open");
+    int asdf;
+    for (asdf = 0; asdf < foo4; ++asdf)
+    {
+      std::getline(data, line);
+      ROS_INFO_STREAM("LINE" << line);
+      char * parts;
+      char linefoo[122];
+      strncpy(linefoo, line.c_str(), 122);
+      double twistVals[6];
+      int i;
+      parts = std::strtok (linefoo, " ");
+      twistVals[0] = atof(parts);
+      for (i = 1; i < 6; i++)
+      {
+        parts = std::strtok (NULL, " ");
+        twistVals[i] = atof(parts);
+      }
+      //std::vector<double> v = {atof(&parts[3]), atof(&parts[4]), atof(&parts[5]), atof(&parts[0]), atof(&parts[1]), atof(&parts[2])};
+      std::vector<double> v = {aa * twistVals[a], bb * twistVals[b], cc * twistVals[c], dd * twistVals[d], ee * twistVals[e], ff * twistVals[f]};
+      Eigen::Vector6d foo(v.data());
+      ROS_INFO_STREAM("twistVals: " << twistVals[0] << " " << twistVals[1] << " " << twistVals[2] << " " << twistVals[3] << " " << twistVals[4] << " " << twistVals[5]);
+      //ROS_INFO_STREAM("alskkjkjkj" << parts[3] << atof(&parts[3]));
+      //ROS_INFO_STREAM("fo00o" << line << linefoo << parts << (double) parts[3] << (double) parts[4] << (double) parts[5]);
+      bool trajectoryCompleted = mAdaMover->moveWithEndEffectorTwist(
+          foo,
+          foo2);
+      for (i = 0; i < foo3; i++) {
+        std::getline(data, line);
+      }
+    }    
+  }*/
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
+//}
 
 //==============================================================================
 void FeedingDemo::moveOutOfFood()

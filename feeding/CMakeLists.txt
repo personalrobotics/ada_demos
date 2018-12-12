@@ -3,16 +3,19 @@ project(feeding)
 
 
 find_package(OpenCV REQUIRED)
+find_package(rosbag REQUIRED)
 
 add_executable(feeding
   src/main.cpp
   src/defaultmain.cpp
   src/pushingmain.cpp
   src/skewerpushmain.cpp
+  src/datacollectionmain.cpp
+  #src/scoopmain.cpp
   src/studymain.cpp
-  src/bltmain.cpp
-  src/bltskewerpushmain.cpp
-  src/bltpushingmain.cpp
+#  src/bltmain.cpp
+  #src/bltskewerpushmain.cpp
+  #src/bltpushingmain.cpp
   src/acquisitionmain.cpp
   src/acquisitiontiltedmain.cpp
   src/FeedingDemo.cpp
@@ -25,7 +28,7 @@ add_executable(feeding
   src/PerceptionPreProcess.cpp
 )
 
-include_directories(include)
+include_directories(include $(rosbag_INCLUDE_DIRS))
 
 target_link_libraries(feeding
   ${DART_LIBRARIES}
@@ -36,6 +39,7 @@ target_link_libraries(feeding
   ${image_transport_LIBRARIES}
   ${cv_bridge_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  ${rosbag_LIBRARIES}
   libada)
 
 install(TARGETS feeding RUNTIME DESTINATION bin)

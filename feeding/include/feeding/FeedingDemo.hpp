@@ -105,6 +105,8 @@ public:
 
   void pushFood(float angle, double pushDist, Eigen::Isometry3d forqueTransform, bool useAngledTranslation = true);
 
+  //void scoopFood();
+
   void moveOutOfPlate();
 
   /// Moves the forque downwards into the food.
