@@ -35,8 +35,8 @@ std::string return_current_time_and_date()
     return ss.str();
 }
 
-void infoCallback(const sensor_msgs::CameraInfo& msg) /*, int type, std::string folder, std::vector<std::string> foods, 
-                   std::vector<std::string> angleNames)*/
+void infoCallback(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::string folder, std::vector<std::string> foods, 
+                   std::vector<std::string> angleNames)
 {
 
   if (shouldRecordInfo.load()) {
@@ -47,11 +47,11 @@ void infoCallback(const sensor_msgs::CameraInfo& msg) /*, int type, std::string 
       s = "after";
     }
 
-    //std::string food = foods[curfood.load()];
-    //std::string direction = angleNames[curdirection.load()];
-    //int trial = curtrial.load();
-    std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
-    //std::string infoFile = "/home/herb/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
+    std::string food = foods[curfood.load()];
+    std::string direction = angleNames[curdirection.load()];
+    int trial = curtrial.load();
+    //std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
+    std::string infoFile = "/home/herb/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
     // sstream << imageFile;
 
     rosbag::Bag bag;
@@ -61,8 +61,8 @@ void infoCallback(const sensor_msgs::CameraInfo& msg) /*, int type, std::string 
   }
 }
 
-void infoCallback2(const sensor_msgs::CameraInfo& msg) /*, int type, std::string folder, std::vector<std::string> foods, 
-                   std::vector<std::string> angleNames)*/
+void infoCallback2(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::string folder, std::vector<std::string> foods, 
+                   std::vector<std::string> angleNames)
 {
 
   if (shouldRecordInfo2.load()) {
@@ -73,11 +73,11 @@ void infoCallback2(const sensor_msgs::CameraInfo& msg) /*, int type, std::string
       s = "after";
     }
 
-    //std::string food = foods[curfood.load()];
-    //std::string direction = angleNames[curdirection.load()];
-    //int trial = curtrial.load();
-    std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
-    //std::string infoFile = "/home/herb/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
+    std::string food = foods[curfood.load()];
+    std::string direction = angleNames[curdirection.load()];
+    int trial = curtrial.load();
+    //std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
+    std::string infoFile = "/home/herb/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
     // sstream << imageFile;
 
     rosbag::Bag bag;
@@ -159,10 +159,10 @@ int datacollectionmain(FeedingDemo& feedingDemo,
   if (adaReal) {
     sub = it.subscribe("/camera/color/image_raw", 1, boost::bind(imageCallback, _1, 0, "color", foods, angleNames));
     sub2 = it.subscribe("/camera/aligned_depth_to_color/image_raw", 1, boost::bind(imageCallback, _1, 1, "depth", foods, angleNames));
-    sub3 = nodeHandle.subscribe("", 1, infoCallback);
-    sub4 = nodeHandle.subscribe("", 1, infoCallback2);
-//#    sub3 = nodeHandle.subscribe("", 1, boost::bind(infoCallback, _1, 0, "color", foods, angleNames));
-//#    sub4 = nodeHandle.subscribe("", 1, boost::bind(infoCallback, _1, 1, "depth", foods, angleNames));
+    //sub3 = nodeHandle.subscribe("", 1, infoCallback);
+    //sub4 = nodeHandle.subscribe("", 1, infoCallback2);
+    sub3 = nodeHandle.subscribe<sensor_msgs::CameraInfo>("/camera/color/camera_info", 1, boost::bind(infoCallback, _1, 0, "color", foods, angleNames));
+    sub4 = nodeHandle.subscribe<sensor_msgs::CameraInfo>("/camera/aligned_depth_to_color/camera_info", 1, boost::bind(infoCallback, _1, 1, "depth", foods, angleNames));
   }
 
   int i, j, k;
