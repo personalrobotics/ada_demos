@@ -104,9 +104,9 @@ public:
   void moveOutOfFood(float dist);
 
   /// Moves the forque to a position ready to approach the person.
-  void moveInFrontOfPerson();
+  bool moveInFrontOfPerson();
 
-  void tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  bool tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   void tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 

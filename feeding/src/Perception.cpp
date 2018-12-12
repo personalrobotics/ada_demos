@@ -267,7 +267,13 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
 
     // magic offset to fix bananas
     // -0.008
-    // foodTransform.translation() += Eigen::Vector3d(-0.007, 0, 0);
+    if ((fullFoodName.find("strawberry") == 0) || (fullFoodName.find("cantaloupe") == 0)) {
+      ROS_WARN("Strawberry Found!");
+      foodTransform.translation() += Eigen::Vector3d(0.015, 0, 0);
+    } else {
+      ROS_WARN("Food Name:");
+      ROS_WARN_STREAM(fullFoodName);
+    }
 
     mLastPerceivedFoodTransform = foodTransform;
     // Eigen::Vector3d foodTranslation = foodTransform.translation();

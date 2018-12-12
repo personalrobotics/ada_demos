@@ -51,9 +51,9 @@ feedingDemo:
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
-  waitMillisecsAtFood: 00     # short pause after skewering the food
-  waitMillisecsAtPerson: 5000   # long pause so person can take a bite
-  fixedFaceY: 0.23
+  waitMillisecsAtFood: 100     # short pause after skewering the food
+  waitMillisecsAtPerson: 500   # long pause so person can take a bite
+  fixedFaceY: 0.36
 
 # Planning parameters
 planning:
@@ -77,7 +77,7 @@ ftSensor:
   # ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 5
+      force: 2
       torque: 2
     grabFood:       # active when going down to grab the food
       force: 5
@@ -99,8 +99,8 @@ perception:
 foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
-  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  forces: [10, 10, 10, 10, 10, 10]
+  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "watermelon"]
+  forces: [7, 10, 10, 28, 23, 4, 10]
 
 study:
   skipSkewering: false
@@ -124,5 +124,5 @@ study:
   # z: up
 
   # 0.73
-  personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
-  tiltOffset: [-0.04, 0, -0.11]
+  personPose: [0.295, 0.29, 0.73, 0, 0, 3.1415]
+  tiltOffset: [-0.04, 0.08, -0.04]

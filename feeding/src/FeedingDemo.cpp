@@ -42,9 +42,9 @@ FeedingDemo::FeedingDemo(
           mAda->getHand()->getEndEffectorBodyNode());
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
-          // mWorkspace->getTable().get(),
-          // mWorkspace->getWorkspaceEnvironment().get(),
-          // mWorkspace->getWheelchair().get()
+          mWorkspace->getTable().get(),
+          mWorkspace->getWorkspaceEnvironment().get()
+          //mWorkspace->getWheelchair().get()
           );
   mCollisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
@@ -251,7 +251,7 @@ bool FeedingDemo::moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr v
   abovePlateTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceAbovePlate, verticalToleranceAbovePlate, 0, 0);
   Eigen::Isometry3d eeTransform = *mAda->getHand()->getEndEffectorTransform("plate");
-  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+  eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitZ()));
   abovePlateTSR.mTw_e.matrix()
       *= eeTransform.matrix();
 
@@ -352,11 +352,13 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, int pick
     // celery-style
     // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
     
-    // banana-style
-    // eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
-
-    // strawberry-style
-    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI + 0.5, Eigen::Vector3d::UnitX()));
+    if(pickupAngleMode == 1) {
+      // strawberry-style
+      eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( -M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI + 0.5, Eigen::Vector3d::UnitX()));
+    } else {
+      // banana-style
+      eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd( M_PI - angle + 0.5, Eigen::Vector3d::UnitX()));
+    }    
   }
   aboveFoodTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
@@ -369,7 +371,7 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, int pick
     // vertical
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.01, 0, -distance};
   } else if (pickupAngleMode == 1) {
-    // grape style angled
+    // strawberry style angled
     aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
   } else {
     // banana style angled
@@ -466,7 +468,7 @@ void FeedingDemo::moveOutOfFood()
 {
   bool trajectoryCompleted = mAdaMover->moveToEndEffectorOffset(
       Eigen::Vector3d(0, 0, 1),
-      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*0.5, false);
+      getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)*0.75, false);
   if (!trajectoryCompleted)
   {
     throw std::runtime_error("Trajectory execution failed");
@@ -485,7 +487,7 @@ void FeedingDemo::moveOutOfFood(float dist)
 }
 
 //==============================================================================
-void FeedingDemo::moveInFrontOfPerson()
+bool FeedingDemo::moveInFrontOfPerson()
 {
   double distanceToPerson
       = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
@@ -510,25 +512,22 @@ void FeedingDemo::moveInFrontOfPerson()
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
   auto trajectory = mAdaMover->planArmToTSR(personTSR);
   visualizeTrajectory(trajectory);
-  bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
-  if (!trajectoryCompleted)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
+  return mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME, velocityLimits);
 }
 
 //==============================================================================
-void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer) {
+bool FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer) {
   printRobotConfiguration();
   
-  Eigen::Vector3d workingPersonTranslation(0.283465, 0.199386, 0.652674);
+  //Eigen::Vector3d workingPersonTranslation(0.283465, 0.199386, 0.652674);
+  Eigen::Vector3d workingPersonTranslation(0.263, 0.269386, 0.652674);
   std::vector<double> tiltOffsetVector = getRosParam<std::vector<double>>("/study/personPose", mNodeHandle);
   Eigen::Vector3d tiltOffset{tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]};
   Eigen::Vector3d personTranslation = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation() + tiltOffset;
   Eigen::Vector3d correctionTranslation = workingPersonTranslation - personTranslation;
 
 
-  for (double i=0; i<=1.0; i+=0.2) {
+  for (double i=0; i<=1.0; i+=0.5) {
     aikido::constraint::dart::TSR personTSR;
     Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
     personPose.translation() = personTranslation + correctionTranslation * i;
@@ -555,14 +554,9 @@ void FeedingDemo::tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerView
       ROS_WARN("tilt up trajectory failed!");
       continue;
     }
-    if (trajectoryCompleted) {
-      return;
-    } else
-    {
-        ROS_WARN("aborting tilt up!");
-        return;
-    }
+    return trajectoryCompleted;
   }
+  return false;
 }
 
 //==============================================================================

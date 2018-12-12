@@ -8,31 +8,17 @@
 
 namespace feeding {
 
-int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
+int ohmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
              Perception& perception,
+             aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
              ros::NodeHandle nodeHandle, bool autoContinueDemo, bool adaReal) {
-
-  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
-
-  // feedingDemo.moveInFrontOfPerson();
-
-  // Eigen::Vector3d direction{-0.00252998, 0.999293, -0.0375164};
-  // // auto result = feedingDemo.mAdaMover->planToEndEffectorOffset(direction, 0.180372, false);
-  // auto result = feedingDemo.mAdaMover->planToEndEffectorOffset(direction, 0.08, false);
-
-  // ROS_ERROR_STREAM("Result: " << std::to_string(result != nullptr));
-
-  // waitForUser("\033[1;32mDemo finished. Go again? ('n' to quit)\033[0;32m");
-
-  // return 0;
-
   while(true) {
     // Print Robot Configuration
     feedingDemo.printRobotConfiguration();
     // current configuration << -1.47602, 2.90687, 1.00054, -2.07884, 1.44243, 1.32228;
 
     std::cout << std::endl
-              << "\033[1;32m      ***** BITE TRANSFER NIPS DEMO *****\033[0m"
+              << "\033[1;32m      ***** BITE TRANSFER OPEN HOUSE DEMO *****\033[0m"
               << std::endl;
     std::cout << std::endl
               << "\033[1;32mWhich food item do you want?\033[0m" << std::endl;
@@ -40,10 +26,8 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
     std::cout << "\033[0;32m2) Cantaloupe\033[0m" << std::endl;
     std::cout << "\033[0;32m3) Celery\033[0m" << std::endl;
     std::cout << "\033[0;32m4) Carrot\033[0m" << std::endl;
-    std::cout << "\033[0;32m5) Watermelon\033[0m" << std::endl;
 
     std::string foodName = "";
-    int stepIdx = 3;
     while (foodName == "") {
       std::cout << "> ";
       std::string idString;
@@ -56,29 +40,22 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         switch (id) {
           case 1:
             foodName = "strawberry";
-            stepIdx = 2;
             break;
           case 2:
             foodName = "cantaloupe";
-            stepIdx = 2;
             break;
           case 3:
             foodName = "celery";
-            stepIdx = 1;
             break;
           case 4:
             foodName = "carrot";
-            stepIdx = 1;
-            break;
-          case 5:
-            foodName = "watermelon";
             break;
         }
       } catch (const std::invalid_argument& ia) {
         std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
       }
     }
-    /*
+
     std::cout << std::endl
               << "\033[1;32mWhat step should I proceed with (1-5)?\033[0m"
               << std::endl;
@@ -98,9 +75,8 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         std::cout << "\033[1;31mInvalid argument. Try again.\033[0m" << std::endl;
       }
     }
-    */
 
-    nodeHandle.setParam("/deep_pose/forceFood", false);
+    nodeHandle.setParam("/deep_pose/forceFood", true);
     nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
     nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
@@ -112,8 +88,6 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
               << " beginning on step " << stepIdx << ".\033[0m" << std::endl;
 
     bool skipSkewering = getRosParam<bool>("/study/skipSkewering", nodeHandle);
-
-    waitForUser("Wasting an enter...");
 
     if (!skipSkewering) {
       bool angledSkewering = (stepIdx == 2);
@@ -152,10 +126,8 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
             if (!foodFound) {
               std::cout << "\033[1;33mI can't see the " << foodName << "\033[0m"
                         << std::endl;
-              if (!autoContinueDemo) {
-                if (!waitForUser("Try perception again?")) {
-                  return 0;
-                }
+              if (!waitForUser("Try perception again?")) {
+                return 0;
               }
             }
           }
@@ -176,7 +148,7 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
           std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
         if (angledSkewering) {
-          feedingDemo.moveAboveFood(foodTransform, 1, viewer, true);
+          feedingDemo.moveAboveFood(foodTransform, 0.25 * M_PI, viewer, true);
         } else {
           feedingDemo.moveAboveFood(foodTransform, 0, viewer, true);
         }
@@ -193,24 +165,12 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
                     << " anymore...\033[0m" << std::endl;
         } else {
           if (angledSkewering) {
-            feedingDemo.moveAboveFood(foodTransform, 1, viewer, true);
+            feedingDemo.moveAboveFood(foodTransform, 0.25 * M_PI, viewer, true);
           } else {
             feedingDemo.moveAboveFood(foodTransform, 0, viewer, true);
           }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-        double zForceBeforeSkewering = 0;
-        if (adaReal && ftThresholdHelper.startDataCollection(100)) {
-          Eigen::Vector3d currentForce, currentTorque;
-          while (!ftThresholdHelper.isDataCollectionFinished(currentForce,
-                                                            currentTorque)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-          }
-          zForceBeforeSkewering = currentForce.z();
-        }
-
-        ROS_WARN_STREAM("force before food: " << zForceBeforeSkewering);
 
         // ===== INTO FOOD =====
         if (!autoContinueDemo) {
@@ -220,23 +180,7 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         } else {
           std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
-        double torqueThreshold = 2;
-        if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName],
-                                            torqueThreshold)) {
-          return 1;
-        }
-        if (adaReal) {
-          if (!feedingDemo.moveIntoFood(&perception, viewer)) {
-            
-            std::cout
-                << "\033[1;32mOoops! I lost the food! Let me try again...\033[0;32m"
-                << std::endl;
-            continue;
-            
-          }
-        } else {
-          feedingDemo.moveIntoFood();
-        }
+        feedingDemo.moveIntoFood();
         std::this_thread::sleep_for(std::chrono::milliseconds(
             getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
         feedingDemo.grabFoodWithForque();
@@ -247,33 +191,13 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
             return 0;
           }
         }
-        if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD)) {
-          return 1;
-        }
+
         feedingDemo.moveOutOfFood();
-        if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD)) {
-          return 1;
-        }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        foodPickedUp = waitForUser("Did we pick up the food? ");
 
-
-        // Check if we have food
-        double forceDifference = 100;
-        if (adaReal && ftThresholdHelper.startDataCollection(100)) {
-          Eigen::Vector3d currentForce, currentTorque;
-          while (!ftThresholdHelper.isDataCollectionFinished(currentForce,
-                                                            currentTorque)) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-          }
-          forceDifference = currentForce.z() - zForceBeforeSkewering;
-        }
-        ROS_WARN_STREAM("force difference: " << forceDifference);
-
-        if (forceDifference > 0.02) {
-          foodPickedUp = true;
-        } else {
-          feedingDemo.ungrabAndDeleteFood();
+        if(!foodPickedUp) {
           if (tries == 1) {
             std::cout
                 << "\033[1;32mOoops! I think I didn't manage to pick up the "
@@ -293,11 +217,6 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
                 << ". Maybe we should try a different food item...!\033[0;32m"
                 << std::endl;
             // angledSkewering = !angledSkewering;
-            std::cout << "\033[0;32m1) Strawberry\033[0m" << std::endl;
-            std::cout << "\033[0;32m2) Cantaloupe\033[0m" << std::endl;
-            std::cout << "\033[0;32m3) Celery\033[0m" << std::endl;
-            std::cout << "\033[0;32m4) Carrot\033[0m" << std::endl;
-            std::cout << "\033[0;32m5) Watermelon\033[0m" << std::endl;
 
             // Re-select food type
             foodName = "";
@@ -313,22 +232,15 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
                 switch (id) {
                   case 1:
                     foodName = "strawberry";
-                    stepIdx = 2;
                     break;
                   case 2:
                     foodName = "cantaloupe";
-                    stepIdx = 2;
                     break;
                   case 3:
                     foodName = "celery";
-                    stepIdx = 1;
                     break;
                   case 4:
                     foodName = "carrot";
-                    stepIdx = 1;
-                    break;
-                  case 5:
-                    foodName = "watermelon";
                     break;
                 }
               } catch (const std::invalid_argument& ia) {
@@ -343,29 +255,15 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         }    // end food difference < threshold
         tries++;
       }  // end while (!foodPickedUp)
-    } else {   // else (!skipSkewering)
-      feedingDemo.grabFoodWithForque();
-    }   // end if (!skipSkewering)
+    }    // end if (!skipSkewering)
 
     // ===== IN FRONT OF PERSON =====
-  
-    while (!feedingDemo.moveAbovePlate()) {
-      if (!waitForUser("\033[1;32mFailed to move. Try again? ('n' to quit)\033[0;32m")) {
-        return 0;
-      }
-    }
-    
-
     if (!autoContinueDemo) {
       if (!waitForUser("Move forque in front of person")) {
         return 0;
       }
     }
-    while (!feedingDemo.moveInFrontOfPerson()) {
-      if (!waitForUser("\033[1;32mFailed to move. Try again? ('n' to quit)\033[0;32m")) {
-        return 0;
-      }
-    }
+    feedingDemo.moveInFrontOfPerson();
     nodeHandle.setParam("/feeding/facePerceptionOn", true);
 
     // ===== TOWARDS PERSON =====
@@ -379,15 +277,11 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
 
     while (!moveSuccess) {
       // Try again
-      while (!feedingDemo.moveInFrontOfPerson()) {
-      if (!waitForUser("\033[1;32mFailed to move. Try again? ('n' to quit)\033[0;32m")) {
-        return 0;
-      }
-    }
       std::cout << "\033[1;32mOoops! I lost the face!\033[0;32m" << std::endl;
       if(!waitForUser("\033[1;32mFailed to servo. Try again? ('n' to skip)\033[0;32m")){
-        return 0;
+        break;
       }
+      feedingDemo.moveInFrontOfPerson();
       nodeHandle.setParam("/feeding/facePerceptionOn", true);
 
       if (!autoContinueDemo) {
@@ -404,13 +298,10 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
       std::cout << "Servoing failed. Falling back to direct movement..."
                 << std::endl;
       feedingDemo.moveInFrontOfPerson();
+      bool tilted = (stepIdx != 3);
+      feedingDemo.moveDirectlyToPerson(tilted, viewer);
     }
     */
-
-   bool tilted = (stepIdx == 1);
-   if(tilted) {
-     feedingDemo.tiltUpInFrontOfPerson(viewer);
-   }
 
     // ===== EATING =====
     ROS_WARN("Human is eating");
@@ -418,15 +309,13 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
     feedingDemo.ungrabAndDeleteFood();
 
-    if (!waitForUser("Move away from person")) {
-      return 0;
-    }
-
-    while (!feedingDemo.moveInFrontOfPerson()) {
-      if (!waitForUser("\033[1;32mFailed to move. Try again? ('n' to quit)\033[0;32m")) {
+    if (!autoContinueDemo) {
+      if (!waitForUser("Move away from person")) {
         return 0;
       }
     }
+
+    feedingDemo.moveInFrontOfPerson();
 
     // ===== BACK TO PLATE =====
     if (!autoContinueDemo) {

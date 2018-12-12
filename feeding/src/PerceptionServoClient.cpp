@@ -12,7 +12,7 @@
 
 static std::string JOINT_STATE_TOPIC_NAME = "/joint_states";
 
-#define THRESHOLD 0.25 // s to wait for good frame
+#define THRESHOLD 0.5 // s to wait for good frame
 // #define THRESHOLD 50 // s to wait for good frame
 
 namespace feeding {
@@ -430,7 +430,18 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     MetaSkeletonStateSaver saver2(mMetaSkeleton);
     auto endState = tempSpace->createState();
     auto endTime = spline1->getEndTime();
-    spline1->evaluate(spline1->getEndTime(), endState);
+    try {
+      spline1->evaluate(spline1->getEndTime(), endState);
+    } catch (const std::exception& e) {
+      ROS_WARN("Trajectory evaluation failed. Printing current config and direction:");
+      ROS_WARN_STREAM(currentConfig);
+      ROS_WARN_STREAM(direction1.matrix().transpose());
+      ROS_WARN("Retrying...");
+      ROS_WARN_STREAM(e.what());
+      mExecutionDone = true;
+      mNotFailed = false;
+      return nullptr;
+    }
     tempSpace->setState(mMetaSkeleton.get(), endState);
   
     auto collisionConstraint
@@ -514,8 +525,15 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
       hasOriginalDirection = true;
     }
 
-    if (trajectory2 == nullptr)
-      throw std::runtime_error("Failed in finding the traj");
+    if (trajectory2 == nullptr) {
+      ROS_WARN("Trajectory evaluation failed. Printing current config and direction:");
+      ROS_WARN_STREAM(currentConfig);
+      ROS_WARN_STREAM(direction2.matrix().transpose());
+      ROS_WARN("Retrying...");
+      mExecutionDone = true;
+      mNotFailed = false;
+      return nullptr;
+    }
 
     spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
     if (spline2 == nullptr)
