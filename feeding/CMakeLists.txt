@@ -11,6 +11,7 @@ add_executable(feeding
   # src/pushingmain.cpp
   #src/skewerpushmain.cpp
   src/datacollectionmain.cpp
+  src/datacollectionmainNoPush.cpp
   #src/scoopmain.cpp
   # src/studymain.cpp
 #  src/bltmain.cpp

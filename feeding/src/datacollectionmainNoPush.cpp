@@ -18,16 +18,16 @@
 
 namespace feeding {
 
-std::atomic<bool> shouldRecordImage{false};
-std::atomic<bool> shouldRecordImage2{false};
-std::atomic<bool> shouldRecordInfo{false};
-std::atomic<bool> shouldRecordInfo2{false};
-std::atomic<bool> isAfterPush{false};
-std::atomic<int> curfood{0};
-std::atomic<int> curdirection{0};
-std::atomic<int> curtrial{0};
+std::atomic<bool> shouldRecordImage3{false};
+std::atomic<bool> shouldRecordImage32{false};
+std::atomic<bool> shouldRecordInfo3{false};
+std::atomic<bool> shouldRecordInfo32{false};
+std::atomic<bool> isAfterPush3{false};
+std::atomic<int> curfood3{0};
+std::atomic<int> curdirection3{0};
+std::atomic<int> curtrial3{0};
 
-std::string return_current_time_and_date()
+std::string return_current_time_and_date2()
 {
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
@@ -37,21 +37,22 @@ std::string return_current_time_and_date()
     return ss.str();
 }
 
-void infoCallback(const sensor_msgs::CameraInfoConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
+void infoCallback3(const sensor_msgs::CameraInfoConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
                    std::vector<std::string> angleNames)
 {
 
-  if (shouldRecordInfo.load() && type == 0 || shouldRecordInfo2.load() && type == 1) {
+  if (shouldRecordInfo3.load() && type == 0 || shouldRecordInfo32.load() && type == 1) {
     ROS_ERROR("recording camera info!");
 
     std::string s("before");
-    if (isAfterPush.load()) {
+    if (isAfterPush3.load()) {
       s = "after";
     }
+    s = "skewer";
 
-    std::string food = foods[curfood.load()];
-    std::string direction = angleNames[curdirection.load()];
-    int trial = curtrial.load();
+    std::string food = foods[curfood3.load()];
+    std::string direction = angleNames[curdirection3.load()];
+    int trial = curtrial3.load();
     //std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
     std::string infoFile = "/home/herb/Workspace/ryan_ws/CameraInfoMsgs/" + folder +  "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".txt";
     // sstream << imageFile;
@@ -71,43 +72,17 @@ void infoCallback(const sensor_msgs::CameraInfoConstPtr& msg, int type, std::str
     //bag.write("height", ros::Time::now(), msg->height.data);
     //ROS_INFO_STREAM(*(msg->K.data().data()));
     if (type == 0)
-      shouldRecordInfo.store(false);
+      shouldRecordInfo3.store(false);
     else
-      shouldRecordInfo2.store(false);
+      shouldRecordInfo32.store(false);
   }
 }
 
-void infoCallback2(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
+void imageCallback2(const sensor_msgs::ImageConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
                    std::vector<std::string> angleNames)
 {
 
-  if (shouldRecordInfo2.load()) {
-    ROS_ERROR("recording camera info!");
-
-    std::string s("before");
-    if (isAfterPush.load()) {
-      s = "after";
-    }
-
-    std::string food = foods[curfood.load()];
-    std::string direction = angleNames[curdirection.load()];
-    int trial = curtrial.load();
-    //std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
-    std::string infoFile = "/home/herb/Workspace/ryan_ws/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
-    // sstream << imageFile;
-
-    rosbag::Bag bag;
-    bag.open(infoFile, rosbag::bagmode::Write);
-    bag.write("camera info", ros::Time::now(), msg);
-    shouldRecordInfo2.store(false);
-  }
-}
-
-void imageCallback(const sensor_msgs::ImageConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
-                   std::vector<std::string> angleNames)
-{
-
-  if (shouldRecordImage.load() && type == 0 || shouldRecordImage2.load() && type == 1) {
+  if (shouldRecordImage3.load() && type == 0 || shouldRecordImage32.load() && type == 1) {
     ROS_ERROR("recording image!");
 
     cv_bridge::CvImagePtr cv_ptr;
@@ -134,26 +109,27 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg, int type, std::string 
     static int image_count = 0;
     // std::stringstream sstream;
     std::string s("before");
-    if (isAfterPush.load()) {
+    if (isAfterPush3.load()) {
       s = "after";
     }
+    s = "skewer";
 
-    std::string food = foods[curfood.load()];
-    std::string direction = angleNames[curdirection.load()];
-    int trial = curtrial.load();
+    std::string food = foods[curfood3.load()];
+    std::string direction = angleNames[curdirection3.load()];
+    int trial = curtrial3.load();
     std::string imageFile = "/home/herb/Workspace/ryan_ws/Images/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".png";
     // sstream << imageFile;
     bool worked = cv::imwrite( imageFile,  cv_ptr->image );
     image_count++;
     ROS_INFO_STREAM("image saved to " << imageFile << ", worked: " << worked);
     if (type == 0)
-      shouldRecordImage.store(false);
+      shouldRecordImage3.store(false);
     else
-      shouldRecordImage2.store(false);
+      shouldRecordImage32.store(false);
   }
 }
 
-int datacollectionmain(FeedingDemo& feedingDemo,
+int datacollectionmainNoPush(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
                 Perception& perception,
                 aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
@@ -180,12 +156,12 @@ int datacollectionmain(FeedingDemo& feedingDemo,
   ros::Subscriber sub3;
   ros::Subscriber sub4;
   if (adaReal) {
-    sub = it.subscribe("/camera/color/image_raw", 1, boost::bind(imageCallback, _1, 0, "color", foods, angleNames));
-    sub2 = it.subscribe("/camera/aligned_depth_to_color/image_raw", 1, boost::bind(imageCallback, _1, 1, "depth", foods, angleNames));
+    sub = it.subscribe("/camera/color/image_raw", 1, boost::bind(imageCallback2, _1, 0, "color", foods, angleNames));
+    sub2 = it.subscribe("/camera/aligned_depth_to_color/image_raw", 1, boost::bind(imageCallback2, _1, 1, "depth", foods, angleNames));
     //sub3 = nodeHandle.subscribe("", 1, infoCallback);
     //sub4 = nodeHandle.subscribe("", 1, infoCallback2);
-    sub3 = nodeHandle.subscribe<sensor_msgs::CameraInfo>("/camera/color/camera_info", 1, boost::bind(infoCallback, _1, 0, "color", foods, angleNames));
-    sub4 = nodeHandle.subscribe<sensor_msgs::CameraInfo>("/camera/aligned_depth_to_color/camera_info", 1, boost::bind(infoCallback, _1, 1, "depth", foods, angleNames));
+    sub3 = nodeHandle.subscribe<sensor_msgs::CameraInfo>("/camera/color/camera_info", 1, boost::bind(infoCallback3, _1, 0, "color", foods, angleNames));
+    sub4 = nodeHandle.subscribe<sensor_msgs::CameraInfo>("/camera/aligned_depth_to_color/camera_info", 1, boost::bind(infoCallback3, _1, 1, "depth", foods, angleNames));
   }
 
   int i, j, k;
@@ -209,16 +185,16 @@ int datacollectionmain(FeedingDemo& feedingDemo,
 
         if (adaReal) {
           std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-          isAfterPush.store(false);
-          curfood.store(i);
-          curdirection.store(j);
-          curtrial.store(k);
-          shouldRecordImage.store(true);
-          shouldRecordImage2.store(true);
-          shouldRecordInfo.store(true);
-          shouldRecordInfo2.store(true);
+          isAfterPush3.store(false);
+          curfood3.store(i);
+          curdirection3.store(j);
+          curtrial3.store(k);
+          shouldRecordImage3.store(true);
+          shouldRecordImage32.store(true);
+          shouldRecordInfo3.store(true);
+          shouldRecordInfo32.store(true);
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
-          while (shouldRecordImage2.load() || shouldRecordImage.load() || shouldRecordInfo.load() || shouldRecordInfo2.load()) {
+          while (shouldRecordImage32.load() || shouldRecordImage3.load() || shouldRecordInfo3.load() || shouldRecordInfo32.load()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
           }
         }
@@ -298,164 +274,7 @@ int datacollectionmain(FeedingDemo& feedingDemo,
               return 0;
             }
           }
-          double torqueThreshold = 2;
-          if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
-          {
-            return 1;
-          }
-          Eigen::Isometry3d forqueTransform;
-          if (adaReal) {
-              forqueTransform = perception.getForqueTransform();
-          }
-          if (adaReal) {
-              feedingDemo.moveNextToFood(&perception, angle, viewer, forqueTransform);
-          } else {
-              feedingDemo.moveNextToFood(foodTransform, angle, viewer);
-          }
 
-          // ===== MOVE OUT OF PLATE ====
-          if (!autoContinueDemo)
-          {
-            if (!waitForUser("Move Out of Plate"))
-            {
-              return 0;
-            }
-          }
-          if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
-          {
-            return 1;
-          }
-          feedingDemo.moveOutOfPlate();
-
-          // keep pushing until user says no, get feedback on how far to move
-          // ===== PUSH FOOD ====
-          if (!autoContinueDemo)
-          {
-            if (!waitForUser("Push Food"))
-            {
-              return 0;
-            }
-          }
-
-          if (!ftThresholdHelper.setThresholds(PUSH_FOOD_FT_THRESHOLD))
-          {
-            return 1;
-          }
-          //feedingDemo.grabFoodWithForque();
-
-          if (adaReal) {
-              feedingDemo.pushFood(angle, forqueTransform);
-          } else {
-              feedingDemo.pushFood(angle);
-          }
-     //     }
-          break;
-        }
-        // ===== OUT OF FOOD =====
-        if (!autoContinueDemo)
-        {
-          if (!waitForUser("Move forque out of food"))
-          {
-            return 0;
-          }
-        }
-        if (!ftThresholdHelper.setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD))
-        {
-          return 1;
-        }
-        feedingDemo.moveOutOfFood();
-
-       // ===== MOVE BACK ABOVE PLATE =====
-        if (!autoContinueDemo)
-        {
-          if (!waitForUser("Move forque above plate"))
-          {
-            return 0;
-          }
-        }
-        feedingDemo.moveAbovePlate();
-
-        if (adaReal) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-          isAfterPush.store(true);
-          curfood.store(i);
-          curdirection.store(j);
-          curtrial.store(k);
-          shouldRecordImage.store(true);
-          shouldRecordImage2.store(true);
-          shouldRecordInfo.store(true);
-          shouldRecordInfo2.store(true);
-          std::this_thread::sleep_for(std::chrono::milliseconds(10));
-          while (shouldRecordImage2.load() || shouldRecordImage.load() || shouldRecordInfo.load() || shouldRecordInfo2.load()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-          }
-        }
-
-        // ===== ABOVE FOOD =====
-        foodFound = false;
-
-        while (!foodFound) {
-          if (!perception.setFoodName(foodName)) {
-            std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
-            continue;
-          }
-
-          if (adaReal)
-          {
-            bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-            if (!perceptionSuccessful) {
-              std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna try again?\033[0m" << std::endl;
-              continue;
-            } else {
-              foodFound = true;
-            }
-          }
-          else
-          {
-            foodTransform = feedingDemo.getDefaultFoodTransform();
-            foodFound = true;
-          }
-
-          if (!autoContinueDemo)
-          {
-            if (!waitForUser("Move forque above food"))
-            {
-              return 0;
-            }
-          }
-
-          if(!feedingDemo.moveAboveFood(foodTransform, directions[j] * M_PI / 180.0, tiltAngles[i], tiltModes[i], /*tiltAngles[i], tiltModes[i],*/ viewer)) {
-            foodFound = false;
-            if (!waitForUser("Trajectory failed! Reposition food and try again!"))
-            {
-              return 0;
-            }
-          }
-
-        }
-        std::cout << "\033[1;32mAlright! Let's get the " << foodName << "for real now!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
-
-
-        foodPickedUp = false;
-        while (!foodPickedUp) {
-          // ===== ROTATE FORQUE ====
-          if (!autoContinueDemo)
-          {
-            if (!waitForUser("Rotate forque to angle " + angleNames[j] + " to push food"))
-            {
-              return 0;
-            }
-          }
-          feedingDemo.rotateForque(foodTransform, directions[j] * M_PI / 180.0, tiltModes[i], viewer);
-
-          // ===== INTO TO FOOD ====
-          if (!autoContinueDemo)
-          {
-            if (!waitForUser("Move forque into to food"))
-            {
-              return 0;
-            }
-          }
           double torqueThreshold = 2;
           if (!ftThresholdHelper.setThresholds(STANDARD_FT_THRESHOLD))
           {

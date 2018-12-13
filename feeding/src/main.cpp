@@ -43,6 +43,13 @@ int datacollectionmain(FeedingDemo& feedingDemo,
                 ros::NodeHandle nodeHandle,
                 bool autoContinueDemo,
                 bool adaReal);
+int datacollectionmainNoPush(FeedingDemo& feedingDemo,
+                FTThresholdHelper& ftThresholdHelper,
+                Perception& perception,
+                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+                ros::NodeHandle nodeHandle,
+                bool autoContinueDemo,
+                bool adaReal);
 /*
 int scoopmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,

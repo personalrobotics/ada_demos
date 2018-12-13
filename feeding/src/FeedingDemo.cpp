@@ -254,7 +254,7 @@ void FeedingDemo::moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerVie
 }
 
 //==============================================================================
-void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float rotAngle, float angle, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
+bool FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float rotAngle, float angle, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation)
 {
   double heightAboveFood
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
@@ -308,14 +308,17 @@ void FeedingDemo::moveAboveFood(const Eigen::Isometry3d& foodTransform, float ro
   // tsrMarkers.push_back(viewer->addTSRMarker(aboveFoodTSR, 100, "someTSRName"));
   // std::this_thread::sleep_for(std::chrono::milliseconds(20000));
 
-  bool trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
+  bool trajectoryCompleted = false;
+  try {
+    trajectoryCompleted = mAdaMover->moveArmToTSR(aboveFoodTSR);
+  } catch (...) {
+      ROS_WARN("Error in trajectory completion!");
+      trajectoryCompleted = false;
+  }
   //visualizeTrajectory(trajectory);
   //bool trajectoryCompleted = mAdaMover->moveArmOnTrajectory(trajectory, TRYOPTIMALRETIME);
 
-  if (!trajectoryCompleted)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
+  return trajectoryCompleted;
 }
 
 //==============================================================================
