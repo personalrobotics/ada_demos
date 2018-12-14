@@ -10,12 +10,12 @@
 #
 
 data:
-  numTrials: 2
-  foods: ["celery", "celery", "strawberry"]
-  tiltAngles: [0.00, 0, 0.78]
-  tiltModes: [0, 0, 1]
-  directions: [90, 45, 0] #, 90, 135, 180, 225, 270, 315]
-  angleNames: ["90", "45", "0"] #, "S", "SE", "E", "NE", "N", "NW"]
+  numTrials: 5
+  foods: ["celery", "cantaloupe", "strawberry"]
+  tiltAngles: [0, 0, 0]
+  tiltModes: [0, 0, 0]
+  directions: [0, 45, 90, 135, 180, 225, 270, 315] #, 90, 135, 180, 225, 270, 315]
+  angleNames: ["0", "45", "90", "135", "180", "225", "270", "315"] #, "S", "SE", "E", "NE", "N", "NW"]
 
 # Visualization parameters
 visualization:

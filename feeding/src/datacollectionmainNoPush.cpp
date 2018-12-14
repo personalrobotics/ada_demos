@@ -174,12 +174,9 @@ int datacollectionmainNoPush(FeedingDemo& feedingDemo,
         float angle = directions[j] * M_PI / 180.0;
         std::cout << std::endl << "\033[1;32mTrial " << k << ": Food / Direction: " << foods[i] << " / " << angleNames[j] << "\033[0m     > " << std::endl << std::endl;
         // ===== ABOVE PLATE =====
-        if (!autoContinueDemo)
+        if (!waitForUser("Move forque above plate"))
         {
-          if (!waitForUser("Move forque above plate"))
-          {
-            return 0;
-          }
+          return 0;
         }
         feedingDemo.moveAbovePlate();
 
