@@ -5,6 +5,10 @@
 #include "feeding/util.hpp"
 #include <ros/ros.h>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <libada/util.hpp>
+
+using ada::util::getRosParam;
+using ada::util::waitForUser;
 
 namespace feeding {
 

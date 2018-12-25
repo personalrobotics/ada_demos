@@ -1,6 +1,10 @@
 #include "feeding/FTThresholdHelper.hpp"
 #include <thread>
+#include <libada/util.hpp>
+
 #include "feeding/util.hpp"
+
+using ada::util::getRosParam;
 
 namespace feeding {
 
@@ -114,7 +118,7 @@ bool FTThresholdHelper::setThresholds(double forces, double torques)
 {
   if (!mUseThresholdControl)
     return true;
-  
+
   #ifdef REWD_CONTROLLERS_FOUND
   return mFTThresholdClient->setThresholds(forces, torques);
   #endif

@@ -1,14 +1,17 @@
-
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/statespace/Rn.hpp>
+#include <libada/util.hpp>
+#include <mcheck.h>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
+
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
-#include <mcheck.h>
-#include <aikido/statespace/Rn.hpp>
 
+using ada::util::getRosParam;
+using ada::util::waitForUser;
 
 namespace feeding {
 

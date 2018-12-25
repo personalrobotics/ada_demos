@@ -1,6 +1,10 @@
 #include "feeding/Workspace.hpp"
 #include <aikido/io/CatkinResourceRetriever.hpp>
 #include <aikido/io/util.hpp>
+#include <libada/util.hpp>
+
+using ada::util::getRosParam;
+using ada::util::createIsometry;
 
 namespace feeding {
 

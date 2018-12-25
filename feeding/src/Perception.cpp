@@ -1,8 +1,12 @@
 #include "feeding/Perception.hpp"
-#include <aikido/perception/ObjectDatabase.hpp>
-#include <tf_conversions/tf_eigen.h>
 #include "feeding/util.hpp"
+
+#include <aikido/perception/ObjectDatabase.hpp>
 #include <algorithm>
+#include <libada/util.hpp>
+#include <tf_conversions/tf_eigen.h>
+
+using ada::util::getRosParam;
 
 namespace feeding {
 
@@ -171,7 +175,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform,
   for (std::string foodName : mFoodNames)
   {
     if (!perceiveAnyFood && mFoodNameToPerceive != foodName) {
-      ROS_INFO_STREAM(mFoodNameToPerceive << "  " << foodName << "  " << perceiveAnyFood); 
+      ROS_INFO_STREAM(mFoodNameToPerceive << "  " << foodName << "  " << perceiveAnyFood);
       continue;
     }
 
@@ -309,7 +313,7 @@ bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
       if (fixedFaceY > 0) {
         faceTransform.translation().y() = fixedFaceY;
       }
-      
+
       faceTransform.translation().z() += 0.00;
       // faceTransform.translation().z() += 0.0;
        faceTransform.translation().z() = faceTransform.translation().z() + mFaceZOffset;

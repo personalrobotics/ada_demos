@@ -3,13 +3,14 @@
 
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
-#include <ros/ros.h>
+#include <aikido/rviz/TSRMarker.hpp>
 #include <libada/Ada.hpp>
-#include "feeding/AdaMover.hpp"
+#include <ros/ros.h>
+
 #include "feeding/Perception.hpp"
 #include "feeding/PerceptionServoClient.hpp"
 #include "feeding/Workspace.hpp"
-#include <aikido/rviz/TSRMarker.hpp>
+
 
 namespace feeding {
 
@@ -58,12 +59,6 @@ public:
 
   /// Prints the configuration of the robot joints.
   void printRobotConfiguration();
-
-  /// Opens Ada's hand
-  void openHand();
-
-  /// Closes Ada's hand
-  void closeHand();
 
   /// Attach food to forque
   void grabFoodWithForque();
@@ -124,8 +119,6 @@ public:
   /// Moves the forque away from the person.
   void moveAwayFromPerson();
 
-  std::unique_ptr<AdaMover> mAdaMover;
-
   void visualizeTrajectory(aikido::trajectory::TrajectoryPtr trajectory);
 
   aikido::rviz::WorldInteractiveMarkerViewerPtr getViewer();
@@ -136,7 +129,7 @@ private:
   ros::NodeHandle mNodeHandle;
   aikido::planner::WorldPtr mWorld;
 
-  std::unique_ptr<ada::Ada> mAda;
+  std::shared_ptr<ada::Ada> mAda;
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
   std::unique_ptr<Workspace> mWorkspace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;

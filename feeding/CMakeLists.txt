@@ -8,18 +8,28 @@ ELSE()
 message("rewd controllers not found!")
 ENDIF()
 
+#==============================================================================
+# Required Dependencies
+#
+find_package(Boost REQUIRED COMPONENTS program_options)
+
 find_package(OpenCV REQUIRED)
+
+find_package(DART 6.6.0 REQUIRED
+  COMPONENTS optimizer-nlopt utils
+  CONFIG
+)
+
 
 add_executable(feeding
   src/main.cpp
-  src/defaultmain.cpp
-  src/studymain.cpp
-  src/demomain.cpp
-  src/bltmain.cpp
-  src/acquisitionmain.cpp
-  src/acquisitiontiltedmain.cpp
+  # src/defaultmain.cpp
+  # src/studymain.cpp
+  # src/demomain.cpp
+  # src/bltmain.cpp
+  # src/acquisitionmain.cpp
+  # src/acquisitiontiltedmain.cpp
   src/FeedingDemo.cpp
-  src/AdaMover.cpp
   src/FTThresholdHelper.cpp
   src/Perception.cpp
   src/Workspace.cpp

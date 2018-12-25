@@ -1,10 +1,15 @@
 
 #include <ros/ros.h>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <libada/util.hpp>
+
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
+
+using ada::util::getRosParam;
+using ada::util::waitForUser;
 
 namespace feeding {
 
@@ -227,12 +232,12 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
         }
         if (adaReal) {
           if (!feedingDemo.moveIntoFood(&perception, viewer)) {
-            
+
             std::cout
                 << "\033[1;32mOoops! I lost the food! Let me try again...\033[0;32m"
                 << std::endl;
             continue;
-            
+
           }
         } else {
           feedingDemo.moveIntoFood();
@@ -348,13 +353,13 @@ int nipsmain(FeedingDemo& feedingDemo, FTThresholdHelper& ftThresholdHelper,
     }   // end if (!skipSkewering)
 
     // ===== IN FRONT OF PERSON =====
-  
+
     while (!feedingDemo.moveAbovePlate()) {
       if (!waitForUser("\033[1;32mFailed to move. Try again? ('n' to quit)\033[0;32m")) {
         return 0;
       }
     }
-    
+
 
     if (!autoContinueDemo) {
       if (!waitForUser("Move forque in front of person")) {

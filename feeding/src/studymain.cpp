@@ -1,10 +1,14 @@
-
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
-#include <ros/ros.h>
+
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <libada/util.hpp>
+#include <ros/ros.h>
+
+using ada::util::getRosParam;
+using ada::util::waitForUser;
 
 namespace feeding {
 
@@ -26,7 +30,7 @@ int studymain(FeedingDemo& feedingDemo,
   std::cout << "\033[0;32m5) [Calibrate]\033[0m" << std::endl;
 
   std::string foodName = "";
-  while (foodName == "") { 
+  while (foodName == "") {
     std::cout << "> ";
     std::string idString;
     std::cin  >> idString;
@@ -51,7 +55,7 @@ int studymain(FeedingDemo& feedingDemo,
 
     if (!waitForUser("Move in front of person")) {return 0;}
     feedingDemo.moveInFrontOfPerson();
-    
+
 
     while (waitForUser("Next calibration")) {
       try {
@@ -98,7 +102,7 @@ int studymain(FeedingDemo& feedingDemo,
     bool angledSkewering = (stepIdx == 2);
     bool foodPickedUp = false;
     while (!foodPickedUp) {
-  
+
     // ===== ABOVE PLATE =====
     if (!autoContinueDemo)
     {
@@ -221,8 +225,8 @@ int studymain(FeedingDemo& feedingDemo,
     }
   }
   feedingDemo.moveInFrontOfPerson();
-  
-  
+
+
   bool tilted = (stepIdx != 3);
   feedingDemo.moveDirectlyToPerson(tilted, viewer);
 

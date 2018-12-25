@@ -5,6 +5,10 @@
 #include "feeding/util.hpp"
 #include <ros/ros.h>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <libada/util.hpp>
+
+using ada::util::getRosParam;
+using ada::util::waitForUser;
 
 namespace feeding {
 
@@ -68,7 +72,7 @@ int defaultmain(FeedingDemo& feedingDemo,
 
   bool foodPickedUp = false;
   while (!foodPickedUp) {
-    
+
     if (!autoContinueDemo)
     {
       if (!waitForUser("Move forque above food"))

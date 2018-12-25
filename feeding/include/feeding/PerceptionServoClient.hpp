@@ -9,9 +9,9 @@
 #include <aikido/trajectory/Spline.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <dart/dynamics/BodyNode.hpp>
+#include <libada/Ada.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
-#include "feeding/AdaMover.hpp"
 #include "feeding/Perception.hpp"
 
 namespace feeding {
@@ -26,7 +26,7 @@ public:
       boost::function<bool(Eigen::Isometry3d&)> getTransform,
       aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
           metaSkeletonStateSpace,
-      AdaMover* adaMover,
+      std::shared_ptr<ada::Ada> ada,
       ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
       ::dart::dynamics::BodyNodePtr bodyNode,
       std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
@@ -52,7 +52,7 @@ protected:
   void jointStateUpdateCallback(const sensor_msgs::JointState::ConstPtr& msg);
 
   bool updatePerception(Eigen::Isometry3d& goalPose);
-  
+
   aikido::trajectory::SplinePtr planToGoalPose(
       const Eigen::Isometry3d& goalPose);
 
@@ -102,7 +102,7 @@ protected:
   std::mutex mJointStateUpdateMutex;
   std::mutex timerMutex;
 
-  AdaMover* mAdaMover;
+  std::shared_ptr<ada::Ada> mAda;
 
   std::chrono::time_point<std::chrono::system_clock> mStartTime;
   std::chrono::time_point<std::chrono::system_clock> mLastSuccess;
