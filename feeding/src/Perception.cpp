@@ -8,6 +8,76 @@
 
 using ada::util::getRosParam;
 
+namespace {
+
+//==============================================================================
+Eigen::Isometry3d getOpticalToWorld(const tf::TransformListener& tfListener)
+{
+  tf::StampedTransform tfStampedTransform;
+  try
+  {
+    tfListener.lookupTransform(
+        "/world",
+        "/camera_color_optical_frame",
+        ros::Time(0),
+        tfStampedTransform);
+  }
+  catch (tf::TransformException ex)
+  {
+    throw std::runtime_error(
+        "Failed to get TF Transform: " + std::string(ex.what()));
+  }
+  Eigen::Isometry3d cameraLensPointInWorldFrame;
+  tf::transformTFToEigen(tfStampedTransform, cameraLensPointInWorldFrame);
+  return cameraLensPointInWorldFrame;
+}
+
+//==============================================================================
+Eigen::Isometry3d getForqueTransform(const tf::TransformListener& tfListener)
+{
+  tf::StampedTransform tfStampedTransform;
+  try
+  {
+    tfListener.lookupTransform(
+        "/map",
+        "/j2n6s200_forque_end_effector",
+        ros::Time(0),
+        tfStampedTransform);
+  }
+  catch (tf::TransformException ex)
+  {
+    throw std::runtime_error(
+        "Failed to get TF Transform: " + std::string(ex.what()));
+  }
+  Eigen::Isometry3d forqueTransformInWorldFrame;
+  tf::transformTFToEigen(tfStampedTransform, forqueTransformInWorldFrame);
+  return forqueTransformInWorldFrame;
+}
+
+//==============================================================================
+Eigen::Isometry3d getCameraToWorldTransform(
+    const tf::TransformListener& tfListener)
+{
+  tf::StampedTransform tfStampedTransform;
+  try
+  {
+    tfListener.lookupTransform(
+        "/camera_color_optical_frame",
+        "/map",
+        ros::Time(0),
+        tfStampedTransform);
+  }
+  catch (tf::TransformException ex)
+  {
+    throw std::runtime_error(
+        "Failed to get TF Transform: " + std::string(ex.what()));
+  }
+  Eigen::Isometry3d forqueTransformInWorldFrame;
+  tf::transformTFToEigen(tfStampedTransform, forqueTransformInWorldFrame);
+  return forqueTransformInWorldFrame;
+}
+}
+
 namespace feeding {
 
 //==============================================================================
@@ -15,7 +85,10 @@ Perception::Perception(
     aikido::planner::WorldPtr world,
     dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
     ros::NodeHandle nodeHandle)
-  : mWorld(world), mNodeHandle(nodeHandle)
+  : mWorld(world)
+  , mNodeHandle(nodeHandle)
+  , mLastPerceivedFoodTransform(Eigen::Isometry3d::Identity())
+  , mFaceZOffset(0.0)
 {
   std::string detectorDataURI
       = getRosParam<std::string>("/perception/detectorDataUri", mNodeHandle);
@@ -64,97 +137,10 @@ Perception::Perception(
   mFoodNames
       = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
 }
-
-Eigen::Isometry3d Perception::getOpticalToWorld()
-{
-  tf::StampedTransform tfStampedTransform;
-  try
-  {
-    mTFListener.lookupTransform(
-        "/world",
-        "/camera_color_optical_frame",
-        ros::Time(0),
-        tfStampedTransform);
-  }
-  catch (tf::TransformException ex)
-  {
-    throw std::runtime_error(
-        "Failed to get TF Transform: " + std::string(ex.what()));
-  }
-  Eigen::Isometry3d cameraLensPointInWorldFrame;
-  tf::transformTFToEigen(tfStampedTransform, cameraLensPointInWorldFrame);
-  return cameraLensPointInWorldFrame;
-}
-
-Eigen::Isometry3d Perception::getForqueTransform()
-{
-  tf::StampedTransform tfStampedTransform;
-  try
-  {
-    mTFListener.lookupTransform(
-        "/map",
-        "/j2n6s200_forque_end_effector",
-        ros::Time(0),
-        tfStampedTransform);
-  }
-  catch (tf::TransformException ex)
-  {
-    throw std::runtime_error(
-        "Failed to get TF Transform: " + std::string(ex.what()));
-  }
-  Eigen::Isometry3d forqueTransformInWorldFrame;
-  tf::transformTFToEigen(tfStampedTransform, forqueTransformInWorldFrame);
-  return forqueTransformInWorldFrame;
-}
-
-Eigen::Isometry3d Perception::getCameraToWorldTransform()
-{
-  tf::StampedTransform tfStampedTransform;
-  try
-  {
-    mTFListener.lookupTransform(
-        "/camera_color_optical_frame",
-        "/map",
-        ros::Time(0),
-        tfStampedTransform);
-  }
-  catch (tf::TransformException ex)
-  {
-    throw std::runtime_error(
-        "Failed to get TF Transform: " + std::string(ex.what()));
-  }
-  Eigen::Isometry3d forqueTransformInWorldFrame;
-  tf::transformTFToEigen(tfStampedTransform, forqueTransformInWorldFrame);
-  return forqueTransformInWorldFrame;
-}
-
-bool Perception::setFoodName(std::string foodName)
-{
-  std::vector<std::string> foodNames
-      = getRosParam<std::vector<std::string>>("/foodItems/names", mNodeHandle);
-  if (std::find(foodNames.begin(), foodNames.end(), foodName)
-      != foodNames.end())
-  {
-    mFoodNameToPerceive = foodName;
-    return true;
-  }
-  return false;
-}
-
 //==============================================================================
 bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 {
   return perceiveFood(foodTransform, false, nullptr);
-}
-
-bool Perception::perceiveFood(
-    Eigen::Isometry3d& foodTransform,
-    bool perceiveDepthPlane,
-    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer)
-{
-  std::string foodName;
-  return perceiveFood(
-      foodTransform, perceiveDepthPlane, viewer, foodName, false);
 }
 
 //==============================================================================
@@ -162,13 +148,13 @@ bool Perception::perceiveFood(
     Eigen::Isometry3d& foodTransform,
     bool perceiveDepthPlane,
     aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
-    std::string& foundFoodName,
+    const std::string& foundFoodName,
     bool perceiveAnyFood)
 {
-
   mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
-  Eigen::Isometry3d forqueTransform = getForqueTransform();
-  Eigen::Isometry3d cameraToWorldTransform = getCameraToWorldTransform();
+  Eigen::Isometry3d forqueTransform = getForqueTransform(mTFListener);
+  Eigen::Isometry3d cameraToWorldTransform
+      = getCameraToWorldTransform(mTFListener);
 
   dart::dynamics::SkeletonPtr perceivedFood;
 
@@ -220,7 +206,7 @@ bool Perception::perceiveFood(
           // ROS_WARN_STREAM("Food transform before: " <<
           // currentFoodTransform.translation().matrix().transpose());
           Eigen::Vector3d start(currentFoodTransform.translation());
-          Eigen::Vector3d end(getOpticalToWorld().translation());
+          Eigen::Vector3d end(getOpticalToWorld(mTFListener).translation());
           Eigen::ParametrizedLine<double, 3> line(
               start, (end - start).normalized());
           Eigen::Vector3d intersection = line.intersectionPoint(depthPlane);
@@ -334,11 +320,12 @@ bool Perception::perceiveFood(
   }
 }
 
+//==============================================================================
 bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
 {
-  bool any_detected
+  bool detected
       = mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
-  if (!any_detected)
+  if (!detected)
   {
     ROS_WARN("face perception failed");
     return false;
@@ -375,14 +362,26 @@ bool Perception::perceiveFace(Eigen::Isometry3d& faceTransform)
   return false;
 }
 
-void Perception::setFaceZOffset(float faceZOffset)
+//==============================================================================
+bool Perception::setFoodName(std::string foodName)
 {
-  mFaceZOffset = faceZOffset;
+  std::vector<std::string> foodNames
+      = getRosParam<std::vector<std::string>>("/foodItems/names", mNodeHandle);
+  if (std::find(foodNames.begin(), foodNames.end(), foodName)
+      != foodNames.end())
+  {
+    mFoodNameToPerceive = foodName;
+    return true;
+  }
+  return false;
 }
 
+//==============================================================================
 bool Perception::isMouthOpen()
 {
   // return mObjectDatabase->mObjData["faceStatus"].as<bool>();
+  ROS_WARN("Always returning true for isMouthOpen");
   return true;
 }
-}
+
+} // namespace feeding
