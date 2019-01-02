@@ -2,13 +2,12 @@
 #include <algorithm>
 #include <aikido/common/Spline.hpp>
 #include <aikido/common/StepSequence.hpp>
-#include <dart/common/StlHelpers.hpp>
-#include <aikido/trajectory/Interpolated.hpp>
 #include <aikido/planner/parabolic/ParabolicTimer.hpp>
+#include <aikido/trajectory/Interpolated.hpp>
+#include <dart/common/StlHelpers.hpp>
 #include "aikido/distance/defaults.hpp"
 #include "aikido/statespace/CartesianProduct.hpp"
 #include "aikido/statespace/dart/MetaSkeletonStateSpace.hpp"
-
 
 namespace feeding {
 

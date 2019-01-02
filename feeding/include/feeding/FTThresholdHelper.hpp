@@ -5,11 +5,11 @@
 // TODO
 #define REWD_CONTROLLERS_FOUND
 #ifdef REWD_CONTROLLERS_FOUND
-  #include <rewd_controllers/FTThresholdClient.hpp>
+#include <rewd_controllers/FTThresholdClient.hpp>
 #endif
-#include <ros/ros.h>
-#include <Eigen/Geometry>
 #include <mutex>
+#include <Eigen/Geometry>
+#include <ros/ros.h>
 
 namespace feeding {
 
@@ -49,7 +49,8 @@ public:
   bool setThresholds(double forces, double torques);
 
   bool startDataCollection(int numberOfDataPoints);
-  bool isDataCollectionFinished(Eigen::Vector3d& forces, Eigen::Vector3d& torques);
+  bool isDataCollectionFinished(
+      Eigen::Vector3d& forces, Eigen::Vector3d& torques);
 
 private:
   bool mUseThresholdControl;

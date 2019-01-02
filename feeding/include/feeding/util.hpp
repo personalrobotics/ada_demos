@@ -26,7 +26,7 @@ void handleArguments(
     bool& adaReal,
     bool& autoContinueDemo,
     bool& useFTSensing,
-    const std::string& description="Ada Feeding Demo");
+    const std::string& description = "Ada Feeding Demo");
 
 void printStateWithTime(
     double t,
@@ -39,8 +39,6 @@ void dumpSplinePhasePlot(
     const aikido::trajectory::Spline& spline,
     const std::string& filename,
     double timeStep);
-
-
 
 } // feeding
 

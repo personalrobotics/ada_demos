@@ -16,10 +16,9 @@ FTThresholdHelper::FTThresholdHelper(
   if (!mUseThresholdControl)
     return;
 
-
 #ifdef REWD_CONTROLLERS_FOUND
   std::string ftThresholdTopic = getRosParam<std::string>(
-              "/ftSensor/controllerFTThresholdTopic", mNodeHandle);
+      "/ftSensor/controllerFTThresholdTopic", mNodeHandle);
   mFTThresholdClient = std::unique_ptr<rewd_controllers::FTThresholdClient>(
       new rewd_controllers::FTThresholdClient(ftThresholdTopic));
 #else
@@ -33,25 +32,27 @@ void FTThresholdHelper::init()
   if (!mUseThresholdControl)
     return;
 
-  #ifdef REWD_CONTROLLERS_FOUND
+#ifdef REWD_CONTROLLERS_FOUND
   auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
   mFTThresholdClient->trySetThresholdsRepeatedly(
       thresholdPair.first, thresholdPair.second);
   ROS_WARN_STREAM("trySetThresholdsRepeatedly finished");
 
-
-  std::string ftTopic = getRosParam<std::string>(
-              "/ftSensor/ftTopic", mNodeHandle);
+  std::string ftTopic
+      = getRosParam<std::string>("/ftSensor/ftTopic", mNodeHandle);
   ROS_INFO_STREAM("FTThresholdHelper is listening for " << ftTopic);
-  mForceTorqueDataSub = mNodeHandle.subscribe(ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
-  #endif
+  mForceTorqueDataSub = mNodeHandle.subscribe(
+      ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
+#endif
 }
 
 //=============================================================================
-void FTThresholdHelper::forceTorqueDataCallback(const geometry_msgs::WrenchStamped& msg)
+void FTThresholdHelper::forceTorqueDataCallback(
+    const geometry_msgs::WrenchStamped& msg)
 {
   std::lock_guard<std::mutex> lock(mDataCollectionMutex);
-  if (mCollectedForces.size() >= mDataPointsToCollect) {
+  if (mCollectedForces.size() >= mDataPointsToCollect)
+  {
     return;
   }
   Eigen::Vector3d force;
@@ -66,39 +67,43 @@ void FTThresholdHelper::forceTorqueDataCallback(const geometry_msgs::WrenchStamp
   mCollectedTorques.push_back(torque);
 }
 
+bool FTThresholdHelper::startDataCollection(int numberOfDataPoints)
+{
+  if (!mUseThresholdControl)
+    return false;
+  std::lock_guard<std::mutex> lock(mDataCollectionMutex);
+  mDataPointsToCollect = numberOfDataPoints;
+  mCollectedForces.clear();
+  mCollectedTorques.clear();
+  return true;
+}
 
-  bool FTThresholdHelper::startDataCollection(int numberOfDataPoints) {
-    if (!mUseThresholdControl)
-      return false;
-    std::lock_guard<std::mutex> lock(mDataCollectionMutex);
-    mDataPointsToCollect = numberOfDataPoints;
-    mCollectedForces.clear();
-    mCollectedTorques.clear();
-    return true;
+bool FTThresholdHelper::isDataCollectionFinished(
+    Eigen::Vector3d& forces, Eigen::Vector3d& torques)
+{
+  std::lock_guard<std::mutex> lock(mDataCollectionMutex);
+  forces.fill(0);
+  torques.fill(0);
+  if (mCollectedForces.size() < mDataPointsToCollect)
+  {
+    return false;
   }
-
-  bool FTThresholdHelper::isDataCollectionFinished(Eigen::Vector3d& forces, Eigen::Vector3d& torques) {
-    std::lock_guard<std::mutex> lock(mDataCollectionMutex);
-    forces.fill(0);
-    torques.fill(0);
-    if (mCollectedForces.size() < mDataPointsToCollect) {
-      return false;
-    }
-    Eigen::Vector3d summedForces, summedTorques;
-    summedForces.fill(0);
-    summedTorques.fill(0);
-    for (int i=0; i<mCollectedForces.size(); i++) {
-      summedForces = summedForces + mCollectedForces[i];
-      summedTorques = summedTorques + mCollectedTorques[i];
-    }
-    forces.x() = summedForces.x() / mCollectedForces.size();
-    forces.y() = summedForces.y() / mCollectedForces.size();
-    forces.z() = summedForces.z() / mCollectedForces.size();
-    torques.x() = summedTorques.x() / mCollectedForces.size();
-    torques.y() = summedTorques.y() / mCollectedForces.size();
-    torques.z() = summedTorques.z() / mCollectedForces.size();
-    return true;
+  Eigen::Vector3d summedForces, summedTorques;
+  summedForces.fill(0);
+  summedTorques.fill(0);
+  for (int i = 0; i < mCollectedForces.size(); i++)
+  {
+    summedForces = summedForces + mCollectedForces[i];
+    summedTorques = summedTorques + mCollectedTorques[i];
   }
+  forces.x() = summedForces.x() / mCollectedForces.size();
+  forces.y() = summedForces.y() / mCollectedForces.size();
+  forces.z() = summedForces.z() / mCollectedForces.size();
+  torques.x() = summedTorques.x() / mCollectedForces.size();
+  torques.y() = summedTorques.y() / mCollectedForces.size();
+  torques.z() = summedTorques.z() / mCollectedForces.size();
+  return true;
+}
 
 //==============================================================================
 bool FTThresholdHelper::setThresholds(FTThreshold threshold)
@@ -106,11 +111,11 @@ bool FTThresholdHelper::setThresholds(FTThreshold threshold)
   if (!mUseThresholdControl)
     return true;
 
-  #ifdef REWD_CONTROLLERS_FOUND
+#ifdef REWD_CONTROLLERS_FOUND
   auto thresholdPair = getThresholdValues(threshold);
   return mFTThresholdClient->setThresholds(
       thresholdPair.first, thresholdPair.second);
-  #endif
+#endif
 }
 
 //==============================================================================
@@ -119,9 +124,9 @@ bool FTThresholdHelper::setThresholds(double forces, double torques)
   if (!mUseThresholdControl)
     return true;
 
-  #ifdef REWD_CONTROLLERS_FOUND
+#ifdef REWD_CONTROLLERS_FOUND
   return mFTThresholdClient->setThresholds(forces, torques);
-  #endif
+#endif
 }
 
 //==============================================================================

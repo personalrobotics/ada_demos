@@ -34,7 +34,8 @@ Workspace::Workspace(
   }
 }
 
-void Workspace::addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose) {
+void Workspace::addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose)
+{
   addToWorldAtPose(mDefaultFoodItem, "defaultFoodItem", pose);
   mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
 }
@@ -68,8 +69,8 @@ void Workspace::addToWorldAtPose(
 //==============================================================================
 void Workspace::deleteFood()
 {
-  auto freeJoint
-        = dynamic_cast<dart::dynamics::FreeJoint*>(mDefaultFoodItem->getRootJoint());
+  auto freeJoint = dynamic_cast<dart::dynamics::FreeJoint*>(
+      mDefaultFoodItem->getRootJoint());
 
   if (!freeJoint)
     throw std::runtime_error(
@@ -77,9 +78,9 @@ void Workspace::deleteFood()
 
   // for some reason the visualisation doesn't disappear properly
   Eigen::Isometry3d nowhere = Eigen::Isometry3d::Identity();
-  nowhere.translation() = Eigen::Vector3d(0,0,-10000);
+  nowhere.translation() = Eigen::Vector3d(0, 0, -10000);
   freeJoint->setTransform(nowhere);
-  //mWorld->removeSkeleton(mDefaultFoodItem);
+  // mWorld->removeSkeleton(mDefaultFoodItem);
   mDefaultFoodItem = nullptr;
 }
 

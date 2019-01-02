@@ -9,9 +9,9 @@
 #include <aikido/trajectory/Spline.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <dart/dynamics/BodyNode.hpp>
-#include <libada/Ada.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
+#include <libada/Ada.hpp>
 #include "feeding/Perception.hpp"
 
 namespace feeding {
@@ -58,7 +58,8 @@ protected:
 
   double getElapsedTime();
 
-  aikido::trajectory::SplinePtr planToGoalPoseAndResetMetaSkeleton(const Eigen::Isometry3d& goalPose);
+  aikido::trajectory::SplinePtr planToGoalPoseAndResetMetaSkeleton(
+      const Eigen::Isometry3d& goalPose);
 
   ::ros::NodeHandle mNode;
   boost::function<bool(Eigen::Isometry3d&)> mGetTransform;

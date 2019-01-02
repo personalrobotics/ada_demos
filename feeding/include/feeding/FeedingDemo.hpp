@@ -2,15 +2,14 @@
 #define FEEDING_FEEDINGDEMO_HPP_
 
 #include <aikido/planner/World.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <aikido/rviz/TSRMarker.hpp>
-#include <libada/Ada.hpp>
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
+#include <libada/Ada.hpp>
 
 #include "feeding/Perception.hpp"
 #include "feeding/PerceptionServoClient.hpp"
 #include "feeding/Workspace.hpp"
-
 
 namespace feeding {
 
@@ -75,15 +74,21 @@ public:
   void moveOutOfForque();
 
   /// Moves the forque above the plate.
-  bool moveAbovePlate(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = nullptr);
+  bool moveAbovePlate(
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = nullptr);
 
-  void moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = nullptr);
+  void moveAbovePlateAnywhere(
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = nullptr);
 
   /// Moves the forque above the food item using the values in the ros
   /// parameters.
   /// \param[in] foodTransform the transform of the food which the robot should
   /// move over.
-  void moveAboveFood(const Eigen::Isometry3d& foodTransform, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
+  void moveAboveFood(
+      const Eigen::Isometry3d& foodTransform,
+      int pickupAngleMode,
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+      bool useAngledTranslation = true);
 
   /// Moves the forque downwards into the food.
   /// This function does not throw an exception if the trajectory is aborted,
@@ -101,9 +106,11 @@ public:
   /// Moves the forque to a position ready to approach the person.
   bool moveInFrontOfPerson();
 
-  bool tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  bool tiltUpInFrontOfPerson(
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
-  void tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  void tiltDownInFrontOfPerson(
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   /// Moves the forque towards the person.
   /// This function does not throw an exception if the trajectory is aborted,
@@ -114,7 +121,8 @@ public:
       Perception* perception,
       aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
-  void moveDirectlyToPerson(bool tilted, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  void moveDirectlyToPerson(
+      bool tilted, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
   /// Moves the forque away from the person.
   void moveAwayFromPerson();

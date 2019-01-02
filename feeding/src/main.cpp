@@ -1,9 +1,9 @@
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <aikido/statespace/Rn.hpp>
-#include <libada/util.hpp>
 #include <mcheck.h>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
+#include <libada/util.hpp>
 
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
@@ -15,56 +15,62 @@ using ada::util::waitForUser;
 
 namespace feeding {
 
-int defaultmain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal);
+int defaultmain(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal);
 
-int nipsmain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal);
+int nipsmain(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal);
 
-int studymain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal);
+int studymain(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal);
 
-int acquisitionmain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal);
+int acquisitionmain(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal);
 
-int acquisitiontiltedmain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal);
+int acquisitiontiltedmain(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal);
 
-int bltmain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal);
+int bltmain(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal);
 
-int demomain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal);
+int demomain(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal);
 };
-
 
 ///
 /// OVERVIEW OF FEEDING DEMO CODE
@@ -86,7 +92,6 @@ int main(int argc, char** argv)
   //   return 1;
   // }
 
-
   // ===== STARTUP =====
 
   // Is the real robot used or simulation?
@@ -101,10 +106,12 @@ int main(int argc, char** argv)
   handleArguments(argc, argv, adaReal, autoContinueDemo, useFTSensing);
   ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
-  #ifndef REWD_CONTROLLERS_FOUND
-    ROS_WARN_STREAM("Package rewd_controllers not found. The F/T sensor connection is not going to work.");
-    //useFTSensing = false;
-  #endif
+#ifndef REWD_CONTROLLERS_FOUND
+  ROS_WARN_STREAM(
+      "Package rewd_controllers not found. The F/T sensor connection is not "
+      "going to work.");
+// useFTSensing = false;
+#endif
 
   // start node
   ros::init(argc, argv, "feeding");
@@ -139,10 +146,11 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
-  return feeding::nipsmain(feedingDemo,
-                     ftThresholdHelper,
-                     perception,
-                     nodeHandle,
-                     autoContinueDemo,
-                     adaReal);
+  return feeding::nipsmain(
+      feedingDemo,
+      ftThresholdHelper,
+      perception,
+      nodeHandle,
+      autoContinueDemo,
+      adaReal);
 }

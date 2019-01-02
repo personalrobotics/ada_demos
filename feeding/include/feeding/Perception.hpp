@@ -36,13 +36,16 @@ public:
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
   bool perceiveFood(
-      Eigen::Isometry3d& foodTransform, bool perceiveDepthPlane, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+      Eigen::Isometry3d& foodTransform,
+      bool perceiveDepthPlane,
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
 
-  bool perceiveFood(Eigen::Isometry3d& foodTransform,
-                                bool perceiveDepthPlane,
-                                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
-                                std::string& foodName,
-                                bool perceiveAnyFood);
+  bool perceiveFood(
+      Eigen::Isometry3d& foodTransform,
+      bool perceiveDepthPlane,
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+      std::string& foodName,
+      bool perceiveAnyFood);
 
   bool perceiveFace(Eigen::Isometry3d& faceTransform);
 
@@ -79,9 +82,7 @@ private:
   std::vector<std::string> mFoodNames;
 
   float mFaceZOffset = 0;
-
 };
-
 }
 
 #endif

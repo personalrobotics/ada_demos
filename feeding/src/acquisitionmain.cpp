@@ -1,55 +1,69 @@
 
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <ros/ros.h>
+#include <libada/util.hpp>
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
-#include <ros/ros.h>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
-#include <libada/util.hpp>
 
 using ada::util::getRosParam;
 using ada::util::waitForUser;
 
 namespace feeding {
 
-int acquisitionmain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal) {
+int acquisitionmain(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal)
+{
 
-  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer = feedingDemo.getViewer();
+  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer
+      = feedingDemo.getViewer();
 
-  std::vector<std::string> foodNames = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
-  std::vector<double> skeweringForces = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
+  std::vector<std::string> foodNames
+      = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
+  std::vector<double> skeweringForces
+      = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
   std::unordered_map<std::string, double> foodSkeweringForces;
-  for (int i=0; i<foodNames.size(); i++) {
+  for (int i = 0; i < foodNames.size(); i++)
+  {
     foodSkeweringForces[foodNames[i]] = skeweringForces[i];
   }
 
-    if (!autoContinueDemo)
+  if (!autoContinueDemo)
+  {
+    if (!waitForUser("Ready to start."))
     {
-      if (!waitForUser("Ready to start."))
-      {
-        return 0;
-      }
+      return 0;
     }
+  }
 
-  for (int trial=0; trial<10; trial++) {
+  for (int trial = 0; trial < 10; trial++)
+  {
     std::cout << "\033[1;33mSTARTING TRIAL " << trial << "\033[0m" << std::endl;
 
     // ===== ABOVE PLATE =====
     bool stepSuccessful = false;
-    while (!stepSuccessful) {
-      try {
+    while (!stepSuccessful)
+    {
+      try
+      {
         feedingDemo.moveAbovePlate(viewer);
         stepSuccessful = true;
-      } catch (std::runtime_error) {
-        if (!waitForUser("Trajectory execution failed. Try again?")) {continue;}
+      }
+      catch (std::runtime_error)
+      {
+        if (!waitForUser("Trajectory execution failed. Try again?"))
+        {
+          continue;
+        }
       }
     }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     // ===== SELECT FOOD =====
     if (!autoContinueDemo)
@@ -65,9 +79,11 @@ int acquisitionmain(FeedingDemo& feedingDemo,
 
     // if (adaReal)
     // {
-    //   bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer, foodName, true);
+    //   bool perceptionSuccessful = perception.perceiveFood(foodTransform,
+    //   true, viewer, foodName, true);
     //   if (!perceptionSuccessful) {
-    //     std::cout << "\033[1;33mI can't see any food! Next trial.\033[0m" << std::endl;
+    //     std::cout << "\033[1;33mI can't see any food! Next trial.\033[0m" <<
+    //     std::endl;
     //     continue;
     //   }
     // }
@@ -77,87 +93,125 @@ int acquisitionmain(FeedingDemo& feedingDemo,
     //   foodName = "apricot";
     // }
     // perception.setFoodName(foodName);
-    // std::cout << "\033[1;32mI'm gonna get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
+    // std::cout << "\033[1;32mI'm gonna get the " << foodName << "!\033[0;32m
+    // (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" <<
+    // std::endl << std::endl;
 
-
-  Eigen::Isometry3d foodTransform;
-  bool foodFound = false;
-  std::string foodName;
-  while (!foodFound) {
-    std::cout << std::endl << "\033[1;32mWhich food item do you want?\033[0m     > ";
-    foodName = "";
-    std::cin >> foodName;
-    if (!ros::ok()) {return 0;}
-    nodeHandle.setParam("/deep_pose/publish_spnet", true);
-    nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
-    std::this_thread::sleep_for(std::chrono::milliseconds(400));
-    if (!perception.setFoodName(foodName)) {
-      std::cout << "\033[1;33mI don't know about any food that's called '" << foodName << ". Wanna get something else?\033[0m" << std::endl;
-      continue;
-    }
-
-    if (adaReal)
+    Eigen::Isometry3d foodTransform;
+    bool foodFound = false;
+    std::string foodName;
+    while (!foodFound)
     {
-      bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-      ROS_INFO_STREAM("perceptionSuccessfulBool: " << perceptionSuccessful);
-      if (!perceptionSuccessful) {
-        std::cout << "\033[1;33mI can't see the " << foodName << "... Wanna get something else?\033[0m" << std::endl;
+      std::cout << std::endl
+                << "\033[1;32mWhich food item do you want?\033[0m     > ";
+      foodName = "";
+      std::cin >> foodName;
+      if (!ros::ok())
+      {
+        return 0;
+      }
+      nodeHandle.setParam("/deep_pose/publish_spnet", true);
+      nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
+      std::this_thread::sleep_for(std::chrono::milliseconds(400));
+      if (!perception.setFoodName(foodName))
+      {
+        std::cout << "\033[1;33mI don't know about any food that's called '"
+                  << foodName << ". Wanna get something else?\033[0m"
+                  << std::endl;
         continue;
-      } else {
+      }
+
+      if (adaReal)
+      {
+        bool perceptionSuccessful
+            = perception.perceiveFood(foodTransform, true, viewer);
+        ROS_INFO_STREAM("perceptionSuccessfulBool: " << perceptionSuccessful);
+        if (!perceptionSuccessful)
+        {
+          std::cout << "\033[1;33mI can't see the " << foodName
+                    << "... Wanna get something else?\033[0m" << std::endl;
+          continue;
+        }
+        else
+        {
+          foodFound = true;
+        }
+      }
+      else
+      {
+        foodTransform = feedingDemo.getDefaultFoodTransform();
         foodFound = true;
       }
     }
-    else
-    {
-      foodTransform = feedingDemo.getDefaultFoodTransform();
-      foodFound = true;
-    }
-  }
-  std::cout << "\033[1;32mAlright! Let's get the " << foodName << "!\033[0;32m  (Gonna skewer with " << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl << std::endl;
+    std::cout << "\033[1;32mAlright! Let's get the " << foodName
+              << "!\033[0;32m  (Gonna skewer with "
+              << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl
+              << std::endl;
 
-  nodeHandle.setParam("/deep_pose/publish_spnet", true);
-  nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
-  std::this_thread::sleep_for(std::chrono::milliseconds(700));
+    nodeHandle.setParam("/deep_pose/publish_spnet", true);
+    nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
+    std::this_thread::sleep_for(std::chrono::milliseconds(700));
 
     bool angledSkewering = false; //(foodName == "banana");
 
-
-  // ===== ABOVE FOOD =====
-  stepSuccessful = false;
-  bool continueWithNextTrial = false;
-  while (!stepSuccessful && !continueWithNextTrial) {
-    try {
-      if (angledSkewering) {
-        feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-        if (!perceptionSuccessful) {
-          std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
-          continueWithNextTrial = true;
-        } else {
-          feedingDemo.moveAboveFood(foodTransform, 0.25*M_PI, viewer);
+    // ===== ABOVE FOOD =====
+    stepSuccessful = false;
+    bool continueWithNextTrial = false;
+    while (!stepSuccessful && !continueWithNextTrial)
+    {
+      try
+      {
+        if (angledSkewering)
+        {
+          feedingDemo.moveAboveFood(foodTransform, 0.25 * M_PI, viewer);
+          std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+          bool perceptionSuccessful
+              = perception.perceiveFood(foodTransform, true, viewer);
+          if (!perceptionSuccessful)
+          {
+            std::cout << "\033[1;33mI can't see the " << foodName
+                      << " anymore...\033[0m" << std::endl;
+            continueWithNextTrial = true;
+          }
+          else
+          {
+            feedingDemo.moveAboveFood(foodTransform, 0.25 * M_PI, viewer);
+          }
         }
-      } else {
+        else
+        {
 
-        // Grape style skewering angle: -0.05*M_PI, viewer, false
+          // Grape style skewering angle: -0.05*M_PI, viewer, false
 
-        feedingDemo.moveAboveFood(foodTransform, 0, viewer);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        bool perceptionSuccessful = perception.perceiveFood(foodTransform, true, viewer);
-        if (!perceptionSuccessful) {
-          std::cout << "\033[1;33mI can't see the " << foodName << " anymore...\033[0m" << std::endl;
-          continue;
-        } else {
           feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+          std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+          bool perceptionSuccessful
+              = perception.perceiveFood(foodTransform, true, viewer);
+          if (!perceptionSuccessful)
+          {
+            std::cout << "\033[1;33mI can't see the " << foodName
+                      << " anymore...\033[0m" << std::endl;
+            continue;
+          }
+          else
+          {
+            feedingDemo.moveAboveFood(foodTransform, 0, viewer);
+          }
+        }
+        stepSuccessful = true;
+      }
+      catch (std::runtime_error)
+      {
+        if (!waitForUser("Trajectory execution failed. Try again?"))
+        {
+          continue;
         }
       }
-      stepSuccessful = true;
-    } catch (std::runtime_error) {
-      if (!waitForUser("Trajectory execution failed. Try again?")) {continue;}
     }
-  }
-  if (continueWithNextTrial) {continue;}
-
+    if (continueWithNextTrial)
+    {
+      continue;
+    }
 
     // ===== INTO FOOD =====
     if (!autoContinueDemo)
@@ -168,13 +222,17 @@ int acquisitionmain(FeedingDemo& feedingDemo,
       }
     }
     double torqueThreshold = 2;
-    if (!ftThresholdHelper.setThresholds(foodSkeweringForces[foodName], torqueThreshold))
+    if (!ftThresholdHelper.setThresholds(
+            foodSkeweringForces[foodName], torqueThreshold))
     {
       return 1;
     }
-    if (adaReal) {
+    if (adaReal)
+    {
       feedingDemo.moveIntoFood(&perception, viewer);
-    } else {
+    }
+    else
+    {
       feedingDemo.moveIntoFood();
     }
     std::this_thread::sleep_for(
@@ -194,9 +252,12 @@ int acquisitionmain(FeedingDemo& feedingDemo,
     {
       return 1;
     }
-    try {
+    try
+    {
       feedingDemo.moveOutOfFood();
-    } catch (std::runtime_error) {
+    }
+    catch (std::runtime_error)
+    {
       waitForUser("Unable to move out of food. Starting next trial.");
       continue;
     }
@@ -205,12 +266,10 @@ int acquisitionmain(FeedingDemo& feedingDemo,
       return 1;
     }
 
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(5000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
   }
 
   // ===== DONE =====
   waitForUser("Demo finished.");
 }
-
 };
