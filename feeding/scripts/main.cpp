@@ -10,67 +10,11 @@
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
 
+#include "experiments.hpp"
+
 using ada::util::getRosParam;
 using ada::util::waitForUser;
 
-namespace feeding {
-
-int defaultmain(
-    FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
-
-int nipsmain(
-    FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
-
-int studymain(
-    FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
-
-int acquisitionmain(
-    FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
-
-int acquisitiontiltedmain(
-    FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
-
-int bltmain(
-    FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
-
-int demomain(
-    FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
-};
 
 ///
 /// OVERVIEW OF FEEDING DEMO CODE
@@ -86,12 +30,6 @@ int demomain(
 int main(int argc, char** argv)
 {
   using namespace feeding;
-
-  // if (mcheck(NULL) != 0) {
-  //   std::cout << "MCHECK FAILED!" << std::endl;
-  //   return 1;
-  // }
-
   // ===== STARTUP =====
 
   // Is the real robot used or simulation?
@@ -103,14 +41,16 @@ int main(int argc, char** argv)
   // the FT sensing can stop trajectories if the forces are too big
   bool useFTSensing = false;
 
+  bool TERMINATE_AT_USER_PROMPT = true;
+
   handleArguments(argc, argv, adaReal, autoContinueDemo, useFTSensing);
+
   ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
 #ifndef REWD_CONTROLLERS_FOUND
   ROS_WARN_STREAM(
       "Package rewd_controllers not found. The F/T sensor connection is not "
       "going to work.");
-// useFTSensing = false;
 #endif
 
   // start node
@@ -131,26 +71,20 @@ int main(int argc, char** argv)
       feedingDemo.getAda().getMetaSkeleton(),
       nodeHandle);
 
-  std::string collisionCheckResult;
-  if (!feedingDemo.isCollisionFree(collisionCheckResult))
-  {
-    // throw std::runtime_error(collisionCheckResult);
-  }
-
   ftThresholdHelper.init();
 
-  if (!waitForUser("Startup complete."))
-  {
-    return 0;
-  }
+  waitForUser("Startup complete.", TERMINATE_AT_USER_PROMPT);
 
   feedingDemo.moveToStartConfiguration();
 
-  return feeding::nipsmain(
+  demo(
       feedingDemo,
       ftThresholdHelper,
       perception,
       nodeHandle,
       autoContinueDemo,
       adaReal);
+
+  return 0;
 }
+

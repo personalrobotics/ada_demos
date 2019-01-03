@@ -20,25 +20,21 @@ find_package(DART 6.6.0 REQUIRED
   CONFIG
 )
 
+include_directories(include)
 
 add_executable(feeding
-  src/main.cpp
-  # src/defaultmain.cpp
-  # src/studymain.cpp
-  # src/demomain.cpp
-  # src/bltmain.cpp
-  # src/acquisitionmain.cpp
-  # src/acquisitiontiltedmain.cpp
+  scripts/main.cpp
+  scripts/demo.cpp
+  # scripts/bite_location_detector.cpp
+  scripts/acquisition.cpp
   src/FeedingDemo.cpp
   src/FTThresholdHelper.cpp
   src/Perception.cpp
   src/Workspace.cpp
   src/util.cpp
   src/PerceptionServoClient.cpp
-  src/nipsmain.cpp
+  
 )
-
-include_directories(include)
 
 target_link_libraries(feeding
   ${DART_LIBRARIES}

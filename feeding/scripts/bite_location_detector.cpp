@@ -6,6 +6,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
+
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
@@ -59,7 +60,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   }
 }
 
-int bltmain(
+void bite_location_detector(
     FeedingDemo& feedingDemo,
     FTThresholdHelper& ftThresholdHelper,
     Perception& perception,
@@ -101,7 +102,7 @@ int bltmain(
       {
         try
         {
-          feedingDemo.moveAbovePlateAnywhere(viewer);
+          feedingDemo.moveAbovePlateAnywhere();
           stepSuccessful = true;
         }
         catch (std::runtime_error)
@@ -123,7 +124,7 @@ int bltmain(
     }
     else
     {
-      feedingDemo.moveAbovePlate(viewer);
+      feedingDemo.moveAbovePlate();
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       Eigen::Isometry3d foodTransform;
       perception.setFoodName("celery");
