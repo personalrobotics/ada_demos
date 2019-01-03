@@ -460,8 +460,7 @@ bool FeedingDemo::moveIntoFood()
 }
 
 //==============================================================================
-bool FeedingDemo::moveIntoFood(
-    Perception* perception)
+bool FeedingDemo::moveIntoFood(Perception* perception)
 {
   ROS_INFO("Servoing into food");
   std::shared_ptr<aikido::control::TrajectoryExecutor> executor
@@ -862,7 +861,7 @@ void FeedingDemo::putDownFork()
 
 //==============================================================================
 std::string FeedingDemo::getUserInput(
-  bool food_only, ros::NodeHandle& nodeHandle)
+    bool food_only, ros::NodeHandle& nodeHandle)
 {
   ROS_INFO_STREAM("Which food item do you want?");
   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
@@ -873,8 +872,9 @@ std::string FeedingDemo::getUserInput(
   {
     for (std::size_t i = 0; i < ACTIONS.size(); ++i)
     {
-      ROS_INFO_STREAM("(" << i + FOOD_NAMES.size() + 1
-        << ") [" << ACTIONS[i] << "]" << std::endl);
+      ROS_INFO_STREAM(
+          "(" << i + FOOD_NAMES.size() + 1 << ") [" << ACTIONS[i] << "]"
+              << std::endl);
     }
   }
 
@@ -922,11 +922,9 @@ void FeedingDemo::skewer(
   int num_tries = 0;
 
   std::vector<std::string> foodNames
-      = getRosParam<std::vector<std::string>>(
-          "/foodItems/names", nodeHandle);
+      = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
   std::vector<double> skeweringForces
-      = getRosParam<std::vector<double>>(
-          "/foodItems/forces", nodeHandle);
+      = getRosParam<std::vector<double>>("/foodItems/forces", nodeHandle);
   std::unordered_map<std::string, double> foodSkeweringForces;
 
   for (int i = 0; i < foodNames.size(); i++)
@@ -953,9 +951,12 @@ void FeedingDemo::skewer(
         waitForUser("Try perception again?", TERMINATE_AT_USER_PROMPT);
       continue;
     }
-    ROS_INFO_STREAM("Alright! Let's get the " << foodName
-            << "!\033[0;32m  (Gonna skewer with "
-            << foodSkeweringForces[foodName] << "N)\033[0m" << std::endl);
+    ROS_INFO_STREAM(
+        "Alright! Let's get the " << foodName
+                                  << "!\033[0;32m  (Gonna skewer with "
+                                  << foodSkeweringForces[foodName]
+                                  << "N)\033[0m"
+                                  << std::endl);
 
     // ===== ABOVE FOOD =====
     // 0 vertical
@@ -967,23 +968,22 @@ void FeedingDemo::skewer(
     if (!autoContinueDemo)
       waitForUser("Move forque above food", TERMINATE_AT_USER_PROMPT);
 
-    moveAboveFood(
-      foodTransform, pickupAngleMode, true);
+    moveAboveFood(foodTransform, pickupAngleMode, true);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(800));
     if (adaReal)
     {
       if (!perception.perceiveFood(foodTransform, true, mViewer))
       {
-        ROS_WARN_STREAM("I can't see the " << foodName
-                  << " anymore...\033[0m" << std::endl);
+        ROS_WARN_STREAM(
+            "I can't see the " << foodName << " anymore...\033[0m"
+                               << std::endl);
         continue;
       }
     }
     else
     {
       foodTransform = getDefaultFoodTransform();
-
     }
 
     moveAboveFood(foodTransform, pickupAngleMode, true);
@@ -1017,8 +1017,7 @@ void FeedingDemo::skewer(
 
     std::this_thread::sleep_for(
         std::chrono::milliseconds(
-            getRosParam<int>(
-                "/feedingDemo/waitMillisecsAtFood", nodeHandle)));
+            getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
     grabFoodWithForque();
 
     // ===== OUT OF FOOD =====
@@ -1057,19 +1056,21 @@ void FeedingDemo::skewer(
       if (num_tries >= max_trial_per_item)
       {
         ROS_WARN_STREAM(
-          "Ooops! I think I didn't manage to pick up the "
-          << foodName << ".  Maybe we should try a different food item."
-          << std::endl);
+            "Ooops! I think I didn't manage to pick up the "
+            << foodName
+            << ".  Maybe we should try a different food item."
+            << std::endl);
 
         foodName = getUserInput(true, nodeHandle);
         num_tries = 0;
       }
       else
       {
-          ROS_WARN_STREAM(
-          "Ooops! I think I didn't manage to pick up the "
-          << foodName << ". Let me try one more time."
-          << std::endl);
+        ROS_WARN_STREAM(
+            "Ooops! I think I didn't manage to pick up the "
+            << foodName
+            << ". Let me try one more time."
+            << std::endl);
 
         num_tries++;
       }
@@ -1098,8 +1099,7 @@ void FeedingDemo::feedFoodToPerson(
   ROS_WARN("Human is eating");
   std::this_thread::sleep_for(
       std::chrono::milliseconds(
-          getRosParam<int>(
-              "/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
+          getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
   ungrabAndDeleteFood();
 
   if (!autoContinueDemo)
@@ -1118,7 +1118,6 @@ void FeedingDemo::feedFoodToPerson(
     waitForUser("Move back to plate", TERMINATE_AT_USER_PROMPT);
 
   moveAbovePlate();
-
 }
 
 } // namespace feeding

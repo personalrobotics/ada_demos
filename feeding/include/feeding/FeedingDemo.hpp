@@ -14,11 +14,11 @@
 
 namespace feeding {
 
-static const std::vector<std::string> FOOD_NAMES = {
-  "strawberry", "melon", "cantaloupe", "celery", "carrot"};
+static const std::vector<std::string> FOOD_NAMES
+    = {"strawberry", "melon", "cantaloupe", "celery", "carrot"};
 
-static const std::vector<std::string> ACTIONS = {
-  "calibrate", "pickupfork", "putdownfork"};
+static const std::vector<std::string> ACTIONS
+    = {"calibrate", "pickupfork", "putdownfork"};
 
 /// The FeedingDemo class is responsible for
 /// - The robot (loading + control)
@@ -116,8 +116,7 @@ public:
   /// because we expect that.
   bool moveTowardsPerson();
 
-  bool moveTowardsPerson(
-      Perception* perception);
+  bool moveTowardsPerson(Perception* perception);
 
   void moveDirectlyToPerson(bool tilted);
 
@@ -139,19 +138,19 @@ public:
   ///
   /// param[in] foodName if empty, takes user input.
   void skewer(
-    std::string foodName,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal,
-    int max_trial_per_item = 3);
+      std::string foodName,
+      FTThresholdHelper& ftThresholdHelper,
+      Perception& perception,
+      ros::NodeHandle nodeHandle,
+      bool autoContinueDemo,
+      bool adaReal,
+      int max_trial_per_item = 3);
 
   void feedFoodToPerson(
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool tilted = true);
+      Perception& perception,
+      ros::NodeHandle nodeHandle,
+      bool autoContinueDemo,
+      bool tilted = true);
 
 private:
   bool mIsFTSensingEnabled = false;
