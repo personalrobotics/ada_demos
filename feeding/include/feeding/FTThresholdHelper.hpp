@@ -1,11 +1,15 @@
 #ifndef FEEDING_FTTHRESHOLDHELPER_HPP_
 #define FEEDING_FTTHRESHOLDHELPER_HPP_
 
-#include <rewd_controllers/FTThresholdClient.hpp>
 #include <geometry_msgs/WrenchStamped.h>
-#include <ros/ros.h>
-#include <Eigen/Geometry>
+// TODO
+#define REWD_CONTROLLERS_FOUND
+#ifdef REWD_CONTROLLERS_FOUND
+#include <rewd_controllers/FTThresholdClient.hpp>
+#endif
 #include <mutex>
+#include <Eigen/Geometry>
+#include <ros/ros.h>
 
 namespace feeding {
 
@@ -46,7 +50,8 @@ public:
   bool setThresholds(double forces, double torques);
 
   bool startDataCollection(int numberOfDataPoints);
-  bool isDataCollectionFinished(Eigen::Vector3d& forces, Eigen::Vector3d& torques);
+  bool isDataCollectionFinished(
+      Eigen::Vector3d& forces, Eigen::Vector3d& torques);
 
 private:
   bool mUseThresholdControl;
@@ -60,7 +65,9 @@ private:
   // \brief Gets data from the force/torque sensor
   ros::Subscriber mForceTorqueDataSub;
 
+#ifdef REWD_CONTROLLERS_FOUND
   std::unique_ptr<rewd_controllers::FTThresholdClient> mFTThresholdClient;
+#endif
 
   std::pair<double, double> getThresholdValues(FTThreshold threshold);
 

@@ -52,6 +52,8 @@ public:
   /// Removes the default food item from the world.
   void deleteFood();
 
+  void addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose);
+
 private:
   ros::NodeHandle mNodeHandle;
 
@@ -77,6 +79,12 @@ private:
       dart::dynamics::SkeletonPtr& skeleton,
       const std::string& name,
       const Eigen::Isometry3d& robotPose);
+
+  /// TODO: docstring
+  void addToWorldAtPose(
+      dart::dynamics::SkeletonPtr& skeleton,
+      const std::string& name,
+      const Eigen::Isometry3d& pose);
 };
 }
 

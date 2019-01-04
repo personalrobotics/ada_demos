@@ -2,17 +2,24 @@
 #define FEEDING_FEEDINGDEMO_HPP_
 
 #include <aikido/planner/World.hpp>
+#include <aikido/rviz/TSRMarker.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
-#include "feeding/AdaMover.hpp"
+
+#include "feeding/FTThresholdHelper.hpp"
 #include "feeding/Perception.hpp"
-#include "feeding/PerceptionServoClient.hpp"
 #include "feeding/PerceptionPreProcess.hpp"
+#include "feeding/PerceptionServoClient.hpp"
 #include "feeding/Workspace.hpp"
-#include <aikido/rviz/TSRMarker.hpp>
 
 namespace feeding {
+
+static const std::vector<std::string> FOOD_NAMES
+    = {"strawberry", "melon", "cantaloupe", "celery", "carrot"};
+
+static const std::vector<std::string> ACTIONS
+    = {"calibrate", "pickupfork", "putdownfork"};
 
 /// The FeedingDemo class is responsible for
 /// - The robot (loading + control)
@@ -60,12 +67,6 @@ public:
   /// Prints the configuration of the robot joints.
   void printRobotConfiguration();
 
-  /// Opens Ada's hand
-  void openHand();
-
-  /// Closes Ada's hand
-  void closeHand();
-
   /// Attach food to forque
   void grabFoodWithForque();
 
@@ -76,81 +77,125 @@ public:
   /// parameter.
   void moveToStartConfiguration();
 
-  /// Moves the forque above the plate.
-  void moveAbovePlate();
+  void moveAboveForque();
+  void moveIntoForque();
+  void moveOutOfForque();
 
-  void moveAbovePlateAnywhere(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  /// Moves the forque above the plate.
+  bool moveAbovePlate();
+  void moveAbovePlateAnywhere();
 
   /// Moves the forque above the food item using the values in the ros
   /// parameters.
   /// \param[in] foodTransform the transform of the food which the robot should
   /// move over.
-  bool moveAboveFood(const Eigen::Isometry3d& foodTransform, float rotAngle, float angle, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
 
-  void rotateForque(const Eigen::Isometry3d& foodTransform, float angle, int pickupAngleMode, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
+  bool moveAboveFood(
+      const Eigen::Isometry3d& foodTransform,
+      int pickupAngleMode,
+      float rotAngle = 0.0,
+      float angle = 0.0,
+      bool useAngledTranslation = true);
 
-  void moveNextToFood(const Eigen::Isometry3d& foodTransform, float angle, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer, bool useAngledTranslation = true);
+  void rotateForque(
+      const Eigen::Isometry3d& foodTransform,
+      float angle,
+      int pickupAngleMode,
+      bool useAngledTranslation = true);
 
   void moveNextToFood(
-      Perception* perception,
+      const Eigen::Isometry3d& foodTransform,
       float angle,
-      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
-      Eigen::Isometry3d forqueTransform);
+      bool useAngledTranslation = true);
+
+  void moveNextToFood(
+      Perception* perception, float angle, Eigen::Isometry3d forqueTransform);
 
   void pushFood(float angle, bool useAngledTranslation = true);
 
-  void pushFood(float angle, Eigen::Isometry3d forqueTransform, bool useAngledTranslation = true);
+  void pushFood(
+      float angle,
+      Eigen::Isometry3d forqueTransform,
+      bool useAngledTranslation = true);
 
   void pushFood(float angle, double pushDist, bool useAngledTranslation = true);
 
-  void pushFood(float angle, double pushDist, Eigen::Isometry3d forqueTransform, bool useAngledTranslation = true);
+  void pushFood(
+      float angle,
+      double pushDist,
+      Eigen::Isometry3d forqueTransform,
+      bool useAngledTranslation = true);
 
-  //void scoopFood();
+  // void scoopFood();
 
   void moveOutOfPlate();
 
   /// Moves the forque downwards into the food.
   /// This function does not throw an exception if the trajectory is aborted,
   /// because we expect that.
-  void moveIntoFood();
+  bool moveIntoFood();
 
-  void moveIntoFood(
-      Perception* perception,
-      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  bool moveIntoFood(Perception* perception);
 
   /// Moves the forque upwards above the food.
   void moveOutOfFood();
   void moveOutOfFood(float dist);
 
   /// Moves the forque to a position ready to approach the person.
-  void moveInFrontOfPerson();
+  bool moveInFrontOfPerson();
 
-  void tiltUpInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  bool tiltUpInFrontOfPerson();
 
-  void tiltDownInFrontOfPerson(aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  void tiltDownInFrontOfPerson();
 
   /// Moves the forque towards the person.
   /// This function does not throw an exception if the trajectory is aborted,
   /// because we expect that.
-  void moveTowardsPerson();
+  bool moveTowardsPerson();
 
-  void moveTowardsPerson(
-      Perception* perception,
-      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  bool moveTowardsPerson(Perception* perception);
 
-  void moveDirectlyToPerson(bool tilted, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
+  void moveDirectlyToPerson(bool tilted);
 
   /// Moves the forque away from the person.
   void moveAwayFromPerson();
 
-  std::unique_ptr<AdaMover> mAdaMover;
+  void visualizeTrajectory(aikido::trajectory::TrajectoryPtr trajectory);
+
+  aikido::rviz::WorldInteractiveMarkerViewerPtr getViewer();
+
+  void pickUpFork();
+  void putDownFork();
+
+  /// Gets user selection of food and actions
+  /// param[in] food_only If true, only food choices are valid
+  /// param[in]] nodeHandle Ros Node to set food name for detection.
+  std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle);
+
+  ///
+  /// param[in] foodName if empty, takes user input.
+  void skewer(
+      std::string foodName,
+      FTThresholdHelper& ftThresholdHelper,
+      Perception& perception,
+      ros::NodeHandle nodeHandle,
+      bool autoContinueDemo,
+      bool adaReal,
+      int max_trial_per_item = 3);
+
+  void feedFoodToPerson(
+      Perception& perception,
+      ros::NodeHandle nodeHandle,
+      bool autoContinueDemo,
+      bool tilted = true);
 
 private:
+  bool mIsFTSensingEnabled = false;
   bool mAdaReal;
   ros::NodeHandle mNodeHandle;
   aikido::planner::WorldPtr mWorld;
 
-  std::unique_ptr<ada::Ada> mAda;
+  std::shared_ptr<ada::Ada> mAda;
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
   std::unique_ptr<Workspace> mWorkspace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
@@ -158,6 +203,10 @@ private:
   std::unique_ptr<PerceptionServoClient> mServoClient;
 
   std::vector<aikido::rviz::TSRMarkerPtr> tsrMarkers;
+
+  aikido::rviz::WorldInteractiveMarkerViewerPtr mViewer;
+  aikido::rviz::FrameMarkerPtr frameMarker;
+  aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
 };
 }
 

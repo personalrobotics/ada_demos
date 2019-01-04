@@ -38,20 +38,18 @@ plate:
 table:
   urdfUri: package://pr_ordata/data/furniture/table_feeding.urdf
   pose: [0.76, 0.38, -0.735, 0, 0, 0]
-  #pose: [0.74, 0.40, -0.72, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_ordata/data/objects/food_item.urdf
   pose: [.495, 0.19, 0.015, 3.1415, 0, 0]
 person: # the mannequin
   urdfUri: package://pr_ordata/data/objects/tom.urdf
-  pose: [0.425, -0.45, 0.502, 0, 0, 3.1415]
-  #pose: [0.425, -0.45, 0.472, 0, 0, 3.1415]
+  pose: [0.425, -0.45, 0.502, 0, 3.1415, 3.1415]
 workspaceEnvironment:
   urdfUri: package://pr_ordata/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0, 0, 0, 0]
 wheelchair:
   urdfUri: package://pr_ordata/data/furniture/wheelchair.urdf
-  pose: [0, 0, 0, 0, 0, 0]
+  pose: [0.0, 0.0, 0, 0, 0, 0]
 
 # Feeding demo movement parameters
 feedingDemo:
@@ -152,7 +150,6 @@ planning:
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
   ftTopic: /forque/forqueSensor
-  #ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
       force: 10
@@ -195,9 +192,8 @@ foodItems:
 study:
   skipSkewering: false
 
-
   # x: from operator
   # y: towards user 0.24
   # z: up
-  personPose: [0.295, 0.24, 0.68, 0, 0, 3.1415]
-  tiltOffset: [-0.04, 0, -0.04]
+  personPose: [0.295, 0.29, 0.73, 0, 0, 3.1415]
+  tiltOffset: [-0.04, 0.08, -0.04]

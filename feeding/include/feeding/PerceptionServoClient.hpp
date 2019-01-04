@@ -11,7 +11,7 @@
 #include <dart/dynamics/BodyNode.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
-#include "feeding/AdaMover.hpp"
+#include <libada/Ada.hpp>
 #include "feeding/Perception.hpp"
 
 namespace feeding {
@@ -26,7 +26,7 @@ public:
       boost::function<bool(Eigen::Isometry3d&)> getTransform,
       aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
           metaSkeletonStateSpace,
-      AdaMover* adaMover,
+      std::shared_ptr<ada::Ada> ada,
       ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
       ::dart::dynamics::BodyNodePtr bodyNode,
       std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
@@ -44,7 +44,7 @@ public:
 
   bool isRunning();
 
-  void wait(double timelimit);
+  bool wait(double timelimit);
 
 protected:
   void nonRealtimeCallback(const ros::TimerEvent& event);
@@ -52,10 +52,14 @@ protected:
   void jointStateUpdateCallback(const sensor_msgs::JointState::ConstPtr& msg);
 
   bool updatePerception(Eigen::Isometry3d& goalPose);
+
   aikido::trajectory::SplinePtr planToGoalPose(
       const Eigen::Isometry3d& goalPose);
 
   double getElapsedTime();
+
+  aikido::trajectory::SplinePtr planToGoalPoseAndResetMetaSkeleton(
+      const Eigen::Isometry3d& goalPose);
 
   ::ros::NodeHandle mNode;
   boost::function<bool(Eigen::Isometry3d&)> mGetTransform;
@@ -93,14 +97,16 @@ protected:
   std::vector<aikido::rviz::FrameMarkerPtr> mFrameMarkers;
   bool mExecutionDone;
   bool mIsRunning;
+  bool mNotFailed;
 
   ros::Subscriber mSub;
   std::mutex mJointStateUpdateMutex;
   std::mutex timerMutex;
 
-  AdaMover* mAdaMover;
+  std::shared_ptr<ada::Ada> mAda;
 
   std::chrono::time_point<std::chrono::system_clock> mStartTime;
+  std::chrono::time_point<std::chrono::system_clock> mLastSuccess;
 
   bool hasOriginalDirection = false;
   Eigen::Vector3d originalDirection;

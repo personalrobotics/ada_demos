@@ -52,5 +52,6 @@ flycheck_*.el
 
 *.sublime-workspace
 
-
 *.vscode
+.vscode/
+feeding/.vscode/

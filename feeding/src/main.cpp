@@ -1,14 +1,13 @@
 
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/statespace/Rn.hpp>
+#include <mcheck.h>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
-#include <mcheck.h>
-#include <aikido/statespace/Rn.hpp>
-
 
 namespace feeding {
 
@@ -36,20 +35,22 @@ int skewerpushmain(FeedingDemo& feedingDemo,
                 bool autoContinueDemo,
                 bool adaReal);*/
 
-int datacollectionmain(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal);
-int datacollectionmainNoPush(FeedingDemo& feedingDemo,
-                FTThresholdHelper& ftThresholdHelper,
-                Perception& perception,
-                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
-                ros::NodeHandle nodeHandle,
-                bool autoContinueDemo,
-                bool adaReal);
+int datacollectionmain(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal);
+int datacollectionmainNoPush(
+    FeedingDemo& feedingDemo,
+    FTThresholdHelper& ftThresholdHelper,
+    Perception& perception,
+    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal);
 /*
 int scoopmain(FeedingDemo& feedingDemo,
                 FTThresholdHelper& ftThresholdHelper,
@@ -108,7 +109,6 @@ int bltpushingmain(FeedingDemo& feedingDemo,
                 bool adaReal);*/
 };
 
-
 ///
 /// OVERVIEW OF FEEDING DEMO CODE
 ///
@@ -128,7 +128,6 @@ int main(int argc, char** argv)
   //   std::cout << "MCHECK FAILED!" << std::endl;
   //   return 1;
   // }
-
 
   // ===== STARTUP =====
 
@@ -178,7 +177,6 @@ int main(int argc, char** argv)
   ftThresholdHelper.init();
   feedingDemo.closeHand();
 
-
   if (!waitForUser("Startup complete."))
   {
     return 0;
@@ -186,11 +184,12 @@ int main(int argc, char** argv)
 
   feedingDemo.moveToStartConfiguration();
 
-  return feeding::datacollectionmain(feedingDemo,
-                     ftThresholdHelper,
-                     perception,
-                     viewer,
-                     nodeHandle,
-                     autoContinueDemo,
-                     adaReal);
+  return feeding::datacollectionmain(
+      feedingDemo,
+      ftThresholdHelper,
+      perception,
+      viewer,
+      nodeHandle,
+      autoContinueDemo,
+      adaReal);
 }

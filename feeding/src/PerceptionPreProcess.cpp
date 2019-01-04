@@ -36,7 +36,10 @@ Eigen::VectorXd getSymmetricLimits(
 
 //==============================================================================
 PerceptionPreProcess::PerceptionPreProcess(
-    boost::function<bool(Eigen::Isometry3d&)> getTransform, float angle, float prePushOffset, Eigen::Isometry3d forqueTransform)
+    boost::function<bool(Eigen::Isometry3d&)> getTransform,
+    float angle,
+    float prePushOffset,
+    Eigen::Isometry3d forqueTransform)
 {
   mGetTransform = getTransform;
   mAngle = angle;
@@ -46,20 +49,21 @@ PerceptionPreProcess::PerceptionPreProcess(
 
 bool PerceptionPreProcess::applyOffset(Eigen::Isometry3d& foodTransform)
 {
-    if (mGetTransform(foodTransform))
-    {
-        ROS_INFO_STREAM(foodTransform.matrix());
-        Eigen::Vector3d diff(0,mPrePushOffset,0);
-        foodTransform.translation() += mForqueTransform.inverse().linear() * diff;
-       // float xOff = cos(mAngle) * mDistBeforePush;
-       // float yOff = sin(mAngle) * mDistBeforePush;
-       // foodTransform.translation() += Eigen::Vector3d(-xOff, yOff, 0);
-//        foodTransform.linear() *= Eigen::Matrix3d(Eigen::AngleAxisd( (-M_PI * 0.5) - mAngle, Eigen::Vector3d::UnitZ()));
-        ROS_INFO_STREAM(foodTransform.matrix());
-        return true;
-    }
-    ROS_INFO("Error");
-    return false;
+  if (mGetTransform(foodTransform))
+  {
+    ROS_INFO_STREAM(foodTransform.matrix());
+    Eigen::Vector3d diff(0, mPrePushOffset, 0);
+    foodTransform.translation() += mForqueTransform.inverse().linear() * diff;
+    // float xOff = cos(mAngle) * mDistBeforePush;
+    // float yOff = sin(mAngle) * mDistBeforePush;
+    // foodTransform.translation() += Eigen::Vector3d(-xOff, yOff, 0);
+    //        foodTransform.linear() *= Eigen::Matrix3d(Eigen::AngleAxisd(
+    //        (-M_PI * 0.5) - mAngle, Eigen::Vector3d::UnitZ()));
+    ROS_INFO_STREAM(foodTransform.matrix());
+    return true;
+  }
+  ROS_INFO("Error");
+  return false;
 }
 
 } // namespace feeding

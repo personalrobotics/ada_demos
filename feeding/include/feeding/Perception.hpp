@@ -35,17 +35,21 @@ public:
   /// \return True if a food item was found.
   bool perceiveFood(Eigen::Isometry3d& foodTransform);
 
+  /// Gets food items from active perception ros nodes and adds their new
+  /// MetaSkeletons to the aikido world.
+  /// \param[out] foodTransform the transform of a food item that has been
+  /// found.
+  /// \return True if a food item was found.
   bool perceiveFood(
-      Eigen::Isometry3d& foodTransform, bool perceiveDepthPlane, aikido::rviz::WorldInteractiveMarkerViewerPtr viewer);
-
-  bool perceiveFood(Eigen::Isometry3d& foodTransform,
-                                bool perceiveDepthPlane,
-                                aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
-                                std::string& foodName,
-                                bool perceiveAnyFood);
+      Eigen::Isometry3d& foodTransform,
+      bool perceiveDepthPlane,
+      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+      const std::string& foundFoodName = std::string(""),
+      bool perceiveAnyFood = false);
 
   bool perceiveFace(Eigen::Isometry3d& faceTransform);
 
+  /// Returns true if mouth is detected to be open.
   bool isMouthOpen();
 
   Eigen::Isometry3d getForqueTransform();
@@ -62,14 +66,17 @@ private:
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
   ros::NodeHandle& mNodeHandle;
+
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFoodDetector;
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFaceDetector;
   std::shared_ptr<aikido::perception::ObjectDatabase> mObjectDatabase;
 
-  Eigen::Isometry3d mLastPerceivedFoodTransform = Eigen::Isometry3d::Identity();
+  Eigen::Isometry3d mLastPerceivedFoodTransform;
+  float mFaceZOffset;
 
   double mPerceptionTimeout;
-  std::string mFoodNameToPerceive, mPerceivedFaceName;
+  std::string mFoodNameToPerceive;
+  std::string mPerceivedFaceName;
 
   Eigen::Hyperplane<double, 3> depthPlane;
 
@@ -77,11 +84,7 @@ private:
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
   std::vector<std::string> mFoodNames;
-
-  float mFaceZOffset = 0;
-
 };
-
 }
 
 #endif

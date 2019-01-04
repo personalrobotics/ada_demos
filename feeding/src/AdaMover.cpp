@@ -18,7 +18,9 @@ AdaMover::AdaMover(
 }
 
 //==============================================================================
-bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std::vector<double>& velocityLimits)
+bool AdaMover::moveArmToTSR(
+    const aikido::constraint::dart::TSR& tsr,
+    const std::vector<double>& velocityLimits)
 {
   auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
 
@@ -38,22 +40,36 @@ bool AdaMover::moveArmToTSR(const aikido::constraint::dart::TSR& tsr, const std:
 bool AdaMover::moveToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length, bool respectCollision)
 {
-  return moveArmOnTrajectory(planToEndEffectorOffset(direction, length, respectCollision), TRYOPTIMALRETIME);
+  return moveArmOnTrajectory(
+      planToEndEffectorOffset(direction, length, respectCollision),
+      TRYOPTIMALRETIME);
 }
 
 //==============================================================================
 bool AdaMover::moveToEndEffectorOffset(
-    const Eigen::Vector3d& direction, double length, const std::vector<double>& velocityLimits, bool respectCollision)
+    const Eigen::Vector3d& direction,
+    double length,
+    const std::vector<double>& velocityLimits,
+    bool respectCollision)
 {
-  return moveArmOnTrajectory(planToEndEffectorOffset(direction, length, respectCollision), TRYOPTIMALRETIME, velocityLimits);
+  return moveArmOnTrajectory(
+      planToEndEffectorOffset(direction, length, respectCollision),
+      TRYOPTIMALRETIME,
+      velocityLimits);
 }
 
 //==============================================================================
 aikido::trajectory::TrajectoryPtr AdaMover::planToEndEffectorOffset(
     const Eigen::Vector3d& direction, double length, bool respectCollision)
 {
-  ROS_INFO_STREAM("Plan to end effector offset state: " << mAda.getArm()->getMetaSkeleton()->getPositions().matrix().transpose());
-  ROS_INFO_STREAM("Plan to end effector offset direction: " << direction.matrix().transpose() << ",  length: " << length);
+  ROS_INFO_STREAM(
+      "Plan to end effector offset state: "
+      << mAda.getArm()->getMetaSkeleton()->getPositions().matrix().transpose());
+  ROS_INFO_STREAM(
+      "Plan to end effector offset direction: "
+      << direction.matrix().transpose()
+      << ",  length: "
+      << length);
 
   return mAda.planToEndEffectorOffset(
       mArmSpace,
@@ -110,31 +126,49 @@ bool AdaMover::moveArmOnTrajectory(
       break;
 
     case SMOOTH:
-      if (smoothVelocityLimits.size() == 6) {
+      if (smoothVelocityLimits.size() == 6)
+      {
         Eigen::Vector6d velocityLimits;
-        velocityLimits << smoothVelocityLimits[0], smoothVelocityLimits[1], smoothVelocityLimits[2], smoothVelocityLimits[3], smoothVelocityLimits[4], smoothVelocityLimits[5];
-        Eigen::VectorXd previousLowerLimits = mAda.getArm()->getMetaSkeleton()->getVelocityLowerLimits();
-        Eigen::VectorXd previousUpperLimits = mAda.getArm()->getMetaSkeleton()->getVelocityUpperLimits();
-        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(-velocityLimits);
-        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(velocityLimits);
+        velocityLimits << smoothVelocityLimits[0], smoothVelocityLimits[1],
+            smoothVelocityLimits[2], smoothVelocityLimits[3],
+            smoothVelocityLimits[4], smoothVelocityLimits[5];
+        Eigen::VectorXd previousLowerLimits
+            = mAda.getArm()->getMetaSkeleton()->getVelocityLowerLimits();
+        Eigen::VectorXd previousUpperLimits
+            = mAda.getArm()->getMetaSkeleton()->getVelocityUpperLimits();
+        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(
+            -velocityLimits);
+        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(
+            velocityLimits);
         timedTrajectory = mAda.smoothPath(
             mAda.getArm()->getMetaSkeleton(), trajectory.get(), testable);
-        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(previousLowerLimits);
-        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(previousUpperLimits);
-      } else {
+        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(
+            previousLowerLimits);
+        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(
+            previousUpperLimits);
+      }
+      else
+      {
         timedTrajectory = mAda.smoothPath(
             mAda.getArm()->getMetaSkeleton(), trajectory.get(), testable);
       }
       break;
 
     case TRYOPTIMALRETIME:
-      if (smoothVelocityLimits.size() == 6) {
+      if (smoothVelocityLimits.size() == 6)
+      {
         Eigen::Vector6d velocityLimits;
-        velocityLimits << smoothVelocityLimits[0], smoothVelocityLimits[1], smoothVelocityLimits[2], smoothVelocityLimits[3], smoothVelocityLimits[4], smoothVelocityLimits[5];
-        Eigen::VectorXd previousLowerLimits = mAda.getArm()->getMetaSkeleton()->getVelocityLowerLimits();
-        Eigen::VectorXd previousUpperLimits = mAda.getArm()->getMetaSkeleton()->getVelocityUpperLimits();
-        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(-velocityLimits);
-        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(velocityLimits);
+        velocityLimits << smoothVelocityLimits[0], smoothVelocityLimits[1],
+            smoothVelocityLimits[2], smoothVelocityLimits[3],
+            smoothVelocityLimits[4], smoothVelocityLimits[5];
+        Eigen::VectorXd previousLowerLimits
+            = mAda.getArm()->getMetaSkeleton()->getVelocityLowerLimits();
+        Eigen::VectorXd previousUpperLimits
+            = mAda.getArm()->getMetaSkeleton()->getVelocityUpperLimits();
+        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(
+            -velocityLimits);
+        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(
+            velocityLimits);
 
         timedTrajectory = mAda.retimeTimeOptimalPath(
             mAda.getArm()->getMetaSkeleton(), trajectory.get());
@@ -146,10 +180,14 @@ bool AdaMover::moveArmOnTrajectory(
               mAda.getArm()->getMetaSkeleton(), trajectory.get());
         }
 
-        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(previousLowerLimits);
-        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(previousUpperLimits);
-      } else {
-       
+        mAda.getArm()->getMetaSkeleton()->setVelocityLowerLimits(
+            previousLowerLimits);
+        mAda.getArm()->getMetaSkeleton()->setVelocityUpperLimits(
+            previousUpperLimits);
+      }
+      else
+      {
+
         timedTrajectory = mAda.retimeTimeOptimalPath(
             mAda.getArm()->getMetaSkeleton(), trajectory.get());
 
