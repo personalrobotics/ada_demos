@@ -21,27 +21,6 @@
 
 namespace feeding {
 
-// void infoCallback(
-//     const sensor_msgs::CameraInfoConstPtr& msg,
-//     int type,
-//     std::string folder,
-//     std::vector<std::string> foods,
-//     std::vector<std::string> angleNames);
-
-// void infoCallback2(
-//     const sensor_msgs::CameraInfo::ConstPtr& msg,
-//     int type,
-//     std::string folder,
-//     std::vector<std::string> foods,
-//     std::vector<std::string> angleNames);
-
-// void imageCallback(
-//   const sensor_msgs::ImageConstPtr& msg,
-//   int type,
-//   std::string folder,
-//   std::vector<std::string> foods,
-//   std::vector<std::string> angleNames);
-
 // Action types for data collection
 enum Action
 {
