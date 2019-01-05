@@ -17,19 +17,11 @@ namespace feeding {
 
 void acquisition(
     FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal)
+    ros::NodeHandle nodeHandle)
 {
-
-  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer
-      = feedingDemo.getViewer();
   nodeHandle.setParam("/deep_pose/publish_spnet", true);
 
-  if (!autoContinueDemo)
-    waitForUser("Ready to start.", TERMINATE_AT_USER_PROMPT);
+  feedingDemo.waitForUser("Ready to start.");
 
   for (int trial = 0; trial < 10; trial++)
   {
@@ -38,7 +30,7 @@ void acquisition(
     feedingDemo.skewer("", nodeHandle, 1);
   }
   // ===== DONE =====
-  waitForUser("Demo finished.", TERMINATE_AT_USER_PROMPT);
+  feedingDemo.waitForUser("Demo finished.");
 }
 
 };

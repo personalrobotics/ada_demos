@@ -11,11 +11,7 @@ namespace feeding {
 
 void acquisition(
     FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
+    ros::NodeHandle nodeHandle);
 
 void bite_location_detector(
     FeedingDemo& feedingDemo,
@@ -27,11 +23,7 @@ void bite_location_detector(
 
 void demo(
     FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
+    ros::NodeHandle nodeHandle);
 }
 
 #endif

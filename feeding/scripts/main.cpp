@@ -92,13 +92,7 @@ int main(int argc, char** argv)
 
   if (demoType == "nips")
   {
-    demo(
-      *feedingDemo,
-      *ftThresholdHelper,
-      *perception,
-      nodeHandle,
-      autoContinueDemo,
-      adaReal);
+    demo(*feedingDemo, nodeHandle);
   }
   else
   {

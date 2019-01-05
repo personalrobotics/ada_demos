@@ -3,9 +3,7 @@
 #include <ros/ros.h>
 #include <libada/util.hpp>
 
-#include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
-#include "feeding/perception/Perception.hpp"
 #include "feeding/util.hpp"
 
 using ada::util::getRosParam;
@@ -20,21 +18,15 @@ const bool TERMINATE_AT_USER_PROMPT = true;
 
 void demo(
     FeedingDemo& feedingDemo,
-    FTThresholdHelper& ftThresholdHelper,
-    Perception& perception,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal)
+    ros::NodeHandle nodeHandle)
 {
-  ftThresholdHelper.init();
-
-  aikido::rviz::WorldInteractiveMarkerViewerPtr viewer
-      = feedingDemo.getViewer();
 
   ROS_INFO_STREAM("==========  DEMO ==========");
 
-  while (waitForUser("next step?", TERMINATE_AT_USER_PROMPT))
+  while (true)
   {
+    feedingDemo.waitForUser("next step?");
+
     auto foodName = getUserInput(false, nodeHandle);
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
@@ -42,9 +34,7 @@ void demo(
     nodeHandle.setParam("/deep_pose/invertSPNetDirection", false);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    std::cout << std::endl
-              << "\033[1;32mRunning bite transfer study for " << foodName
-              << ".\033[0m" << std::endl;
+    ROS_INFO_STREAM("Running bite transfer study for " << foodName);
 
     // ===== FORQUE PICKUP =====
     if (foodName == "pickupfork")
@@ -66,8 +56,7 @@ void demo(
       }
 
       // ===== IN FRONT OF PERSON =====
-      if (!autoContinueDemo)
-        waitForUser("Move forque in front of person", TERMINATE_AT_USER_PROMPT);
+      feedingDemo.waitForUser("Move forque in front of person");
 
       bool tilted = true;
       feedingDemo.feedFoodToPerson(nodeHandle, tilted);
