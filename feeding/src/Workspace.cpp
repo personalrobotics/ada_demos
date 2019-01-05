@@ -28,10 +28,12 @@ Workspace::Workspace(
 
   if (!adaReal)
   {
+    addToWorld(mPerson, "person", robotPose);
     addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
     mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
-    addToWorld(mPerson, "person", robotPose);
   }
+  addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
+  mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
 }
 
 void Workspace::addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose)
@@ -53,6 +55,7 @@ void Workspace::addToWorld(
   addToWorldAtPose(skeleton, name, pose);
 }
 
+//==============================================================================
 void Workspace::addToWorldAtPose(
     dart::dynamics::SkeletonPtr& skeleton,
     const std::string& name,

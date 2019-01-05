@@ -9,7 +9,7 @@
 
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
-#include "feeding/Perception.hpp"
+#include "feeding/perception/Perception.hpp"
 #include "feeding/util.hpp"
 
 namespace feeding {

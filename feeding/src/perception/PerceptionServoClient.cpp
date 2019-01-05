@@ -1,4 +1,4 @@
-#include "feeding/PerceptionServoClient.hpp"
+#include "feeding/perception/PerceptionServoClient.hpp"
 #include <chrono>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/ConfigurationToConfiguration.hpp>
@@ -15,11 +15,11 @@
 static std::string JOINT_STATE_TOPIC_NAME = "/joint_states";
 
 #define THRESHOLD 0.5 // s to wait for good frame
-// #define THRESHOLD 50 // s to wait for good frame
 
 using aikido::trajectory::createPartialTrajectory;
 using aikido::trajectory::findTimeOfClosestStateOnTrajectory;
 using aikido::trajectory::concatenate;
+using aikido::trajectory::SplinePtr;
 
 namespace feeding {
 
@@ -311,7 +311,9 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
       * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   endEffectorTransform.linear() = rotationMatrix;
   bool successful = mGetTransform(goalPose);
+  ROS_INFO_STREAM("servo client pose: " << goalPose.matrix());
   goalPose = goalPose * endEffectorTransform;
+  ROS_INFO_STREAM("servo client pose: " << goalPose.matrix());
   ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
   if (goalPose.translation().z() < 0.115)
   {
@@ -327,8 +329,8 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   return successful;
 }
 
-aikido::trajectory::SplinePtr
-PerceptionServoClient::planToGoalPoseAndResetMetaSkeleton(
+//==============================================================================
+SplinePtr PerceptionServoClient::planToGoalPoseAndResetMetaSkeleton(
     const Eigen::Isometry3d& goalPose)
 {
   auto trajectory = planToGoalPose(goalPose);
@@ -349,7 +351,7 @@ PerceptionServoClient::planToGoalPoseAndResetMetaSkeleton(
 }
 
 //==============================================================================
-aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
+SplinePtr PerceptionServoClient::planToGoalPose(
     const Eigen::Isometry3d& goalPose)
 {
   using dart::dynamics::InverseKinematics;
@@ -441,6 +443,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     MetaSkeletonStateSaver saver2(mMetaSkeleton);
     auto endState = tempSpace->createState();
     auto endTime = spline1->getEndTime();
+
     try
     {
       spline1->evaluate(spline1->getEndTime(), endState);
@@ -484,9 +487,6 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         1e-3,
         std::chrono::duration<double>(5),
         &result);
-    // ROS_INFO_STREAM("Planning 2 took " <<
-    // std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now()
-    // - startTime).count());
 
     if (trajectory2 == nullptr)
     {
@@ -494,8 +494,6 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
       throw std::runtime_error("Failed in finding the second half");
     }
     spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
-    // tSpline2 = posePostprocessingForSO2(*tmpSpline2);
-    // spline2 = tSpline2.get();
 
     if (spline2 == nullptr)
       return nullptr;
@@ -506,14 +504,8 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
     if (concatenatedTraj == nullptr)
       return nullptr;
 
-    // dumpSplinePhasePlot(*spline1, "spline1.txt", 0.01);
-    // dumpSplinePhasePlot(*spline2, "spline2.txt", 0.01);
-    // dumpSplinePhasePlot(*concatenatedTraj, "concatenated.txt", 0.01);
-
     auto timedTraj = computeKunzTiming(
         *concatenatedTraj, mMaxVelocity, mMaxAcceleration, 1e-2, 9e-3);
-
-    // dumpSplinePhasePlot(*timedTraj, "timed.txt", 0.01);
 
     if (timedTraj == nullptr)
       return nullptr;
@@ -523,9 +515,6 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
         = findTimeOfClosestStateOnTrajectory(*timedTraj.get(), currentConfig);
 
     auto partialTimedTraj = createPartialTrajectory(*timedTraj, refTime);
-    // ROS_INFO_STREAM("Timing took " <<
-    // std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::system_clock::now()
-    // - timingStartTime).count());
 
     for (int i = 0; i < indices.size(); ++i)
     {
@@ -541,9 +530,7 @@ aikido::trajectory::SplinePtr PerceptionServoClient::planToGoalPose(
   {
     aikido::trajectory::TrajectoryPtr trajectory2
         = mAda->planArmToEndEffectorOffset(
-            direction2.normalized(),
-            std::min(direction2.norm(), 0.08),
-            nullptr);
+            direction2.normalized(), std::min(direction2.norm(), 0.2), nullptr);
 
     if (!hasOriginalDirection)
     {

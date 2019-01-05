@@ -80,6 +80,7 @@ private:
       const std::string& name,
       const Eigen::Isometry3d& robotPose);
 
+  /// TODO: docstring
   void addToWorldAtPose(
       dart::dynamics::SkeletonPtr& skeleton,
       const std::string& name,

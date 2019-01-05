@@ -3,7 +3,7 @@
 
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
-#include "feeding/Perception.hpp"
+#include "feeding/perception/Perception.hpp"
 #include "feeding/util.hpp"
 
 /// List of executable scripts supported by main.cpp

@@ -12,7 +12,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 #include <libada/Ada.hpp>
-#include "feeding/Perception.hpp"
+#include "feeding/perception/Perception.hpp"
 
 namespace feeding {
 

@@ -52,19 +52,27 @@ public:
   /// Returns true if mouth is detected to be open.
   bool isMouthOpen();
 
+  Eigen::Isometry3d getForqueTransform();
+
+  Eigen::Isometry3d getCameraToWorldTransform();
+
+  Eigen::Isometry3d getOpticalToWorld();
+
   bool setFoodName(std::string foodName);
+
+  void setFaceZOffset(float faceZOffset);
 
 private:
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
   ros::NodeHandle& mNodeHandle;
 
-  Eigen::Isometry3d mLastPerceivedFoodTransform;
-  float mFaceZOffset;
-
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFoodDetector;
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFaceDetector;
   std::shared_ptr<aikido::perception::ObjectDatabase> mObjectDatabase;
+
+  Eigen::Isometry3d mLastPerceivedFoodTransform;
+  float mFaceZOffset;
 
   double mPerceptionTimeout;
   std::string mFoodNameToPerceive;

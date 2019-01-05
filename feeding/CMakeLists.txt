@@ -14,6 +14,8 @@ ENDIF()
 find_package(Boost REQUIRED COMPONENTS program_options)
 
 find_package(OpenCV REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(rosbag REQUIRED)
 
 find_package(DART 6.6.0 REQUIRED
   COMPONENTS optimizer-nlopt utils
@@ -23,18 +25,23 @@ find_package(DART 6.6.0 REQUIRED
 include_directories(include)
 
 add_executable(feeding
+  # scripts/datacollection.cpp
+  # scripts/datacollectionNoPush.cpp
   scripts/main.cpp
   scripts/demo.cpp
-  # scripts/bite_location_detector.cpp
   scripts/acquisition.cpp
+  # scripts/bite_location_detector.cpp
+  src/DataCollector.cpp
   src/FeedingDemo.cpp
   src/FTThresholdHelper.cpp
-  src/Perception.cpp
   src/Workspace.cpp
   src/util.cpp
-  src/PerceptionServoClient.cpp
-  
+  src/perception/Perception.cpp
+  src/perception/PerceptionServoClient.cpp
+  src/perception/PerceptionPreProcess.cpp
 )
+
+include_directories(include $(rosbag_INCLUDE_DIRS))
 
 target_link_libraries(feeding
   ${DART_LIBRARIES}
@@ -44,6 +51,7 @@ target_link_libraries(feeding
   ${image_transport_LIBRARIES}
   ${cv_bridge_LIBRARIES}
   ${OpenCV_LIBRARIES}
+  ${rosbag_LIBRARIES}
   libada)
 
 IF (rewd_controllers_FOUND)

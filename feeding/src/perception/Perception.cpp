@@ -1,4 +1,4 @@
-#include "feeding/Perception.hpp"
+#include "feeding/perception/Perception.hpp"
 #include "feeding/util.hpp"
 
 #include <algorithm>
@@ -7,76 +7,6 @@
 #include <libada/util.hpp>
 
 using ada::util::getRosParam;
-
-namespace {
-
-//==============================================================================
-Eigen::Isometry3d getOpticalToWorld(const tf::TransformListener& tfListener)
-{
-  tf::StampedTransform tfStampedTransform;
-  try
-  {
-    tfListener.lookupTransform(
-        "/world",
-        "/camera_color_optical_frame",
-        ros::Time(0),
-        tfStampedTransform);
-  }
-  catch (tf::TransformException ex)
-  {
-    throw std::runtime_error(
-        "Failed to get TF Transform: " + std::string(ex.what()));
-  }
-  Eigen::Isometry3d cameraLensPointInWorldFrame;
-  tf::transformTFToEigen(tfStampedTransform, cameraLensPointInWorldFrame);
-  return cameraLensPointInWorldFrame;
-}
-
-//==============================================================================
-Eigen::Isometry3d getForqueTransform(const tf::TransformListener& tfListener)
-{
-  tf::StampedTransform tfStampedTransform;
-  try
-  {
-    tfListener.lookupTransform(
-        "/map",
-        "/j2n6s200_forque_end_effector",
-        ros::Time(0),
-        tfStampedTransform);
-  }
-  catch (tf::TransformException ex)
-  {
-    throw std::runtime_error(
-        "Failed to get TF Transform: " + std::string(ex.what()));
-  }
-  Eigen::Isometry3d forqueTransformInWorldFrame;
-  tf::transformTFToEigen(tfStampedTransform, forqueTransformInWorldFrame);
-  return forqueTransformInWorldFrame;
-}
-
-//==============================================================================
-Eigen::Isometry3d getCameraToWorldTransform(
-    const tf::TransformListener& tfListener)
-{
-  tf::StampedTransform tfStampedTransform;
-  try
-  {
-    tfListener.lookupTransform(
-        "/camera_color_optical_frame",
-        "/map",
-        ros::Time(0),
-        tfStampedTransform);
-  }
-  catch (tf::TransformException ex)
-  {
-    throw std::runtime_error(
-        "Failed to get TF Transform: " + std::string(ex.what()));
-  }
-  Eigen::Isometry3d forqueTransformInWorldFrame;
-  tf::transformTFToEigen(tfStampedTransform, forqueTransformInWorldFrame);
-  return forqueTransformInWorldFrame;
-}
-}
 
 namespace feeding {
 
@@ -152,9 +82,8 @@ bool Perception::perceiveFood(
     bool perceiveAnyFood)
 {
   mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
-  Eigen::Isometry3d forqueTransform = getForqueTransform(mTFListener);
-  Eigen::Isometry3d cameraToWorldTransform
-      = getCameraToWorldTransform(mTFListener);
+  Eigen::Isometry3d forqueTransform = getForqueTransform();
+  Eigen::Isometry3d cameraToWorldTransform = getCameraToWorldTransform();
 
   dart::dynamics::SkeletonPtr perceivedFood;
 
@@ -206,7 +135,7 @@ bool Perception::perceiveFood(
           // ROS_WARN_STREAM("Food transform before: " <<
           // currentFoodTransform.translation().matrix().transpose());
           Eigen::Vector3d start(currentFoodTransform.translation());
-          Eigen::Vector3d end(getOpticalToWorld(mTFListener).translation());
+          Eigen::Vector3d end(getOpticalToWorld().translation());
           Eigen::ParametrizedLine<double, 3> line(
               start, (end - start).normalized());
           Eigen::Vector3d intersection = line.intersectionPoint(depthPlane);
@@ -382,6 +311,72 @@ bool Perception::isMouthOpen()
   // return mObjectDatabase->mObjData["faceStatus"].as<bool>();
   ROS_WARN("Always returning true for isMouthOpen");
   return true;
+}
+
+//==============================================================================
+Eigen::Isometry3d Perception::getOpticalToWorld()
+{
+  tf::StampedTransform tfStampedTransform;
+  try
+  {
+    mTFListener.lookupTransform(
+        "/world",
+        "/camera_color_optical_frame",
+        ros::Time(0),
+        tfStampedTransform);
+  }
+  catch (tf::TransformException ex)
+  {
+    throw std::runtime_error(
+        "Failed to get TF Transform: " + std::string(ex.what()));
+  }
+  Eigen::Isometry3d cameraLensPointInWorldFrame;
+  tf::transformTFToEigen(tfStampedTransform, cameraLensPointInWorldFrame);
+  return cameraLensPointInWorldFrame;
+}
+
+//==============================================================================
+Eigen::Isometry3d Perception::getForqueTransform()
+{
+  tf::StampedTransform tfStampedTransform;
+  try
+  {
+    mTFListener.lookupTransform(
+        "/map",
+        "/j2n6s200_forque_end_effector",
+        ros::Time(0),
+        tfStampedTransform);
+  }
+  catch (tf::TransformException ex)
+  {
+    throw std::runtime_error(
+        "Failed to get TF Transform: " + std::string(ex.what()));
+  }
+  Eigen::Isometry3d forqueTransformInWorldFrame;
+  tf::transformTFToEigen(tfStampedTransform, forqueTransformInWorldFrame);
+  return forqueTransformInWorldFrame;
+}
+
+//==============================================================================
+Eigen::Isometry3d Perception::getCameraToWorldTransform()
+{
+  tf::StampedTransform tfStampedTransform;
+  try
+  {
+    mTFListener.lookupTransform(
+        "/camera_color_optical_frame",
+        "/map",
+        ros::Time(0),
+        tfStampedTransform);
+  }
+  catch (tf::TransformException ex)
+  {
+    throw std::runtime_error(
+        "Failed to get TF Transform: " + std::string(ex.what()));
+  }
+  Eigen::Isometry3d forqueTransformInWorldFrame;
+  tf::transformTFToEigen(tfStampedTransform, forqueTransformInWorldFrame);
+  return forqueTransformInWorldFrame;
 }
 
 } // namespace feeding

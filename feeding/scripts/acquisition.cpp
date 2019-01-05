@@ -4,8 +4,9 @@
 #include <libada/util.hpp>
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
-#include "feeding/Perception.hpp"
 #include "feeding/util.hpp"
+
+#include "feeding/perception/Perception.hpp"
 
 using ada::util::getRosParam;
 using ada::util::waitForUser;
@@ -34,8 +35,7 @@ void acquisition(
   {
     ROS_INFO_STREAM("STARTING TRIAL " << trial << std::endl);
 
-    feedingDemo.skewer("", ftThresholdHelper, perception, nodeHandle,
-      autoContinueDemo, adaReal, 1);
+    feedingDemo.skewer("", nodeHandle, 1);
   }
   // ===== DONE =====
   waitForUser("Demo finished.", TERMINATE_AT_USER_PROMPT);
