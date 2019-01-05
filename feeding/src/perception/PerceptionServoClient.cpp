@@ -1,4 +1,4 @@
-#include "feeding/PerceptionServoClient.hpp"
+#include "feeding/perception/PerceptionServoClient.hpp"
 #include <chrono>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/ConfigurationToConfiguration.hpp>

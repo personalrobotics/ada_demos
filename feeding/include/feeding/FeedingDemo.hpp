@@ -8,18 +8,13 @@
 #include <libada/Ada.hpp>
 
 #include "feeding/FTThresholdHelper.hpp"
-#include "feeding/Perception.hpp"
-#include "feeding/PerceptionPreProcess.hpp"
-#include "feeding/PerceptionServoClient.hpp"
+#include "feeding/perception/Perception.hpp"
+#include "feeding/perception/PerceptionPreProcess.hpp"
+#include "feeding/perception/PerceptionServoClient.hpp"
 #include "feeding/Workspace.hpp"
 
 namespace feeding {
 
-static const std::vector<std::string> FOOD_NAMES
-    = {"strawberry", "melon", "cantaloupe", "celery", "carrot"};
-
-static const std::vector<std::string> ACTIONS
-    = {"calibrate", "pickupfork", "putdownfork"};
 
 /// The FeedingDemo class is responsible for
 /// - The robot (loading + control)
@@ -41,11 +36,18 @@ public:
   /// \param[in] useFTSensing turns the FTSensor and the
   /// MoveUntilTouchController on and off
   /// \param[in] nodeHandle Handle of the ros node.
-  FeedingDemo(bool adaReal, bool useFTSensing, ros::NodeHandle nodeHandle);
+  FeedingDemo(
+    bool adaReal,
+    ros::NodeHandle nodeHandle,
+    bool useFTSensingToStopTrajectories,
+    std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr,
+    bool autoContinueDemo = false);
 
   /// Destructor for the Feeding Demo.
   /// Also shuts down the trajectory controllers.
   ~FeedingDemo();
+
+  void setPerception(std::shared_ptr<Perception> perception);
 
   /// Gets the aikido world
   aikido::planner::WorldPtr getWorld();
@@ -167,32 +169,49 @@ public:
   void pickUpFork();
   void putDownFork();
 
-  /// Gets user selection of food and actions
-  /// param[in] food_only If true, only food choices are valid
-  /// param[in]] nodeHandle Ros Node to set food name for detection.
-  std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle);
-
-  ///
   /// param[in] foodName if empty, takes user input.
   void skewer(
       std::string foodName,
-      FTThresholdHelper& ftThresholdHelper,
-      Perception& perception,
-      ros::NodeHandle nodeHandle,
-      bool autoContinueDemo,
-      bool adaReal,
+      ros::NodeHandle& nodeHandle,
       int max_trial_per_item = 3);
 
   void feedFoodToPerson(
-      Perception& perception,
-      ros::NodeHandle nodeHandle,
-      bool autoContinueDemo,
+      ros::NodeHandle& nodeHandle,
       bool tilted = true);
 
+  boost::optional<Eigen::Isometry3d> detectFood(
+      const std::string& foodName,
+      bool waitTillDetected = true);
+
+  void setFTThreshold(FTThreshold threshold);
+
+  void waitForUser(const std::string& prompt);
+
+  Eigen::Isometry3d detectAndMoveAboveFood(
+    const std::string& foodName,
+    int pickupAngleMode,
+    float rotAngle,
+    float angle,
+    bool useAngledTranslation);
+
+  void pushAndSkewer(
+    const std::string& foodName,
+    int pickupAngleMode,
+    float rotAngle,
+    float tiltAngle);
+
+  void rotateAndSkewer(
+    const std::string& foodName,
+    float rotateForqueAngle);
+
 private:
-  bool mIsFTSensingEnabled = false;
+  bool mIsFTSensingEnabled;
   bool mAdaReal;
+  bool mAutoContinueDemo;
   ros::NodeHandle mNodeHandle;
+  std::shared_ptr<Perception> mPerception;
+  std::shared_ptr<FTThresholdHelper> mFTThresholdHelper;
+
   aikido::planner::WorldPtr mWorld;
 
   std::shared_ptr<ada::Ada> mAda;
@@ -207,6 +226,12 @@ private:
   aikido::rviz::WorldInteractiveMarkerViewerPtr mViewer;
   aikido::rviz::FrameMarkerPtr frameMarker;
   aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
+
+  std::vector<std::string> mFoodNames;
+  std::vector<double> mSkeweringForces;
+  std::unordered_map<std::string, double> mFoodSkeweringForces;
+
+
 };
 }
 

@@ -5,7 +5,7 @@
 
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
-#include "feeding/Perception.hpp"
+#include "feeding/perception/Perception.hpp"
 #include "feeding/util.hpp"
 
 using ada::util::getRosParam;
@@ -35,7 +35,7 @@ void demo(
 
   while (waitForUser("next step?", TERMINATE_AT_USER_PROMPT))
   {
-    auto foodName = feedingDemo.getUserInput(false, nodeHandle);
+    auto foodName = getUserInput(false, nodeHandle);
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
@@ -61,8 +61,8 @@ void demo(
 
       if (!getRosParam<bool>("/study/skipSkewering", nodeHandle))
       {
-        feedingDemo.skewer(foodName, ftThresholdHelper, perception, nodeHandle,
-          autoContinueDemo, adaReal, MAX_TRIAL_PER_ITEM);
+        feedingDemo.skewer(foodName, nodeHandle,
+          MAX_TRIAL_PER_ITEM);
       }
 
       // ===== IN FRONT OF PERSON =====
@@ -70,8 +70,7 @@ void demo(
         waitForUser("Move forque in front of person", TERMINATE_AT_USER_PROMPT);
 
       bool tilted = true;
-      feedingDemo.feedFoodToPerson(perception, nodeHandle,
-        autoContinueDemo, tilted);
+      feedingDemo.feedFoodToPerson(nodeHandle, tilted);
     }
   }
 

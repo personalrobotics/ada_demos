@@ -1,4 +1,4 @@
-#include "feeding/PerceptionPreProcess.hpp"
+#include "feeding/perception/PerceptionPreProcess.hpp"
 #include <chrono>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/ConfigurationToConfiguration.hpp>

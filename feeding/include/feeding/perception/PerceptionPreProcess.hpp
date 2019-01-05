@@ -11,8 +11,7 @@
 #include <dart/dynamics/BodyNode.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
-#include "feeding/AdaMover.hpp"
-#include "feeding/Perception.hpp"
+#include "feeding/perception/Perception.hpp"
 
 namespace feeding {
 

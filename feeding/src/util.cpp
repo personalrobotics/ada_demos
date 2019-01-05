@@ -4,10 +4,12 @@
 #include <aikido/common/StepSequence.hpp>
 #include <aikido/planner/parabolic/ParabolicTimer.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
+#include <aikido/distance/defaults.hpp>
+#include <aikido/statespace/CartesianProduct.hpp>
+#include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <dart/common/StlHelpers.hpp>
-#include "aikido/distance/defaults.hpp"
-#include "aikido/statespace/CartesianProduct.hpp"
-#include "aikido/statespace/dart/MetaSkeletonStateSpace.hpp"
+#include <libada/util.hpp>
+
 
 namespace feeding {
 
@@ -23,20 +25,19 @@ void handleArguments(
     bool& adaReal,
     bool& autoContinueDemo,
     bool& useFTSensing,
+    std::string& demoType,
     const std::string& description)
 {
   namespace po = boost::program_options;
 
   // Default options for flags
   po::options_description po_desc(description);
-  po_desc.add_options()("help,h", "Produce help message")(
-      "adareal,a", po::bool_switch(&adaReal), "Run ADA in real")(
-      "continueAuto,c",
-      po::bool_switch(&autoContinueDemo),
-      "Continue Demo automatically")(
-      "ftSensing,f",
-      po::bool_switch(&useFTSensing),
-      "Use Force/Torque sensing");
+  po_desc.add_options()("help,h", "Produce help message")
+      ("adareal,a", po::bool_switch(&adaReal), "Run ADA in real")
+      ("continueAuto,c", po::bool_switch(&autoContinueDemo),
+      "Continue Demo automatically")
+      ("ftSensing,f", po::bool_switch(&useFTSensing),"Use Force/Torque sensing")
+      ("demoType,d", po::value<std::string>(&demoType), "Demo type");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -111,126 +112,54 @@ std::string getCurrentTimeDate()
     return ss.str();
 }
 
+
 //==============================================================================
-void infoCallback(
-  const sensor_msgs::CameraInfoConstPtr& msg,
-  int type, std::string folder,
-  std::vector<std::string> foods,
-  std::vector<std::string> angleNames)
+std::string getUserInput(
+    bool food_only, ros::NodeHandle& nodeHandle)
 {
-
-  if (shouldRecordInfo.load() && type == 0 || shouldRecordInfo2.load() && type == 1) {
-    ROS_ERROR("recording camera info!");
-
-    std::string s("before");
-    if (isAfterPush.load()) {
-      s = "after";
-    }
-
-    std::string food = foods[curfood.load()];
-    std::string direction = angleNames[curdirection.load()];
-    int trial = curtrial.load();
-    //std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
-    std::string infoFile = "/home/herb/Workspace/ryan_ws/CameraInfoMsgs/" + folder +  "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".txt";
-    // sstream << imageFile;
-
-    std::ofstream myfile;
-    myfile.open(infoFile);
-    myfile << "Width: " << msg->width << "\n";
-    myfile << "Height: " << msg->height << "\n";
-    myfile << "K: " << "\n";
-    int i;
-    for (i = 0; i < 9; i++) {
-      myfile << *(msg->K.data() + i) << "\n";
-    }
-    rosbag::Bag bag;
-    bag.open(infoFile, rosbag::bagmode::Write);
-    //bag.write("width", ros::Time::now(), msg->width.data);
-    //bag.write("height", ros::Time::now(), msg->height.data);
-    //ROS_INFO_STREAM(*(msg->K.data().data()));
-    if (type == 0)
-      shouldRecordInfo.store(false);
-    else
-      shouldRecordInfo2.store(false);
+  ROS_INFO_STREAM("Which food item do you want?");
+  for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
+  {
+    ROS_INFO_STREAM("(" << i + 1 << ") " << FOOD_NAMES[i] << std::endl);
   }
-}
-
-//==============================================================================
-void infoCallback2(const sensor_msgs::CameraInfo::ConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
-                   std::vector<std::string> angleNames)
-{
-
-  if (shouldRecordInfo2.load()) {
-    ROS_ERROR("recording camera info!");
-
-    std::string s("before");
-    if (isAfterPush.load()) {
-      s = "after";
-    }
-
-    std::string food = foods[curfood.load()];
-    std::string direction = angleNames[curdirection.load()];
-    int trial = curtrial.load();
-    //std::string infoFile = "/home/herb/CameraInfoMsgs/" + return_current_time_and_date() + ".bag";
-    std::string infoFile = "/home/herb/Workspace/ryan_ws/CameraInfoMsgs/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".bag";
-    // sstream << imageFile;
-
-    rosbag::Bag bag;
-    bag.open(infoFile, rosbag::bagmode::Write);
-    bag.write("camera info", ros::Time::now(), msg);
-    shouldRecordInfo2.store(false);
-  }
-}
-
-//==============================================================================
-void imageCallback(const sensor_msgs::ImageConstPtr& msg, int type, std::string folder, std::vector<std::string> foods,
-                   std::vector<std::string> angleNames)
-{
-
-  if (shouldRecordImage.load() && type == 0 || shouldRecordImage2.load() && type == 1) {
-    ROS_ERROR("recording image!");
-
-    cv_bridge::CvImagePtr cv_ptr;
-    try
+  if (!food_only)
+  {
+    for (std::size_t i = 0; i < ACTIONS.size(); ++i)
     {
-      if (type == 0) {
-        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-      } else {
-        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
-
-      }
-
+      ROS_INFO_STREAM(
+          "(" << i + FOOD_NAMES.size() + 1 << ") [" << ACTIONS[i] << "]"
+              << std::endl);
     }
-    catch (cv_bridge::Exception& e)
-    {
-      ROS_ERROR("cv_bridge exception: %s", e.what());
-      return;
-    }
-
-    // cv::namedWindow("image", WINDOW_AUTOSIZE);
-    // cv::imshow("image", cv_ptr->image);
-    // cv::waitKey(30);
-
-    static int image_count = 0;
-    // std::stringstream sstream;
-    std::string s("before");
-    if (isAfterPush.load()) {
-      s = "after";
-    }
-
-    std::string food = foods[curfood.load()];
-    std::string direction = angleNames[curdirection.load()];
-    int trial = curtrial.load();
-    std::string imageFile = "/home/herb/Workspace/ryan_ws/Images/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".png";
-    // sstream << imageFile;
-    bool worked = cv::imwrite( imageFile,  cv_ptr->image );
-    image_count++;
-    ROS_INFO_STREAM("image saved to " << imageFile << ", worked: " << worked);
-    if (type == 0)
-      shouldRecordImage.store(false);
-    else
-      shouldRecordImage2.store(false);
   }
 
+  std::string foodName;
+  int max_id;
+
+  if (!food_only)
+    max_id = FOOD_NAMES.size() + ACTIONS.size();
+  else
+    max_id = FOOD_NAMES.size();
+
+  while (true)
+  {
+    std::cout << "> ";
+    int id;
+    std::cin >> id;
+    if (id < 1 || id > max_id)
+    {
+      ROS_WARN_STREAM("Invalid argument. Try again.");
+      continue;
+    }
+    if (id <= FOOD_NAMES.size())
+    {
+      foodName = FOOD_NAMES[id - 1];
+      nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
+      nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
+    }
+    else
+      foodName = ACTIONS[id - FOOD_NAMES.size()];
+    return foodName;
+  }
 }
+
 } // namespace feeding

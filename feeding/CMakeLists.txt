@@ -25,19 +25,20 @@ find_package(DART 6.6.0 REQUIRED
 include_directories(include)
 
 add_executable(feeding
-  scripts/datacollection.cpp
+  # scripts/datacollection.cpp
   # scripts/datacollectionNoPush.cpp
   scripts/main.cpp
   scripts/demo.cpp
   scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
+  src/DataCollector.cpp
   src/FeedingDemo.cpp
   src/FTThresholdHelper.cpp
-  src/Perception.cpp
   src/Workspace.cpp
   src/util.cpp
-  src/PerceptionServoClient.cpp
-  src/PerceptionPreProcess.cpp
+  src/perception/Perception.cpp
+  src/perception/PerceptionServoClient.cpp
+  src/perception/PerceptionPreProcess.cpp
 )
 
 include_directories(include $(rosbag_INCLUDE_DIRS))
