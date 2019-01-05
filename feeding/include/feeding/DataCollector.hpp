@@ -1,18 +1,18 @@
 #ifndef FEEDING_DATACOLLECTOR_HPP_
 #define FEEDING_DATACOLLECTOR_HPP_
 
+#include <fstream>
+#include <iostream>
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
-#include <cv_bridge/cv_bridge.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
-#include <image_transport/image_transport.h>
 #include <rosbag/bag.h>
 #include <sensor_msgs/CameraInfo.h>
-#include <iostream>
-#include <fstream>
 
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
@@ -20,7 +20,6 @@
 #include "feeding/util.hpp"
 
 namespace feeding {
-
 
 // void infoCallback(
 //     const sensor_msgs::CameraInfoConstPtr& msg,
@@ -43,7 +42,6 @@ namespace feeding {
 //   std::vector<std::string> foods,
 //   std::vector<std::string> angleNames);
 
-
 // Action types for data collection
 enum Action
 {
@@ -62,39 +60,28 @@ class DataCollector
 public:
   // Constructor
   explicit DataCollector(
-    std::shared_ptr<FeedingDemo> feedingDemo,
-    ros::NodeHandle nodeHandle,
-    bool autoContinueDemo,
-    bool adaReal);
+      std::shared_ptr<FeedingDemo> feedingDemo,
+      ros::NodeHandle nodeHandle,
+      bool autoContinueDemo,
+      bool adaReal);
 
   void collect(Action action);
 
 private:
-
   void setDataCollectionParams(
-    bool pushCompleted,
-    int foodId,
-    int pushDirectionId,
-    int trialId);
+      bool pushCompleted, int foodId, int pushDirectionId, int trialId);
 
   void pushAndSkewer(
-    const std::string& foodName,
-    int mode,
-    float rotAngle,
-    float tiltAngle);
+      const std::string& foodName, int mode, float rotAngle, float tiltAngle);
 
   void infoCallback(
-    const sensor_msgs::CameraInfoConstPtr& msg,
-    ImageType imageType);
+      const sensor_msgs::CameraInfoConstPtr& msg, ImageType imageType);
 
   void infoCallback2(
-      const sensor_msgs::CameraInfo::ConstPtr& msg,
-      ImageType imageType);
+      const sensor_msgs::CameraInfo::ConstPtr& msg, ImageType imageType);
 
   void imageCallback(
-    const sensor_msgs::ImageConstPtr& msg,
-    ImageType imageType);
-
+      const sensor_msgs::ImageConstPtr& msg, ImageType imageType);
 
   std::shared_ptr<FeedingDemo> mFeedingDemo;
 
@@ -120,7 +107,6 @@ private:
   std::atomic<int> mCurrentFood;
   std::atomic<int> mCurrentDirection;
   std::atomic<int> mCurrentTrial;
-
 };
 
 } // namespace feeding

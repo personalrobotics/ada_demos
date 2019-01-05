@@ -4,12 +4,11 @@
 using ada::util::getRosParam;
 using ada::util::waitForUser;
 
-
 namespace feeding {
 
 //==============================================================================
 void DataCollector::infoCallback(
-  const sensor_msgs::CameraInfoConstPtr& msg, ImageType imageType)
+    const sensor_msgs::CameraInfoConstPtr& msg, ImageType imageType)
 {
   std::string folder = imageType == COLOR ? "color" : "depth";
 
@@ -23,17 +22,18 @@ void DataCollector::infoCallback(
     int trial = mCurrentTrial.load();
 
     std::string infoFile = "/home/herb/Workspace/ryan_ws/CameraInfoMsgs/"
-      + folder +  "/" + food + "-" + direction + "-" + std::to_string(trial)
-      + "-" + s + ".txt";
-
+                           + folder + "/" + food + "-" + direction + "-"
+                           + std::to_string(trial) + "-" + s + ".txt";
 
     std::ofstream myfile;
     myfile.open(infoFile);
     myfile << "Width: " << msg->width << "\n";
     myfile << "Height: " << msg->height << "\n";
-    myfile << "K: " << "\n";
+    myfile << "K: "
+           << "\n";
     int i;
-    for (i = 0; i < 9; i++) {
+    for (i = 0; i < 9; i++)
+    {
       myfile << *(msg->K.data() + i) << "\n";
     }
 
@@ -50,7 +50,7 @@ void DataCollector::infoCallback(
 
 //==============================================================================
 void DataCollector::imageCallback(
-  const sensor_msgs::ImageConstPtr& msg, ImageType imageType)
+    const sensor_msgs::ImageConstPtr& msg, ImageType imageType)
 {
   std::string folder = imageType == COLOR ? "color" : "depth";
 
@@ -61,13 +61,15 @@ void DataCollector::imageCallback(
     cv_bridge::CvImagePtr cv_ptr;
     try
     {
-      if (imageType == ImageType::COLOR) {
+      if (imageType == ImageType::COLOR)
+      {
         cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-      } else {
-        cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);
-
       }
-
+      else
+      {
+        cv_ptr = cv_bridge::toCvCopy(
+            msg, sensor_msgs::image_encodings::TYPE_16UC1);
+      }
     }
     catch (cv_bridge::Exception& e)
     {
@@ -82,39 +84,42 @@ void DataCollector::imageCallback(
     static int image_count = 0;
     // std::stringstream sstream;
     std::string s("before");
-    if (isAfterPush.load()) {
+    if (isAfterPush.load())
+    {
       s = "after";
     }
 
     std::string food = mFoods[mCurrentFood.load()];
     std::string direction = mAngleNames[mCurrentDirection.load()];
     int trial = mCurrentTrial.load();
-    std::string imageFile = "/home/herb/Workspace/ryan_ws/Images/" + folder +  + "/" + food + "-" + direction + "-" + std::to_string(trial) + /*return_current_time_and_date()*/ + "-" + s + ".png";
+    std::string imageFile
+        = "/home/herb/Workspace/ryan_ws/Images/" + folder + +"/" + food + "-"
+          + direction + "-" + std::to_string(trial)
+          + /*return_current_time_and_date()*/ +"-" + s + ".png";
     // sstream << imageFile;
-    bool worked = cv::imwrite( imageFile,  cv_ptr->image );
+    bool worked = cv::imwrite(imageFile, cv_ptr->image);
     image_count++;
     ROS_INFO_STREAM("image saved to " << imageFile << ", worked: " << worked);
 
     mShouldRecordImage.store(false);
   }
-
 }
 
 //==============================================================================
 DataCollector::DataCollector(
-  std::shared_ptr<FeedingDemo> feedingDemo,
-  ros::NodeHandle nodeHandle,
-  bool autoContinueDemo,
-  bool adaReal)
-: mFeedingDemo(std::move(feedingDemo))
-, mNodeHandle(nodeHandle)
-, mAutoContinueDemo(autoContinueDemo)
-, mAdaReal(adaReal)
-, mShouldRecordImage{false}
-, mShouldRecordInfo{false}
-, mCurrentFood{0}
-, mCurrentDirection{0}
-, mCurrentTrial{0}
+    std::shared_ptr<FeedingDemo> feedingDemo,
+    ros::NodeHandle nodeHandle,
+    bool autoContinueDemo,
+    bool adaReal)
+  : mFeedingDemo(std::move(feedingDemo))
+  , mNodeHandle(nodeHandle)
+  , mAutoContinueDemo(autoContinueDemo)
+  , mAdaReal(adaReal)
+  , mShouldRecordImage{false}
+  , mShouldRecordInfo{false}
+  , mCurrentFood{0}
+  , mCurrentDirection{0}
+  , mCurrentTrial{0}
 {
 
   // Set Standard Threshold
@@ -122,33 +127,44 @@ DataCollector::DataCollector(
 
   mNumTrials = getRosParam<int>("/data/numTrials", mNodeHandle);
   mFoods = getRosParam<std::vector<std::string>>("/data/foods", mNodeHandle);
-  mTiltAngles = getRosParam<std::vector<double>>("/data/tiltAngles", mNodeHandle);
+  mTiltAngles
+      = getRosParam<std::vector<double>>("/data/tiltAngles", mNodeHandle);
   mTiltModes = getRosParam<std::vector<int>>("/data/tiltModes", mNodeHandle);
-  mDirections = getRosParam<std::vector<double>>("/data/directions", mNodeHandle);
-  mAngleNames = getRosParam<std::vector<std::string>>("/data/angleNames", mNodeHandle);
+  mDirections
+      = getRosParam<std::vector<double>>("/data/directions", mNodeHandle);
+  mAngleNames
+      = getRosParam<std::vector<std::string>>("/data/angleNames", mNodeHandle);
 
   image_transport::ImageTransport it(mNodeHandle);
 
-  if (mAdaReal) {
-    sub = it.subscribe("/camera/color/image_raw", 1,
-      boost::bind(&DataCollector::imageCallback, this, _1, ImageType::COLOR));
-    sub2 = it.subscribe("/camera/aligned_depth_to_color/image_raw", 1,
-      boost::bind(&DataCollector::imageCallback, this, _1, ImageType::DEPTH));
+  if (mAdaReal)
+  {
+    sub = it.subscribe(
+        "/camera/color/image_raw",
+        1,
+        boost::bind(&DataCollector::imageCallback, this, _1, ImageType::COLOR));
+    sub2 = it.subscribe(
+        "/camera/aligned_depth_to_color/image_raw",
+        1,
+        boost::bind(&DataCollector::imageCallback, this, _1, ImageType::DEPTH));
     sub3 = mNodeHandle.subscribe<sensor_msgs::CameraInfo>(
-      "/camera/color/camera_info", 1,
-      boost::bind(&DataCollector::infoCallback, this, _1, ImageType::COLOR));
+        "/camera/color/camera_info",
+        1,
+        boost::bind(&DataCollector::infoCallback, this, _1, ImageType::COLOR));
     sub4 = mNodeHandle.subscribe<sensor_msgs::CameraInfo>(
-      "/camera/aligned_depth_to_color/camera_info", 1,
-      boost::bind(&DataCollector::infoCallback, this, _1, ImageType::DEPTH));
+        "/camera/aligned_depth_to_color/camera_info",
+        1,
+        boost::bind(&DataCollector::infoCallback, this, _1, ImageType::DEPTH));
   }
 }
 
 //==============================================================================
-void DataCollector::setDataCollectionParams(bool pushCompleted,
-  int foodId, int pushDirectionId, int trialId)
+void DataCollector::setDataCollectionParams(
+    bool pushCompleted, int foodId, int pushDirectionId, int trialId)
 {
 
-  if (mAdaReal) {
+  if (mAdaReal)
+  {
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     isAfterPush.store(pushCompleted);
 
@@ -174,8 +190,7 @@ void DataCollector::setDataCollectionParams(bool pushCompleted,
 
 //==============================================================================
 void DataCollector::pushAndSkewer(
-  const std::string& foodName,
-  int mode, float rotAngle, float tiltAngle)
+    const std::string& foodName, int mode, float rotAngle, float tiltAngle)
 {
   mFeedingDemo->pushAndSkewer(foodName, mode, rotAngle, tiltAngle);
 
@@ -184,11 +199,7 @@ void DataCollector::pushAndSkewer(
 
   // ===== RESET TO ABOVE FOOD =====
   mFeedingDemo->detectAndMoveAboveFood(
-    foodName,
-    mode,
-    rotAngle,
-    tiltAngle,
-    false);
+      foodName, mode, rotAngle, tiltAngle, false);
 }
 
 //==============================================================================
@@ -202,8 +213,10 @@ void DataCollector::collect(Action action)
       {
         mFeedingDemo->moveAbovePlate();
 
-        ROS_INFO_STREAM("\nTrial " << k << ": Food / Direction: "
-         << mFoods[i] << " / " << mAngleNames[j] << "> \n\n");
+        ROS_INFO_STREAM(
+            "\nTrial " << k << ": Food / Direction: " << mFoods[i] << " / "
+                       << mAngleNames[j]
+                       << "> \n\n");
 
         float angle = mDirections[j] * M_PI / 180.0;
 

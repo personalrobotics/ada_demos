@@ -2,14 +2,13 @@
 #include <algorithm>
 #include <aikido/common/Spline.hpp>
 #include <aikido/common/StepSequence.hpp>
-#include <aikido/planner/parabolic/ParabolicTimer.hpp>
-#include <aikido/trajectory/Interpolated.hpp>
 #include <aikido/distance/defaults.hpp>
+#include <aikido/planner/parabolic/ParabolicTimer.hpp>
 #include <aikido/statespace/CartesianProduct.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
+#include <aikido/trajectory/Interpolated.hpp>
 #include <dart/common/StlHelpers.hpp>
 #include <libada/util.hpp>
-
 
 namespace feeding {
 
@@ -32,12 +31,15 @@ void handleArguments(
 
   // Default options for flags
   po::options_description po_desc(description);
-  po_desc.add_options()("help,h", "Produce help message")
-      ("adareal,a", po::bool_switch(&adaReal), "Run ADA in real")
-      ("continueAuto,c", po::bool_switch(&autoContinueDemo),
-      "Continue Demo automatically")
-      ("ftSensing,f", po::bool_switch(&useFTSensing),"Use Force/Torque sensing")
-      ("demoType,d", po::value<std::string>(&demoType), "Demo type");
+  po_desc.add_options()("help,h", "Produce help message")(
+      "adareal,a", po::bool_switch(&adaReal), "Run ADA in real")(
+      "continueAuto,c",
+      po::bool_switch(&autoContinueDemo),
+      "Continue Demo automatically")(
+      "ftSensing,f",
+      po::bool_switch(&useFTSensing),
+      "Use Force/Torque sensing")(
+      "demoType,d", po::value<std::string>(&demoType), "Demo type");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -104,18 +106,16 @@ void dumpSplinePhasePlot(
 //==============================================================================
 std::string getCurrentTimeDate()
 {
-    auto now = std::chrono::system_clock::now();
-    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+  auto now = std::chrono::system_clock::now();
+  auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
-    std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
-    return ss.str();
+  std::stringstream ss;
+  ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+  return ss.str();
 }
 
-
 //==============================================================================
-std::string getUserInput(
-    bool food_only, ros::NodeHandle& nodeHandle)
+std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
 {
   ROS_INFO_STREAM("Which food item do you want?");
   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)

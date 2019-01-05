@@ -78,11 +78,11 @@ int main(int argc, char** argv)
 
   auto perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
-      feedingDemo->getAda().getMetaSkeleton(),
+      feedingDemo->getAda()->getMetaSkeleton(),
       nodeHandle);
 
   ftThresholdHelper->init();
-  feedingDemo->getAda().closeHand();
+  feedingDemo->getAda()->closeHand();
 
   feedingDemo->setPerception(perception);
 
