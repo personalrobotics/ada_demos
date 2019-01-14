@@ -13,6 +13,7 @@
 #include "feeding/perception/PerceptionPreProcess.hpp"
 #include "feeding/perception/PerceptionServoClient.hpp"
 
+
 namespace feeding {
 
 enum TargetItem
@@ -180,6 +181,9 @@ public:
       float tiltAngle);
 
   void rotateAndSkewer(const std::string& foodName, float rotateForqueAngle);
+
+  /// Resets the environmnet.
+  void reset();
 
 private:
   /// Attach food to forque

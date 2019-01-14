@@ -54,6 +54,9 @@ public:
 
   void addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose);
 
+  /// Resets the environmnet.
+  void reset();
+
 private:
   ros::NodeHandle mNodeHandle;
 
@@ -66,7 +69,9 @@ private:
   dart::dynamics::SkeletonPtr mPerson;
   dart::dynamics::SkeletonPtr mWheelchair;
 
+  Eigen::Isometry3d mRobotPose;
   Eigen::Isometry3d mPersonPose;
+
 
   /// Takes a skeleton pointer, fills it with a new skeleton and adds that to
   /// the world.

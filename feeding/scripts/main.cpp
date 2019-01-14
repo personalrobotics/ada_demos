@@ -49,7 +49,10 @@ int main(int argc, char** argv)
   handleArguments(argc, argv,
     adaReal, autoContinueDemo, useFTSensingToStopTrajectories, demoType);
 
-  ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
+  if (!adaReal)
+    ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
+
+  ROS_INFO_STREAM("DemoType: " << demoType);
 
 #ifndef REWD_CONTROLLERS_FOUND
   ROS_WARN_STREAM(

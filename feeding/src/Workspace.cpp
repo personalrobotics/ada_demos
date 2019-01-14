@@ -15,8 +15,8 @@ Workspace::Workspace(
     bool adaReal,
     ros::NodeHandle nodeHandle)
   : mNodeHandle(nodeHandle), mWorld(world)
+  , mRobotPose(robotPose)
 {
-
   addToWorld(mPlate, "plate", robotPose);
   addToWorld(mTable, "table", robotPose);
   addToWorld(mWorkspaceEnvironment, "workspaceEnvironment", robotPose);
@@ -25,17 +25,24 @@ Workspace::Workspace(
   mPersonPose = robotPose.inverse() * createIsometry(
                                           getRosParam<std::vector<double>>(
                                               "/person/pose", mNodeHandle));
-
   if (!adaReal)
   {
     addToWorld(mPerson, "person", robotPose);
     addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
     mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
   }
-  addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
-  mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
+  reset();
 }
 
+//==============================================================================
+void Workspace::reset()
+{
+  if (mDefaultFoodItem)
+    deleteFood();
+  addToWorld(mDefaultFoodItem, "defaultFoodItem", mRobotPose);
+  mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
+}
+//==============================================================================
 void Workspace::addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose)
 {
   addToWorldAtPose(mDefaultFoodItem, "defaultFoodItem", pose);
@@ -123,6 +130,7 @@ Eigen::Isometry3d Workspace::getPersonPose() const
   return mPersonPose;
 }
 
+//==============================================================================
 dart::dynamics::ConstSkeletonPtr Workspace::getWheelchair() const
 {
   return mWheelchair;

@@ -61,6 +61,8 @@ void demo(
       bool tilted = true;
       feedingDemo.feedFoodToPerson(nodeHandle, tilted);
     }
+
+    feedingDemo.reset();
   }
 
   // ===== DONE =====

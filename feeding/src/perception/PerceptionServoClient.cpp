@@ -9,6 +9,7 @@
 #include <aikido/planner/vectorfield/VectorFieldUtil.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSaver.hpp>
 #include <aikido/trajectory/util.hpp>
+#include <libada/util.hpp>
 
 #include "feeding/util.hpp"
 
@@ -20,6 +21,8 @@ using aikido::trajectory::createPartialTrajectory;
 using aikido::trajectory::findTimeOfClosestStateOnTrajectory;
 using aikido::trajectory::concatenate;
 using aikido::trajectory::SplinePtr;
+
+using ada::util::getRosParam;
 
 namespace feeding {
 
@@ -530,7 +533,10 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   {
     aikido::trajectory::TrajectoryPtr trajectory2
         = mAda->planArmToEndEffectorOffset(
-            direction2.normalized(), std::min(direction2.norm(), 0.2), nullptr);
+            direction2.normalized(), std::min(direction2.norm(), 0.2), nullptr,
+    getRosParam<int>("/planning/timeoutSeconds", mNode),
+    getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNode),
+    getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNode));
 
     if (!hasOriginalDirection)
     {

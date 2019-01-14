@@ -135,10 +135,9 @@ DataCollector::DataCollector(
   mAngleNames
       = getRosParam<std::vector<std::string>>("/data/angleNames", mNodeHandle);
 
-  image_transport::ImageTransport it(mNodeHandle);
-
   if (mAdaReal)
   {
+    image_transport::ImageTransport it(mNodeHandle);
     sub = it.subscribe(
         "/camera/color/image_raw",
         1,
@@ -211,12 +210,11 @@ void DataCollector::collect(Action action)
     {
       for (std::size_t k = 0; k < mNumTrials; ++k)
       {
-        mFeedingDemo->moveAbovePlate();
-
         ROS_INFO_STREAM(
             "\nTrial " << k << ": Food / Direction: " << mFoods[i] << " / "
                        << mAngleNames[j]
                        << "> \n\n");
+        mFeedingDemo->moveAbovePlate();
 
         float angle = mDirections[j] * M_PI / 180.0;
 

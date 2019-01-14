@@ -3,7 +3,6 @@
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/ConfigurationToConfiguration.hpp>
 #include <aikido/planner/SnapConfigurationToConfigurationPlanner.hpp>
-#include <aikido/planner/kinodynamic/KinodynamicTimer.hpp>
 #include <aikido/planner/parabolic/ParabolicTimer.hpp>
 #include <aikido/planner/vectorfield/VectorFieldPlanner.hpp>
 #include <aikido/planner/vectorfield/VectorFieldUtil.hpp>
