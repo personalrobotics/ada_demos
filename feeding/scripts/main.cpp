@@ -69,7 +69,6 @@ int main(int argc, char** argv)
 
   auto ftThresholdHelper = std::make_shared<FTThresholdHelper>(
     adaReal && useFTSensingToStopTrajectories, nodeHandle);
-  ftThresholdHelper->init();
 
   // start demo
   auto feedingDemo = std::make_shared<FeedingDemo>(
