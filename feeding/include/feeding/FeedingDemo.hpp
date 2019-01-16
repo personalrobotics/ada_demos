@@ -4,6 +4,8 @@
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/TSRMarker.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/distance/ConfigurationRanker.hpp>
+
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
 
@@ -191,6 +193,11 @@ private:
 
   /// Detach food from forque and remove it from the aikido world.
   void ungrabAndDeleteFood();
+
+  /// Returns configuration ranker to be used for planners;
+  /// \param[in] configuration Nominal configuration for ranker.
+  aikido::distance::ConfigurationRankerPtr getRanker(
+    const Eigen::VectorXd& configuration = Eigen::VectorXd(0));
 
   bool mIsFTSensingEnabled;
   bool mAdaReal;

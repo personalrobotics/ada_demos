@@ -1,5 +1,7 @@
 #include "feeding/FeedingDemo.hpp"
 #include <aikido/rviz/TrajectoryMarker.hpp>
+#include <aikido/distance/NominalConfigurationRanker.hpp>
+
 #include <pr_tsr/plate.hpp>
 #include <libada/util.hpp>
 
@@ -11,8 +13,11 @@
 using ada::util::getRosParam;
 using ada::util::createBwMatrixForTSR;
 using ada::util::createIsometry;
+using aikido::distance::NominalConfigurationRanker;
 
 const bool TERMINATE_AT_USER_PROMPT = true;
+
+static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
 
 namespace feeding {
 
@@ -290,6 +295,7 @@ bool FeedingDemo::moveAbovePlate()
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
       nominalConfiguration,
+      getRanker(nominalConfiguration),
       velocityLimits,
       ada::TrajectoryPostprocessType::KUNZ);
 }
@@ -885,7 +891,9 @@ bool FeedingDemo::moveInFrontOfPerson()
     personTSR,
     mCollisionFreeConstraint,
     getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-    getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle)
+    getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
+    Eigen::VectorXd(0),
+    getRanker()
     );
 
   if (!trajectory)
@@ -915,6 +923,8 @@ bool FeedingDemo::tiltUpInFrontOfPerson()
   Eigen::Vector3d correctionTranslation
       = workingPersonTranslation - personTranslation;
 
+  auto ranker = getRanker();
+
   for (double i = 0; i <= 1.0; i += 0.2)
   {
     aikido::constraint::dart::TSR personTSR;
@@ -940,9 +950,12 @@ bool FeedingDemo::tiltUpInFrontOfPerson()
     bool trajectoryCompleted = false;
     try
     {
+
       auto trajectory = mAda->planArmToTSR(personTSR, mCollisionFreeConstraint,
         getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-        getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
+        getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
+        Eigen::VectorXd(0),
+        ranker);
       if (!trajectory)
       {
         ROS_INFO_STREAM("PlanToTSR failed.");
@@ -985,6 +998,8 @@ void FeedingDemo::tiltDownInFrontOfPerson()
   Eigen::Vector3d correctionTranslation
       = workingPersonTranslation - personTranslation;
 
+  auto ranker = getRanker();
+
   for (double i = 0; i <= 1.0; i += 0.2)
   {
     aikido::constraint::dart::TSR personTSR;
@@ -1012,7 +1027,9 @@ void FeedingDemo::tiltDownInFrontOfPerson()
       auto trajectory = mAda->planArmToTSR(personTSR,
           mCollisionFreeConstraint,
           getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-          getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
+          getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
+          Eigen::VectorXd(0),
+          ranker);
       visualizeTrajectory(trajectory);
       bool trajectoryCompleted = mAda->moveArmOnTrajectory(
           trajectory,
@@ -1085,13 +1102,15 @@ void FeedingDemo::moveDirectlyToPerson(bool tilted)
         *= mAda->getHand()->getEndEffectorTransform("person")->matrix();
   }
 
-  // tsrMarkers.push_back(viewer->addTSRMarker(personTSR, 100, "someTSRName"));
+  auto ranker = getRanker();
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
   auto trajectory = mAda->planArmToTSR(
     personTSR, mCollisionFreeConstraint,
     getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-    getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
+    getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
+    Eigen::VectorXd(0),
+    ranker);
   visualizeTrajectory(trajectory);
   bool trajectoryCompleted = mAda->moveArmOnTrajectory(
       trajectory,
@@ -1550,4 +1569,22 @@ void FeedingDemo::reset()
   mWorkspace->reset();
 }
 
+//==============================================================================
+aikido::distance::ConfigurationRankerPtr FeedingDemo::getRanker(
+  const Eigen::VectorXd& configuration)
+{
+  auto metaSkeleton = mAda->getArm()->getMetaSkeleton();
+  auto nominalState = mArmSpace->createState();
+
+  if (configuration.size() > 0)
+    mArmSpace->convertPositionsToState(configuration, nominalState);
+  else
+    nominalState = mArmSpace->getScopedStateFromMetaSkeleton(metaSkeleton.get());
+
+  return std::make_shared<NominalConfigurationRanker>(
+    mArmSpace,
+    metaSkeleton,
+    weights,
+    nominalState);
+}
 } // namespace feeding
