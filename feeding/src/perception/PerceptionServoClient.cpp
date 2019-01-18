@@ -171,6 +171,7 @@ void PerceptionServoClient::stop()
   timerMutex.unlock();
 }
 
+//==============================================================================
 bool PerceptionServoClient::wait(double timelimit)
 {
   double elapsedTime = 0.0;
