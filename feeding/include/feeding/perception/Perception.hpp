@@ -5,6 +5,8 @@
 #include <aikido/perception/PoseEstimatorModule.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
+
 #include <libada/Ada.hpp>
 
 namespace feeding {
@@ -28,26 +30,23 @@ public:
       dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
       ros::NodeHandle nodeHandle);
 
-  /// Gets food items from active perception ros nodes and adds their new
-  /// MetaSkeletons to the aikido world.
-  /// \param[out] foodTransform the transform of a food item that has been
-  /// found.
-  /// \return True if a food item was found.
-  bool perceiveFood(Eigen::Isometry3d& foodTransform);
+  /// Detect all food items Updates output parameters with
+  /// the item closest to the forque.
+  /// returns The tranform of the detected food with shortest distance.
+  boost::optional<Eigen::Isometry3d> perceiveAllFood();
 
   /// Gets food items from active perception ros nodes and adds their new
-  /// MetaSkeletons to the aikido world.
-  /// \param[out] foodTransform the transform of a food item that has been
-  /// found.
+  /// MetaSkeletons to the aikido world. Updates output parameters with
+  /// the item closest to the forque.
+  /// \param[in] foodNameToFind Name of the food item to detect.
+  /// \param[in] perceiveDepthPlane Ignore anything below certain depth.
+  /// \param[out] foodTransform The transform of the detected food.
   /// \return True if a food item was found.
-  bool perceiveFood(
-      Eigen::Isometry3d& foodTransform,
-      bool perceiveDepthPlane,
-      aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
-      const std::string& foundFoodName = std::string(""),
-      bool perceiveAnyFood = false);
+  boost::optional<Eigen::Isometry3d> perceiveFood(
+    const std::string& foodNameToFind,
+    bool perceiveDepthPlane = false);
 
-  bool perceiveFace(Eigen::Isometry3d& faceTransform);
+  boost::optional<Eigen::Isometry3d> perceiveFace();
 
   /// Returns true if mouth is detected to be open.
   bool isMouthOpen();
@@ -58,11 +57,14 @@ public:
 
   Eigen::Isometry3d getOpticalToWorld();
 
-  bool setFoodName(std::string foodName);
-
   void setFaceZOffset(float faceZOffset);
 
 private:
+
+  /// Returns distance between item and forque.
+  /// \param[in] item Item to get distance for.
+  double getDistanceFromForque(const Eigen::Isometry3d& item);
+
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
   ros::NodeHandle& mNodeHandle;
@@ -78,7 +80,7 @@ private:
   std::string mFoodNameToPerceive;
   std::string mPerceivedFaceName;
 
-  Eigen::Hyperplane<double, 3> depthPlane;
+  Eigen::Hyperplane<double, 3> mDepthPlane;
 
   std::vector<dart::dynamics::SimpleFramePtr> frames;
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;

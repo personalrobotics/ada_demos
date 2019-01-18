@@ -8,6 +8,7 @@
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <aikido/trajectory/Spline.hpp>
+#include <boost/optional.hpp>
 #include <dart/dynamics/BodyNode.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
@@ -23,7 +24,7 @@ public:
 
   PerceptionServoClient(
       ::ros::NodeHandle node,
-      boost::function<bool(Eigen::Isometry3d&)> getTransform,
+      boost::function<boost::optional<Eigen::Isometry3d>(void)> getTransform,
       aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
           metaSkeletonStateSpace,
       std::shared_ptr<ada::Ada> ada,
@@ -62,7 +63,7 @@ protected:
       const Eigen::Isometry3d& goalPose);
 
   ::ros::NodeHandle mNode;
-  boost::function<bool(Eigen::Isometry3d&)> mGetTransform;
+  boost::function<boost::optional<Eigen::Isometry3d>(void)> mGetTransform;
   /// Meta skeleton state space.
   aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
       mMetaSkeletonStateSpace;

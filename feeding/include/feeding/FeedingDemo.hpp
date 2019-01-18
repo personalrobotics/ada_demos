@@ -95,7 +95,10 @@ public:
   /// parameter.
   void moveToStartConfiguration();
 
-  void moveOutOf(TargetItem item);
+  /// Move out of target item.
+  /// \param[in] item Item currently skewered by the robot
+  /// \param[in] ignoreCollision If true, collision constraint is ignored in planning.
+  void moveOutOf(TargetItem item, bool ignoreCollision = false);
 
   /// This function does not throw an exception if the trajectory is aborted,
   /// because we expect that.
@@ -162,7 +165,8 @@ public:
   void skewer(
       std::string foodName,
       ros::NodeHandle& nodeHandle,
-      int max_trial_per_item = 3);
+      int max_trial_per_item = 3,
+      bool ignoreCollisionWhenMovingOut = true);
 
   void feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted = true);
 
@@ -182,7 +186,8 @@ public:
       float rotAngle,
       float tiltAngle);
 
-  void rotateAndSkewer(const std::string& foodName, float rotateForqueAngle);
+  void rotateAndSkewer(const std::string& foodName, float rotateForqueAngle,
+    bool ignoreCollisionWhenMovingOut = false);
 
   /// Resets the environmnet.
   void reset();
