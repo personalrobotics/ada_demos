@@ -224,6 +224,8 @@ void DataCollector::collect(Action action)
           pushAndSkewer(mFoods[i], mTiltModes[i], angle, mTiltAngles[i]);
         else if (action == SKEWER)
           mFeedingDemo->rotateAndSkewer(mFoods[i], angle);
+        else if (action == SCOOP)
+          mFeedingDemo->scoop();
       }
     }
   }

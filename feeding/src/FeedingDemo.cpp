@@ -699,6 +699,34 @@ void FeedingDemo::rotateForque(
 }
 
 //==============================================================================
+void FeedingDemo::scoop()
+{
+  auto twist1
+      = getRosParam<std::vector<double>>("/scoop/twist1", mNodeHandle);
+
+  Eigen::Vector6d seq1(twist1.data());
+  bool trajectoryCompleted = mAdaMover->moveWithEndEffectorTwist(
+      seq1,
+      1); //,
+
+  auto twist2
+      = getRosParam<std::vector<double>>("/scoop/twist2", mNodeHandle);
+
+  Eigen::Vector6d seq2(twist2.data());
+  trajectoryCompleted = mAdaMover->moveWithEndEffectorTwist(
+      seq2,
+      1); //,
+
+  auto twist3
+      = getRosParam<std::vector<double>>("/scoop/twist3", mNodeHandle);
+
+  Eigen::Vector6d seq3(twist3.data());
+  trajectoryCompleted = mAdaMover->moveWithEndEffectorTwist(
+      seq3,
+      1); //,
+}
+
+//==============================================================================
 void FeedingDemo::moveOutOf(TargetItem item)
 {
   if (item != FOOD && item != PLATE && item != FORQUE)

@@ -184,6 +184,8 @@ public:
 
   void rotateAndSkewer(const std::string& foodName, float rotateForqueAngle);
 
+  void scoop();
+
   /// Resets the environmnet.
   void reset();
 
