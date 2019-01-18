@@ -122,6 +122,8 @@ DataCollector::DataCollector(
   , mCurrentTrial{0}
 {
 
+  // See if we can save force/torque sensor data as well.
+
   // Set Standard Threshold
   mFeedingDemo->setFTThreshold(STANDARD_FT_THRESHOLD);
 
@@ -202,7 +204,7 @@ void DataCollector::pushAndSkewer(
 }
 
 //==============================================================================
-void DataCollector::collect(Action action)
+void DataCollector::collect(Action action, /*i , j,  k  */ )
 {
   for (std::size_t i = 0; i < mFoods.size(); ++i)
   {
@@ -210,10 +212,12 @@ void DataCollector::collect(Action action)
     {
       for (std::size_t k = 0; k < mNumTrials; ++k)
       {
+
         ROS_INFO_STREAM(
             "\nTrial " << k << ": Food / Direction: " << mFoods[i] << " / "
                        << mAngleNames[j]
                        << "> \n\n");
+        mFeedingDemo->waitForUser("Start");
         mFeedingDemo->moveAbovePlate();
 
         float angle = mDirections[j] * M_PI / 180.0;
@@ -223,7 +227,24 @@ void DataCollector::collect(Action action)
         if (action == PUSH_AND_SKEWER)
           pushAndSkewer(mFoods[i], mTiltModes[i], angle, mTiltAngles[i]);
         else if (action == SKEWER)
-          mFeedingDemo->rotateAndSkewer(mFoods[i], angle);
+          mFeedingDemo->rotateAndSkewer(mFoods[i], angle, true);
+
+
+        // tiltedSkewer -- TSR 
+
+        // Scooping
+
+        // Twirling 
+
+
+
+        // Move up a bit to test success
+
+        // Take an input to record success
+
+        // 
+
+
       }
     }
   }

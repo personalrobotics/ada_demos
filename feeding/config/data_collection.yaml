@@ -11,7 +11,7 @@
 
 data:
   numTrials: 5
-  foods: ["celery", "cantaloupe", "strawberry"]
+  foods: ["strawberry"]
   tiltAngles: [0, 0, 0]
   tiltModes: [0, 0, 0]
   directions: [0, 45, 90, 135, 180, 225, 270, 315] #, 90, 135, 180, 225, 270, 315]

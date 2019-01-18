@@ -9,6 +9,7 @@
 #include <aikido/trajectory/Interpolated.hpp>
 #include <dart/common/StlHelpers.hpp>
 #include <libada/util.hpp>
+#include <tf_conversions/tf_eigen.h>
 
 namespace feeding {
 
@@ -160,6 +161,58 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
       foodName = ACTIONS[id - FOOD_NAMES.size()];
     return foodName;
   }
+}
+
+//==============================================================================
+std::pair<Eigen::VectorXd, Eigen::VectorXd> setPositionLimits(
+    const ::dart::dynamics::MetaSkeletonPtr& metaSkeleton,
+    const Eigen::VectorXd& lowerLimits,
+    const Eigen::VectorXd& upperLimits,
+    const std::vector<std::size_t>& indices)
+{
+  auto llimits = metaSkeleton->getPositionLowerLimits();
+  auto ulimits = metaSkeleton->getPositionUpperLimits();
+
+  Eigen::VectorXd newLowerLimits(llimits);
+  Eigen::VectorXd newUpperLimits(ulimits);
+
+  Eigen::VectorXd oldLowerLimits(indices.size());
+  Eigen::VectorXd oldUpperLimits(indices.size());
+
+  for (int i = 0; i < indices.size(); ++i)
+  {
+    newLowerLimits(indices[i]) = lowerLimits[i];
+    newUpperLimits(indices[i]) = upperLimits[i];
+
+    oldLowerLimits(i) = llimits[i];
+    oldUpperLimits(i) = ulimits[i];
+  }
+  metaSkeleton->setPositionLowerLimits(newLowerLimits);
+  metaSkeleton->setPositionUpperLimits(newUpperLimits);
+
+  return std::make_pair(oldLowerLimits, oldUpperLimits);
+}
+
+//==============================================================================
+Eigen::Isometry3d getRelativeTransform(
+  tf::TransformListener& tfListener,
+  const std::string& from,
+  const std::string& to)
+{
+  tf::StampedTransform tfStampedTransform;
+  try
+  {
+    tfListener.lookupTransform(from, to, ros::Time(0), tfStampedTransform);
+  }
+  catch (tf::TransformException ex)
+  {
+    throw std::runtime_error(
+        "Failed to get TF Transform: " + std::string(ex.what()));
+  }
+  
+  Eigen::Isometry3d transform;
+  tf::transformTFToEigen(tfStampedTransform, transform);
+  return transform; 
 }
 
 } // namespace feeding

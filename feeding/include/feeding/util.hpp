@@ -3,12 +3,17 @@
 
 #include <fstream>
 #include <iostream>
+#include <utility>
 #include <Eigen/Dense>
 #include <aikido/statespace/StateSpace.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <boost/program_options.hpp>
+#include <boost/optional.hpp>
+#include <dart/dart.hpp>
+
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
 
 namespace feeding {
 
@@ -54,6 +59,29 @@ void dumpSplinePhasePlot(
 /// param[in] food_only If true, only food choices are valid
 /// param[in]] nodeHandle Ros Node to set food name for detection.
 std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle);
+
+/// Sets position limits of a metaskeleton.
+/// \param[in] metaSkeleton Metaskeleton to modify.
+/// \param[in] lowerLimits Lowerlimits of the joints.
+/// \param[in] upperLimits Upperlimits of the joints.
+/// \param[in] indices Indices of the joints to modify.
+/// returns Pair of current lower and upper limits of the chosen joints.
+std::pair<Eigen::VectorXd, Eigen::VectorXd> setPositionLimits(
+    const ::dart::dynamics::MetaSkeletonPtr& metaSkeleton,
+    const Eigen::VectorXd& lowerLimits = Eigen::VectorXd::Ones(4) * -12.56,
+    const Eigen::VectorXd& upperLimits = Eigen::VectorXd::Ones(4) *  12.56,
+    const std::vector<std::size_t>& indices = std::vector<std::size_t>{0, 3, 4, 5});
+
+/// Get relative transform between two transforms.
+/// \param[in] tfListner TFListener
+/// \param[in] from Transform from which the relative transform is computed.
+/// \param[in] to Transform to which the relative transform is computed.
+/// returns Relative transform from from to to.
+Eigen::Isometry3d getRelativeTransform(
+  tf::TransformListener& tfListener,
+  const std::string& from,
+  const std::string& to);
+
 
 } // feeding
 

@@ -1,6 +1,7 @@
 #include "feeding/FeedingDemo.hpp"
 #include <aikido/rviz/TrajectoryMarker.hpp>
 #include <aikido/distance/NominalConfigurationRanker.hpp>
+#include <boost/optional.hpp>
 
 #include <pr_tsr/plate.hpp>
 #include <libada/util.hpp>
@@ -18,6 +19,7 @@ using aikido::distance::NominalConfigurationRanker;
 const bool TERMINATE_AT_USER_PROMPT = true;
 
 static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
+static const std::size_t MAX_NUM_TRIALS = 3;
 
 namespace feeding {
 
@@ -201,7 +203,7 @@ void FeedingDemo::moveToStartConfiguration()
   }
   else
   {
-    std::cout << Eigen::Vector6d(home.data()).transpose() << std::endl;
+    ROS_INFO_STREAM("Set to home pose.");
     mAda->getArm()->getMetaSkeleton()->setPositions(
         Eigen::Vector6d(home.data()));
   }
@@ -264,21 +266,13 @@ bool FeedingDemo::moveAbovePlate()
 
   Eigen::Isometry3d eeTransform
       = *mAda->getHand()->getEndEffectorTransform("plate");
-  ROS_INFO_STREAM(
-      "move above plate\n" << eeTransform.linear()
-                         << mAda->getArm()
-                                ->getMetaSkeleton()
-                                ->getPositions()
-                                .matrix()
-                                .transpose());
   eeTransform.linear()
       = eeTransform.linear()
         * Eigen::Matrix3d(
               Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
-  abovePlateTSR.mTw_e.matrix() // wrong?
-      *= eeTransform.matrix();
+  abovePlateTSR.mTw_e.matrix() *= eeTransform.matrix();
   ROS_INFO_STREAM(
-      "move above plate 2\n" << eeTransform.linear() << "\n"
+      "Move above plate \n" << eeTransform.linear() << "\n"
                            << mAda->getArm()
                                   ->getMetaSkeleton()
                                   ->getPositions()
@@ -288,6 +282,13 @@ bool FeedingDemo::moveAbovePlate()
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
   Eigen::VectorXd nominalConfiguration(6);
   nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
+
+  std::string result;
+  if (!isCollisionFree(result))
+  {
+    ROS_ERROR(result.c_str());
+    throw std::runtime_error("Error due to collision");
+  }
 
   return mAda->moveArmToTSR(
       abovePlateTSR,
@@ -560,14 +561,14 @@ void FeedingDemo::moveNextToFood(
     velocityLimits[i] = 0.2;
 
   PerceptionPreProcess offsetApplier(
-      boost::bind(&Perception::perceiveFood, perception, _1),
+      boost::bind(&Perception::perceiveAllFood, perception),
       angle,
       prePushOffset,
       forqueTransform);
 
   PerceptionServoClient servoClient(
       mNodeHandle,
-      boost::bind(&PerceptionPreProcess::applyOffset, &offsetApplier, _1),
+      boost::bind(&PerceptionPreProcess::applyOffset, &offsetApplier),
       mArmSpace,
       mAda,
       mAda->getArm()->getMetaSkeleton(),
@@ -699,7 +700,7 @@ void FeedingDemo::rotateForque(
 }
 
 //==============================================================================
-void FeedingDemo::moveOutOf(TargetItem item)
+void FeedingDemo::moveOutOf(TargetItem item, bool ignoreCollision)
 {
   if (item != FOOD && item != PLATE && item != FORQUE)
     throw std::invalid_argument(
@@ -722,11 +723,23 @@ void FeedingDemo::moveOutOf(TargetItem item)
     direction = Eigen::Vector3d(0, -1, 0);
   }
 
-  bool trajectoryCompleted = mAda->moveArmToEndEffectorOffset(
+  if (ignoreCollision)
+  {
+    bool trajectoryCompleted = mAda->moveArmToEndEffectorOffset(
       direction, length, nullptr, //mCollisionFreeConstraint,
     getRosParam<int>("/planning/timeoutSeconds", mNodeHandle),
     getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
-    getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle));
+    getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle));  
+  }
+  else
+  {
+    bool trajectoryCompleted = mAda->moveArmToEndEffectorOffset(
+      direction, length, mCollisionFreeConstraint,
+    getRosParam<int>("/planning/timeoutSeconds", mNodeHandle),
+    getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
+    getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle));  
+  }
+  
 
   setFTThreshold(STANDARD_FT_THRESHOLD);
   // trajectoryCompleted might be false because the forque hit the food
@@ -769,7 +782,7 @@ bool FeedingDemo::moveInto(TargetItem item)
 
     PerceptionServoClient servoClient(
         mNodeHandle,
-        boost::bind(&Perception::perceiveFood, mPerception.get(), _1),
+        boost::bind(&Perception::perceiveAllFood, mPerception.get()),
         mArmSpace,
         mAda,
         mAda->getArm()->getMetaSkeleton(),
@@ -865,6 +878,10 @@ bool FeedingDemo::moveInFrontOfPerson()
 {
   ROS_INFO_STREAM("move in front of person");
 
+  std::string result;
+  if (!isCollisionFree(result))
+    ROS_INFO(result.c_str());
+
   double distanceToPerson
       = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
   double horizontalToleranceNearPerson = getRosParam<double>(
@@ -875,7 +892,7 @@ bool FeedingDemo::moveInFrontOfPerson()
   aikido::constraint::dart::TSR personTSR;
   Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
   personPose.translation() = mWorkspace->getPersonPose()
-                                 .translation(); // + Eigen::Vector3d(0,0.2,0);
+                                 .translation(); // + Eigen::Vector3d(0,0,0.2);
   personPose.linear()
       = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   personTSR.mT0_w = personPose;
@@ -910,6 +927,10 @@ bool FeedingDemo::moveInFrontOfPerson()
 //==============================================================================
 bool FeedingDemo::tiltUpInFrontOfPerson()
 {
+  std::string result;
+  if (!isCollisionFree(result))
+    ROS_INFO(result.c_str());
+
   waitForUser("tiltUp in front of person");
 
   Eigen::Vector3d workingPersonTranslation(0.263, 0.269386, 0.652674);
@@ -950,7 +971,6 @@ bool FeedingDemo::tiltUpInFrontOfPerson()
     bool trajectoryCompleted = false;
     try
     {
-
       auto trajectory = mAda->planArmToTSR(personTSR, mCollisionFreeConstraint,
         getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
         getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
@@ -994,7 +1014,7 @@ void FeedingDemo::tiltDownInFrontOfPerson()
   Eigen::Vector3d personTranslation;
   personTranslation
       = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation()
-        + Eigen::Vector3d{0.01, 0, 0.06} + Eigen::Vector3d{0, 0, 0.0};
+        + Eigen::Vector3d{0.01, 0, 0.06};
   Eigen::Vector3d correctionTranslation
       = workingPersonTranslation - personTranslation;
 
@@ -1126,11 +1146,13 @@ void FeedingDemo::moveDirectlyToPerson(bool tilted)
 //==============================================================================
 bool FeedingDemo::moveTowardsPerson()
 {
+  waitForUser("Move towards person");
+
   if (!mAdaReal)
   {
     return mAda->moveArmToEndEffectorOffset(
-        Eigen::Vector3d(0, 1, -0.6),
-        getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle) * 0.9,
+        Eigen::Vector3d(0, 1, 0),
+        getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle) * 0.4,
         mCollisionFreeConstraint,
         getRosParam<int>("/planning/timeoutSeconds", mNodeHandle),
         getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
@@ -1155,7 +1177,7 @@ bool FeedingDemo::moveTowardsPerson()
 
   feeding::PerceptionServoClient servoClient(
       mNodeHandle,
-      boost::bind(&Perception::perceiveFace, mPerception.get(), _1),
+      boost::bind(&Perception::perceiveFace, mPerception.get()),
       mArmSpace,
       mAda,
       mAda->getArm()->getMetaSkeleton(),
@@ -1246,8 +1268,13 @@ void FeedingDemo::putDownFork()
 
 //==============================================================================
 void FeedingDemo::skewer(
-    std::string foodName, ros::NodeHandle& nodeHandle, int max_trial_per_item)
+    std::string foodName, ros::NodeHandle& nodeHandle, int max_trial_per_item,
+    bool ignoreCollisionWhenMovingOut)
 {
+  std::string result;
+  if (!isCollisionFree(result))
+    ROS_INFO(result.c_str());
+
   bool foodPickedUp = false;
   int num_tries = 0;
 
@@ -1257,7 +1284,6 @@ void FeedingDemo::skewer(
   while (!foodPickedUp)
   {
     // ===== ABOVE PLATE =====
-    waitForUser("Move forque above plate");
     moveAbovePlate();
 
     // ===== PERCEPTION =====
@@ -1283,6 +1309,7 @@ void FeedingDemo::skewer(
 
     std::this_thread::sleep_for(std::chrono::milliseconds(800));
 
+    ROS_INFO_STREAM("Redetect and move above food once more");
     foodTransform = detectFood(foodName, false);
 
     moveAboveFood(foodTransform.get(), pickupAngleMode, true);
@@ -1318,7 +1345,13 @@ void FeedingDemo::skewer(
     // ===== OUT OF FOOD =====
     waitForUser("Move forque out of food");
 
-    moveOutOf(TargetItem::FOOD);
+    moveOutOf(TargetItem::FOOD, ignoreCollisionWhenMovingOut);
+
+    std::string result;
+    if (!isCollisionFree(result))
+      ROS_INFO(result.c_str());
+    else
+      ROS_INFO("Collision free");
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
@@ -1371,11 +1404,30 @@ void FeedingDemo::skewer(
 //==============================================================================
 void FeedingDemo::feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted)
 {
+
+  std::string result;
+  if (!isCollisionFree(result))
+    ROS_INFO(result.c_str());
+  else
+    ROS_INFO("Collision free");
+
   nodeHandle.setParam("/feeding/facePerceptionOn", true);
   moveInFrontOfPerson();
 
-  ROS_INFO_STREAM("Move towards person");
-  moveTowardsPerson();
+  for(std::size_t i = 0; i < MAX_NUM_TRIALS; ++i)
+  {
+    ROS_INFO_STREAM("Trial " << i << std::endl);
+    bool result = moveTowardsPerson();
+    if (result)
+      break;
+    if (i == MAX_NUM_TRIALS - 1 && !result)
+      throw std::runtime_error("Failed to move toward person.");
+  }
+  
+  if (!isCollisionFree(result))
+    ROS_INFO(result.c_str());
+  else
+    ROS_INFO("Collision free");
 
   if (tilted)
     tiltUpInFrontOfPerson();
@@ -1387,8 +1439,7 @@ void FeedingDemo::feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted)
           getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", nodeHandle)));
   ungrabAndDeleteFood();
 
-  waitForUser("Move away from person 1");
-  waitForUser("Move away from person 2");
+  waitForUser("Move away from person");
 
   if (!tilted)
     moveAwayFromPerson();
@@ -1406,39 +1457,16 @@ boost::optional<Eigen::Isometry3d> FeedingDemo::detectFood(
   if (!mAdaReal)
     return getDefaultFoodTransform();
 
-  if (!mPerception->setFoodName(foodName))
+  do
   {
-    ROS_WARN_STREAM(
-        "I don't know about any food that's called '"
-        << foodName
-        << ". Wanna get something else?");
-    return boost::optional<Eigen::Isometry3d>{};
-  }
-
-  Eigen::Isometry3d foodTransform;
-
-  if (waitTillDetected)
-  {
-    while (true)
-    {
-      if (!mPerception->perceiveFood(foodTransform, true, mViewer))
-      {
-        ROS_WARN_STREAM("I can't see the " << foodName << std::endl);
-        waitForUser("Try perception again?");
-        continue;
-      }
-      return foodTransform;
-    }
-  }
-  else
-  {
-    if (!mPerception->perceiveFood(foodTransform, true, mViewer))
+    auto detected = mPerception->perceiveFood(foodName, true);
+    if (!detected)
     {
       ROS_WARN_STREAM("I can't see the " << foodName << std::endl);
-      return boost::optional<Eigen::Isometry3d>{};
+      continue;
     }
-    return foodTransform;
-  }
+    return detected.get();
+  } while (waitTillDetected);
 }
 
 //==============================================================================
@@ -1541,7 +1569,8 @@ void FeedingDemo::pushAndSkewer(
 
 //==============================================================================
 void FeedingDemo::rotateAndSkewer(
-    const std::string& foodName, float rotateForqueAngle)
+    const std::string& foodName, float rotateForqueAngle,
+    bool ignoreCollisionWhenMovingOut)
 {
   // TODO: check pickUpAngleMode
   auto foodTransform
@@ -1558,7 +1587,7 @@ void FeedingDemo::rotateAndSkewer(
 
     // ===== OUT OF FOOD =====
     setFTThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
-    moveOutOf(TargetItem::FOOD);
+    moveOutOf(TargetItem::FOOD, ignoreCollisionWhenMovingOut);
     break;
   }
 }

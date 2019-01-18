@@ -47,8 +47,6 @@ void demo(
     }
     else
     {
-      feedingDemo.moveAbovePlate();
-
       if (!getRosParam<bool>("/study/skipSkewering", nodeHandle))
       {
         feedingDemo.skewer(foodName, nodeHandle,
