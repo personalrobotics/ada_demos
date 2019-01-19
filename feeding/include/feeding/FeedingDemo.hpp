@@ -189,6 +189,8 @@ public:
   void rotateAndSkewer(const std::string& foodName, float rotateForqueAngle,
     bool ignoreCollisionWhenMovingOut = false);
 
+  void scoop();
+
   /// Resets the environmnet.
   void reset();
 

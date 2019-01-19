@@ -244,6 +244,8 @@ void DataCollector::collect(Action action, /*i , j,  k  */ )
 
         // 
 
+        else if (action == SCOOP)
+          mFeedingDemo->scoop();
 
       }
     }

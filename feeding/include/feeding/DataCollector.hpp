@@ -25,7 +25,8 @@ namespace feeding {
 enum Action
 {
   PUSH_AND_SKEWER,
-  SKEWER
+  SKEWER,
+  SCOOP
 };
 
 enum ImageType
