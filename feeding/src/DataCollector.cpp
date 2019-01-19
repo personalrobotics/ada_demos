@@ -204,7 +204,7 @@ void DataCollector::pushAndSkewer(
 }
 
 //==============================================================================
-void DataCollector::collect(Action action, /*i , j,  k  */ )
+void DataCollector::collect(Action action /*i , j,  k  */ )
 {
   for (std::size_t i = 0; i < mFoods.size(); ++i)
   {
