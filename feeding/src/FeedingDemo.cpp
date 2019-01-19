@@ -702,29 +702,20 @@ void FeedingDemo::rotateForque(
 //==============================================================================
 void FeedingDemo::scoop()
 {
-  auto twist1
-      = getRosParam<std::vector<double>>("/scoop/twist1", mNodeHandle);
+  std::vector<std::string> twists{
+    "/scoop/twist1", "/scoop/twist2", "/scoop/twist3"};
 
-  Eigen::Vector6d seq1(twist1.data());
-  bool trajectoryCompleted = mAdaMover->moveWithEndEffectorTwist(
-      seq1,
-      1); //,
-
-  auto twist2
-      = getRosParam<std::vector<double>>("/scoop/twist2", mNodeHandle);
-
-  Eigen::Vector6d seq2(twist2.data());
-  trajectoryCompleted = mAdaMover->moveWithEndEffectorTwist(
-      seq2,
-      1); //,
-
-  auto twist3
-      = getRosParam<std::vector<double>>("/scoop/twist3", mNodeHandle);
-
-  Eigen::Vector6d seq3(twist3.data());
-  trajectoryCompleted = mAdaMover->moveWithEndEffectorTwist(
-      seq3,
-      1); //,
+  for (const auto & param : twists)
+  {
+    auto success =
+      moveWithEndEffectorTwist(
+        Eigen::Vector6d(getRosParam<std::vector<double>>(param, mNodeHandle).data()));
+    if (!success)
+    {
+      ROS_ERROR_STREAM("Failed to execute " << param << std::endl);
+      throw std::runtime_error("Failed to execute scoop");
+    }
+  }
 }
 
 //==============================================================================
@@ -1644,4 +1635,23 @@ aikido::distance::ConfigurationRankerPtr FeedingDemo::getRanker(
     weights,
     nominalState);
 }
+
+
+//==============================================================================
+bool FeedingDemo::moveWithEndEffectorTwist(
+    const Eigen::Vector6d& twists,
+    double duration,
+    bool respectCollision)
+{
+  return mAda->moveArmWithEndEffectorTwist(
+    Eigen::Vector6d(getRosParam<std::vector<double>>("/scoop/twist1", mNodeHandle).data()),
+    respectCollision ? mCollisionFreeConstraint : nullptr,
+    duration,
+    getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
+    getRosParam<double>(
+          "/planning/endEffectorTwist/positionTolerance", mNodeHandle),
+    getRosParam<double>(
+          "/planning/endEffectorTwist/angularTolerance", mNodeHandle));
+}
+
 } // namespace feeding

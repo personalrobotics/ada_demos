@@ -194,6 +194,11 @@ public:
   /// Resets the environmnet.
   void reset();
 
+  bool moveWithEndEffectorTwist(
+    const Eigen::Vector6d& twists,
+    double durations = 1.0,
+    bool respectCollision = true);
+
 private:
   /// Attach food to forque
   void grabFoodWithForque();
