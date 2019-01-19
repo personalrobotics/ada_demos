@@ -111,7 +111,7 @@ study:
   # 0 straight
   # 1 strawberry-style
   # 2 banana-style
-  pickupAngleMode: 1
+  pickupAngleMode: 0
 
 
 

@@ -56,7 +56,7 @@ void demo(
       // ===== IN FRONT OF PERSON =====
       feedingDemo.waitForUser("Move forque in front of person");
 
-      bool tilted = true;
+      bool tilted = (foodName != "celery");
       feedingDemo.feedFoodToPerson(nodeHandle, tilted);
     }
 

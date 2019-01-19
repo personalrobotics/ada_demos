@@ -204,7 +204,7 @@ void DataCollector::pushAndSkewer(
 }
 
 //==============================================================================
-void DataCollector::collect(Action action, /*i , j,  k  */ )
+void DataCollector::collect(Action action /*i , j,  k  */ )
 {
   for (std::size_t i = 0; i < mFoods.size(); ++i)
   {
@@ -230,11 +230,11 @@ void DataCollector::collect(Action action, /*i , j,  k  */ )
           mFeedingDemo->rotateAndSkewer(mFoods[i], angle, true);
 
 
-        // tiltedSkewer -- TSR 
+        // tiltedSkewer -- TSR
 
         // Scooping
 
-        // Twirling 
+        // Twirling
 
 
 
@@ -242,7 +242,7 @@ void DataCollector::collect(Action action, /*i , j,  k  */ )
 
         // Take an input to record success
 
-        // 
+        //
 
 
       }
