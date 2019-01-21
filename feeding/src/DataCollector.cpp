@@ -230,11 +230,11 @@ void DataCollector::collect(Action action /*i , j,  k  */ )
           mFeedingDemo->rotateAndSkewer(mFoods[i], angle, true);
 
 
-        // tiltedSkewer -- TSR 
+        // tiltedSkewer -- TSR
 
         // Scooping
 
-        // Twirling 
+        // Twirling
 
 
 
@@ -242,7 +242,7 @@ void DataCollector::collect(Action action /*i , j,  k  */ )
 
         // Take an input to record success
 
-        // 
+        //
 
         else if (action == SCOOP)
           mFeedingDemo->scoop();

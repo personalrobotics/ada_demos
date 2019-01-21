@@ -108,7 +108,6 @@ public:
 
   /// Moves the forque above the plate.
   bool moveAbovePlate();
-  void moveAbovePlateAnywhere();
 
   /// Moves the forque above the food item using the values in the ros
   /// parameters.
@@ -144,19 +143,12 @@ public:
   /// Moves the forque to a position ready to approach the person.
   bool moveInFrontOfPerson();
 
-  bool tiltUpInFrontOfPerson();
-
-  void tiltDownInFrontOfPerson();
-
   /// Moves the forque towards the person.
   /// This function does not throw an exception if the trajectory is aborted,
   /// because we expect that.
   bool moveTowardsPerson();
 
   void moveDirectlyToPerson(bool tilted);
-
-  /// Moves the forque away from the person.
-  void moveAwayFromPerson();
 
   void pickUpFork();
   void putDownFork();

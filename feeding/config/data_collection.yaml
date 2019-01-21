@@ -1,13 +1,5 @@
-# Configuration file for the feeding demo
-#
-# If not otherwise specified:
-#     All units are metric.
-#     This means all forces and torques are also in N and Nm.
-#     All distances are in m.
-#     All rotations are in radians.
-#     All robot configurations specify 6 joint angles in a list
-#     All transform use the format [x,y,z,rx,ry,rz] of positions and rotations in a list.
-#
+# Configuration file for the data collection of skewering
+# 
 
 data:
   numTrials: 5
@@ -17,6 +9,7 @@ data:
   directions: [0, 45, 90, 135, 180, 225, 270, 315] #, 90, 135, 180, 225, 270, 315]
   angleNames: ["0", "45", "90", "135", "180", "225", "270", "315"] #, "S", "SE", "E", "NE", "N", "NW"]
 
+<<<<<<< HEAD
 # Visualization parameters
 visualization:
   topicName: dart_markers/feeding
@@ -58,67 +51,10 @@ wheelchair:
   urdfUri: package://pr_assets/data/furniture/wheelchair.urdf
   pose: [0, 0, 0, 0, 0, 0]
 
+=======
+>>>>>>> demo/nips
 # Feeding demo movement parameters
 feedingDemo:
-  # a and b may be reversed
-#  a: 0 #1.57
-#  b: 0
-#  c: 1.57
-#  d: 0 #1
-#  e: 0
-#  f: 0
-#  g: 1.0
-  #3a: 5
-  #3b: 4
-  #3c: 3
-  #3d: 0
-  #3e: 2
-  #3f: 1
-  #3g: 1
-  #3h: 0
-  #3i: 15 # 381
-  #3aa: 0.0
-  #3bb: -1.0
-  #3cc: 0.0
-  #3dd: -1.0
-  #3ee: -1.0
-  #3ff: 1.0
-  a: 5
-  b: 4
-  c: 3
-  d: 0
-  e: 2
-  f: 1
-  g: 1
-  h: 0
-  i: 15 # 381
-  aa: 0 #-1.0
-  bb: 1.0 #-1.0
-  cc: 0 #1.0
-  dd: 0 #-1.0
-  ee: 0 #-1.0
-  ff: 0 #1.0
-  #aa: -1.0
-  #bb: -1.0
-  #cc: 1.0
-  #dd: -1.0
-  #ee: -1.0
-  #ff: 1.0
-  #a: 5
-  #b: 3
-  #c: 4
-  #d: 2
-  #e: 0
-  #f: 1
-  #g: 0.2
-  #h: 23
-  #aa: 1.0
-  #bb: -1.0
-  #cc: 1.0
-  #dd: 1.0
-  #ee: -1.0
-  #ff: 1.0
-
   heightAbovePlate: 0.13
   heightAboveFood: 0.11
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
@@ -135,29 +71,8 @@ feedingDemo:
 
 numTrials: 100
 
-# Planning parameters
-planning:
-  maxNumberOfTrials: 1
-  timeoutSeconds: 2
-  tsr:
-    horizontalToleranceAbovePlate: 0.005
-    verticalToleranceAbovePlate: 0.002
-    horizontalToleranceNearFood: 0.002
-    verticalToleranceNearFood: 0.001
-    horizontalToleranceNearPerson: 0.002
-    verticalToleranceNearPerson: 0.002
-  endEffectorOffset:
-    positionTolerance: 0.002
-    angularTolerance: 0.04
-  endEffectorTwist:
-    positionTolerance: 0.0002
-    angularTolerance: 0.004
-
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
-  controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
-  ftTopic: /forque/forqueSensor
-  #ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
       force: 10
@@ -170,6 +85,7 @@ ftSensor:
       torque: 2
     pushFood:
       force:  4
+<<<<<<< HEAD
       torque: 2
 
 # Perception parameters
@@ -206,3 +122,6 @@ study:
   # z: up
   personPose: [0.295, 0.24, 0.68, 0, 0, 3.1415]
   tiltOffset: [-0.04, 0, -0.04]
+=======
+      torque: 2
+>>>>>>> demo/nips

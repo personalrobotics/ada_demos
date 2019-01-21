@@ -20,6 +20,7 @@ const bool TERMINATE_AT_USER_PROMPT = true;
 
 static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
 static const std::size_t MAX_NUM_TRIALS = 3;
+static const double inf = std::numeric_limits<double>::infinity();
 
 namespace feeding {
 
@@ -262,7 +263,7 @@ bool FeedingDemo::moveAbovePlate()
   abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAbovePlate};
 
   abovePlateTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceAbovePlate, verticalToleranceAbovePlate, 0, 0);
+      horizontalToleranceAbovePlate, verticalToleranceAbovePlate, -M_PI, M_PI);
 
   Eigen::Isometry3d eeTransform
       = *mAda->getHand()->getEndEffectorTransform("plate");
@@ -280,15 +281,8 @@ bool FeedingDemo::moveAbovePlate()
                                   .transpose());
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
-  Eigen::VectorXd nominalConfiguration(6);
-  nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
-
-  std::string result;
-  if (!isCollisionFree(result))
-  {
-    ROS_ERROR(result.c_str());
-    throw std::runtime_error("Error due to collision");
-  }
+  Eigen::VectorXd nominalConfiguration = mAda->getArm()->getMetaSkeleton()->getPositions();
+  // nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
 
   return mAda->moveArmToTSR(
       abovePlateTSR,
@@ -334,51 +328,6 @@ void FeedingDemo::visualizeTrajectory(
 }
 
 //==============================================================================
-void FeedingDemo::moveAbovePlateAnywhere()
-{
-  double heightAbovePlate
-      = getRosParam<double>("/feedingDemo/heightAbovePlate", mNodeHandle);
-  double horizontalToleranceAbovePlate = getRosParam<double>(
-      "/planning/tsr/horizontalToleranceAbovePlate", mNodeHandle);
-  double verticalToleranceAbovePlate = getRosParam<double>(
-      "/planning/tsr/verticalToleranceAbovePlate", mNodeHandle);
-
-  static std::default_random_engine generator(time(0));
-  static std::uniform_real_distribution<double> distribution(-0.08, 0.08);
-  static std::uniform_real_distribution<double> distribution2(-M_PI, M_PI);
-  double randX = distribution(generator);
-  double randY = distribution(generator);
-  double angle = distribution2(generator);
-  // double randX = 0, randY = 0;
-
-  auto abovePlateTSR = pr_tsr::getDefaultPlateTSR();
-  abovePlateTSR.mT0_w
-      = mWorkspace->getPlate()->getRootBodyNode()->getWorldTransform();
-  abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{randX, randY, 0.07};
-
-  // abovePlateTSR.mBw = createBwMatrixForTSR(0.1, verticalToleranceAbovePlate,
-  // -M_PI, M_PI);
-  abovePlateTSR.mBw = createBwMatrixForTSR(
-      0.005, verticalToleranceAbovePlate, -M_PI * 0.1, M_PI * 0.1);
-  Eigen::Isometry3d eeTransform
-      = *mAda->getHand()->getEndEffectorTransform("plate");
-  eeTransform.linear()
-      = eeTransform.linear()
-        * Eigen::Matrix3d(Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitZ()));
-  abovePlateTSR.mTw_e.matrix() *= eeTransform.matrix();
-
-  bool trajectoryCompleted
-      = mAda->moveArmToTSR(abovePlateTSR, mCollisionFreeConstraint,
-      getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-      getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
-
-  if (!trajectoryCompleted)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
-}
-
-//==============================================================================
 bool FeedingDemo::moveAboveFood(
     const Eigen::Isometry3d& foodTransform,
     int pickupAngleMode,
@@ -402,18 +351,13 @@ bool FeedingDemo::moveAboveFood(
   aikido::constraint::dart::TSR aboveFoodTSR;
   Eigen::Isometry3d eeTransform
       = *mAda->getHand()->getEndEffectorTransform("food");
-  if (pickupAngleMode == 0)
-  {
-    aboveFoodTSR.mT0_w = foodTransform;
-    // eeTransform.linear() = eeTransform.linear() *
-    // Eigen::Matrix3d(Eigen::AngleAxisd(0.5 * , Eigen::Vector3d::UnitX()));
-  }
-  else
-  {
-    Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
-    defaultFoodTransform.translation() = foodTransform.translation();
-    aboveFoodTSR.mT0_w = defaultFoodTransform;
 
+  Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
+  defaultFoodTransform.translation() = foodTransform.translation();
+  aboveFoodTSR.mT0_w = defaultFoodTransform;
+
+  if (pickupAngleMode != 0)
+  {
     // celery-style
     // eeTransform.linear() = eeTransform.linear() *
     // Eigen::Matrix3d(Eigen::AngleAxisd( M_PI * 0.5, Eigen::Vector3d::UnitZ())
@@ -437,9 +381,15 @@ bool FeedingDemo::moveAboveFood(
                   Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ())
                   * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX()));
     }
+
+    // aboveFoodTSR.mBw = createBwMatrixForTSR(
+    //   horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
+
   }
+
+  // Allow rotational freedom
   aboveFoodTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
+    horizontalToleranceNearFood, verticalToleranceNearFood, -M_PI, M_PI);
   aboveFoodTSR.mTw_e.matrix() *= eeTransform.matrix();
 
   float distance = heightAboveFood * 0.85;
@@ -464,10 +414,17 @@ bool FeedingDemo::moveAboveFood(
   bool trajectoryCompleted = false;
   try
   {
+    std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+    Eigen::VectorXd nominalConfiguration = mAda->getArm()->getMetaSkeleton()->getPositions();
+
     trajectoryCompleted
         = mAda->moveArmToTSR(aboveFoodTSR, mCollisionFreeConstraint,
         getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-        getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle));
+        getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
+        nominalConfiguration,
+        getRanker(nominalConfiguration),
+        velocityLimits,
+        ada::TrajectoryPostprocessType::KUNZ);
   }
   catch (...)
   {
@@ -748,7 +705,7 @@ void FeedingDemo::moveOutOf(TargetItem item, bool ignoreCollision)
       direction, length, nullptr, //mCollisionFreeConstraint,
     getRosParam<int>("/planning/timeoutSeconds", mNodeHandle),
     getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
-    getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle));  
+    getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle));
   }
   else
   {
@@ -756,9 +713,9 @@ void FeedingDemo::moveOutOf(TargetItem item, bool ignoreCollision)
       direction, length, mCollisionFreeConstraint,
     getRosParam<int>("/planning/timeoutSeconds", mNodeHandle),
     getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
-    getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle));  
+    getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle));
   }
-  
+
 
   setFTThreshold(STANDARD_FT_THRESHOLD);
   // trajectoryCompleted might be false because the forque hit the food
@@ -944,156 +901,6 @@ bool FeedingDemo::moveInFrontOfPerson()
 }
 
 //==============================================================================
-bool FeedingDemo::tiltUpInFrontOfPerson()
-{
-  std::string result;
-  if (!isCollisionFree(result))
-    ROS_INFO(result.c_str());
-
-  waitForUser("tiltUp in front of person");
-
-  Eigen::Vector3d workingPersonTranslation(0.263, 0.269386, 0.652674);
-  std::vector<double> tiltOffsetVector
-      = getRosParam<std::vector<double>>("/study/personPose", mNodeHandle);
-  Eigen::Vector3d tiltOffset{
-      tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]};
-  Eigen::Vector3d personTranslation
-      = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation()
-        + tiltOffset;
-  Eigen::Vector3d correctionTranslation
-      = workingPersonTranslation - personTranslation;
-
-  auto ranker = getRanker();
-
-  for (double i = 0; i <= 1.0; i += 0.2)
-  {
-    aikido::constraint::dart::TSR personTSR;
-    Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
-    personPose.translation() = personTranslation + correctionTranslation * i;
-    ROS_INFO_STREAM(
-        "personTranslation: " << personPose.translation().matrix().transpose());
-    personPose.linear()
-        = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
-    personTSR.mT0_w = personPose;
-    personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
-
-    personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI / 4, M_PI / 4);
-    Eigen::Isometry3d eeTransform
-        = *mAda->getHand()->getEndEffectorTransform("person");
-    eeTransform.linear()
-        = eeTransform.linear()
-          * Eigen::Matrix3d(
-                Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
-                * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
-    personTSR.mTw_e.matrix() *= eeTransform.matrix();
-
-    bool trajectoryCompleted = false;
-    try
-    {
-      auto trajectory = mAda->planArmToTSR(personTSR, mCollisionFreeConstraint,
-        getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-        getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
-        Eigen::VectorXd(0),
-        ranker);
-      if (!trajectory)
-      {
-        ROS_INFO_STREAM("PlanToTSR failed.");
-        continue;
-      }
-
-      // visualizeTrajectory(trajectory);
-      bool trajectoryCompleted = mAda->moveArmOnTrajectory(
-          trajectory,
-          mCollisionFreeConstraint,
-          ada::TrajectoryPostprocessType::KUNZ);
-
-      if (trajectoryCompleted)
-      {
-        ROS_INFO_STREAM("tiltUp in font of person complete");
-        return trajectoryCompleted;
-      }else
-      {
-        ROS_INFO_STREAM("tiltUp in font of person failed");
-      }
-    }
-    catch (std::runtime_error e)
-    {
-      ROS_WARN("tilt up trajectory failed!");
-      continue;
-    }
-  }
-  return false;
-}
-
-//==============================================================================
-void FeedingDemo::tiltDownInFrontOfPerson()
-{
-  printRobotConfiguration();
-  Eigen::Vector3d workingPersonTranslation(0.269274, 0.191136, 0.71243);
-  Eigen::Vector3d personTranslation;
-  personTranslation
-      = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation()
-        + Eigen::Vector3d{0.01, 0, 0.06};
-  Eigen::Vector3d correctionTranslation
-      = workingPersonTranslation - personTranslation;
-
-  auto ranker = getRanker();
-
-  for (double i = 0; i <= 1.0; i += 0.2)
-  {
-    aikido::constraint::dart::TSR personTSR;
-    Eigen::Isometry3d personPose = Eigen::Isometry3d::Identity();
-    personPose.translation() = personTranslation + correctionTranslation * i;
-    ROS_INFO_STREAM(
-        "personTranslation: " << personPose.translation().matrix().transpose());
-    personPose.linear()
-        = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
-    personTSR.mT0_w = personPose;
-    personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
-
-    personTSR.mBw = createBwMatrixForTSR(0.02, 0.02, -M_PI / 4, M_PI / 4);
-    Eigen::Isometry3d eeTransform
-        = *mAda->getHand()->getEndEffectorTransform("person");
-    eeTransform.linear()
-        = eeTransform.linear()
-          * Eigen::Matrix3d(
-                Eigen::AngleAxisd(-M_PI * 0.25, Eigen::Vector3d::UnitX()));
-    personTSR.mTw_e.matrix() *= eeTransform.matrix();
-
-    bool trajectoryCompleted = false;
-    try
-    {
-      auto trajectory = mAda->planArmToTSR(personTSR,
-          mCollisionFreeConstraint,
-          getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
-          getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
-          Eigen::VectorXd(0),
-          ranker);
-      visualizeTrajectory(trajectory);
-      bool trajectoryCompleted = mAda->moveArmOnTrajectory(
-          trajectory,
-          mCollisionFreeConstraint,
-          ada::TrajectoryPostprocessType::KUNZ);
-
-    }
-    catch (std::runtime_error e)
-    {
-      ROS_WARN("tilt down trajectory failed!");
-      continue;
-    }
-    if (trajectoryCompleted)
-    {
-      ROS_INFO_STREAM("tilt down in font of person complete");
-      return;
-    }
-    else
-    {
-      ROS_WARN("aborting tilt down!");
-      return;
-    }
-  }
-}
-//==============================================================================
 void FeedingDemo::moveDirectlyToPerson(bool tilted)
 {
   double distanceToPerson = 0.02;
@@ -1209,29 +1016,6 @@ bool FeedingDemo::moveTowardsPerson()
       0.06);
   servoClient.start();
   return servoClient.wait(30);
-}
-
-//==============================================================================
-void FeedingDemo::moveAwayFromPerson()
-{
-  Eigen::Vector3d targetPosition
-      = mWorkspace->getPersonPose().translation() + Eigen::Vector3d(0, -0.2, 0);
-  Eigen::Vector3d forqueTipPosition
-      = mAda->getHand()->getEndEffectorBodyNode()->getTransform().translation();
-  Eigen::Vector3d direction = targetPosition - forqueTipPosition;
-
-  bool trajectoryCompleted = mAda->moveArmToEndEffectorOffset(
-      direction.normalized(),
-      direction.norm(),
-      mCollisionFreeConstraint,
-      getRosParam<int>("/planning/timeoutSeconds", mNodeHandle),
-      getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
-      getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle));
-
-  if (!trajectoryCompleted)
-  {
-    throw std::runtime_error("Trajectory execution failed");
-  }
 }
 
 //==============================================================================
@@ -1424,32 +1208,28 @@ void FeedingDemo::skewer(
 void FeedingDemo::feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted)
 {
 
-  std::string result;
-  if (!isCollisionFree(result))
-    ROS_INFO(result.c_str());
-  else
-    ROS_INFO("Collision free");
+  bool moveSuccess = false;
 
-  nodeHandle.setParam("/feeding/facePerceptionOn", true);
-  moveInFrontOfPerson();
-
-  for(std::size_t i = 0; i < MAX_NUM_TRIALS; ++i)
+  for (std::size_t i = 0; i < 2; ++i)
   {
-    ROS_INFO_STREAM("Trial " << i << std::endl);
-    bool result = moveTowardsPerson();
-    if (result)
-      break;
-    if (i == MAX_NUM_TRIALS - 1 && !result)
-      throw std::runtime_error("Failed to move toward person.");
-  }
-  
-  if (!isCollisionFree(result))
-    ROS_INFO(result.c_str());
-  else
-    ROS_INFO("Collision free");
+    moveInFrontOfPerson();
+    nodeHandle.setParam("/feeding/facePerceptionOn", true);
 
-  if (tilted)
-    tiltUpInFrontOfPerson();
+    waitForUser("Move towards person");
+
+    moveSuccess = moveTowardsPerson();
+    nodeHandle.setParam("/feeding/facePerceptionOn", false);
+
+    if (moveSuccess)
+      break;
+    ROS_INFO_STREAM("Moved failed, backing up and retrying");
+  }
+
+  if (!moveSuccess) {
+    ROS_INFO_STREAM("Servoing failed. Falling back to direct movement...");
+    moveInFrontOfPerson();
+    moveDirectlyToPerson(tilted);
+  }
 
   // ===== EATING =====
   ROS_WARN("Human is eating");
@@ -1459,9 +1239,6 @@ void FeedingDemo::feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted)
   ungrabAndDeleteFood();
 
   waitForUser("Move away from person");
-
-  if (!tilted)
-    moveAwayFromPerson();
 
   // ===== BACK TO PLATE =====
   waitForUser("Move back to plate");

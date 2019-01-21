@@ -2,7 +2,7 @@
 #
 # If not otherwise specified:
 #     All units are metric.
-#     This means all forces and torques are also in N and Nm.
+#     All forces and torques are in N and Nm, respectively.
 #     All distances are in m.
 #     All rotations are in radians.
 #     All robot configurations specify 6 joint angles in a list
@@ -21,11 +21,6 @@ ada:
   endEffectorName: j2n6s200_forque_end_effector
   homeConfiguration: [3.89015, 3.34645, 2.28738, -1.39666, 2.96761, 2.49281]      # the start configuration of the robot joints
   baseFramePose: [0.7, -0.15, -0.19, 0, 0, 3.1415]                                 # the transform between the robot base and the left front corner of the table
-
-scoop:
-  twist1: [-0.0, -0.20, -0, 0.005, -0.00, -0.02]
-  twist2: [-0.0, -0.60, -0, 0.04, -0.00, -0.005]
-  twist3: [-0.0, -0.50, -0, 0.03, -0.00, 0.06]
 
 # Workspace parameters
 plate:
@@ -72,6 +67,9 @@ planning:
   endEffectorOffset:
     positionTolerance: 0.002
     angularTolerance: 0.04
+  endEffectorTwist:
+    positionTolerance: 0.0002
+    angularTolerance: 0.004
 
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
@@ -116,7 +114,7 @@ study:
   # 0 straight
   # 1 strawberry-style
   # 2 banana-style
-  pickupAngleMode: 1
+  pickupAngleMode: 0
 
 
 
