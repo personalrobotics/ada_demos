@@ -67,6 +67,9 @@ planning:
   endEffectorOffset:
     positionTolerance: 0.002
     angularTolerance: 0.04
+  endEffectorTwist:
+    positionTolerance: 0.0002
+    angularTolerance: 0.004
 
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
