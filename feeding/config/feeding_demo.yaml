@@ -2,7 +2,7 @@
 #
 # If not otherwise specified:
 #     All units are metric.
-#     This means all forces and torques are also in N and Nm.
+#     All forces and torques are in N and Nm, respectively.
 #     All distances are in m.
 #     All rotations are in radians.
 #     All robot configurations specify 6 joint angles in a list
