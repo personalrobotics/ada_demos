@@ -9,50 +9,6 @@ data:
   directions: [0, 45, 90, 135, 180, 225, 270, 315] #, 90, 135, 180, 225, 270, 315]
   angleNames: ["0", "45", "90", "135", "180", "225", "270", "315"] #, "S", "SE", "E", "NE", "N", "NW"]
 
-<<<<<<< HEAD
-# Visualization parameters
-visualization:
-  topicName: dart_markers/feeding
-  baseFrameName: map
-
-# Robot parameters
-ada:
-  urdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.urdf
-  srdfUri: package://ada_description/robots_urdf/ada_with_camera_forque.srdf
-  endEffectorName: j2n6s200_forque_end_effector
-  homeConfiguration: [3.89015, 3.34645, 2.28738, -1.39666, 2.96761, 2.49281]      # the start configuration of the robot joints
-  baseFramePose: [0.7, -0.1, -0.25, 0, 0, 3.1415]                                 # the transform between the robot base and the left front corner of the table
-  twist: [-0.0, -0.78, -1.57, 0.00, -0.00, 0.00]
-
-scoop:
-  twist1: [-0.0, -0.20, -0, 0.005, -0.00, -0.02]
-  twist2: [-0.0, -0.60, -0, 0.04, -0.00, -0.005]
-  twist3: [-0.0, -0.50, -0, 0.03, -0.00, 0.06]
-
-# Workspace parameters
-plate:
-  urdfUri: package://pr_assets/data/objects/plate.urdf
-  pose: [.495, 0.19, 0.0, 0, 0, 0]
-table:
-  urdfUri: package://pr_assets/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.735, 0, 0, 0]
-  #pose: [0.74, 0.40, -0.72, 0, 0, 0]
-defaultFoodItem:
-  urdfUri: package://pr_assets/data/objects/food_item.urdf
-  pose: [.495, 0.19, 0.015, 3.1415, 0, 0]
-person: # the mannequin
-  urdfUri: package://pr_assets/data/objects/tom.urdf
-  pose: [0.425, -0.45, 0.502, 0, 0, 3.1415]
-  #pose: [0.425, -0.45, 0.472, 0, 0, 3.1415]
-workspaceEnvironment:
-  urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
-  pose: [0, 0, 0, 0, 0, 0]
-wheelchair:
-  urdfUri: package://pr_assets/data/furniture/wheelchair.urdf
-  pose: [0, 0, 0, 0, 0, 0]
-
-=======
->>>>>>> demo/nips
 # Feeding demo movement parameters
 feedingDemo:
   heightAbovePlate: 0.13
@@ -85,43 +41,4 @@ ftSensor:
       torque: 2
     pushFood:
       force:  4
-<<<<<<< HEAD
       torque: 2
-
-# Perception parameters
-perception:
-  detectorDataUri: package://pr_assets/data/objects/tag_data_foods.json
-  foodDetectorTopicName: /deep_pose/marker_array
-  faceDetectorTopicName: /face_pose
-  referenceFrameName: j2n6s200_link_base
-  timeoutSeconds: 5
-  foodName: cherry tomato
-  faceName: mouth
-
-foodItems:
-  # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
-  # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
-
-  # bite acquistion
-  # names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  # forces: [15,        15,     15,      22.49,  17.48,       15]
-
-  # bite transfer
-  #names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry"]
-  #forces: [15,        15,     15,      28,  17.48,       6]
-
-  #fingerVision
-  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "grape_green"]
-  forces: [3,        3,     3,      3,  3,       3, 3]
-study:
-  skipSkewering: false
-
-
-  # x: from operator
-  # y: towards user 0.24
-  # z: up
-  personPose: [0.295, 0.24, 0.68, 0, 0, 3.1415]
-  tiltOffset: [-0.04, 0, -0.04]
-=======
-      torque: 2
->>>>>>> demo/nips
