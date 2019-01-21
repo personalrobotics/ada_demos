@@ -498,12 +498,17 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   }
   else
   {
+    auto limits = setPositionLimits(mAda->getArm()->getMetaSkeleton());
+
     auto trajectory2
         = mAda->planArmToEndEffectorOffset(
             direction2.normalized(), std::min(direction2.norm(), 0.2), nullptr,
     getRosParam<int>("/planning/timeoutSeconds", mNode),
     getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNode),
     getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNode));
+
+    setPositionLimits(mAda->getArm()->getMetaSkeleton(),
+      limits.first, limits.second);
 
     if (!hasOriginalDirection)
     {
