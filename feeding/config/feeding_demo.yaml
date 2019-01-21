@@ -44,8 +44,8 @@ wheelchair:
 
 # Feeding demo movement parameters
 feedingDemo:
-  heightAbovePlate: 0.13
-  heightAboveFood: 0.06
+  heightAbovePlate: 0.15
+  heightAboveFood: 0.15
   heightIntoFood: 0.02           # the real robot plans *below* the food. This parameter specifies how far
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
@@ -58,10 +58,10 @@ planning:
   maxNumberOfTrials: 1
   timeoutSeconds: 2
   tsr:
-    horizontalToleranceAbovePlate: 0.005
-    verticalToleranceAbovePlate: 0.002
-    horizontalToleranceNearFood: 0.002
-    verticalToleranceNearFood: 0.001
+    horizontalToleranceAbovePlate: 0.08
+    verticalToleranceAbovePlate: 0.05
+    horizontalToleranceNearFood: 0.08
+    verticalToleranceNearFood: 0.05
     horizontalToleranceNearPerson: 0.002
     verticalToleranceNearPerson: 0.002
   endEffectorOffset:

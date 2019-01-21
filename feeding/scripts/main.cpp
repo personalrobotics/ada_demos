@@ -82,8 +82,6 @@ int main(int argc, char** argv)
   auto ftThresholdHelper = std::make_shared<FTThresholdHelper>(
     adaReal && useFTSensingToStopTrajectories, nodeHandle);
 
-  std::cout << "create FeedingDemo" << std::endl;
-
   // start demo
   auto feedingDemo = std::make_shared<FeedingDemo>(
     adaReal,
@@ -92,7 +90,6 @@ int main(int argc, char** argv)
     ftThresholdHelper,
     autoContinueDemo);
 
-  std::cout << "PErception" << std::endl;
   auto perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
       feedingDemo->getAda()->getMetaSkeleton(),
@@ -113,8 +110,7 @@ int main(int argc, char** argv)
   }
   else
   {
-    /*
-    std::cout << "Construct data collector" << std::endl;
+    ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
     DataCollector dataCollector(
       feedingDemo, nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
 
@@ -126,8 +122,6 @@ int main(int argc, char** argv)
       dataCollector.collect(Action::SCOOP, foodName, directionIndex, trialIndex);
     else
       throw std::invalid_argument(demoType + "not recognized.");
-
-    */
   }
 
   return 0;

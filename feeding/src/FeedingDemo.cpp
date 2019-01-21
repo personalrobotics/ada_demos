@@ -262,6 +262,7 @@ bool FeedingDemo::moveAbovePlate()
       = mWorkspace->getPlate()->getRootBodyNode()->getWorldTransform();
   abovePlateTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAbovePlate};
 
+  // Rotational freedom
   abovePlateTSR.mBw = createBwMatrixForTSR(
       horizontalToleranceAbovePlate, verticalToleranceAbovePlate, -M_PI, M_PI);
 
@@ -272,17 +273,10 @@ bool FeedingDemo::moveAbovePlate()
         * Eigen::Matrix3d(
               Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   abovePlateTSR.mTw_e.matrix() *= eeTransform.matrix();
-  ROS_INFO_STREAM(
-      "Move above plate \n" << eeTransform.linear() << "\n"
-                           << mAda->getArm()
-                                  ->getMetaSkeleton()
-                                  ->getPositions()
-                                  .matrix()
-                                  .transpose());
+  ROS_INFO_STREAM("Move above plate \n" << eeTransform.linear());
 
   std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
   Eigen::VectorXd nominalConfiguration = mAda->getArm()->getMetaSkeleton()->getPositions();
-  // nominalConfiguration << -2.00483, 3.26622, 1.8684, -2.38345, 4.11224, 5.03713;
 
   return mAda->moveArmToTSR(
       abovePlateTSR,
@@ -332,8 +326,9 @@ bool FeedingDemo::moveAboveFood(
     const Eigen::Isometry3d& foodTransform,
     int pickupAngleMode,
     float rotAngle,
-    float angle,
-    bool useAngledTranslation)
+    float tiltAngle,
+    float rotationalTolerance,
+    float tiltTolerance)
 {
   ROS_INFO_STREAM("Move above food");
 
@@ -349,12 +344,70 @@ bool FeedingDemo::moveAboveFood(
       "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
 
   aikido::constraint::dart::TSR aboveFoodTSR;
+  aboveFoodTSR.mT0_w = removeRotation(foodTransform);
+
+  aboveFoodTSR.mBw = createBwMatrixForTSR(
+    horizontalToleranceNearFood, verticalToleranceNearFood,
+    rotAngle - rotationalTolerance, rotAngle + rotationalTolerance);
+
   Eigen::Isometry3d eeTransform
       = *mAda->getHand()->getEndEffectorTransform("food");
 
-  Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
-  defaultFoodTransform.translation() = foodTransform.translation();
-  aboveFoodTSR.mT0_w = defaultFoodTransform;
+  aboveFoodTSR.mTw_e.matrix() *= eeTransform.matrix();
+  ROS_INFO_STREAM("Move above food \n" << eeTransform.linear());
+
+//  aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood};
+
+  bool trajectoryCompleted = false;
+  try
+  {
+    std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+    Eigen::VectorXd nominalConfiguration = mAda->getArm()->getMetaSkeleton()->getPositions();
+
+    trajectoryCompleted
+        = mAda->moveArmToTSR(aboveFoodTSR, nullptr, // mCollisionFreeConstraint,
+        getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
+        getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
+        nominalConfiguration,
+        getRanker(nominalConfiguration),
+        velocityLimits,
+        ada::TrajectoryPostprocessType::KUNZ);
+
+      std::cout << "Trajectory completed: " << trajectoryCompleted << std::endl;
+  }
+  catch (...)
+  {
+    ROS_WARN("Error in trajectory completion!");
+    trajectoryCompleted = false;
+  }
+
+  return trajectoryCompleted;
+}
+
+//==============================================================================
+bool FeedingDemo::moveAboveFood(
+    const Eigen::Isometry3d& foodTransform,
+    int pickupAngleMode)
+{
+  ROS_INFO_STREAM("Move above food");
+
+  double heightAboveFood
+      = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
+
+  // If the robot is not simulated, we want to plan the trajectory to move a
+  // little further downwards,
+  // so that the MoveUntilTouchController can take care of stopping the
+  // trajectory.
+  double horizontalToleranceNearFood = getRosParam<double>(
+      "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
+  double verticalToleranceNearFood = getRosParam<double>(
+      "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
+
+  aikido::constraint::dart::TSR aboveFoodTSR;
+  aboveFoodTSR.mT0_w = removeRotation(foodTransform);
+
+  Eigen::Isometry3d eeTransform
+      = *mAda->getHand()->getEndEffectorTransform("food");
 
   if (pickupAngleMode != 0)
   {
@@ -382,15 +435,14 @@ bool FeedingDemo::moveAboveFood(
                   * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX()));
     }
 
-    // aboveFoodTSR.mBw = createBwMatrixForTSR(
-    //   horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
-
   }
 
   // Allow rotational freedom
   aboveFoodTSR.mBw = createBwMatrixForTSR(
     horizontalToleranceNearFood, verticalToleranceNearFood, -M_PI, M_PI);
   aboveFoodTSR.mTw_e.matrix() *= eeTransform.matrix();
+
+  ROS_INFO_STREAM("Move above food \n" << eeTransform.linear());
 
   float distance = heightAboveFood * 0.85;
 
@@ -418,23 +470,23 @@ bool FeedingDemo::moveAboveFood(
     Eigen::VectorXd nominalConfiguration = mAda->getArm()->getMetaSkeleton()->getPositions();
 
     trajectoryCompleted
-        = mAda->moveArmToTSR(aboveFoodTSR, mCollisionFreeConstraint,
+        = mAda->moveArmToTSR(aboveFoodTSR, nullptr, ///mCollisionFreeConstraint,
         getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
         getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
         nominalConfiguration,
         getRanker(nominalConfiguration),
         velocityLimits,
         ada::TrajectoryPostprocessType::KUNZ);
+
+    std::cout << "Trajectory completed" << trajectoryCompleted << std::endl;
   }
   catch (...)
   {
     ROS_WARN("Error in trajectory completion!");
-    trajectoryCompleted = false;
   }
 
   return trajectoryCompleted;
 }
-
 //==============================================================================
 void FeedingDemo::moveNextToFood(
     const Eigen::Isometry3d& foodTransform,
@@ -1074,10 +1126,6 @@ void FeedingDemo::skewer(
     std::string foodName, ros::NodeHandle& nodeHandle, int max_trial_per_item,
     bool ignoreCollisionWhenMovingOut)
 {
-  std::string result;
-  if (!isCollisionFree(result))
-    ROS_INFO(result.c_str());
-
   bool foodPickedUp = false;
   int num_tries = 0;
 
@@ -1108,14 +1156,14 @@ void FeedingDemo::skewer(
 
     waitForUser("Move forque above food");
 
-    moveAboveFood(foodTransform.get(), pickupAngleMode, true);
+    moveAboveFood(foodTransform.get(), pickupAngleMode);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(800));
 
     ROS_INFO_STREAM("Redetect and move above food once more");
     foodTransform = detectFood(foodName, false);
 
-    moveAboveFood(foodTransform.get(), pickupAngleMode, true);
+    moveAboveFood(foodTransform.get(), pickupAngleMode);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     // ===== INTO FOOD =====
@@ -1282,23 +1330,16 @@ void FeedingDemo::waitForUser(const std::string& prompt)
 
 //==============================================================================
 Eigen::Isometry3d FeedingDemo::detectAndMoveAboveFood(
-    const std::string& foodName,
-    int pickupAngleMode,
-    float rotAngle,
-    float angle,
-    bool useAngledTranslation)
+    const std::string& foodName)
 {
+  moveAbovePlate();
+
   while (true)
   {
     auto foodTransform = detectFood(foodName, true);
     assert(foodTransform);
 
-    if (!moveAboveFood(
-            foodTransform.get(),
-            pickupAngleMode,
-            rotAngle,
-            angle,
-            useAngledTranslation))
+    if (!moveAboveFood(foodTransform.get(), 0))
     {
       waitForUser("Trajectory failed! Reposition food and try again!");
       continue;
@@ -1316,7 +1357,7 @@ void FeedingDemo::pushAndSkewer(
 {
   // ===== ABOVE FOOD =====
   // TODO: check pickUpAngleMode
-  auto foodTransform = detectAndMoveAboveFood(foodName, 0, rotAngle, 0, false);
+  auto foodTransform = detectAndMoveAboveFood(foodName);
 
   // Retry until success
   while (true)
@@ -1370,7 +1411,7 @@ void FeedingDemo::rotateAndSkewer(
 {
   // TODO: check pickUpAngleMode
   auto foodTransform
-      = detectAndMoveAboveFood(foodName, 0, rotateForqueAngle, 0, false);
+      = detectAndMoveAboveFood(foodName);
 
   // Retry until success
   while (true)
@@ -1430,5 +1471,16 @@ bool FeedingDemo::moveWithEndEffectorTwist(
     getRosParam<double>(
           "/planning/endEffectorTwist/angularTolerance", mNodeHandle));
 }
+
+
+//==============================================================================
+Eigen::Isometry3d FeedingDemo::removeRotation(const Eigen::Isometry3d& transform)
+{
+  Eigen::Isometry3d withoutRotation(Eigen::Isometry3d::Identity());
+  withoutRotation.translation() = transform.translation();
+
+  return withoutRotation;
+}
+
 
 } // namespace feeding
