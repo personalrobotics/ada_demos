@@ -13,6 +13,12 @@
 
 using namespace cameraCalibration;
 
+static const Eigen::Isometry3d robotPose = createIsometry(
+  0.7, -0.1, -0.28, 0, 0, 3.1415);
+static const Eigen::Isometry3d targetToWorld = robotPose.inverse() * createIsometry(
+  .425, 0.15, -0.005, 3.1415, 0, 0);
+std::vector<Eigen::Isometry3d> jouleToOpticalEstimates;
+
 bool tryPerceivePoint(
         std::string frameName,
         Perception& perception,
@@ -24,42 +30,25 @@ bool tryPerceivePoint(
         std::vector<dart::dynamics::SimpleFramePtr>& frames,
         std::vector<aikido::rviz::FrameMarkerPtr>& frameMarkers) {
 
-  Eigen::Isometry3d robotPose = createIsometry(0.7, -0.1, -0.28, 0, 0, 3.1415);
-  Eigen::Isometry3d targetPointPose
-        = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
-
   Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
-  Eigen::Isometry3d targetToWorld = targetPointPose;
 
-  Eigen::Isometry3d cameraOffset;
-  if (perception.recordView(targetToWorld, worldToJoule))
-  {
-      ROS_INFO_STREAM("camera offset distance: " << cameraOffset.translation().norm());
-
-    //targetPointsInCameraLensFrame.push_back(perceivedPointToCamera);
-    //cameraLensPointsInWorldFrame.push_back(getCameraLensInWorldFrame(tfListener));
+  try{
+    jouleToOpticalEstimates.emplace_back(perception.computeJouleToOptical(targetToWorld, worldToJoule));
 
     Eigen::Isometry3d cameraLensTransform = getWorldToJoule(tfListener).inverse();
     dart::dynamics::SimpleFramePtr cameraFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "camLens_" + frameName, cameraLensTransform);
     frames.push_back(cameraFrame);
     frameMarkers.push_back(cameraLensViewer.addFrame(cameraFrame.get(), 0.07, 0.007));
-
-    /*
-    Eigen::Isometry3d targetPointTransform = getCameraLensInWorldFrame(tfListener) * perceivedPointToCamera;
-    dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "perceivedTarget_" + frameName, targetPointTransform);
-    frames.push_back(targetFrame);
-    frameMarkers.push_back(targetPointViewer.addFrame(targetFrame.get(), 0.07, 0.007));
-
-    Eigen::Isometry3d perceivedCameraTransform = targetPointPose * perceivedPointToCamera.inverse();
-    dart::dynamics::SimpleFramePtr pereceivedCameraFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "perceivedCamLens_" + frameName, perceivedCameraTransform);
-    frames.push_back(pereceivedCameraFrame);
-    frameMarkers.push_back(targetPointViewer.addFrame(pereceivedCameraFrame.get(), 0.07, 0.007));*/
-
-    //std::cout << cameraLensTransform.matrix() << std::endl;
     return true;
   }
+  catch (...)
+  {
+    std::cout << "Failed to compute error.";
+  }
+
   return false;
 }
+
 
 int main(int argc, char** argv)
 {
@@ -210,50 +199,15 @@ int main(int argc, char** argv)
     }
   }
 
-  for (int i = 20; i <= 56; i+=1)
-  {
-    double angle = 0.1745 * i;
-    auto tsr = getCalibrationTSR(
-        robotPose.inverse()
-        * createIsometry(
-              .425 + sin(angle) * 0.2,
-              0.15 - cos(angle) * 0.2,
-              0.1,
-              3.98,
-              0,
-              angle));
-    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
-    {
-      ROS_INFO_STREAM("Fail: Step " << i);
-    }
-    else
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-      if (tryPerceivePoint("circle2_step" + std::to_string(i),
-            perception, tfListener, cameraLensViewer, targetPointViewer,
-            targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
-            frames, frameMarkers)) {
-        ROS_INFO_STREAM("Success: Step " << i);
-      } else {
-        ROS_INFO_STREAM("Perception fail: Step " << i);
-      }
-    }
-  }
-
   // ===== CALCULATE CALIBRATION =====
-  /*
-  std::vector<Eigen::Isometry3d> differences;
-  for (int i = 0; i < targetPointsInCameraLensFrame.size(); i++)
-  {
-    Eigen::Isometry3d cameraLensPointInWorldFrame2
-        = targetPointPose * targetPointsInCameraLensFrame[i].inverse();
-    Eigen::Isometry3d difference = cameraLensPointsInWorldFrame[i]
-                                   * cameraLensPointInWorldFrame2.inverse();
-    differences.push_back(difference);
-    printPose(difference);
-  }*/
+  auto jouleToOptical = perception.computeMeanJouleToOptical(jouleToOpticalEstimates);
+  auto cameraToJoule = perception.getCameraToJouleFromJouleToOptical(
+    jouleToOptical,
+    getCameraToOptical(tfListener));
 
-  perception.getCameraOffsetFromStoredViews(getCameraToOptical(tfListener));
+  // Visualize to check
+  Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
+  perception.visualizeProjection(targetToWorld, worldToJoule, cameraToJoule);
 
 
   waitForUser("Move back to center");

@@ -1,4 +1,6 @@
 #include "cameraCalibration/Perception.hpp"
+#include <Eigen/Eigenvalues>
+#include <opencv2/core/eigen.hpp>
 
 namespace cameraCalibration {
 
@@ -86,25 +88,76 @@ void Perception::receiveImageMessage(cv_bridge::CvImagePtr cv_ptr)
   }
 }
 
-/*
 //=============================================================================
-bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transform)
+Eigen::Isometry3d Perception::computeJouleToOptical(
+  const Eigen::Isometry3d& targetToWorld,
+  const Eigen::Isometry3d& worldToJoule)
 {
-  Eigen::Isometry3d rstMat = Eigen::Isometry3d::Identity();
+  std::vector<cv::Point3f> modelPoints;
+  std::vector<cv::Point2f> corners;
+  cv::Mat image;
 
-  receiveCameraInfo();
+  auto result = recordView(
+    targetToWorld, worldToJoule,
+    modelPoints, corners, image);
 
-  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
-  receiveImageMessage(cv_ptr);
-  if (cv_ptr == nullptr)
+  //=======================  Solve PnP ==============================
+  std::vector<int> inliers;
+
+  // Initial guess
+  cv::Mat cb_rvec = (cv::Mat_<double>(3,1) << -2.120, 0.206, -2.076);
+  cv::Mat cb_tvec = (cv::Mat_<double>(3,1) << -0.021, 0.043, -0.094);
+  cv::Mat cb_rmat;
+
+  cv::solvePnP(
+      modelPoints,
+      corners,
+      mCameraModel.intrinsicMatrix(),
+      mCameraModel.distortionCoeffs(),
+      cb_rvec,
+      cb_tvec,
+      true, CV_ITERATIVE);
+
+  std::cout << "inliers: " << inliers.size() << std::endl;
+  if (inliers.size() < 9)
+    throw std::runtime_error("Too few inliers");
+
+  std::cout << "Solved PnP" << std::endl;
+
+  std::cout << "rvec: " << cb_rvec << std::endl;
+  std::cout << "tvec: " << cb_tvec << std::endl;
+
+  visualizeProjection(cb_rvec, cb_tvec, modelPoints, corners, image);
+
+  cv::Rodrigues(cb_rvec, cb_rmat);
+
+  Eigen::Isometry3d jouleToOptical = Eigen::Isometry3d::Identity();
+  for (int ri=0; ri<3; ri++)
   {
-    ROS_ERROR("Failed to load image");
-    return false;
+    for (int ci=0; ci<3; ci++)
+    {
+      jouleToOptical(ri, ci) = cb_rmat.at<double>(ri, ci);
+    }
+    jouleToOptical(ri, 3) = cb_tvec.at<double>(ri);
   }
 
+  return jouleToOptical;
+}
+
+//=============================================================================
+bool Perception::recordView(
+  const Eigen::Isometry3d& targetToWorld,
+  const Eigen::Isometry3d& worldToJoule,
+  std::vector<cv::Point3f>& modelPoints,
+  std::vector<cv::Point2f>& corners,
+  cv::Mat& image)
+{
+  std::cout << "targetToWorld: " << std::endl << targetToWorld.matrix() << std::endl;
+  std::cout << "worldToJoule: " << std::endl << worldToJoule.matrix() << std::endl;
+
+  captureFrame(image);
+
   cv::Size patternsize(mPatternSizeWidth, mPatternSizeHeight);
-  cv::Mat image = cv_ptr->image;
-  std::vector<cv::Point2f> corners;
 
   bool found = cv::findChessboardCorners(
       image, patternsize, corners,
@@ -114,194 +167,6 @@ bool Perception::getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transfor
     ROS_ERROR("Could not find chessboard corners");
     return false;
   }
-
-  std::vector<cv::Point3f> cb_p3ds;
-  std::vector<int> inliers;
-  cv::Mat cb_rvec;
-  cv::Mat cb_tvec;
-  cv::Mat cb_rmat;
-
-  for (int hi=0; hi<patternsize.height; hi++)
-  {
-    for (int wi=0; wi<patternsize.width; wi++)
-    {
-      cb_p3ds.push_back(cv::Point3f(mSquareSize * (wi - (patternsize.width-1.0)/2.0), mSquareSize * (hi - (patternsize.height-1.0)/2.0), 0));
-    }
-  }
-
-  cv::solvePnPRansac(
-      cb_p3ds,
-      corners,
-      mCameraModel.intrinsicMatrix(),
-      mCameraModel.distortionCoeffs(),
-      cb_rvec,
-      cb_tvec,
-      false,
-      100,
-      8.0,
-      0.99,
-      inliers);
-
-  std::cout << "inliers: " << inliers.size() << std::endl;
-
-  std::vector<cv::Point2f> imagePoints;
-  cv::projectPoints(cb_p3ds, cb_rvec, cb_tvec, mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
-
-  cv::Rodrigues(cb_rvec, cb_rmat);
-
-  for (int ri=0; ri<3; ri++)
-  {
-    for (int ci=0; ci<3; ci++)
-    {
-      rstMat(ri, ci) = cb_rmat.at<double>(ri, ci);
-    }
-    rstMat(ri, 3) = cb_tvec.at<double>(ri);
-  }
-
-  //std::cout << rstMat.matrix() << std::endl;
-
-  for (auto point : imagePoints) {
-    cv::circle(image, point, 3, cv::Scalar(50, 255, 70, 255), 5);
-  }
-  cv::drawChessboardCorners(image, patternsize, cv::Mat(corners), found);
-
-  cv::imshow("view", image);
-  //cv::waitKey(0);
-
-  transform = rstMat;
-  return true;
-}*/
-
-bool Perception::getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToJoule)
-{
-  Eigen::Isometry3d rstMat = Eigen::Isometry3d::Identity();
-
-  receiveCameraInfo();
-
-  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
-  receiveImageMessage(cv_ptr);
-  if (cv_ptr == nullptr)
-  {
-    ROS_ERROR("Failed to load image");
-    return false;
-  }
-
-  cv::Size patternsize(mPatternSizeWidth, mPatternSizeHeight);
-  cv::Mat image = cv_ptr->image;
-  std::vector<cv::Point2f> currentCorners;
-
-  bool found = cv::findChessboardCorners(
-      image, patternsize, currentCorners,
-      cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK);
-  if (!found)
-  {
-    ROS_ERROR("Could not find chessboard corners");
-    return false;
-  }
-
-  std::vector<Eigen::Translation3d> currentModelPoints;
-
-  for (int hi=0; hi<patternsize.height; hi++)
-  {
-    for (int wi=0; wi<patternsize.width; wi++)
-    {
-      Eigen::Translation3d point(
-        mSquareSize * (wi - (patternsize.width-1.0)/2.0),
-        mSquareSize * (hi - (patternsize.height-1.0)/2.0),
-        0
-      );
-      currentModelPoints.push_back(Eigen::Translation3d((worldToJoule * targetToWorld * point).translation()));
-    }
-  }
-
-  std::vector<cv::Point3f> cb_p3ds;
-  for (auto& point : currentModelPoints) {
-    cb_p3ds.push_back(cv::Point3f(point.x(), point.y(), point.z()));
-  }
-  std::vector<int> inliers;
-  cv::Mat cb_rvec;
-  cv::Mat cb_tvec;
-  cv::Mat cb_rmat;
-
-  cv::solvePnPRansac(
-      cb_p3ds,
-      currentCorners,
-      mCameraModel.intrinsicMatrix(),
-      mCameraModel.distortionCoeffs(),
-      cb_rvec,
-      cb_tvec,
-      false,
-      100,
-      8.0,
-      0.99,
-      inliers);
-
-  std::cout << "inliers: " << inliers.size() << std::endl;
-
-  cv::Mat rvec_identity = (cv::Mat_<double>(3, 3) << (1, 0, 0, 0, 1, 0, 0, 0, 1));
-  cv::Mat tvec_identity = (cv::Mat_<double>(3, 1) << (0, 0, 0));
-  std::vector<cv::Point2f> imagePoints;
-  cv::projectPoints(cb_p3ds, rvec_identity, tvec_identity, mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
-
-  cv::Rodrigues(cb_rvec, cb_rmat);
-
-  for (int ri=0; ri<3; ri++)
-  {
-    for (int ci=0; ci<3; ci++)
-    {
-      rstMat(ri, ci) = cb_rmat.at<double>(ri, ci);
-    }
-    rstMat(ri, 3) = cb_tvec.at<double>(ri);
-  }
-
-  std::cout << rstMat.matrix() << std::endl;
-
-  for (auto point : imagePoints) {
-    cv::circle(image, point, 3, cv::Scalar(50, 255, 70, 255), 5);
-  }
-  cv::drawChessboardCorners(image, patternsize, cv::Mat(currentCorners), found);
-
-  cv::imshow("view", image);
-  cv::waitKey(0);
-
-  transform = rstMat;
-  return true;
-}
-
-
-
-
-bool Perception::recordView(const Eigen::Isometry3d& targetToWorld,
-                            const Eigen::Isometry3d& worldToJoule)
-{
-  std::cout << "targetToWorld: " << std::endl << targetToWorld.matrix() << std::endl;
-  std::cout << "worldToJoule: " << std::endl << worldToJoule.matrix() << std::endl;
-
-  receiveCameraInfo();
-
-  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
-  receiveImageMessage(cv_ptr);
-  if (cv_ptr == nullptr)
-  {
-    ROS_ERROR("Failed to load image");
-    return false;
-  }
-
-  cv::Size patternsize(mPatternSizeWidth, mPatternSizeHeight);
-  cv::Mat image = cv_ptr->image;
-
-  std::vector<cv::Point2f> newCorners;
-  bool found = cv::findChessboardCorners(
-      image, patternsize, newCorners,
-      cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK);
-  if (!found)
-  {
-    ROS_ERROR("Could not find chessboard corners");
-    return false;
-  }
-
-  corners.insert(corners.end(), newCorners.begin(), newCorners.end());
-
 
   for (int hi=0; hi<patternsize.height; hi++)
   {
@@ -320,51 +185,55 @@ bool Perception::recordView(const Eigen::Isometry3d& targetToWorld,
   return true;
 }
 
-Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews(const Eigen::Isometry3d& cameraToOptical) {
-  receiveCameraInfo();
-  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
-  receiveImageMessage(cv_ptr);
-  if (cv_ptr == nullptr)
+//=============================================================================
+Eigen::Isometry3d Perception::computeMeanJouleToOptical(const std::vector<Eigen::Isometry3d>& jouleToOpticals)
+{
+  Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> rotations(4, jouleToOpticals.size());
+  Eigen::Vector3d sumTranslations(Eigen::Vector3d::Zero());
+
+  for(std::size_t i = 0; i < jouleToOpticals.size(); ++i)
   {
-    ROS_ERROR("Failed to load image");
-    return Eigen::Isometry3d::Identity();
+    Eigen::Quaterniond q(jouleToOpticals[i].linear());
+    rotations.col(i) = q.coeffs();
+    sumTranslations += jouleToOpticals[i].translation();
   }
-  cv::Mat image = cv_ptr->image;
+  auto translation = sumTranslations / jouleToOpticals.size();
 
+  // Get largest Eigen vector
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix4d> eigensolver(rotations * rotations.transpose());
 
-  std::vector<int> inliers;
-  cv::Mat cb_rvec = (cv::Mat_<double>(3,1) << -2.120, 0.206, -2.076);
-  cv::Mat cb_tvec = (cv::Mat_<double>(3,1) << -0.021, 0.043, -0.094);
-  cv::Mat cb_rmat;
-  
-  cv::solvePnP(
-      modelPoints,
-      corners,
-      mCameraModel.intrinsicMatrix(),
-      mCameraModel.distortionCoeffs(),
-      cb_rvec,
-      cb_tvec,
-      true, CV_ITERATIVE);
+  if (eigensolver.info() != Eigen::Success)
+  {
+    throw std::runtime_error("Failed to solve Eigen decomposition.");
+  }
 
-  std::cout << "inliers: " << inliers.size() << std::endl;
+  Eigen::VectorXd rotation = eigensolver.eigenvectors().col(0);
+  rotation.normalize();
+
+  Eigen::Quaterniond q;
+  q.coeffs() = rotation;
+  auto rotationMatrix = q.toRotationMatrix();
+
+  // To Isometry3d
+  Eigen::Isometry3d mean(Eigen::Isometry3d::Identity());
+  mean.linear() = rotationMatrix;
+  mean.translation() = translation;
+
+  return mean;
+}
+
+//=============================================================================
+ void Perception::visualizeProjection(
+    const cv::Mat& rvec,
+    const cv::Mat& tvec,
+    const std::vector<cv::Point3f>& modelPoints,
+    const std::vector<cv::Point2f>& corners,
+    const cv::Mat& image)
+ {
 
   std::vector<cv::Point2f> imagePoints;
-  cv::projectPoints(modelPoints, cb_rvec, cb_tvec, mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
-
-  std::cout << "rvec: " << cb_rvec << std::endl;
-  std::cout << "tvec: " << cb_tvec << std::endl;
-
-  cv::Rodrigues(cb_rvec, cb_rmat);
-
-  Eigen::Isometry3d jouleToOptical = Eigen::Isometry3d::Identity();
-  for (int ri=0; ri<3; ri++)
-  {
-    for (int ci=0; ci<3; ci++)
-    {
-      jouleToOptical(ri, ci) = cb_rmat.at<double>(ri, ci);
-    }
-    jouleToOptical(ri, 3) = cb_tvec.at<double>(ri);
-  }
+  cv::projectPoints(modelPoints, rvec, tvec,
+    mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
 
 
   for (auto point : imagePoints) {
@@ -375,6 +244,53 @@ Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews(const Eigen::Isomet
   }
   cv::imshow("view", image);
   cv::waitKey(0);
+}
+
+//=============================================================================
+void Perception::visualizeProjection(
+  const Eigen::Isometry3d& targetToWorld,
+  const Eigen::Isometry3d& worldToJoule,
+  const Eigen::Isometry3d& cameraToJoule)
+{
+  // get rvec
+  cv::Mat rvec;
+  cv::eigen2cv(cameraToJoule.linear().eulerAngles(2, 1, 0), rvec);
+
+  // get tvec
+  cv::Mat tvec;
+  Eigen::Vector3d translation(cameraToJoule.translation());
+  cv::eigen2cv(translation, tvec);
+
+  std::vector<cv::Point3f> modelPoints;
+  std::vector<cv::Point2f> corners;
+  cv::Mat image;
+
+  recordView(targetToWorld, worldToJoule, modelPoints, corners, image);
+
+  visualizeProjection(rvec, tvec, modelPoints, corners, image);
+}
+
+//=============================================================================
+bool Perception::captureFrame(cv::Mat& image)
+{
+  receiveCameraInfo();
+
+  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
+  receiveImageMessage(cv_ptr);
+  if (cv_ptr == nullptr)
+  {
+    ROS_ERROR("Failed to load image");
+    return false;
+  }
+
+  image = cv_ptr->image;
+}
+
+//=============================================================================
+Eigen::Isometry3d Perception::getCameraToJouleFromJouleToOptical(
+  const Eigen::Isometry3d& jouleToOptical,
+  const Eigen::Isometry3d& cameraToOptical)
+{
 
   Eigen::Isometry3d cameraToJoule = jouleToOptical.inverse() * cameraToOptical;
   std::cout << "final matrix: " << std::endl << cameraToJoule.matrix() << std::endl;
@@ -384,5 +300,6 @@ Eigen::Isometry3d Perception::getCameraOffsetFromStoredViews(const Eigen::Isomet
 
   return cameraToJoule;
 }
+
 
 } // namespace cameraCalibration

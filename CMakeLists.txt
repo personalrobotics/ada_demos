@@ -45,8 +45,8 @@ include_directories(${libada_INCLUDE_DIRS})
 find_package(rewd_controllers REQUIRED)
 include_directories(${rewd_controllers_INCLUDE_DIRS})
 
-find_package(pr_ordata REQUIRED)
-include_directories(${pr_ordata_INCLUDE_DIRS})
+find_package(pr_assets REQUIRED)
+include_directories(${pr_assets_INCLUDE_DIRS})
 
 find_package(pr_tsr REQUIRED)
 include_directories(${pr_tsr_INCLUDE_DIRS})
@@ -59,9 +59,9 @@ include_directories(${Boost_INCLUDE_DIR})
 #
 
 #add_subdirectory(soda_grasp)
-add_subdirectory(simple_trajectories)
-add_subdirectory(hand_control)
-add_subdirectory(feeding)
+# add_subdirectory(simple_trajectories)
+# add_subdirectory(hand_control)
+# add_subdirectory(feeding)
 add_subdirectory(cameraCalibration)
 
 # ===============================================================================

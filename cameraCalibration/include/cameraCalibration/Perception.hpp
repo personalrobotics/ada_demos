@@ -28,19 +28,52 @@ public:
       int patternSizeHeight,
       float squareSize);
 
-  //bool getTargetTransformInCameraLensFrame(Eigen::Isometry3d& transform);
+  /// \param[out] rvec
+  /// \param[out] tvec
+  Eigen::Isometry3d computeJouleToOptical(
+    const Eigen::Isometry3d& targetToWorld,
+    const Eigen::Isometry3d& worldToJoule);
 
-  bool getCameraOffset(Eigen::Isometry3d& transform, const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToJoule);
+  Eigen::Isometry3d computeMeanJouleToOptical(
+    const std::vector<Eigen::Isometry3d>& jouleToOpticals);
 
-  bool recordView(const Eigen::Isometry3d& targetToWorld, const Eigen::Isometry3d& worldToJoule);
+  // projections should meet the corners on the image
+  void visualizeProjection(
+    const cv::Mat& rvec,
+    const cv::Mat& tvec,
+    const std::vector<cv::Point3f>& modelPoints,
+    const std::vector<cv::Point2f>& corners,
+    const cv::Mat& image);
 
-  Eigen::Isometry3d getCameraOffsetFromStoredViews(const Eigen::Isometry3d& cameraToOptical);
+  void visualizeProjection(
+    const Eigen::Isometry3d& targetToWorld,
+    const Eigen::Isometry3d& worldToJoule,
+    const Eigen::Isometry3d& cameraToJoule);
 
   void receiveImageMessage(cv_bridge::CvImagePtr cv_ptr);
 
   void receiveCameraInfo();
 
+  ///\param[out] image
+  bool captureFrame(cv::Mat& image);
+
+  Eigen::Isometry3d getCameraToJouleFromJouleToOptical(
+    const Eigen::Isometry3d& jouleToOptical,
+    const Eigen::Isometry3d& cameraToOptical);
+
 private:
+
+  /// \param[out] modelPoints
+  /// \param[out] corners
+  /// \param[out] image
+  bool recordView(
+    const Eigen::Isometry3d& targetToWorld,
+    const Eigen::Isometry3d& worldToJoule,
+    std::vector<cv::Point3f>& modelPoints,
+    std::vector<cv::Point2f>& corners,
+    cv::Mat& image
+    );
+
   ros::NodeHandle mNodeHandle;
   std::string mMarkerTopic;
   std::string mCameraInfoTopic;
@@ -51,8 +84,6 @@ private:
 
   image_geometry::PinholeCameraModel mCameraModel;
 
-  std::vector<cv::Point3f> modelPoints;
-  std::vector<cv::Point2f> corners;
 };
 
 } // namespace cameraCalibration
