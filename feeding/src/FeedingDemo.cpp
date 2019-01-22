@@ -352,11 +352,15 @@ bool FeedingDemo::moveAboveFood(
 
   Eigen::Isometry3d eeTransform
       = *mAda->getHand()->getEndEffectorTransform("food");
+  eeTransform.linear()
+      = eeTransform.linear()
+        * Eigen::Matrix3d(
+              Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
 
   aboveFoodTSR.mTw_e.matrix() *= eeTransform.matrix();
   ROS_INFO_STREAM("Move above food \n" << eeTransform.linear());
 
-//  aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood};
+  aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, heightAboveFood};
 
   bool trajectoryCompleted = false;
   try
@@ -409,6 +413,11 @@ bool FeedingDemo::moveAboveFood(
   Eigen::Isometry3d eeTransform
       = *mAda->getHand()->getEndEffectorTransform("food");
 
+  eeTransform.linear()
+      = eeTransform.linear()
+        * Eigen::Matrix3d(
+              Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()));
+
   if (pickupAngleMode != 0)
   {
     // celery-style
@@ -434,8 +443,8 @@ bool FeedingDemo::moveAboveFood(
                   Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ())
                   * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX()));
     }
-
   }
+  ROS_INFO_STREAM("Move above food \n" << eeTransform.linear());
 
   // Allow rotational freedom
   aboveFoodTSR.mBw = createBwMatrixForTSR(
@@ -449,7 +458,7 @@ bool FeedingDemo::moveAboveFood(
   if (pickupAngleMode == 0)
   {
     // vertical
-    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{-0.01, 0, -distance};
+    aboveFoodTSR.mTw_e.translation() = Eigen::Vector3d{0, 0, distance};
   }
   else if (pickupAngleMode == 1)
   {
@@ -463,6 +472,10 @@ bool FeedingDemo::moveAboveFood(
         -sin(M_PI * 0.25) * distance, 0, cos(M_PI * 0.25) * distance};
   }
 
+
+ //mViewer->addTSRMarker(aboveFoodTSR);
+ //waitForUser("Check TSRs");
+
   bool trajectoryCompleted = false;
   try
   {
@@ -470,7 +483,7 @@ bool FeedingDemo::moveAboveFood(
     Eigen::VectorXd nominalConfiguration = mAda->getArm()->getMetaSkeleton()->getPositions();
 
     trajectoryCompleted
-        = mAda->moveArmToTSR(aboveFoodTSR, nullptr, ///mCollisionFreeConstraint,
+        = mAda->moveArmToTSR(aboveFoodTSR, mCollisionFreeConstraint,
         getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
         getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle),
         nominalConfiguration,
@@ -478,7 +491,7 @@ bool FeedingDemo::moveAboveFood(
         velocityLimits,
         ada::TrajectoryPostprocessType::KUNZ);
 
-    std::cout << "Trajectory completed" << trajectoryCompleted << std::endl;
+    std::cout << "Trajectory completed: " << trajectoryCompleted << std::endl;
   }
   catch (...)
   {

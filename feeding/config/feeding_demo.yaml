@@ -58,10 +58,10 @@ planning:
   maxNumberOfTrials: 1
   timeoutSeconds: 2
   tsr:
-    horizontalToleranceAbovePlate: 0.08
-    verticalToleranceAbovePlate: 0.05
-    horizontalToleranceNearFood: 0.08
-    verticalToleranceNearFood: 0.05
+    horizontalToleranceAbovePlate: 0.03
+    verticalToleranceAbovePlate: 0.01
+    horizontalToleranceNearFood: 0.005
+    verticalToleranceNearFood: 0.005
     horizontalToleranceNearPerson: 0.002
     verticalToleranceNearPerson: 0.002
   endEffectorOffset:
@@ -107,7 +107,7 @@ study:
   skipSkewering: false
   doForkPickup: false
   # y positive is closer to wheelchair
-  # z 
+  # z
   forkHolderTranslation: [0.558, -0.023, 0.037]
   forkHolderAngle: 0.0
 
