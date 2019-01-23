@@ -28,14 +28,14 @@ public:
       int patternSizeHeight,
       float squareSize);
 
-  /// \param[out] rvec
-  /// \param[out] tvec
-  Eigen::Isometry3d computeJouleToOptical(
+  Eigen::Isometry3d computeCameraToJoule(
     const Eigen::Isometry3d& targetToWorld,
-    const Eigen::Isometry3d& worldToJoule);
+    const Eigen::Isometry3d& worldToJoule,
+    const Eigen::Isometry3d& cameraToLens,
+    const Eigen::Isometry3d& cameraToJouleGuess);
 
-  Eigen::Isometry3d computeMeanJouleToOptical(
-    const std::vector<Eigen::Isometry3d>& jouleToOpticals);
+  Eigen::Isometry3d computeMeanCameraToJouleEstimate(
+    const std::vector<Eigen::Isometry3d>& cameraToJouleEstimates);
 
   // projections should meet the corners on the image
   void visualizeProjection(
@@ -43,12 +43,16 @@ public:
     const cv::Mat& tvec,
     const std::vector<cv::Point3f>& modelPoints,
     const std::vector<cv::Point2f>& corners,
-    const cv::Mat& image);
+    const cv::Mat& image,
+    const cv::Scalar pointsColor = cv::Scalar(50, 255, 70, 255),
+    const cv::Scalar cornerColor = cv::Scalar(255, 0, 0, 255));
 
   void visualizeProjection(
     const Eigen::Isometry3d& targetToWorld,
-    const Eigen::Isometry3d& worldToJoule,
+    const Eigen::Isometry3d& worldToCamera,
+    const Eigen::Isometry3d& cameraToLens,
     const Eigen::Isometry3d& cameraToJoule);
+
 
   void receiveImageMessage(cv_bridge::CvImagePtr cv_ptr);
 
@@ -57,9 +61,10 @@ public:
   ///\param[out] image
   bool captureFrame(cv::Mat& image);
 
-  Eigen::Isometry3d getCameraToJouleFromJouleToOptical(
-    const Eigen::Isometry3d& jouleToOptical,
-    const Eigen::Isometry3d& cameraToOptical);
+
+  // Eigen::Isometry3d getJouleToCamera(
+  //   const Eigen::Isometry3d& targetToLens,
+  //   const Eigen::Isometry3d& cameraToLens);
 
 private:
 
@@ -68,7 +73,7 @@ private:
   /// \param[out] image
   bool recordView(
     const Eigen::Isometry3d& targetToWorld,
-    const Eigen::Isometry3d& worldToJoule,
+    // const Eigen::Isometry3d& worldToCamera,
     std::vector<cv::Point3f>& modelPoints,
     std::vector<cv::Point2f>& corners,
     cv::Mat& image

@@ -67,7 +67,9 @@ void printPose(const Eigen::Isometry3d& pose);
 
 Eigen::Isometry3d getWorldToJoule(tf::TransformListener& tfListener);
 
-Eigen::Isometry3d getCameraToOptical(tf::TransformListener& tfListener);
+Eigen::Isometry3d getCameraToLens(tf::TransformListener& tfListener);
 
+// Get the estimate
+Eigen::Isometry3d getCameraToJoule(tf::TransformListener& tfListener);
 }
 #endif

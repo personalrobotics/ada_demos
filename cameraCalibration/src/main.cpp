@@ -13,17 +13,20 @@
 
 using namespace cameraCalibration;
 
+// Robot To World
 static const Eigen::Isometry3d robotPose = createIsometry(
-  0.7, -0.1, -0.28, 0, 0, 3.1415);
+  0.7, -0.1, -0.25, 0, 0, 3.1415);
+
+// TargetToWorld = RobotToWorld * TargetToRobot
 static const Eigen::Isometry3d targetToWorld = robotPose.inverse() * createIsometry(
   .425, 0.15, -0.005, 3.1415, 0, 0);
-std::vector<Eigen::Isometry3d> jouleToOpticalEstimates;
+std::vector<Eigen::Isometry3d> cameraToJouleEstimates;
 
 bool tryPerceivePoint(
         std::string frameName,
         Perception& perception,
         tf::TransformListener& tfListener,
-        aikido::rviz::WorldInteractiveMarkerViewer& cameraLensViewer,
+        aikido::rviz::WorldInteractiveMarkerViewer& jouleViewer,
         aikido::rviz::WorldInteractiveMarkerViewer& targetPointViewer,
         std::vector<Eigen::Isometry3d>& targetPointsInCameraLensFrame,
         std::vector<Eigen::Isometry3d>& cameraLensPointsInWorldFrame,
@@ -31,14 +34,18 @@ bool tryPerceivePoint(
         std::vector<aikido::rviz::FrameMarkerPtr>& frameMarkers) {
 
   Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
-
+  auto cameraToJoule = getCameraToJoule(tfListener);
   try{
-    jouleToOpticalEstimates.emplace_back(perception.computeJouleToOptical(targetToWorld, worldToJoule));
+    
+    cameraToJouleEstimates.emplace_back(
+      perception.computeCameraToJoule(targetToWorld, worldToJoule,
+        getCameraToLens(tfListener),
+        cameraToJoule));
 
-    Eigen::Isometry3d cameraLensTransform = getWorldToJoule(tfListener).inverse();
-    dart::dynamics::SimpleFramePtr cameraFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "camLens_" + frameName, cameraLensTransform);
-    frames.push_back(cameraFrame);
-    frameMarkers.push_back(cameraLensViewer.addFrame(cameraFrame.get(), 0.07, 0.007));
+    Eigen::Isometry3d joule = getWorldToJoule(tfListener).inverse();
+    dart::dynamics::SimpleFramePtr jouleFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "joule_" + frameName, joule);
+    frames.push_back(jouleFrame);
+    frameMarkers.push_back(jouleViewer.addFrame(jouleFrame.get(), 0.07, 0.007));
     return true;
   }
   catch (...)
@@ -80,7 +87,6 @@ int main(int argc, char** argv)
   auto armSpace
       = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
           ada.getArm()->getMetaSkeleton().get());
-  Eigen::Isometry3d robotPose = createIsometry(0.7, -0.1, -0.28, 0, 0, 3.1415);
 
   // Setting up workspace
   const auto resourceRetriever
@@ -89,20 +95,20 @@ int main(int argc, char** argv)
       = robotPose.inverse() * createIsometry(0.76, 0.38, -0.745, 0, 0, 0);
   auto table = loadSkeletonFromURDF(
       resourceRetriever,
-      "package://pr_ordata/data/furniture/table_feeding.urdf",
+      "package://pr_assets/data/furniture/table_feeding.urdf",
       tablePose);
   world->addSkeleton(table);
   Eigen::Isometry3d wheelchairPose = createIsometry(0, 0, 0, 0, 0, 0);
   auto wheelchair = loadSkeletonFromURDF(
       resourceRetriever,
-      "package://pr_ordata/data/furniture/wheelchair.urdf",
+      "package://pr_assets/data/furniture/wheelchair.urdf",
       wheelchairPose);
   world->addSkeleton(wheelchair);
   Eigen::Isometry3d environmentPose
       = robotPose.inverse() * createIsometry(0, 0, 0, 0, 0, 0);
   auto environment = loadSkeletonFromURDF(
       resourceRetriever,
-      "package://pr_ordata/data/furniture/workspace_feeding_demo.urdf",
+      "package://pr_assets/data/furniture/workspace_feeding_demo.urdf",
       environmentPose);
   world->addSkeleton(environment);
 
@@ -131,9 +137,9 @@ int main(int argc, char** argv)
       "/camera/color/image_raw/compressed",
       "/camera/color/camera_info",
       true,
-      9,
-      6,
-      0.01065);
+      5,//8,
+      4, //5,
+      0.0215);//0.01065);
   tf::TransformListener tfListener;
   std::vector<Eigen::Isometry3d> targetPointsInCameraLensFrame;
   std::vector<Eigen::Isometry3d> cameraLensPointsInWorldFrame;
@@ -147,9 +153,9 @@ int main(int argc, char** argv)
   auto frame2 = viewer.addFrame(
       ada.getMetaSkeleton()->getBodyNode("j2n6s200_hand_tip"), 0.02, 0.002);
 
-  aikido::rviz::WorldInteractiveMarkerViewer cameraLensViewer(
+  aikido::rviz::WorldInteractiveMarkerViewer jouleViewer(
       world, "dart_markers/cameraCalibration/cameraLens", "map");
-  cameraLensViewer.setAutoUpdate(true);
+  jouleViewer.setAutoUpdate(true);
   aikido::rviz::WorldInteractiveMarkerViewer targetPointViewer(
       world, "dart_markers/cameraCalibration/targetPoint", "map");
   targetPointViewer.setAutoUpdate(true);
@@ -177,7 +183,7 @@ int main(int argc, char** argv)
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
     // 20 - 56
-  for (int i= 20; i<=56; i+=1) {
+  for (int i= 20; i<=56; i+=5) {
     double angle = 0.1745*i;
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
       0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
@@ -189,7 +195,7 @@ int main(int argc, char** argv)
     } else {
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       if (tryPerceivePoint("circle1_step" + std::to_string(i),
-            perception, tfListener, cameraLensViewer, targetPointViewer,
+            perception, tfListener, jouleViewer, targetPointViewer,
             targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
             frames, frameMarkers)) {
         ROS_INFO_STREAM("Success: Step " << i);
@@ -199,16 +205,63 @@ int main(int argc, char** argv)
     }
   }
 
+  for (int i = 20; i <= 56; i+=5)
+  {
+    double angle = 0.1745 * i;
+    auto tsr = getCalibrationTSR(
+        robotPose.inverse()
+        * createIsometry(
+              .425 + sin(angle) * 0.2,
+              0.15 - cos(angle) * 0.2,
+              0.1,
+              3.98,
+              0,
+              angle));
+    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+    {
+      ROS_INFO_STREAM("Fail: Step " << i);
+    }
+    else
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      if (tryPerceivePoint("circle2_step" + std::to_string(i),
+            perception, tfListener, jouleViewer, targetPointViewer,
+            targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
+            frames, frameMarkers)) {
+        ROS_INFO_STREAM("Success: Step " << i);
+      } else {
+        ROS_INFO_STREAM("Perception fail: Step " << i);
+      }
+    }
+  }
+
+
   // ===== CALCULATE CALIBRATION =====
-  auto jouleToOptical = perception.computeMeanJouleToOptical(jouleToOpticalEstimates);
-  auto cameraToJoule = perception.getCameraToJouleFromJouleToOptical(
-    jouleToOptical,
-    getCameraToOptical(tfListener));
-
-  // Visualize to check
+  ROS_INFO_STREAM("Got " << cameraToJouleEstimates.size() << " estimates.");
+  auto cameraToJoule = perception.computeMeanCameraToJouleEstimate(cameraToJouleEstimates);
   Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
-  perception.visualizeProjection(targetToWorld, worldToJoule, cameraToJoule);
+  perception.visualizeProjection(targetToWorld, worldToJoule, 
+    getCameraToLens(tfListener),
+    cameraToJoule);  
 
+  ROS_INFO_STREAM("Visualize final projection");
+
+  for (int i= 20; i<=56; i+=15) {
+    double angle = 0.1745*i;
+    auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
+      0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
+      0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
+      0.05, 3.58, 0, angle)); if
+    (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+    {
+      ROS_INFO_STREAM("Fail: Step " << i);
+    } else {
+      std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+      Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
+      perception.visualizeProjection(targetToWorld, worldToJoule,
+        getCameraToLens(tfListener), cameraToJoule);      
+    }
+  }
 
   waitForUser("Move back to center");
 
@@ -226,8 +279,6 @@ int main(int argc, char** argv)
   }
 
   waitForUser("Calibration finished.");
-  waitForUser("Really exit?");
-  waitForUser("Are you sure?");
   ros::shutdown();
   return 0;
 }
