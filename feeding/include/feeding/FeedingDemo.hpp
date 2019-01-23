@@ -220,8 +220,10 @@ private:
   aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
 
   std::vector<std::string> mFoodNames;
+  std::vector<std::string> mRotationFreeFoodNames;
   std::vector<double> mSkeweringForces;
   std::unordered_map<std::string, double> mFoodSkeweringForces;
+  std::unordered_map<std::string, int> mPickUpAngleModes;
 };
 }
 

@@ -93,9 +93,16 @@ FeedingDemo::FeedingDemo(
       = getRosParam<std::vector<std::string>>("/foodItems/names", mNodeHandle);
   mSkeweringForces
       = getRosParam<std::vector<double>>("/foodItems/forces", mNodeHandle);
+  mRotationFreeFoodNames
+      = getRosParam<std::vector<std::string>>("/rotationFree/names", mNodeHandle);
+  auto pickUpAngleModes
+      = getRosParam<std::vector<int>>("/foodItems/pickUpAngleModes", mNodeHandle);
 
   for (int i = 0; i < mFoodNames.size(); i++)
+  {
     mFoodSkeweringForces[mFoodNames[i]] = mSkeweringForces[i];
+    mPickUpAngleModes[mFoodNames[i]] = pickUpAngleModes[i];
+  }
 }
 
 //==============================================================================
@@ -366,10 +373,6 @@ bool FeedingDemo::moveAboveFood(
   aikido::constraint::dart::TSR aboveFoodTSR;
   Eigen::Isometry3d eeTransform
       = *mAda->getHand()->getEndEffectorTransform("food");
-  eeTransform.linear()
-      = eeTransform.linear()
-        * Eigen::Matrix3d(
-              Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()));
 
   Eigen::Isometry3d defaultFoodTransform = Eigen::Isometry3d::Identity();
   defaultFoodTransform.translation() = foodTransform.translation();
@@ -390,6 +393,7 @@ bool FeedingDemo::moveAboveFood(
             * Eigen::Matrix3d(
                   Eigen::AngleAxisd(-M_PI * 0.5, Eigen::Vector3d::UnitZ())
                   * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX()));
+
     }
     else
     {
@@ -400,15 +404,19 @@ bool FeedingDemo::moveAboveFood(
                   Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ())
                   * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX()));
     }
-
-    // aboveFoodTSR.mBw = createBwMatrixForTSR(
-    //   horizontalToleranceNearFood, verticalToleranceNearFood, 0, 0);
-
+  }
+  else
+  {
+    eeTransform.linear()
+      = eeTransform.linear()
+        * Eigen::Matrix3d(
+              Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()));
   }
 
   // Allow rotational freedom
   aboveFoodTSR.mBw = createBwMatrixForTSR(
     horizontalToleranceNearFood, verticalToleranceNearFood, -M_PI, M_PI);
+
   aboveFoodTSR.mTw_e.matrix() *= eeTransform.matrix();
 
   float distance = heightAboveFood * 0.85;
@@ -1086,20 +1094,16 @@ void FeedingDemo::skewer(
 
   while (!foodPickedUp)
   {
+    auto pickupAngleMode = mPickUpAngleModes[foodName];
 
     ROS_INFO_STREAM(
         "Getting " << foodName << "with "
                                << mFoodSkeweringForces[foodName]
-                               << "N)"
+                               << "N with angle mode "
+                               << pickupAngleMode
                                << std::endl);
 
     // ===== Detect and Move Above Food =====
-    // 0 vertical
-    // 1 strawberry-style
-    // 2 banana-style
-    int pickupAngleMode
-        = getRosParam<int>("/study/pickupAngleMode", nodeHandle);
-
     waitForUser("Move forque above food");
     if (!mPerception->setFoodName(foodName))
       throw std::runtime_error("Unknown food");
@@ -1168,7 +1172,7 @@ void FeedingDemo::skewer(
     ROS_WARN_STREAM(
         "force difference: " << (zForceBeforeSkewering - zForceAfter));
 
-    if (forceDifference > 0.005)
+    if ((mAdaReal && forceDifference > 0.005) || !mAdaReal)
       return;
     else
     {
