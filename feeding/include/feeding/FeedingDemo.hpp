@@ -107,7 +107,8 @@ public:
   void moveAboveForque();
 
   /// Moves the forque above the plate.
-  bool moveAbovePlate();
+  /// Optionally lift forque up before the action.
+  bool moveAbovePlate(bool liftUpBeforeAction = false);
 
   /// Moves the forque above the food item using the values in the ros
   /// parameters.

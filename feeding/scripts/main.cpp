@@ -90,6 +90,14 @@ int main(int argc, char** argv)
 
   waitForUser("Startup complete.", TERMINATE_AT_USER_PROMPT);
 
+  /* test perception
+  while(true) 
+  {
+    perception->perceiveAllFood();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  */
+
   feedingDemo->moveToStartConfiguration();
 
   if (demoType == "nips")

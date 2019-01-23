@@ -328,6 +328,7 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   {
     goalPose.translation() = goalPose.translation()
                              + originalDirection * mOriginalDirectionExtension;
+    ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
   }
   return true;
 }
@@ -377,19 +378,12 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     mMetaSkeletonStateSpace->convertPositionsToState(
         mOriginalConfig, originalState);
 
-    auto collisionConstraint = mAda->getArm()->getFullCollisionConstraint(
-        mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
-    auto satisfiedConstraint
-        = std::make_shared<aikido::constraint::Satisfied>(mMetaSkeletonStateSpace);
-
-    std::chrono::time_point<std::chrono::system_clock> startTime
-        = std::chrono::system_clock::now();
     trajectory1 = aikido::planner::vectorfield::planToEndEffectorOffset(
         mMetaSkeletonStateSpace,
         *originalState,
         mMetaSkeleton,
         mBodyNode,
-        satisfiedConstraint,
+        nullptr,
         direction1.normalized(),
         0.0, // direction1.norm() - 0.001,
         direction1.norm() + 0.004,
@@ -400,8 +394,11 @@ SplinePtr PerceptionServoClient::planToGoalPose(
         1e-2,
         std::chrono::duration<double>(5));
 
-    if (trajectory1 == nullptr)
-      throw std::runtime_error("Failed in finding the first half");
+    if (!trajectory1)
+    {
+      ROS_WARN("Failed in finding the first half");
+      return nullptr;
+    }
     spline1 = dynamic_cast<aikido::trajectory::Spline*>(trajectory1.get());
   }
 
@@ -447,8 +444,6 @@ SplinePtr PerceptionServoClient::planToGoalPose(
         = std::make_shared<aikido::constraint::Satisfied>(mMetaSkeletonStateSpace);
 
     aikido::planner::Planner::Result result;
-    std::chrono::time_point<std::chrono::system_clock> startTime
-        = std::chrono::system_clock::now();
     trajectory2 = aikido::planner::vectorfield::planToEndEffectorOffset(
         mMetaSkeletonStateSpace,
         *endState,
@@ -469,15 +464,13 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     if (trajectory2 == nullptr)
     {
       std::cout << "RESULT : " << result.getMessage() << std::endl;
-      throw std::runtime_error("Failed in finding the second half");
+      ROS_WARN("Failed in finding the second half");
     }
     spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
 
     if (spline2 == nullptr)
       return nullptr;
 
-    std::chrono::time_point<std::chrono::system_clock> timingStartTime
-        = std::chrono::system_clock::now();
     auto concatenatedTraj = concatenate(*spline1, *spline2);
     if (concatenatedTraj == nullptr)
       return nullptr;
