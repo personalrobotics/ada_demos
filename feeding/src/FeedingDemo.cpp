@@ -1085,7 +1085,7 @@ void FeedingDemo::skewer(
     foodName = getUserInput(true, nodeHandle);
 
   while (!foodPickedUp)
-  {    
+  {
 
     ROS_INFO_STREAM(
         "Getting " << foodName << "with "
@@ -1142,7 +1142,7 @@ void FeedingDemo::skewer(
     }
 
     moveInto(TargetItem::FOOD);
-    
+
     std::this_thread::sleep_for(
         std::chrono::milliseconds(
             getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
@@ -1154,7 +1154,7 @@ void FeedingDemo::skewer(
 
     double forceDifference = 0;
     double zForceAfter = 0;
-    if (mFTThresholdHelper->startDataCollection(50))
+    if (mAdaReal && mFTThresholdHelper->startDataCollection(20))
     {
       Eigen::Vector3d currentForce, currentTorque;
       while (!mFTThresholdHelper->isDataCollectionFinished(
