@@ -107,7 +107,8 @@ public:
   void moveAboveForque();
 
   /// Moves the forque above the plate.
-  bool moveAbovePlate();
+  /// Optionally lift forque up before the action.
+  bool moveAbovePlate(bool liftUpBeforeAction = false);
 
   /// Moves the forque above the food item using the values in the ros
   /// parameters.
@@ -172,7 +173,15 @@ public:
       const std::string& foodName, bool waitTillDetected = true);
 
   Eigen::Isometry3d detectAndMoveAboveFood(
-      const std::string& foodName);
+      const std::string& foodName, int pickupAngleMode);
+
+  Eigen::Isometry3d detectAndMoveAboveFood(
+      const std::string& foodName,
+      int pickupAngleMode,
+      float rotAngle,
+      float tiltAngle,
+      float rotationalTolerance = M_PI / 8.0,
+      float tiltTolerance = M_PI / 8.0);
 
   void pushAndSkewer(
       const std::string& foodName,
@@ -230,8 +239,10 @@ private:
   aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
 
   std::vector<std::string> mFoodNames;
+  std::vector<std::string> mRotationFreeFoodNames;
   std::vector<double> mSkeweringForces;
   std::unordered_map<std::string, double> mFoodSkeweringForces;
+  std::unordered_map<std::string, int> mPickUpAngleModes;
 };
 }
 

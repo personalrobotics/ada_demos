@@ -17,8 +17,9 @@ Perception::Perception(
     ros::NodeHandle nodeHandle)
   : mWorld(world)
   , mNodeHandle(nodeHandle)
-  , mLastPerceivedFoodTransform(Eigen::Isometry3d::Identity())
   , mFaceZOffset(0.0)
+  , mLastPerceivedFoodTransform(Eigen::Isometry3d::Identity())
+  , mFoodDetectedAtLeastOnce(false)
 {
   std::string detectorDataURI
       = getRosParam<std::string>("/perception/detectorDataUri", mNodeHandle);
@@ -45,6 +46,8 @@ Perception::Perception(
           aikido::robot::util::getBodyNodeOrThrow(
               *adasMetaSkeleton, referenceFrameName)));
 
+  mFoodDetector->setObjectProjectionHeight(0.25);
+
   mFaceDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
           mNodeHandle,
@@ -62,8 +65,6 @@ Perception::Perception(
   mPerceivedFaceName
       = getRosParam<std::string>("/perception/faceName", mNodeHandle);
 
-  mLastPerceivedFoodTransform.translation().z() = 0.28;
-
   mFoodNames
       = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
 }
@@ -71,14 +72,14 @@ Perception::Perception(
 //==============================================================================
 boost::optional<Eigen::Isometry3d> Perception::perceiveAllFood()
 {
-  double shortestDistance = 1.0; // 1m. 
+  double shortestDistance = 1.0; // 1m.
   Eigen::Isometry3d foodTransform;
-  bool perceiveDepthPlane = false;
 
   for (std::string foodName : mFoodNames)
   {
     Eigen::Isometry3d transform;
-    auto detected = perceiveFood(foodName, perceiveDepthPlane);
+    setFoodName(foodName);
+    auto detected = perceiveFood();
     if (detected)
     {
       transform = detected.get();
@@ -94,14 +95,15 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveAllFood()
   if (shortestDistance >= 1)
     return boost::optional<Eigen::Isometry3d>{};
   else
+  {
+    mLastPerceivedFoodTransform = foodTransform;
     return foodTransform;
+  }
 }
 
 
 //==============================================================================
-boost::optional<Eigen::Isometry3d> Perception::perceiveFood(
-    const std::string& foodNameToFind,
-    bool perceiveDepthPlane)
+boost::optional<Eigen::Isometry3d> Perception::perceiveFood()
 {
   mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
   Eigen::Isometry3d cameraToWorldTransform = getCameraToWorldTransform();
@@ -109,21 +111,20 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFood(
   dart::dynamics::SkeletonPtr perceivedFood;
   Eigen::Isometry3d foodTransform;
 
-  ROS_INFO("Looking for food items");
+  ROS_INFO_STREAM("Looking for food items of " << mFoodNameToPerceive << std::endl);
 
   double distFromForque = 10.0; // 1m
   std::string chosenFoodName("");
-    
+
   for (int skeletonFrameIdx = 0; skeletonFrameIdx < 5; skeletonFrameIdx++)
   {
     for (std::size_t index = 0; ; ++index)
     {
-      std::string currentFoodName = foodNameToFind + "_" + std::to_string(index)
+      std::string currentFoodName = mFoodNameToPerceive + "_" + std::to_string(index)
                                     + "_" + std::to_string(skeletonFrameIdx);
       auto currentPerceivedFood = mWorld->getSkeleton(currentFoodName);
       if (!currentPerceivedFood)
       {
-        // ROS_INFO_STREAM(currentFoodName << " not in world");
         if (index > 10)
           break;
         else
@@ -135,6 +136,7 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFood(
       Eigen::Isometry3d currentFoodTransform
           = currentPerceivedFood->getBodyNode(0)->getWorldTransform();
 
+      /*
       if (!perceiveDepthPlane)
       {
         Eigen::Vector3d start(currentFoodTransform.translation());
@@ -144,15 +146,7 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFood(
         Eigen::Vector3d intersection = line.intersectionPoint(mDepthPlane);
         currentFoodTransform.translation() = intersection;
       }
-      else
-      {
-        if (currentFoodTransform.translation().z() < 0.11)
-        {
-          ROS_INFO_STREAM(
-              "discarding " << currentFoodName << " because of depth");
-          continue;
-        }
-      }
+      */
 
       auto currentDistFromForque = getDistanceFromForque(currentFoodTransform);
 
@@ -167,24 +161,20 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFood(
   }
 
   if (distFromForque >= 1)
-  {    
-    ROS_WARN("food perception failed");
+  {
+    if (mFoodDetectedAtLeastOnce)
+    {
+      ROS_WARN("food perception failed, returning old transform");
+      return mLastPerceivedFoodTransform;
+    }
+    ROS_WARN("food perception failed.");
     return boost::optional<Eigen::Isometry3d>{};
   }
 
-  foodTransform.linear()
-      = cameraToWorldTransform.linear() * foodTransform.linear();
-  foodTransform.linear() = getForqueTransform().linear() * foodTransform.linear();
-
   ROS_WARN_STREAM("Found " << chosenFoodName);
-  // magic offsets
-  if ((foodNameToFind.find("strawberry") == 0)
-      || (foodNameToFind.find("cantaloupe") == 0))
-  {
-    foodTransform.translation() += Eigen::Vector3d(0.015, 0, 0);
-  }
+  mLastPerceivedFoodTransform = foodTransform;
+  mFoodDetectedAtLeastOnce = true;
 
-  ROS_INFO_STREAM("food perception successful for " << chosenFoodName);
   return foodTransform;
 }
 
@@ -217,8 +207,6 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFace()
         faceTransform.translation().y() = fixedFaceY;
       }
 
-      faceTransform.translation().z() += 0.00;
-      // faceTransform.translation().z() += 0.0;
       faceTransform.translation().z()
           = faceTransform.translation().z() + mFaceZOffset;
       ROS_INFO_STREAM(
@@ -228,6 +216,7 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFace()
     }
   }
   ROS_WARN("face perception failed");
+
   return boost::optional<Eigen::Isometry3d>{};
 }
 
@@ -279,13 +268,32 @@ double Perception::getDistanceFromForque(const Eigen::Isometry3d& item)
 
 
   Eigen::Vector3d start(forqueTransform.translation());
-  Eigen::Vector3d end(start + 
+  Eigen::Vector3d end(start +
       forqueTransform.linear() * Eigen::Vector3d(0, 0, 1));
   Eigen::ParametrizedLine<double, 3> line(
       start, (end - start).normalized());
   Eigen::Vector3d intersection = line.intersectionPoint(mDepthPlane);
-  
+
   return (item.translation() - intersection).norm();
 }
 
+//==============================================================================
+bool Perception::setFoodName(std::string foodName) {
+
+  mFoodNameToPerceive = foodName;
+
+  if (std::find(mFoodNames.begin(), mFoodNames.end(), foodName) != mFoodNames.end())
+  {
+      mFoodNameToPerceive = foodName;
+      return true;
+  }
+  ROS_WARN_STREAM("Cannot find food " << foodName << " in the known food list.");
+  return false;
+}
+
+//==============================================================================
+void Perception::reset()
+{
+  mFoodDetectedAtLeastOnce = false;
+}
 } // namespace feeding

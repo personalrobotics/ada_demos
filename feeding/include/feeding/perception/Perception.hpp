@@ -35,16 +35,13 @@ public:
   /// returns The tranform of the detected food with shortest distance.
   boost::optional<Eigen::Isometry3d> perceiveAllFood();
 
-  /// Gets food items from active perception ros nodes and adds their new
+  /// Gets food items of the name set by setFoodName
+  /// from active perception ros nodes and adds their new
   /// MetaSkeletons to the aikido world. Updates output parameters with
   /// the item closest to the forque.
-  /// \param[in] foodNameToFind Name of the food item to detect.
-  /// \param[in] perceiveDepthPlane Ignore anything below certain depth.
   /// \param[out] foodTransform The transform of the detected food.
   /// \return True if a food item was found.
-  boost::optional<Eigen::Isometry3d> perceiveFood(
-    const std::string& foodNameToFind,
-    bool perceiveDepthPlane = false);
+  boost::optional<Eigen::Isometry3d> perceiveFood();
 
   boost::optional<Eigen::Isometry3d> perceiveFace();
 
@@ -58,6 +55,10 @@ public:
   Eigen::Isometry3d getOpticalToWorld();
 
   void setFaceZOffset(float faceZOffset);
+
+  bool setFoodName(std::string foodName);
+
+  void reset();
 
 private:
 
@@ -86,6 +87,8 @@ private:
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
   std::vector<std::string> mFoodNames;
+
+  bool mFoodDetectedAtLeastOnce;
 };
 }
 

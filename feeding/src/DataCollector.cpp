@@ -215,6 +215,7 @@ void DataCollector::setDataCollectionParams(
 void DataCollector::pushAndSkewer(
     const std::string& foodName, int mode, float rotAngle, float tiltAngle)
 {
+  /* temporarily disabling
   mFeedingDemo->pushAndSkewer(foodName, mode, rotAngle, tiltAngle);
 
   // Pushing complete
@@ -222,6 +223,7 @@ void DataCollector::pushAndSkewer(
 
   // ===== RESET TO ABOVE FOOD =====
   mFeedingDemo->detectAndMoveAboveFood(foodName);
+  */
 }
 
 //==============================================================================
