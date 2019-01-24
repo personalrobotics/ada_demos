@@ -3,8 +3,12 @@ project(ada_demos)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-find_package(catkin COMPONENTS tf tf_conversions image_transport
-cv_bridge)
+find_package(catkin REQUIRED
+  COMPONENTS
+    tf
+    tf_conversions
+    image_transport
+    cv_bridge)
 catkin_package(
   INCLUDE_DIRS feeding/include
   LIBRARIES feeding
@@ -66,6 +70,7 @@ add_subdirectory(soda_grasp)
 add_subdirectory(simple_trajectories)
 add_subdirectory(hand_control)
 add_subdirectory(feeding)
+add_subdirectory(cameraCalibration)
 
 # ===============================================================================
 # Formatting
