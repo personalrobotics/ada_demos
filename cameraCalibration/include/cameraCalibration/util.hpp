@@ -65,12 +65,24 @@ bool moveArmOnTrajectory(
 
 void printPose(const Eigen::Isometry3d& pose);
 
-
+/// Returns the transform from map to j2n6s200_joule.
+/// \param[in] tfListner Transform listener.
 Eigen::Isometry3d getWorldToJoule(tf::TransformListener& tfListener);
 
+/// Returns the transform from camera_link to camera_color_optical_frame.
+/// \param[in] tfListner Transform listener.
 Eigen::Isometry3d getCameraToLens(tf::TransformListener& tfListener);
 
-// Get the estimate
+/// Returns the transform from camera_link to j2n6s200_joule.
+/// This is only an estimate published by a static transform node.
+/// \param[in] tfListner Transform listener.
 Eigen::Isometry3d getCameraToJoule(tf::TransformListener& tfListener);
+
+/// Returns the transform between two links.
+/// \param[in] from Link from which the transform is computed.
+/// \param[in] to Link to which the transform is computed.
+Eigen::Isometry3d getRelativeTransform(tf::TransformListener& tfListener,
+  const std::string& from, const std::string& to);
+
 }
 #endif

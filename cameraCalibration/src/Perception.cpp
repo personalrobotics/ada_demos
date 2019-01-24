@@ -156,7 +156,7 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
   if (inliers.size() < 9)
     throw std::runtime_error("Too few inliers");
 
-  std::cout << "Solved PnP" << std::endl;
+  ROS_INFO("Solved PnP");
 
   visualizeProjection(cb_rvec, cb_tvec, pointsToWorld, corners, image);
 
@@ -298,7 +298,7 @@ Eigen::Isometry3d Perception::computeMeanCameraToJouleEstimate(
     cv::circle(image, corner, 1, cornerColor, 3);
   }
 
-  std::cout << "[Enter] to continue" << std::endl;
+  ROS_INFO( "[Enter] to continue");
   cv::imshow("view", image);
   cv::waitKey(0);
 }
@@ -321,9 +321,9 @@ void Perception::visualizeProjection(
   std::vector<cv::Point3f> pointsToWorld;
   std::vector<cv::Point2f> corners;
   cv::Mat image;
-  if(!recordView(targetToWorld, pointsToWorld, corners, image))
+  if (!recordView(targetToWorld, pointsToWorld, corners, image))
   {
-    std::cout << "Failed to find corners" << std::endl;
+    ROS_ERROR("Failed to find corners");
     return;
   }
 
@@ -346,5 +346,6 @@ bool Perception::captureFrame(cv::Mat& image)
   }
 
   image = cv_ptr->image;
+  return true;
 }
 } // namespace cameraCalibration

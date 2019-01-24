@@ -20,7 +20,7 @@ class Perception
 {
 public:
   /// \param[in] nodeHandle Ros node.
-  /// \param[in] markerTopic Image topic.
+  /// \param[in] imageTopic Image topic.
   /// \param[in] cameraInfoTopic Camera info topic.
   /// \param[in] isCompressed True if compressed image is used.
   /// \param[in] numPatternsInWidth Number of patterns in width.
@@ -28,7 +28,7 @@ public:
   /// \param[in] squareSize  Width of each checkerboard in meter.
   Perception(
       ros::NodeHandle nodeHandle,
-      std::string markerTopic,
+      std::string imageTopic,
       std::string cameraInfoTopic,
       bool isCompressed,
       int numPatternsInWidth,
@@ -66,6 +66,7 @@ public:
 private:
 
   /// Detect 2D checkerboard corners and update 3D corners
+  /// \param[in] targetToWorld Target (checkerboard center) to world transform.
   /// \param[out] modelPoints
   /// \param[out] corners Detected 2D checkerboard corners
   /// \param[out] image Save the captured image.

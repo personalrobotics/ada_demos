@@ -167,47 +167,39 @@ void printPose(const Eigen::Isometry3d& pose)
 
 //==============================================================================
 Eigen::Isometry3d getWorldToJoule(tf::TransformListener& tfListener) {
-  tf::StampedTransform tfStampedTransform;
-  try{
-    tfListener.lookupTransform("/j2n6s200_joule", "/map",
-                            ros::Time(0), tfStampedTransform);
-  }
-  catch (tf::TransformException ex){
-    throw std::runtime_error("Failed to get TF Transform: " + std::string(ex.what()));
-  }
-  Eigen::Isometry3d transform;
-  tf::transformTFToEigen(tfStampedTransform, transform);
-  return transform;
+  return getRelativeTransform(tfListener,
+    "/j2n6s200_joule", "/map");
 }
 
 //==============================================================================
 Eigen::Isometry3d getCameraToLens(tf::TransformListener& tfListener) {
-  tf::StampedTransform tfStampedTransform;
-  try{
-    tfListener.lookupTransform("/camera_color_optical_frame", "/camera_link",
-                            ros::Time(0), tfStampedTransform);
-  }
-  catch (tf::TransformException ex){
-    throw std::runtime_error("Failed to get TF Transform: " + std::string(ex.what()));
-  }
-  Eigen::Isometry3d transform;
-  tf::transformTFToEigen(tfStampedTransform, transform);
-  return transform;
+  return getRelativeTransform(tfListener,
+    "/camera_link", "/camera_color_optical_frame");
 }
 
 //==============================================================================
 Eigen::Isometry3d getCameraToJoule(tf::TransformListener& tfListener)
 {
+  return getRelativeTransform(tfListener,
+    "/camera_link", "/j2n6s200_joule");
+}
+
+//==============================================================================
+Eigen::Isometry3d getRelativeTransform(tf::TransformListener& tfListener,
+  const std::string& from, const std::string& to)
+{
   tf::StampedTransform tfStampedTransform;
   try{
-    tfListener.lookupTransform("/j2n6s200_joule", "/camera_link",
+    tfListener.lookupTransform(to, from,
                             ros::Time(0), tfStampedTransform);
   }
   catch (tf::TransformException ex){
     throw std::runtime_error("Failed to get TF Transform: " + std::string(ex.what()));
   }
+
   Eigen::Isometry3d transform;
   tf::transformTFToEigen(tfStampedTransform, transform);
+
   return transform;
 }
 }

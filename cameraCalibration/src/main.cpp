@@ -34,7 +34,7 @@ bool tryPerceivePoint(
         std::vector<aikido::rviz::FrameMarkerPtr>& frameMarkers) {
 
   Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
-  auto cameraToJoule = getCameraToJoule(tfListener);
+  Eigen::Isometry3d cameraToJoule = getCameraToJoule(tfListener);
   try{
 
     cameraToJouleEstimates.emplace_back(
@@ -249,11 +249,13 @@ int main(int argc, char** argv)
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
       0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
       0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
-      0.05, 3.58, 0, angle)); if
-    (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+      0.05, 3.58, 0, angle));
+
+    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
     {
       ROS_INFO_STREAM("Fail: Step " << i);
-    } else {
+    } else
+    {
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
       perception.visualizeProjection(targetToWorld, worldToJoule,
