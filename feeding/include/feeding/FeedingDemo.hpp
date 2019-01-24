@@ -118,9 +118,15 @@ public:
   bool moveAboveFood(
       const Eigen::Isometry3d& foodTransform,
       int pickupAngleMode,
-      float rotAngle = 0.0,
-      float angle = 0.0,
-      bool useAngledTranslation = true);
+      float rotAngle,
+      float tiltAngle,
+      float rotationalTolerance = M_PI / 8.0,
+      float tiltTolerance = M_PI / 8.0);
+
+  // Use pre-determined rotation and tilt angle for each food item.
+  bool moveAboveFood(
+      const Eigen::Isometry3d& foodTransform,
+      int pickupAngleMode);
 
   void rotateForque(
       const Eigen::Isometry3d& foodTransform,
@@ -167,11 +173,15 @@ public:
       const std::string& foodName, bool waitTillDetected = true);
 
   Eigen::Isometry3d detectAndMoveAboveFood(
+      const std::string& foodName, int pickupAngleMode);
+
+  Eigen::Isometry3d detectAndMoveAboveFood(
       const std::string& foodName,
       int pickupAngleMode,
       float rotAngle,
-      float angle,
-      bool useAngledTranslation);
+      float tiltAngle,
+      float rotationalTolerance = M_PI / 8.0,
+      float tiltTolerance = M_PI / 8.0);
 
   void pushAndSkewer(
       const std::string& foodName,
@@ -182,8 +192,15 @@ public:
   void rotateAndSkewer(const std::string& foodName, float rotateForqueAngle,
     bool ignoreCollisionWhenMovingOut = false);
 
+  void scoop();
+
   /// Resets the environmnet.
   void reset();
+
+  bool moveWithEndEffectorTwist(
+    const Eigen::Vector6d& twists,
+    double durations = 1.0,
+    bool respectCollision = true);
 
 private:
   /// Attach food to forque
@@ -196,6 +213,8 @@ private:
   /// \param[in] configuration Nominal configuration for ranker.
   aikido::distance::ConfigurationRankerPtr getRanker(
     const Eigen::VectorXd& configuration = Eigen::VectorXd(0));
+
+  Eigen::Isometry3d removeRotation(const Eigen::Isometry3d& transform);
 
   bool mIsFTSensingEnabled;
   bool mAdaReal;

@@ -33,6 +33,12 @@ static const std::vector<std::string> DEMO_TYPES
 /// \param[out] autoContinueDemo is true when the demo continues to the next
 /// step without asking for confirmation
 /// \param[out] useFTSensing turns the FTSensor and the MoveUntilTouchController
+/// \param[out] perceptionReal true when the camera is running in real
+/// \param[out] foodName Name fo food for data collection
+/// \param[out] directionIndex Current direction (angle) for data collection
+/// \param[out] trialIndex Current trial index for data collection
+/// \param[out] dataCollectorPath Directory to store data collection
+
 /// on and off
 void handleArguments(
     int argc,
@@ -40,7 +46,12 @@ void handleArguments(
     bool& adaReal,
     bool& autoContinueDemo,
     bool& useFTSensing,
+    bool& perceptionReal,
     std::string& demoType,
+    std::string& foodName,
+    std::size_t& directionIndex,
+    std::size_t& trialIndex,
+    std::string& dataCollectorPath,
     const std::string& description = "Ada Feeding Demo");
 
 void printStateWithTime(

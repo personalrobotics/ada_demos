@@ -72,7 +72,7 @@ Perception::Perception(
 //==============================================================================
 boost::optional<Eigen::Isometry3d> Perception::perceiveAllFood()
 {
-  double shortestDistance = 1.0; // 1m. 
+  double shortestDistance = 1.0; // 1m.
   Eigen::Isometry3d foodTransform;
 
   for (std::string foodName : mFoodNames)
@@ -115,7 +115,7 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFood()
 
   double distFromForque = 10.0; // 1m
   std::string chosenFoodName("");
-    
+
   for (int skeletonFrameIdx = 0; skeletonFrameIdx < 5; skeletonFrameIdx++)
   {
     for (std::size_t index = 0; ; ++index)
@@ -161,8 +161,7 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFood()
   }
 
   if (distFromForque >= 1)
-  {    
-    
+  {
     if (mFoodDetectedAtLeastOnce)
     {
       ROS_WARN("food perception failed, returning old transform");
@@ -175,7 +174,7 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFood()
   ROS_WARN_STREAM("Found " << chosenFoodName);
   mLastPerceivedFoodTransform = foodTransform;
   mFoodDetectedAtLeastOnce = true;
-  
+
   return foodTransform;
 }
 
@@ -269,12 +268,12 @@ double Perception::getDistanceFromForque(const Eigen::Isometry3d& item)
 
 
   Eigen::Vector3d start(forqueTransform.translation());
-  Eigen::Vector3d end(start + 
+  Eigen::Vector3d end(start +
       forqueTransform.linear() * Eigen::Vector3d(0, 0, 1));
   Eigen::ParametrizedLine<double, 3> line(
       start, (end - start).normalized());
   Eigen::Vector3d intersection = line.intersectionPoint(mDepthPlane);
-  
+
   return (item.translation() - intersection).norm();
 }
 
@@ -292,4 +291,9 @@ bool Perception::setFoodName(std::string foodName) {
   return false;
 }
 
+//==============================================================================
+void Perception::reset()
+{
+  mFoodDetectedAtLeastOnce = false;
+}
 } // namespace feeding

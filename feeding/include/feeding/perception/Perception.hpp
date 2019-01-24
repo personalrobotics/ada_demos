@@ -58,6 +58,7 @@ public:
 
   bool setFoodName(std::string foodName);
 
+  void reset();
 
 private:
 

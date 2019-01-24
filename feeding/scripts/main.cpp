@@ -44,15 +44,27 @@ int main(int argc, char** argv)
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
+  // True if actual camera is running.
+  bool perceptionReal = false;
+
   std::string demoType{"nips"};
 
+  // Arguments for data collection.
+  std::string foodName{"strawberry"};
+  std::string dataCollectorPath{"/home/gilwoo/ada_data/"};
+  std::size_t directionIndex{0};
+  std::size_t trialIndex{0};
+
   handleArguments(argc, argv,
-    adaReal, autoContinueDemo, useFTSensingToStopTrajectories, demoType);
+    adaReal, autoContinueDemo, useFTSensingToStopTrajectories, perceptionReal,
+    demoType, foodName, directionIndex, trialIndex, dataCollectorPath);
 
   if (!adaReal)
     ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
   ROS_INFO_STREAM("DemoType: " << demoType);
+  ROS_INFO_STREAM("perception " << perceptionReal);
+  ROS_INFO_STREAM("useFTSensingToStopTrajectories " << useFTSensingToStopTrajectories);
 
 #ifndef REWD_CONTROLLERS_FOUND
   ROS_WARN_STREAM(
@@ -90,14 +102,6 @@ int main(int argc, char** argv)
 
   waitForUser("Startup complete.", TERMINATE_AT_USER_PROMPT);
 
-  /* test perception
-  while(true) 
-  {
-    perception->perceiveAllFood();
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
-  */
-
   feedingDemo->moveToStartConfiguration();
 
   if (demoType == "nips")
@@ -106,16 +110,18 @@ int main(int argc, char** argv)
   }
   else
   {
+    ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
     DataCollector dataCollector(
-      feedingDemo, nodeHandle, autoContinueDemo, adaReal);
+      feedingDemo, nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
 
     if (demoType == "collect_push_skewer")
-      dataCollector.collect(Action::PUSH_AND_SKEWER);
+      dataCollector.collect(Action::PUSH_AND_SKEWER, foodName, directionIndex, trialIndex);
     else if (demoType == "collect_skewer")
-      dataCollector.collect(Action::SKEWER);
+      dataCollector.collect(Action::SKEWER, foodName, directionIndex, trialIndex);
+    else if (demoType == "collect_scoop")
+      dataCollector.collect(Action::SCOOP, foodName, directionIndex, trialIndex);
     else
       throw std::invalid_argument(demoType + "not recognized.");
-
   }
 
   return 0;

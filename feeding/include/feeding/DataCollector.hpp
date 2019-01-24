@@ -25,7 +25,8 @@ namespace feeding {
 enum Action
 {
   PUSH_AND_SKEWER,
-  SKEWER
+  SKEWER,
+  SCOOP
 };
 
 enum ImageType
@@ -37,14 +38,26 @@ enum ImageType
 class DataCollector
 {
 public:
-  // Constructor
+  /// Constructor
+  /// \param[in] dataCollectionPath Directory to save all data collection.
   explicit DataCollector(
       std::shared_ptr<FeedingDemo> feedingDemo,
       ros::NodeHandle nodeHandle,
       bool autoContinueDemo,
-      bool adaReal);
+      bool adaReal,
+      bool perceptionReal,
+      const std::string& dataCollectionPath = "/home/herb/feeding/data_collection/");
 
-  void collect(Action action);
+  /// Collect data.
+  /// \param[in] action Action to execute
+  /// \param[in] foodName Name of food for the data collection
+  /// \param[in] directionIndex Index of the direction as suggested by config file
+  /// \param[in] trialIndex Index of trial
+  void collect(
+    Action action,
+    const std::string& foodName,
+    std::size_t directionIndex,
+    std::size_t trialIndex);
 
 private:
   void setDataCollectionParams(
@@ -56,17 +69,20 @@ private:
   void infoCallback(
       const sensor_msgs::CameraInfoConstPtr& msg, ImageType imageType);
 
-  void infoCallback2(
-      const sensor_msgs::CameraInfo::ConstPtr& msg, ImageType imageType);
-
   void imageCallback(
       const sensor_msgs::ImageConstPtr& msg, ImageType imageType);
+
+  void recordSuccess();
+
+  std::string getCurrentDateTime();
 
   std::shared_ptr<FeedingDemo> mFeedingDemo;
 
   ros::NodeHandle mNodeHandle;
   const bool mAutoContinueDemo;
   const bool mAdaReal;
+  const bool mPerceptionReal;
+  const std::string mDataCollectionPath;
 
   int mNumTrials;
   std::vector<std::string> mFoods;
