@@ -6,11 +6,16 @@
 namespace feeding {
 
 //==============================================================================
-FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle)
+FeedingDemo::FeedingDemo(
+    bool adaReal, bool useFTSensing, ros::NodeHandle nodeHandle)
   : mAdaReal(adaReal), mNodeHandle(nodeHandle)
 {
 
   mWorld = std::make_shared<aikido::planner::World>("feeding");
+
+  std::string armTrajectoryExecutor = useFTSensing
+                                          ? "move_until_touch_topic_controller"
+                                          : "trajectory_controller";
 
   mAda = std::unique_ptr<ada::Ada>(
       new ada::Ada(
@@ -18,7 +23,8 @@ FeedingDemo::FeedingDemo(bool adaReal, ros::NodeHandle nodeHandle)
           !mAdaReal,
           getRosParam<std::string>("/ada/urdfUri", mNodeHandle),
           getRosParam<std::string>("/ada/srdfUri", mNodeHandle),
-          getRosParam<std::string>("/ada/endEffectorName", mNodeHandle)));
+          getRosParam<std::string>("/ada/endEffectorName", mNodeHandle),
+          armTrajectoryExecutor));
   mArmSpace
       = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
           mAda->getArm()->getMetaSkeleton().get());
