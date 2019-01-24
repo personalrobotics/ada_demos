@@ -4,9 +4,9 @@
 
 namespace po = boost::program_options;
 
-
 namespace cameraCalibration {
 
+//==============================================================================
 void handleArguments(
     int argc, char** argv, bool& adaReal, bool& autoContinueDemo)
 {
@@ -27,6 +27,7 @@ void handleArguments(
   }
 }
 
+//==============================================================================
 void waitForUser(const std::string& msg)
 {
   ROS_INFO((msg + " Press [ENTER]").c_str());
@@ -38,6 +39,7 @@ void waitForUser(const std::string& msg)
   }
 }
 
+//==============================================================================
 Eigen::Isometry3d createIsometry(
     double x, double y, double z, double roll, double pitch, double yaw)
 {
@@ -52,6 +54,7 @@ Eigen::Isometry3d createIsometry(
   return isometry;
 }
 
+//==============================================================================
 Eigen::Isometry3d createIsometry(std::vector<double> vec)
 {
   if (vec.size() < 6)
@@ -61,6 +64,7 @@ Eigen::Isometry3d createIsometry(std::vector<double> vec)
   return createIsometry(vec[0], vec[1], vec[2], vec[3], vec[4], vec[5]);
 }
 
+//==============================================================================
 Eigen::MatrixXd createBwMatrixForTSR(
     double horizontalTolerance,
     double verticalTolerance,
@@ -79,18 +83,19 @@ Eigen::MatrixXd createBwMatrixForTSR(
   return bw;
 }
 
-aikido::constraint::dart::TSR getCalibrationTSR(const Eigen::Isometry3d transform) {
+//==============================================================================
+aikido::constraint::dart::TSR getCalibrationTSR(const Eigen::Isometry3d transform)
+{
   auto tsr = pr_tsr::getDefaultPlateTSR();
   tsr.mT0_w = transform;
   tsr.mTw_e.translation() = Eigen::Vector3d{0, 0, 0};
 
   tsr.mBw = createBwMatrixForTSR(
       0.001, 0.001, 0, 0);
-  //tsr.mTw_e.matrix()
-  //    *= ada->getHand()->getEndEffectorTransform("plate")->matrix();
   return tsr;
 }
 
+//==============================================================================
 bool moveArmToTSR(
     aikido::constraint::dart::TSR& tsr,
     ada::Ada& ada,
@@ -114,6 +119,7 @@ bool moveArmToTSR(
   return moveArmOnTrajectory(trajectory, ada, collisionFreeConstraint, armSpace);
 }
 
+//==============================================================================
 bool moveArmOnTrajectory(
     aikido::trajectory::TrajectoryPtr trajectory,
     ada::Ada& ada,
@@ -123,7 +129,6 @@ bool moveArmOnTrajectory(
   if (!trajectory)
   {
     return false;
-    //throw std::runtime_error("Trajectory execution failed: Empty trajectory.");
   }
 
   std::vector<aikido::constraint::ConstTestablePtr> constraints;
@@ -150,6 +155,7 @@ bool moveArmOnTrajectory(
   return true;
 }
 
+//==============================================================================
 void printPose(const Eigen::Isometry3d& pose)
 {
   double x1 = pose.translation().x();
@@ -159,6 +165,7 @@ void printPose(const Eigen::Isometry3d& pose)
   );
 }
 
+//==============================================================================
 Eigen::Isometry3d getWorldToJoule(tf::TransformListener& tfListener) {
   tf::StampedTransform tfStampedTransform;
   try{
@@ -173,6 +180,7 @@ Eigen::Isometry3d getWorldToJoule(tf::TransformListener& tfListener) {
   return transform;
 }
 
+//==============================================================================
 Eigen::Isometry3d getCameraToLens(tf::TransformListener& tfListener) {
   tf::StampedTransform tfStampedTransform;
   try{
@@ -187,6 +195,7 @@ Eigen::Isometry3d getCameraToLens(tf::TransformListener& tfListener) {
   return transform;
 }
 
+//==============================================================================
 Eigen::Isometry3d getCameraToJoule(tf::TransformListener& tfListener)
 {
   tf::StampedTransform tfStampedTransform;

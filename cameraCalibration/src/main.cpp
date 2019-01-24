@@ -36,7 +36,7 @@ bool tryPerceivePoint(
   Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
   auto cameraToJoule = getCameraToJoule(tfListener);
   try{
-    
+
     cameraToJouleEstimates.emplace_back(
       perception.computeCameraToJoule(targetToWorld, worldToJoule,
         getCameraToLens(tfListener),
@@ -50,7 +50,7 @@ bool tryPerceivePoint(
   }
   catch (...)
   {
-    std::cout << "Failed to compute error.";
+    std::cout << "Failed to compute transform" << std::endl;
   }
 
   return false;
@@ -128,18 +128,16 @@ int main(int argc, char** argv)
       armCollisionGroup, envCollisionGroup);
 
   if (adaReal)
-  {
     ada.startTrajectoryExecutor();
-  }
 
   Perception perception(
       nodeHandle,
       "/camera/color/image_raw/compressed",
       "/camera/color/camera_info",
       true,
-      5,//8,
-      4, //5,
-      0.0215);//0.01065);
+      5,
+      4,
+      0.0215);
   tf::TransformListener tfListener;
   std::vector<Eigen::Isometry3d> targetPointsInCameraLensFrame;
   std::vector<Eigen::Isometry3d> cameraLensPointsInWorldFrame;
@@ -240,9 +238,9 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("Got " << cameraToJouleEstimates.size() << " estimates.");
   auto cameraToJoule = perception.computeMeanCameraToJouleEstimate(cameraToJouleEstimates);
   Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
-  perception.visualizeProjection(targetToWorld, worldToJoule, 
+  perception.visualizeProjection(targetToWorld, worldToJoule,
     getCameraToLens(tfListener),
-    cameraToJoule);  
+    cameraToJoule);
 
   ROS_INFO_STREAM("Visualize final projection");
 
@@ -259,7 +257,7 @@ int main(int argc, char** argv)
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
       Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
       perception.visualizeProjection(targetToWorld, worldToJoule,
-        getCameraToLens(tfListener), cameraToJoule);      
+        getCameraToLens(tfListener), cameraToJoule);
     }
   }
 
@@ -274,9 +272,7 @@ int main(int argc, char** argv)
 
   // ===== DONE =====
   if (adaReal)
-  {
     ada.stopTrajectoryExecutor();
-  }
 
   waitForUser("Calibration finished.");
   ros::shutdown();

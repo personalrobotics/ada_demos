@@ -4,6 +4,7 @@
 
 namespace cameraCalibration {
 
+//==============================================================================
 void isometryTocv(const Eigen::Isometry3d& transform,
     cv::Mat& rvec,
     cv::Mat& tvec)
@@ -56,7 +57,8 @@ void Perception::receiveCameraInfo()
 }
 
 //=============================================================================
-void Perception::receiveImageMessage(cv_bridge::CvImagePtr cv_ptr)
+void Perception::receiveImageMessage(
+  cv_bridge::CvImagePtr& cv_ptr)
 {
   if (mIsCompressed)
   {
@@ -122,9 +124,9 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
   //=======================  Solve PnP ==============================
   std::vector<int> inliers;
 
-  std::cout << "cameraToJouleGuess" << std::endl;
-  std::cout << cameraToJouleGuess.matrix() << std::endl;
-  
+  ROS_INFO("cameraToJouleGuess");
+  ROS_INFO_STREAM(cameraToJouleGuess.matrix());
+
   // Initial guess
   // LensToWorld = JouleToWorld * CameraToJoule * LensToCamera;
   auto lensToWorldGuess = worldToJoule.inverse() * cameraToJouleGuess * cameraToLens.inverse();
@@ -149,7 +151,8 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
       0.99,
       inliers);
 
-  std::cout << "inliers: " << inliers.size() << std::endl;
+  ROS_INFO_STREAM("Inliers: " << inliers.size());
+
   if (inliers.size() < 9)
     throw std::runtime_error("Too few inliers");
 
@@ -174,12 +177,11 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
   // LensToWorld = JouleToWorld * CameraToJoule * LensToCamera;
   // <--> CameraToJoule = JouleToWorld.inv() * LensToWorld * LensToCamera.inverse()
   auto cameraToJoule = worldToJoule * lensToWorld * cameraToLens;
- 
-  std::cout << "cameraToJoule" << std::endl;
-  std::cout << cameraToJoule.matrix() << std::endl;
 
-  std::cout << "Visualize with cameraToJoule" << std::endl;
-  visualizeProjection(targetToWorld, worldToJoule, cameraToLens, cameraToJoule);  
+  ROS_INFO("Solved CameraToJoule");
+  ROS_INFO_STREAM(cameraToJoule.matrix());
+
+  visualizeProjection(targetToWorld, worldToJoule, cameraToLens, cameraToJoule);
 
   return cameraToJoule;
 }
@@ -187,7 +189,6 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
 //=============================================================================
 bool Perception::recordView(
   const Eigen::Isometry3d& targetToWorld,
-  // const Eigen::Isometry3d& worldToJoule,
   std::vector<cv::Point3f>& pointsToWorld,
   std::vector<cv::Point2f>& corners,
   cv::Mat& image)
@@ -214,8 +215,6 @@ bool Perception::recordView(
         mSquareSize * (hi - (patternsize.height-1.0)/2.0),
         0
       );
-      //Eigen::Translation3d jouleToPoint((worldToJoule * targetToWorld * pointToTarget).translation());
-      //jouleToPoints.push_back(cv::Point3f(jouleToPoint.x(), jouleToPoint.y(), jouleToPoint.z()));
       Eigen::Translation3d pointToWorld((targetToWorld * pointToTarget).translation());
       pointsToWorld.push_back(cv::Point3f(pointToWorld.x(), pointToWorld.y(), pointToWorld.z()));
     }
@@ -235,13 +234,10 @@ Eigen::Isometry3d Perception::computeMeanCameraToJouleEstimate(
   {
     Eigen::Quaterniond q(cameraToJouleEstimates[i].linear());
     rotations.col(i) = q.coeffs();
-    std::cout << " Quaternion " << q.coeffs().transpose() << std::endl;
-    std::cout << " Translation " << cameraToJouleEstimates[i].translation().transpose() << std::endl;
 
     sumTranslations += cameraToJouleEstimates[i].translation();
   }
   auto translation = sumTranslations / cameraToJouleEstimates.size();
-  std::cout << "Final Translation " << translation.transpose() << std::endl;
 
   // Get largest Eigen vector
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix4d> eigensolver(rotations * rotations.transpose());
@@ -256,11 +252,9 @@ Eigen::Isometry3d Perception::computeMeanCameraToJouleEstimate(
   Eigen::VectorXd::Index maxIdx;
   double maxVal = eigenVals.maxCoeff(&maxIdx);
 
-  // Get the vector corresponding to the largest eigen vector
+  // The largest eigen vector is the average rotation.
   Eigen::VectorXd rotation = eigensolver.eigenvectors().col(maxIdx);
   rotation.normalize();
-
-  std::cout << "Final Quaternion " << rotation.transpose() << " " << rotation.norm() << std::endl;
   Eigen::Quaterniond q;
   q.coeffs() = rotation;
   auto rotationMatrix = q.toRotationMatrix();
@@ -271,13 +265,13 @@ Eigen::Isometry3d Perception::computeMeanCameraToJouleEstimate(
   cameraToJoule.translation() = translation;
 
   Eigen::Vector3d eulerAngles = cameraToJoule.linear().eulerAngles(2, 1, 0);
-  std::cout << "cameraToJoule" << std::endl << cameraToJoule.matrix() << std::endl;
-  std::cout << "yaw: " << eulerAngles.x() << ", pitch: " << eulerAngles.y() << ", roll: " << eulerAngles.z() << std::endl;
+  ROS_INFO_STREAM("Average CameraToJoule" << std::endl << cameraToJoule.matrix() << std::endl);
+  ROS_INFO_STREAM("Yaw: " << eulerAngles.x() << "\npitch: " << eulerAngles.y() << "\nroll: " << eulerAngles.z() << std::endl);
 
   auto jouleToCamera = cameraToJoule.inverse();
   eulerAngles = jouleToCamera.linear().eulerAngles(2, 1, 0);
-  std::cout << "jouleToCamera" << std::endl << jouleToCamera.matrix() << std::endl;
-  std::cout << "yaw: " << eulerAngles.x() << ", pitch: " << eulerAngles.y() << ", roll: " << eulerAngles.z() << std::endl;
+  ROS_INFO_STREAM("Average JouleToCamera" << std::endl << jouleToCamera.matrix() << std::endl);
+  ROS_INFO_STREAM("Yaw: " << eulerAngles.x() << "\npitch: " << eulerAngles.y() << "\nroll: " << eulerAngles.z() << std::endl);
 
   return cameraToJoule;
 }
@@ -297,16 +291,14 @@ Eigen::Isometry3d Perception::computeMeanCameraToJouleEstimate(
   cv::projectPoints(pointsToWorld, rvec, tvec,
     mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
 
-  std::cout << "Got " << pointsToWorld.size() << " target points (green)" << std::endl;
-  std::cout << "Got " << corners.size() << " corners (blue) " << std::endl;
-
-
   for (auto point : imagePoints) {
     cv::circle(image, point, 3, pointsColor, 5);
   }
   for (auto corner : corners) {
     cv::circle(image, corner, 1, cornerColor, 3);
   }
+
+  std::cout << "[Enter] to continue" << std::endl;
   cv::imshow("view", image);
   cv::waitKey(0);
 }
@@ -322,7 +314,7 @@ void Perception::visualizeProjection(
   auto lensToWorld = worldToJoule.inverse() * cameraToJoule * cameraToLens.inverse();
   auto worldToLens = lensToWorld.inverse();
   // get rvec
-  
+
   cv::Mat rvec, tvec;
   isometryTocv(worldToLens, rvec, tvec);
 
@@ -335,7 +327,7 @@ void Perception::visualizeProjection(
     return;
   }
 
-  visualizeProjection(rvec, tvec, pointsToWorld, corners, image, 
+  visualizeProjection(rvec, tvec, pointsToWorld, corners, image,
     cv::Scalar(0, 0, 255, 255),
     cv::Scalar(255, 0, 0, 255));
 }
@@ -355,25 +347,4 @@ bool Perception::captureFrame(cv::Mat& image)
 
   image = cv_ptr->image;
 }
-
-/*
-//=============================================================================
-Eigen::Isometry3d Perception::getJouleToCamera(
-  const Eigen::Isometry3d& targetToLens,
-  const Eigen::Isometry3d& cameraToLens)
-{
-
-  // CameraToTarget = LensToTarget * CameraToLens
-  Eigen::Isometry3d cameraToTarget = targetToLens.inverse() * cameraToLens;
-
-  // 
-  auto jouleToCamera = cameraToTarget.inverse();
-  Eigen::Vector3d eulerAngles = jouleToCamera.linear().eulerAngles(2, 1, 0);
-  std::cout << "final matrix: " << std::endl << jouleToCamera.matrix() << std::endl;
-  std::cout << "yaw: " << eulerAngles.x() << ", pitch: " << eulerAngles.y() << ", roll: " << eulerAngles.z() << std::endl;
-
-  return cameraToTarget;
-}
-
-*/
 } // namespace cameraCalibration
