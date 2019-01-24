@@ -154,7 +154,7 @@ int main(int argc, char** argv)
   auto trajectory = robot.planToTSR(
       armSpace,
       armSkeleton,
-      hand->getBodyNode(),
+      hand->getEndEffectorBodyNode(),
       goalTsr,
       nullptr,
       planningTimeout,
