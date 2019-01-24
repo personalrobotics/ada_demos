@@ -15,7 +15,7 @@
   <!-- <depend>magi</depend> -->
 
   <depend>ada_description</depend>
-  <depend>pr_ordata</depend>
+  <depend>pr_assets</depend>
   <depend>pr_tsr</depend>
 
   <!-- This is required by REP-136. -->
