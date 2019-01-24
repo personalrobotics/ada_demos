@@ -24,6 +24,7 @@ static const std::string baseFrameName("map");
 
 static const double planningTimeout{5.};
 bool adaReal = false;
+bool feeding = false;
 
 void waitForUser(const std::string& msg)
 {
@@ -129,7 +130,7 @@ int main(int argc, char** argv)
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
-  auto hand = std::static_pointer_cast<ada::AdaHand>(robot.getHand());
+  auto hand = robot.getHand();
   armSkeleton->setPositions(armRelaxedHome);
 
   Eigen::Isometry3d sodaPose;
@@ -146,7 +147,7 @@ int main(int argc, char** argv)
 
   auto defaultPose = getCurrentConfig(robot);
 
-  viewer.addFrame(hand->getBodyNode(), 0.2, 0.01, 1.0);
+  viewer.addFrame(hand->getEndEffectorBodyNode(), 0.2, 0.01, 1.0);
   sodaTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("cylinder")->matrix();
   auto goalTsr = std::make_shared<TSR>(sodaTSR);
 
