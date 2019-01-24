@@ -84,7 +84,7 @@ Eigen::MatrixXd createBwMatrixForTSR(
 }
 
 //==============================================================================
-aikido::constraint::dart::TSR getCalibrationTSR(const Eigen::Isometry3d transform)
+aikido::constraint::dart::TSR getCalibrationTSR(const Eigen::Isometry3d& transform)
 {
   auto tsr = pr_tsr::getDefaultPlateTSR();
   tsr.mT0_w = transform;

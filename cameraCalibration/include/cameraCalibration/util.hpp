@@ -48,19 +48,20 @@ Eigen::MatrixXd createBwMatrixForTSR(
     double yawMin,
     double yawMax);
 
-aikido::constraint::dart::TSR getCalibrationTSR(const Eigen::Isometry3d transform);
+aikido::constraint::dart::TSR getCalibrationTSR(
+    const Eigen::Isometry3d& transform);
 
 bool moveArmToTSR(
     aikido::constraint::dart::TSR& goalTSR,
     ada::Ada& ada,
-    std::shared_ptr<aikido::constraint::dart::CollisionFree> collisionFreeConstraint,
-    std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace);
+    aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
+    aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace);
 
 bool moveArmOnTrajectory(
     aikido::trajectory::TrajectoryPtr trajectory,
     ada::Ada& ada,
-    std::shared_ptr<aikido::constraint::dart::CollisionFree> collisionFreeConstraint,
-    std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace);
+    aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
+    aikido::statespace::dart::MetaSkeletonStateSpacePtr armSpace);
 
 void printPose(const Eigen::Isometry3d& pose);
 
