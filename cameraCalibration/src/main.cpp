@@ -50,7 +50,7 @@ bool tryPerceivePoint(
   }
   catch (...)
   {
-    std::cout << "Failed to compute transform" << std::endl;
+    ROS_ERROR("Failed to compute transform");
   }
 
   return false;
