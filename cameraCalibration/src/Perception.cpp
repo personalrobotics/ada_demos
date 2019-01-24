@@ -24,14 +24,14 @@ void isometryTocv(const Eigen::Isometry3d& transform,
 //=============================================================================
 Perception::Perception(
     ros::NodeHandle nodeHandle,
-    std::string markerTopic,
+    std::string imageTopic,
     std::string cameraInfoTopic,
     bool isCompressed,
     int patternSizeWidth,
     int patternSizeHeight,
     float squareSize)
   : mNodeHandle(std::move(nodeHandle))
-  , mMarkerTopic(std::move(markerTopic))
+  , mImageTopic(std::move(imageTopic))
   , mCameraInfoTopic(std::move(cameraInfoTopic))
   , mIsCompressed(std::move(isCompressed))
   , mPatternSizeWidth(std::move(patternSizeWidth))
@@ -64,7 +64,7 @@ void Perception::receiveImageMessage(
   {
     sensor_msgs::CompressedImageConstPtr msg
       = ros::topic::waitForMessage<sensor_msgs::CompressedImage>(
-          mMarkerTopic, mNodeHandle, ros::Duration(1));
+          mImageTopic, mNodeHandle, ros::Duration(1));
     if (msg == nullptr)
     {
       ROS_ERROR("nullptr image message");
@@ -87,7 +87,7 @@ void Perception::receiveImageMessage(
   {
     sensor_msgs::ImageConstPtr msg
       = ros::topic::waitForMessage<sensor_msgs::Image>(
-          mMarkerTopic, mNodeHandle, ros::Duration(1));
+          mImageTopic, mNodeHandle, ros::Duration(1));
     if (msg == nullptr)
     {
       ROS_ERROR("nullptr image message");
