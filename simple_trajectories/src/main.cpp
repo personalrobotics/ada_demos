@@ -1,4 +1,3 @@
-#include <chrono>
 #include <iostream>
 #include <Eigen/Dense>
 #include <aikido/constraint/Satisfied.hpp>
@@ -28,7 +27,6 @@ dart::common::Uri adaSrdfUri{
     "package://ada_description/robots_urdf/ada_with_camera.srdf"};
 
 static const double planningTimeout{5.};
-bool adaSim = true;
 
 void waitForUser(const std::string& msg)
 {
@@ -87,12 +85,12 @@ void moveArmTo(
 
 int main(int argc, char** argv)
 {
-  bool adaReal = true;
+  bool adaSim = true;
 
   // Default options for flags
   po::options_description po_desc("simple_trajectories options");
   po_desc.add_options()("help", "Produce help message")(
-      "adareal,a", po::bool_switch(&adaReal), "Run ADA in real");
+      "adasim,a", po::bool_switch(&adaSim), "Run ADA in sim");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -104,7 +102,7 @@ int main(int argc, char** argv)
     return 0;
   }
 
-  std::cout << "Simulation Mode: " << (!adaReal) << std::endl;
+  std::cout << "Simulation Mode: " << adaSim << std::endl;
 
   ROS_INFO("Starting ROS node.");
   ros::init(argc, argv, "simple_trajectories");
@@ -116,7 +114,7 @@ int main(int argc, char** argv)
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
-  ada::Ada robot(env, !adaReal, adaUrdfUri, adaSrdfUri);
+  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
   auto robotSkeleton = robot.getMetaSkeleton();
 
   // Start Visualization Topic
@@ -139,7 +137,7 @@ int main(int argc, char** argv)
   auto armSkeleton = robot.getArm()->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
 
-  if (!adaReal)
+  if (adaSim)
   {
     Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
     home[1] = 3.14;
@@ -161,7 +159,7 @@ int main(int argc, char** argv)
   viewer.setAutoUpdate(true);
   waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
-  if (adaReal)
+  if (!adaSim)
   {
     ROS_INFO("Start trajectory executor");
     robot.startTrajectoryExecutor();
