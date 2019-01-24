@@ -108,7 +108,7 @@ private:
   bool captureFrame(cv::Mat& image);
 
   ros::NodeHandle mNodeHandle;
-  std::string mMarkerTopic;
+  std::string mImageTopic;
   std::string mCameraInfoTopic;
   bool mIsCompressed;
   int mPatternSizeWidth;
