@@ -26,6 +26,8 @@ namespace feeding {
 enum Action
 {
   VERTICAL_SKEWER,
+  TILTED_VERTICAL_SKEWER,
+  TILTED_ANGLED_SKEWER,
   SCOOP
 };
 
@@ -34,6 +36,11 @@ enum ImageType
   COLOR,
   DEPTH
 };
+
+static const std::map<const std::string, Action> StringToAction{
+ {"collect_skewer", VERTICAL_SKEWER},
+ {"collect_tilted_vertical_skewer", TILTED_VERTICAL_SKEWER},
+ {"collect_tilted_angled_skewer", TILTED_ANGLED_SKEWER}};
 
 class DataCollector
 {
@@ -70,7 +77,11 @@ private:
   void imageCallback(
       const sensor_msgs::ImageConstPtr& msg, ImageType imageType);
 
-  bool verticalSkewer(float rotateForqueAngle);
+  bool skewer(float rotateForqueAngle, TiltStyle tiltStyle);
+
+  // bool tiltedVerticalSkewer(float rotateForqueAngle);
+
+  // bool tiltedAngledSkewer(float rotateForqueAngle);
 
   void recordSuccess();
 

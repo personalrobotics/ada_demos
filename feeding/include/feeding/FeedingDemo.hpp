@@ -40,8 +40,7 @@ static const std::map<TargetItem, const std::string> TargetToString{
 /// - The robot (loading + control)
 /// - The workspace
 ///
-/// It contains not only generalized functions, for example moveArmToTSR(...),
-/// but also some functions that are very specialized for the feeding demo,
+/// It contains functions that are very specialized for the feeding demo,
 /// like moveInFrontOfPerson(). It uses the robot, workspace info and ros
 /// parameters
 /// to accomplish these tasks.

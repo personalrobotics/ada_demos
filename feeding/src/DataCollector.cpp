@@ -277,12 +277,27 @@ void DataCollector::collect(Action action,
 
   if (action == VERTICAL_SKEWER)
   {
-    if (!verticalSkewer(rotateForqueAngle))
+    if (!skewer(rotateForqueAngle, TiltStyle::NONE))
     {
       ROS_INFO_STREAM("Terminating.");
       return;
     }
-
+  }
+  else if (action == TILTED_VERTICAL_SKEWER)
+  {
+    if (!skewer(rotateForqueAngle, TiltStyle::VERTICAL))
+    {
+      ROS_INFO_STREAM("Terminating.");
+      return;
+    }
+  }
+  else if (action == TILTED_ANGLED_SKEWER)
+  {
+    if (!skewer(rotateForqueAngle, TiltStyle::ANGLED))
+    {
+      ROS_INFO_STREAM("Terminating.");
+      return;
+    }
   }
 
   // tiltedSkewer -- TSR
@@ -300,11 +315,12 @@ void DataCollector::collect(Action action,
 
   ROS_INFO_STREAM("Terminating.");
 }
+
 //==============================================================================
-bool DataCollector::verticalSkewer(float rotateForqueAngle)
+bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
 {
   // ===== ROTATE FORQUE ====
-  if (!mFeedingDemo->rotateForque(rotateForqueAngle, TiltStyle::NONE))
+  if (!mFeedingDemo->rotateForque(rotateForqueAngle, tiltStyle))
   {
     ROS_ERROR("Rotate Forque failed. Restart.");
     removeDirectory(mDataCollectionPath);

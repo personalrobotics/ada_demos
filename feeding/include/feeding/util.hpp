@@ -24,9 +24,6 @@ static const std::vector<std::string> FOOD_NAMES
 static const std::vector<std::string> ACTIONS
     = {"calibrate", "pickupfork", "putdownfork"};
 
-static const std::vector<std::string> DEMO_TYPES
-    = {"nips", "collect_skewer"};
-
 /// Deals with the arguments supplied to the executable.
 /// \param[in] description Description for this program
 /// \param[in] argc and argv are the typical parameters of main(..)

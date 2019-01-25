@@ -129,10 +129,12 @@ int main(int argc, char** argv)
     DataCollector dataCollector(
       feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
 
-    if (demoType == "collect_skewer")
-      dataCollector.collect(Action::VERTICAL_SKEWER, foodName, directionIndex, trialIndex);
-    else
+    if (StringToAction.find(demoType) == StringToAction.end())
+    {
       throw std::invalid_argument(demoType + "not recognized.");
+    }
+
+    dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
   }
 
   return 0;
