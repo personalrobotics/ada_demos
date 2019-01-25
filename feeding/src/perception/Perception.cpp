@@ -60,8 +60,8 @@ Perception::Perception(
 
   mPerceptionTimeout
       = getRosParam<double>("/perception/timeoutSeconds", mNodeHandle);
-  mFoodNameToPerceive
-      = getRosParam<std::string>("/perception/foodName", mNodeHandle);
+  // mFoodNameToPerceive
+  //     = getRosParam<std::string>("/perception/foodName", mNodeHandle);
   mPerceivedFaceName
       = getRosParam<std::string>("/perception/faceName", mNodeHandle);
 
@@ -136,18 +136,6 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFood()
       Eigen::Isometry3d currentFoodTransform
           = currentPerceivedFood->getBodyNode(0)->getWorldTransform();
 
-      /*
-      if (!perceiveDepthPlane)
-      {
-        Eigen::Vector3d start(currentFoodTransform.translation());
-        Eigen::Vector3d end(getOpticalToWorld().translation());
-        Eigen::ParametrizedLine<double, 3> line(
-            start, (end - start).normalized());
-        Eigen::Vector3d intersection = line.intersectionPoint(mDepthPlane);
-        currentFoodTransform.translation() = intersection;
-      }
-      */
-
       auto currentDistFromForque = getDistanceFromForque(currentFoodTransform);
 
       ROS_INFO_STREAM("Distance " << currentDistFromForque);
@@ -170,6 +158,16 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFood()
     ROS_WARN("food perception failed.");
     return boost::optional<Eigen::Isometry3d>{};
   }
+
+  if (mFoodDetectedAtLeastOnce)
+  {
+    double distFromLastTransform = (mLastPerceivedFoodTransform.translation() - foodTransform.translation()).norm();
+    if (distFromLastTransform > 0.05) {
+      ROS_WARN("food transform too far from last one!");
+    return mLastPerceivedFoodTransform;
+    }
+  }
+
 
   ROS_WARN_STREAM("Found " << chosenFoodName);
   mLastPerceivedFoodTransform = foodTransform;
@@ -296,4 +294,5 @@ void Perception::reset()
 {
   mFoodDetectedAtLeastOnce = false;
 }
+
 } // namespace feeding

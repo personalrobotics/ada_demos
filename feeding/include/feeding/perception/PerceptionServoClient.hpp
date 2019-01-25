@@ -109,7 +109,7 @@ protected:
   std::chrono::time_point<std::chrono::system_clock> mStartTime;
   std::chrono::time_point<std::chrono::system_clock> mLastSuccess;
 
-  bool hasOriginalDirection = false;
+  bool mHasOriginalDirection = false;
   Eigen::Vector3d originalDirection;
 
   float mOriginalDirectionExtension = 0;

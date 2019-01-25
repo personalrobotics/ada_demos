@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 
   // Arguments for data collection.
   std::string foodName{"strawberry"};
-  std::string dataCollectorPath{"/home/gilwoo/ada_data/"};
+  std::string dataCollectorPath{"/home/herb/feeding/data_collection/"};
   std::size_t directionIndex{0};
   std::size_t trialIndex{0};
 
@@ -59,8 +59,16 @@ int main(int argc, char** argv)
     adaReal, autoContinueDemo, useFTSensingToStopTrajectories, perceptionReal,
     demoType, foodName, directionIndex, trialIndex, dataCollectorPath);
 
+  bool useVisualServo = true;
+  bool allowRotationFree = true;
   // If demo type starts with "collect", not use visualServo
-  bool useVisualServo = ((demoType.rfind("collect"), 0) == 0) ? false : true;
+
+  if ((demoType.rfind("collect"), 0) == 0)
+  {
+    useVisualServo = false;
+    allowRotationFree = false;
+  }
+
   if (!adaReal)
     ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
@@ -81,6 +89,7 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(2); // 2 threads
   spinner.start();
 
+
   auto ftThresholdHelper = std::make_shared<FTThresholdHelper>(
     adaReal && useFTSensingToStopTrajectories, nodeHandle);
 
@@ -90,6 +99,7 @@ int main(int argc, char** argv)
     nodeHandle,
     useFTSensingToStopTrajectories,
     useVisualServo,
+    allowRotationFree,
     ftThresholdHelper,
     autoContinueDemo);
 
@@ -113,16 +123,14 @@ int main(int argc, char** argv)
   }
   else
   {
+    feedingDemo->isCollisionFree();
+
     ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
     DataCollector dataCollector(
       feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
 
-    if (demoType == "collect_push_skewer")
-      dataCollector.collect(Action::PUSH_AND_SKEWER, foodName, directionIndex, trialIndex);
-    else if (demoType == "collect_skewer")
-      dataCollector.collect(Action::SKEWER, foodName, directionIndex, trialIndex);
-    else if (demoType == "collect_scoop")
-      dataCollector.collect(Action::SCOOP, foodName, directionIndex, trialIndex);
+    if (demoType == "collect_skewer")
+      dataCollector.collect(Action::VERTICAL_SKEWER, foodName, directionIndex, trialIndex);
     else
       throw std::invalid_argument(demoType + "not recognized.");
   }

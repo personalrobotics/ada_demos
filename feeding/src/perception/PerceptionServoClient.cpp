@@ -278,7 +278,8 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     else
     {
       timerMutex.unlock();
-      throw std::runtime_error("cannot find a feasible path");
+      ROS_WARN_STREAM("cannot find a feasible path");
+      return;
     }
   }
   else
@@ -312,8 +313,11 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   endEffectorTransform.linear() = rotation;
 
   auto pose = mGetTransform();
-  if (!mGetTransform)
+  if (!pose)
+  {
+    ROS_INFO_STREAM("Pose not updated");
     return false;
+  }
   else
     goalPose = pose.get() * endEffectorTransform;
 
@@ -324,7 +328,7 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
     return false;
   }
 
-  if (hasOriginalDirection)
+  if (mHasOriginalDirection)
   {
     goalPose.translation() = goalPose.translation()
                              + originalDirection * mOriginalDirectionExtension;
@@ -367,6 +371,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   Eigen::Vector3d direction1
       = currentPose.translation() - mOriginalPose.translation();
 
+  std::cout << "direction1 " << direction1.transpose() << std::endl;
   aikido::trajectory::TrajectoryPtr trajectory1 = nullptr;
   aikido::trajectory::UniqueSplinePtr tSpline1 = nullptr;
   if (direction1.norm() > 1e-2)
@@ -385,7 +390,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
         mBodyNode,
         nullptr,
         direction1.normalized(),
-        0.0, // direction1.norm() - 0.001,
+        0.0,
         direction1.norm() + 0.004,
         0.08,
         0.32,
@@ -401,9 +406,14 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     }
     spline1 = dynamic_cast<aikido::trajectory::Spline*>(trajectory1.get());
   }
+  else
+  {
+    ROS_INFO("Distance short. Going for the next phase");
+  }
 
   Eigen::Vector3d direction2
       = goalPose.translation() - currentPose.translation();
+  std::cout << "direction2 " << direction2.transpose() << " length " << direction2.norm() << " precision " << mGoalPrecision  << std::endl;
   if (direction2.norm() < mGoalPrecision)
   {
     ROS_INFO("Visual servoing is finished because goal was position reached.");
@@ -503,10 +513,12 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     setPositionLimits(mAda->getArm()->getMetaSkeleton(),
       limits.first, limits.second);
 
-    if (!hasOriginalDirection)
+    if (!mHasOriginalDirection)
     {
       originalDirection = direction2.normalized();
-      hasOriginalDirection = true;
+      ROS_INFO_STREAM(
+        "Set original direction: " << originalDirection.transpose() << std::endl);
+      mHasOriginalDirection = true;
     }
 
     if (trajectory2 == nullptr)

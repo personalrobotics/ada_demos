@@ -11,6 +11,7 @@
 #include <boost/program_options.hpp>
 #include <boost/optional.hpp>
 #include <dart/dart.hpp>
+#include <libada/Ada.hpp>
 
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
@@ -24,7 +25,7 @@ static const std::vector<std::string> ACTIONS
     = {"calibrate", "pickupfork", "putdownfork"};
 
 static const std::vector<std::string> DEMO_TYPES
-    = {"nips", "collect_push_skewer", "collect_skewer"};
+    = {"nips", "collect_skewer"};
 
 /// Deals with the arguments supplied to the executable.
 /// \param[in] description Description for this program
@@ -71,6 +72,9 @@ void dumpSplinePhasePlot(
 /// param[in]] nodeHandle Ros Node to set food name for detection.
 std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle);
 
+int getUserInputWithOptions(const std::vector<std::string>& optionPrompts,
+    const std::string& prompt);
+
 /// Sets position limits of a metaskeleton.
 /// \param[in] metaSkeleton Metaskeleton to modify.
 /// \param[in] lowerLimits Lowerlimits of the joints.
@@ -79,8 +83,8 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle);
 /// returns Pair of current lower and upper limits of the chosen joints.
 std::pair<Eigen::VectorXd, Eigen::VectorXd> setPositionLimits(
     const ::dart::dynamics::MetaSkeletonPtr& metaSkeleton,
-    const Eigen::VectorXd& lowerLimits = Eigen::VectorXd::Ones(4) * -12.56,
-    const Eigen::VectorXd& upperLimits = Eigen::VectorXd::Ones(4) *  12.56,
+    const Eigen::VectorXd& lowerLimits = Eigen::VectorXd::Ones(4) * -6.28,
+    const Eigen::VectorXd& upperLimits = Eigen::VectorXd::Ones(4) *  6.28,
     const std::vector<std::size_t>& indices = std::vector<std::size_t>{0, 3, 4, 5});
 
 /// Get relative transform between two transforms.
@@ -93,6 +97,9 @@ Eigen::Isometry3d getRelativeTransform(
   const std::string& from,
   const std::string& to);
 
+Eigen::Isometry3d removeRotation(const Eigen::Isometry3d& transform);
+
+void printRobotConfiguration(const std::shared_ptr<ada::Ada>& ada);
 
 } // feeding
 

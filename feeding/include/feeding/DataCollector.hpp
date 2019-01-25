@@ -25,8 +25,7 @@ namespace feeding {
 // Action types for data collection
 enum Action
 {
-  PUSH_AND_SKEWER,
-  SKEWER,
+  VERTICAL_SKEWER,
   SCOOP
 };
 
@@ -48,7 +47,7 @@ public:
       bool autoContinueDemo,
       bool adaReal,
       bool perceptionReal,
-      const std::string& dataCollectionPath = "/home/herb/feeding/data_collection/");
+      const std::string& dataCollectionPath = "/home/herb/feeding/data_collection");
 
   /// Collect data.
   /// \param[in] action Action to execute
@@ -65,16 +64,17 @@ private:
   void setDataCollectionParams(
       bool pushCompleted, int foodId, int pushDirectionId, int trialId);
 
-  void pushAndSkewer(
-      const std::string& foodName, int mode, float rotAngle, float tiltAngle);
-
   void infoCallback(
       const sensor_msgs::CameraInfoConstPtr& msg, ImageType imageType);
 
   void imageCallback(
       const sensor_msgs::ImageConstPtr& msg, ImageType imageType);
 
+  bool verticalSkewer(float rotateForqueAngle);
+
   void recordSuccess();
+
+  void captureFrame();
 
   std::string getCurrentDateTime();
 
@@ -85,7 +85,7 @@ private:
   const bool mAutoContinueDemo;
   const bool mAdaReal;
   const bool mPerceptionReal;
-  const std::string mDataCollectionPath;
+  std::string mDataCollectionPath;
 
   int mNumTrials;
   std::vector<std::string> mFoods;
@@ -99,12 +99,15 @@ private:
   ros::Subscriber sub3;
   ros::Subscriber sub4;
 
-  std::atomic<bool> mShouldRecordImage;
+  std::atomic<bool> mShouldRecordColorImage;
+  std::atomic<bool> mShouldRecordDepthImage;
   std::atomic<bool> mShouldRecordInfo;
   std::atomic<bool> isAfterPush;
   std::atomic<int> mCurrentFood;
   std::atomic<int> mCurrentDirection;
   std::atomic<int> mCurrentTrial;
+  std::atomic<int> mColorImageCount;
+  std::atomic<int> mDepthImageCount;
 };
 
 } // namespace feeding

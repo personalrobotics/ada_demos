@@ -26,6 +26,13 @@ enum TargetItem
   PERSON
 };
 
+enum TiltStyle
+{
+  VERTICAL,
+  ANGLED,
+  NONE
+};
+
 static const std::map<TargetItem, const std::string> TargetToString{
     {FOOD, "food"}, {PLATE, "plate"}, {FORQUE, "forque"}, {PERSON, "person"}};
 
@@ -49,12 +56,15 @@ public:
   /// \param[in] useFTSensing turns the FTSensor and the
   /// MoveUntilTouchController on and off
   /// \param[in] useVisualServo If true, perception servo is used.
+  /// \param[in] allowFreeRotation, If true, items specified as rotationFree
+  /// get rotational freedom.
   /// \param[in] nodeHandle Handle of the ros node.
   FeedingDemo(
       bool adaReal,
       ros::NodeHandle nodeHandle,
       bool useFTSensingToStopTrajectories,
       bool useVisualServo,
+      bool allowFreeRotation,
       std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr,
       bool autoContinueDemo = false);
 
@@ -80,7 +90,7 @@ public:
   /// Checks robot and workspace collisions.
   /// \param[out] result Contains reason for collision.
   /// \return True if no collision was detected.
-  bool isCollisionFree(std::string& result);
+  bool isCollisionFree();
 
   aikido::rviz::WorldInteractiveMarkerViewerPtr getViewer();
 
@@ -89,9 +99,6 @@ public:
   void waitForUser(const std::string& prompt);
 
   void visualizeTrajectory(aikido::trajectory::TrajectoryPtr trajectory);
-
-  /// Prints the configuration of the robot joints.
-  void printRobotConfiguration();
 
   /// Moves the robot to the start configuration as defined in the ros
   /// parameter.
@@ -106,6 +113,18 @@ public:
   /// because we expect that.
   bool moveInto(TargetItem item);
 
+  bool moveAbove(
+      TargetItem item,
+      const Eigen::Isometry3d& targetTransform,
+      const Eigen::Isometry3d& endEffectorTransform,
+      float rotAngle,
+      TiltStyle tiltStyle,
+      double height,
+      double horizontalTolerance,
+      double verticalTolerance,
+      double rotationTolerance,
+      double tiltTolerance);
+
   void moveAboveForque();
 
   /// Moves the forque above the plate.
@@ -117,36 +136,18 @@ public:
   /// \param[in] foodTransform the transform of the food which the robot should
   /// move over.
   bool moveAboveFood(
+      std::string foodName,
       const Eigen::Isometry3d& foodTransform,
-      int pickupAngleMode,
       float rotAngle,
-      float tiltAngle,
-      float rotationalTolerance = M_PI / 8.0,
-      float tiltTolerance = M_PI / 8.0);
+      TiltStyle tiltStyle);
 
   // Use pre-determined rotation and tilt angle for each food item.
   bool moveAboveFood(
       const Eigen::Isometry3d& foodTransform,
       int pickupAngleMode);
 
-  void rotateForque(
-      const Eigen::Isometry3d& foodTransform,
-      float angle,
-      int pickupAngleMode,
-      bool useAngledTranslation = true);
+  bool rotateForque(float rotateAngle, TiltStyle tiltStyle);
 
-  void moveNextToFood(
-      const Eigen::Isometry3d& foodTransform,
-      float angle,
-      bool useAngledTranslation = true);
-
-  void moveNextToFood(
-      Perception* perception, float angle, Eigen::Isometry3d forqueTransform);
-
-  void pushFood(
-      float angle,
-      Eigen::Isometry3d* forqueTransform = nullptr,
-      bool useAngledTranslation = true);
 
   /// Moves the forque to a position ready to approach the person.
   bool moveInFrontOfPerson();
@@ -178,20 +179,8 @@ public:
 
   Eigen::Isometry3d detectAndMoveAboveFood(
       const std::string& foodName,
-      int pickupAngleMode,
       float rotAngle,
-      float tiltAngle,
-      float rotationalTolerance = M_PI / 8.0,
-      float tiltTolerance = M_PI / 8.0);
-
-  void pushAndSkewer(
-      const std::string& foodName,
-      int pickupAngleMode,
-      float rotAngle,
-      float tiltAngle);
-
-  void rotateAndSkewer(const std::string& foodName, float rotateForqueAngle,
-    bool ignoreCollisionWhenMovingOut = false);
+      TiltStyle tiltStyle);
 
   void scoop();
 
@@ -215,12 +204,11 @@ private:
   aikido::distance::ConfigurationRankerPtr getRanker(
     const Eigen::VectorXd& configuration = Eigen::VectorXd(0));
 
-  Eigen::Isometry3d removeRotation(const Eigen::Isometry3d& transform);
-
   bool mIsFTSensingEnabled;
   bool mAdaReal;
   bool mAutoContinueDemo;
   bool mVisualServo;
+  bool mAllowRotationFree;
   ros::NodeHandle mNodeHandle;
   std::shared_ptr<Perception> mPerception;
   std::shared_ptr<FTThresholdHelper> mFTThresholdHelper;
@@ -245,6 +233,15 @@ private:
   std::vector<double> mSkeweringForces;
   std::unordered_map<std::string, double> mFoodSkeweringForces;
   std::unordered_map<std::string, int> mPickUpAngleModes;
+
+  std::unordered_map<std::string, double> mPlateTSRParameters;
+  std::unordered_map<std::string, double> mFoodTSRParameters;
+
+  double mPlanningTimeout;
+  int mMaxNumTrials;
+  double mEndEffectorOffsetPositionTolerance;
+  double mEndEffectorOffsetAngularTolerance;
+
 };
 }
 

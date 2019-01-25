@@ -173,6 +173,22 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
 }
 
 //==============================================================================
+int getUserInputWithOptions(
+  const std::vector<std::string>& optionPrompts, const std::string& prompt)
+{
+  ROS_INFO_STREAM(prompt);
+
+  for(const auto& option: optionPrompts)
+  {
+    ROS_INFO_STREAM(option);
+  }
+  std::cout << "> ";
+  int option;
+  std::cin >> option;
+  return option;
+}
+
+//==============================================================================
 std::pair<Eigen::VectorXd, Eigen::VectorXd> setPositionLimits(
     const ::dart::dynamics::MetaSkeletonPtr& metaSkeleton,
     const Eigen::VectorXd& lowerLimits,
@@ -222,6 +238,31 @@ Eigen::Isometry3d getRelativeTransform(
   Eigen::Isometry3d transform;
   tf::transformTFToEigen(tfStampedTransform, transform);
   return transform;
+}
+
+//==============================================================================
+Eigen::Isometry3d removeRotation(const Eigen::Isometry3d& transform)
+{
+  Eigen::Isometry3d withoutRotation(Eigen::Isometry3d::Identity());
+  withoutRotation.translation() = transform.translation();
+
+  return withoutRotation;
+}
+
+//==============================================================================
+void printRobotConfiguration(const std::shared_ptr<ada::Ada>& ada)
+{
+  Eigen::IOFormat CommaInitFmt(
+      Eigen::StreamPrecision,
+      Eigen::DontAlignCols,
+      ", ",
+      ", ",
+      "",
+      "",
+      " << ",
+      ";");
+  auto defaultPose = ada->getArm()->getMetaSkeleton()->getPositions();
+  ROS_INFO_STREAM("Current configuration" << defaultPose.format(CommaInitFmt));
 }
 
 } // namespace feeding

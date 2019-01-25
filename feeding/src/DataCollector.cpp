@@ -13,13 +13,42 @@ namespace feeding {
 //==============================================================================
 void createDirectory(const std::string& directory)
 {
-  /*
+
   if (!boost::filesystem::is_directory(directory))
   {
     ROS_INFO_STREAM("Create " << directory << std::endl);
-    boost::filesystem::create_directory(directory);
+    if (!boost::filesystem::create_directories(directory))
+    {
+      ROS_ERROR_STREAM("Could not create " << directory << std::endl);
+    }
   }
-  */
+
+}
+//==============================================================================
+void setupDirectoryPerData(const std::string& root)
+{
+  std::vector<std::string> folders{"color", "depth"};
+  for (auto & folder : folders)
+  {
+    auto directory = root + "CameraInfoMsgs/" + folder + "/";
+    createDirectory(directory);
+
+    directory = root + folder;
+    createDirectory(directory);
+  }
+}
+
+//==============================================================================
+void removeDirectory(const std::string directory)
+{
+  if (!boost::filesystem::remove_all(directory))
+  {
+    ROS_WARN_STREAM("Failed to remove " << directory);
+  }
+  else
+  {
+    ROS_WARN_STREAM("Removed " << directory);
+  }
 }
 
 //==============================================================================
@@ -32,25 +61,22 @@ void DataCollector::infoCallback(
   {
     ROS_INFO("recording camera info!");
 
-    std::string s = isAfterPush.load() ? "after" : "before";
     std::string food = mFoods[mCurrentFood.load()];
     std::string direction = mAngleNames[mCurrentDirection.load()];
     int trial = mCurrentTrial.load();
 
     auto directory = mDataCollectionPath +
-                           "/CameraInfoMsgs/"
+                           "CameraInfoMsgs/"
                            + folder + "/";
 
-    std::string infoFile = directory +  food + "-" + direction + "-"
-                           + std::to_string(trial) + "-" + s + "-"
-                           + getCurrentDateTime() + ".yaml";
+    std::string infoFile = directory + "cameraInfo.yaml";
 
     YAML::Node node;
     node["width"] = msg->width;
     node["height"] = msg->height;
 
     for (std::size_t i = 0; i < 9; i++)
-      node["K"].push_back(i);
+      node["K"].push_back(*(msg->K.data() + i));
 
     std::ofstream outFile(infoFile);
     outFile << node;
@@ -67,9 +93,9 @@ void DataCollector::imageCallback(
 {
   std::string folder = imageType == COLOR ? "color" : "depth";
 
-  if (mShouldRecordImage.load())
+  if (mShouldRecordColorImage.load() || mShouldRecordDepthImage.load())
   {
-    ROS_ERROR("recording image!");
+    ROS_INFO("recording image!");
 
     cv_bridge::CvImagePtr cv_ptr;
     try
@@ -90,25 +116,29 @@ void DataCollector::imageCallback(
       return;
     }
 
-    // cv::namedWindow("image", WINDOW_AUTOSIZE);
-    // cv::imshow("image", cv_ptr->image);
-    // cv::waitKey(30);
-
-    static int image_count = 0;
-    std::string s = isAfterPush.load() ? "after" : "before";
-    std::string food = mFoods[mCurrentFood.load()];
-    std::string direction = mAngleNames[mCurrentDirection.load()];
-    int trial = mCurrentTrial.load();
+    auto count = imageType == COLOR ? mColorImageCount.load() : mDepthImageCount.load();
 
     std::string imageFile
-        = mDataCollectionPath + folder + +"/" + food + "-"
-          + direction + "-" + std::to_string(trial)
-          + "-" + s + "-" + getCurrentDateTime() + ".png";
+        = mDataCollectionPath + folder + +"/image_" + std::to_string(count) + "-"
+          + getCurrentDateTime() + ".png";
     bool worked = cv::imwrite(imageFile, cv_ptr->image);
-    image_count++;
-    ROS_INFO_STREAM("image saved to " << imageFile << ", worked: " << worked);
 
-    mShouldRecordImage.store(false);
+    if (imageType == COLOR)
+    {
+      mColorImageCount++;
+      mShouldRecordColorImage.store(false);
+    }
+    else
+    {
+      mDepthImageCount++;
+      mShouldRecordDepthImage.store(false);
+    }
+
+    if (worked)
+      ROS_INFO_STREAM("image saved to " << imageFile);
+    else
+      ROS_WARN_STREAM("image saving failed");
+
   }
 }
 
@@ -128,11 +158,14 @@ DataCollector::DataCollector(
   , mAdaReal(adaReal)
   , mDataCollectionPath{dataCollectionPath}
   , mPerceptionReal{perceptionReal}
-  , mShouldRecordImage{false}
+  , mShouldRecordColorImage{false}
+  , mShouldRecordDepthImage{false}
   , mShouldRecordInfo{false}
   , mCurrentFood{0}
   , mCurrentDirection{0}
   , mCurrentTrial{0}
+  , mColorImageCount{0}
+  , mDepthImageCount{0}
 {
   // See if we can save force/torque sensor data as well.
 
@@ -169,25 +202,12 @@ DataCollector::DataCollector(
         1,
         boost::bind(&DataCollector::infoCallback, this, _1, ImageType::DEPTH));
   }
-
-  createDirectory(mDataCollectionPath);
-
-  std::vector<std::string> folders{"color", "depth"};
-  for (auto & folder : folders)
-  {
-    auto directory = mDataCollectionPath + "/CameraInfoMsgs/" + folder + "/";
-    createDirectory(directory);
-
-    directory = mDataCollectionPath + "/" + folder + "/";
-    createDirectory(directory);
-  }
 }
 
 //==============================================================================
 void DataCollector::setDataCollectionParams(
     bool pushCompleted, int foodId, int pushDirectionId, int trialId)
 {
-
   if (mAdaReal)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -201,31 +221,15 @@ void DataCollector::setDataCollectionParams(
       mCurrentTrial.store(trialId);
     }
 
-    mShouldRecordImage.store(true);
     mShouldRecordInfo.store(true);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     // wait for first stream to be saved
-    while (mShouldRecordImage.load() || mShouldRecordInfo.load())
+    while (mShouldRecordInfo.load())
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
   }
-}
-
-//==============================================================================
-void DataCollector::pushAndSkewer(
-    const std::string& foodName, int mode, float rotAngle, float tiltAngle)
-{
-  /* temporarily disabling
-  mFeedingDemo->pushAndSkewer(foodName, mode, rotAngle, tiltAngle);
-
-  // Pushing complete
-  setDataCollectionParams(true, -1, -1, -1);
-
-  // ===== RESET TO ABOVE FOOD =====
-  mFeedingDemo->detectAndMoveAboveFood(foodName);
-  */
 }
 
 //==============================================================================
@@ -255,6 +259,9 @@ void DataCollector::collect(Action action,
     throw std::invalid_argument(ss.str());
   }
 
+  mDataCollectionPath += foodName + "-" + mAngleNames[directionIndex] + "-" + std::to_string(trialIndex) + "/";
+  setupDirectoryPerData(mDataCollectionPath);
+
   auto foodIndex = std::distance(mFoods.begin(),
     std::find(mFoods.begin(), mFoods.end(), foodName));
 
@@ -263,18 +270,19 @@ void DataCollector::collect(Action action,
                  << mAngleNames[directionIndex]
                  << "] \n\n");
   mFeedingDemo->waitForUser("Start");
-  mFeedingDemo->moveAbovePlate();
 
-  float angle = mDirections[directionIndex] * M_PI / 180.0;
+  float rotateForqueAngle = mDirections[directionIndex] * M_PI / 180.0;
 
   setDataCollectionParams(false, foodIndex, directionIndex, trialIndex);
 
-  if (action == PUSH_AND_SKEWER)
-    pushAndSkewer(foodName, mTiltModes[foodIndex], angle, mTiltAngles[foodIndex]);
-  else if (action == SKEWER)
+  if (action == VERTICAL_SKEWER)
   {
-    mFeedingDemo->moveAbovePlate(false);
-    mFeedingDemo->rotateAndSkewer(foodName, angle, true);
+    if (!verticalSkewer(rotateForqueAngle))
+    {
+      ROS_INFO_STREAM("Terminating.");
+      return;
+    }
+
   }
 
   // tiltedSkewer -- TSR
@@ -290,6 +298,30 @@ void DataCollector::collect(Action action,
 
   recordSuccess();
 
+  ROS_INFO_STREAM("Terminating.");
+}
+//==============================================================================
+bool DataCollector::verticalSkewer(float rotateForqueAngle)
+{
+  // ===== ROTATE FORQUE ====
+  if (!mFeedingDemo->rotateForque(rotateForqueAngle, TiltStyle::NONE))
+  {
+    ROS_ERROR("Rotate Forque failed. Restart.");
+    removeDirectory(mDataCollectionPath);
+    return false;
+  }
+  captureFrame();
+
+  // ===== INTO TO FOOD ====
+  mFeedingDemo->moveInto(TargetItem::FOOD);
+  captureFrame();
+
+  // ===== OUT OF FOOD =====
+  mFeedingDemo->setFTThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
+  mFeedingDemo->moveOutOf(TargetItem::FOOD, true);
+  captureFrame();
+
+  return true;
 }
 
 //==============================================================================
@@ -305,7 +337,7 @@ void DataCollector::recordSuccess()
 
 
   ROS_INFO_STREAM("Record success for " << food << " direction " << direction <<
-    " trial " << trial << "[y/n]");
+    " trial " << trial << " [y/n]");
 
   char input = ' ';
   std::cin.get(input);
@@ -322,16 +354,20 @@ void DataCollector::recordSuccess()
   ss.close();
 }
 
+//==============================================================================
+void DataCollector::captureFrame()
+{
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  mShouldRecordColorImage.store(true);
+  mShouldRecordDepthImage.store(true);
+  std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+}
 
 //==============================================================================
 std::string DataCollector::getCurrentDateTime()
 {
-  boost::posix_time::ptime timeLocal =
-      boost::posix_time::second_clock::local_time();
-
   std::stringstream ss;
   ss <<  boost::posix_time::second_clock::universal_time();
-
   return ss.str();
 }
 
