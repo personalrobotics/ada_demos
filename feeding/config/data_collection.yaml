@@ -3,7 +3,7 @@
 
 data:
   numTrials: 5
-  foods: ["banana", "strawberry"]
+  foods: ["banana", "strawberry", "cantaloupe", "grape", "broccoli"]
   tiltAngles: [0, 0, 0]
   tiltModes: [0, 0, 0]
   directions: [0, 45, 90, 135, 180, 225, 270, 315] #, 90, 135, 180, 225, 270, 315]
@@ -15,7 +15,8 @@ defaultFoodItem:
 
 
 feedingDemo:
-  heightAboveFood: 0.11
+  heightAboveFood: 0.10
+  moveOutofFood: 0.01
   heightOutOfPlate: 0.01
   distBeforePush: 0.05
   distAfterPush: 0.05
@@ -44,7 +45,7 @@ ftSensor:
       force: 25
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
-      force: 25
+      force: 50
       torque: 2
     pushFood:
       force:  4
