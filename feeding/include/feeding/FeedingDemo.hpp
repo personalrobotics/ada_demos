@@ -48,11 +48,13 @@ public:
   /// simulation.
   /// \param[in] useFTSensing turns the FTSensor and the
   /// MoveUntilTouchController on and off
+  /// \param[in] useVisualServo If true, perception servo is used.
   /// \param[in] nodeHandle Handle of the ros node.
   FeedingDemo(
       bool adaReal,
       ros::NodeHandle nodeHandle,
       bool useFTSensingToStopTrajectories,
+      bool useVisualServo,
       std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr,
       bool autoContinueDemo = false);
 
@@ -114,7 +116,6 @@ public:
   /// parameters.
   /// \param[in] foodTransform the transform of the food which the robot should
   /// move over.
-
   bool moveAboveFood(
       const Eigen::Isometry3d& foodTransform,
       int pickupAngleMode,
@@ -219,6 +220,7 @@ private:
   bool mIsFTSensingEnabled;
   bool mAdaReal;
   bool mAutoContinueDemo;
+  bool mVisualServo;
   ros::NodeHandle mNodeHandle;
   std::shared_ptr<Perception> mPerception;
   std::shared_ptr<FTThresholdHelper> mFTThresholdHelper;

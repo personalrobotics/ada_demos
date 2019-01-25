@@ -20,8 +20,6 @@ feedingDemo:
   pushVelLimit: 0.2
   waitMillisecsAtFood: 500     # short pause after skewering the food
 
-numTrials: 100
-
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   thresholds:

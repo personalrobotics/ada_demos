@@ -6,6 +6,7 @@
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
+#include <libada/Ada.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -42,6 +43,7 @@ public:
   /// \param[in] dataCollectionPath Directory to save all data collection.
   explicit DataCollector(
       std::shared_ptr<FeedingDemo> feedingDemo,
+      std::shared_ptr<ada::Ada> ada,
       ros::NodeHandle nodeHandle,
       bool autoContinueDemo,
       bool adaReal,
@@ -77,6 +79,7 @@ private:
   std::string getCurrentDateTime();
 
   std::shared_ptr<FeedingDemo> mFeedingDemo;
+  std::shared_ptr<ada::Ada> mAda;
 
   ros::NodeHandle mNodeHandle;
   const bool mAutoContinueDemo;

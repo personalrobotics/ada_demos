@@ -29,11 +29,13 @@ FeedingDemo::FeedingDemo(
     bool adaReal,
     ros::NodeHandle nodeHandle,
     bool useFTSensingToStopTrajectories,
+    bool useVisualServo,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
     bool autoContinueDemo)
   : mAdaReal(adaReal)
   , mNodeHandle(nodeHandle)
   , mFTThresholdHelper(ftThresholdHelper)
+  , mVisualServo(useVisualServo)
   , mAutoContinueDemo(autoContinueDemo)
   , mIsFTSensingEnabled(useFTSensingToStopTrajectories)
 {
@@ -554,7 +556,6 @@ void FeedingDemo::moveNextToFood(
       = *mAda->getHand()->getEndEffectorTransform("food");
 
   nextToFoodTSR.mT0_w = foodTransform;
-  ROS_INFO_STREAM(eeTransform.linear());
   eeTransform.linear()
       = eeTransform.linear()
         * Eigen::Matrix3d(
@@ -831,7 +832,7 @@ bool FeedingDemo::moveInto(TargetItem item)
     getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle)
         );
 
-  if (mAdaReal && mPerception)
+  if (mAdaReal && mPerception && mVisualServo)
   {
     ROS_INFO("Servoing into food");
     std::shared_ptr<aikido::control::TrajectoryExecutor> executor
@@ -1496,6 +1497,7 @@ void FeedingDemo::rotateAndSkewer(
     // ===== OUT OF FOOD =====
     setFTThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
     moveOutOf(TargetItem::FOOD, ignoreCollisionWhenMovingOut);
+
     break;
   }
 }

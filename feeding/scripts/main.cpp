@@ -59,6 +59,8 @@ int main(int argc, char** argv)
     adaReal, autoContinueDemo, useFTSensingToStopTrajectories, perceptionReal,
     demoType, foodName, directionIndex, trialIndex, dataCollectorPath);
 
+  // If demo type starts with "collect", not use visualServo
+  bool useVisualServo = ((demoType.rfind("collect"), 0) == 0) ? false : true;
   if (!adaReal)
     ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
@@ -87,6 +89,7 @@ int main(int argc, char** argv)
     adaReal,
     nodeHandle,
     useFTSensingToStopTrajectories,
+    useVisualServo,
     ftThresholdHelper,
     autoContinueDemo);
 
@@ -112,7 +115,7 @@ int main(int argc, char** argv)
   {
     ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
     DataCollector dataCollector(
-      feedingDemo, nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
+      feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
 
     if (demoType == "collect_push_skewer")
       dataCollector.collect(Action::PUSH_AND_SKEWER, foodName, directionIndex, trialIndex);

@@ -115,12 +115,14 @@ void DataCollector::imageCallback(
 //==============================================================================
 DataCollector::DataCollector(
     std::shared_ptr<FeedingDemo> feedingDemo,
+    std::shared_ptr<ada::Ada> ada,
     ros::NodeHandle nodeHandle,
     bool autoContinueDemo,
     bool adaReal,
     bool perceptionReal,
     const std::string& dataCollectionPath)
   : mFeedingDemo(std::move(feedingDemo))
+  , mAda(std::move(ada))
   , mNodeHandle(nodeHandle)
   , mAutoContinueDemo(autoContinueDemo)
   , mAdaReal(adaReal)
@@ -271,16 +273,20 @@ void DataCollector::collect(Action action,
     pushAndSkewer(foodName, mTiltModes[foodIndex], angle, mTiltAngles[foodIndex]);
   else if (action == SKEWER)
   {
+    mFeedingDemo->moveAbovePlate(false);
     mFeedingDemo->rotateAndSkewer(foodName, angle, true);
-
-    // Move up a bit to test success
   }
 
   // tiltedSkewer -- TSR
 
   // Twirling
   else if (action == SCOOP)
+  {
     mFeedingDemo->scoop();
+  }
+
+  // Move up a bit to test success
+  mFeedingDemo->moveInFrontOfPerson();
 
   recordSuccess();
 
@@ -324,7 +330,7 @@ std::string DataCollector::getCurrentDateTime()
       boost::posix_time::second_clock::local_time();
 
   std::stringstream ss;
-  ss <<  boost::posix_time::second_clock::universal_time() << std::endl;
+  ss <<  boost::posix_time::second_clock::universal_time();
 
   return ss.str();
 }
