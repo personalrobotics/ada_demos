@@ -633,29 +633,34 @@ void FeedingDemo::moveOutOf(TargetItem item, bool ignoreCollision)
   if (item == PLATE)
     length = getRosParam<double>("/feedingDemo/heightOutOfPlate", mNodeHandle);
   else if (item == FOOD)
-    length = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)* 0.75;
+    length = getRosParam<double>("/feedingDemo/moveOutofFood", mNodeHandle);
   else
   {
     length = 0.04;
     direction = Eigen::Vector3d(0, -1, 0);
   }
 
-  if (ignoreCollision)
+  for(int i = 0; i < 3; ++i)
   {
-    bool trajectoryCompleted = mAda->moveArmToEndEffectorOffset(
-      direction, length, nullptr, //mCollisionFreeConstraint,
-      mPlanningTimeout,
-      mEndEffectorOffsetPositionTolerance,
-      mEndEffectorOffsetAngularTolerance);
+    std::cout << "Pull out " << i << std::endl;
+    if (ignoreCollision)
+    {
+      bool trajectoryCompleted = mAda->moveArmToEndEffectorOffset(
+        direction, length, nullptr, //mCollisionFreeConstraint,
+        mPlanningTimeout,
+        mEndEffectorOffsetPositionTolerance,
+        mEndEffectorOffsetAngularTolerance);
+    }
+    else
+    {
+      bool trajectoryCompleted = mAda->moveArmToEndEffectorOffset(
+        direction, length, mCollisionFreeConstraint,
+        mPlanningTimeout,
+        mEndEffectorOffsetPositionTolerance,
+        mEndEffectorOffsetAngularTolerance);
+    }
   }
-  else
-  {
-    bool trajectoryCompleted = mAda->moveArmToEndEffectorOffset(
-      direction, length, mCollisionFreeConstraint,
-      mPlanningTimeout,
-      mEndEffectorOffsetPositionTolerance,
-      mEndEffectorOffsetAngularTolerance);
-  }
+
 
 
   setFTThreshold(STANDARD_FT_THRESHOLD);
@@ -716,15 +721,26 @@ bool FeedingDemo::moveInto(TargetItem item)
     return servoClient.wait(10000.0);
   }
 
-  auto length
+  double length = 0.05;
+  if (!mAdaReal)
+  {
+    auto length
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle)
         + getRosParam<double>("/feedingDemo/heightIntoFood", mNodeHandle);
+  }
 
-  return mAda->moveArmToEndEffectorOffset(
-      Eigen::Vector3d(0, 0, -1), length, nullptr,// mCollisionFreeConstraint,
-      mPlanningTimeout,
-      mEndEffectorOffsetPositionTolerance,
-      mEndEffectorOffsetAngularTolerance);
+  for(int i = 0; i < 2; ++i)
+  {
+    // Collision constraint is not set because f/t sensor stops execution.
+    auto result = mAda->moveArmToEndEffectorOffset(
+        Eigen::Vector3d(0, 0, -1), length, nullptr,
+        mPlanningTimeout,
+        mEndEffectorOffsetPositionTolerance,
+        mEndEffectorOffsetAngularTolerance);
+    std::cout <<" Execution " << result << std::endl;
+  }
+  return true;
+
 }
 
 //==============================================================================

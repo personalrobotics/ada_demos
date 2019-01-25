@@ -184,6 +184,7 @@ int getUserInputWithOptions(
   }
   std::cout << "> ";
   int option;
+  std::cin.clear();
   std::cin >> option;
   return option;
 }

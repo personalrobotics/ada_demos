@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 
   feedingDemo->setPerception(perception);
 
-  waitForUser("Startup complete.", TERMINATE_AT_USER_PROMPT);
+  ROS_INFO_STREAM("Startup complete.");
 
   feedingDemo->moveToStartConfiguration();
 
@@ -137,6 +137,7 @@ int main(int argc, char** argv)
     dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
   }
 
+  exit(0);
   return 0;
 }
 

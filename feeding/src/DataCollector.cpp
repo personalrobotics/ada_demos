@@ -3,7 +3,11 @@
 #include <libada/util.hpp>
 #include <yaml-cpp/yaml.h>
 #include <boost/date_time.hpp>
+#include <stdlib.h>
 
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include <iostream>
+#include <sstream>
 
 using ada::util::getRosParam;
 using ada::util::waitForUser;
@@ -16,14 +20,17 @@ void createDirectory(const std::string& directory)
 
   if (!boost::filesystem::is_directory(directory))
   {
-    ROS_INFO_STREAM("Create " << directory << std::endl);
     if (!boost::filesystem::create_directories(directory))
     {
       ROS_ERROR_STREAM("Could not create " << directory << std::endl);
     }
+    else
+    {
+      ROS_INFO_STREAM("Created " << directory << std::endl);
+    }
   }
-
 }
+
 //==============================================================================
 void setupDirectoryPerData(const std::string& root)
 {
@@ -119,8 +126,7 @@ void DataCollector::imageCallback(
     auto count = imageType == COLOR ? mColorImageCount.load() : mDepthImageCount.load();
 
     std::string imageFile
-        = mDataCollectionPath + folder + +"/image_" + std::to_string(count) + "-"
-          + getCurrentDateTime() + ".png";
+        = mDataCollectionPath + folder + +"/image_" + std::to_string(count) + ".png";
     bool worked = cv::imwrite(imageFile, cv_ptr->image);
 
     if (imageType == COLOR)
@@ -210,8 +216,7 @@ void DataCollector::setDataCollectionParams(
 {
   if (mAdaReal)
   {
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    isAfterPush.store(pushCompleted);
+    std::this_thread::sleep_for(std::chrono::milliseconds(3));
 
     // Update only when positive.
     if (foodId != -1)
@@ -259,7 +264,8 @@ void DataCollector::collect(Action action,
     throw std::invalid_argument(ss.str());
   }
 
-  mDataCollectionPath += foodName + "-" + mAngleNames[directionIndex] + "-" + std::to_string(trialIndex) + "/";
+  std::string trialName = foodName + "-angle-" + mAngleNames[directionIndex] + "-trial-" + std::to_string(trialIndex);
+  mDataCollectionPath += trialName + "/";
   setupDirectoryPerData(mDataCollectionPath);
 
   auto foodIndex = std::distance(mFoods.begin(),
@@ -269,11 +275,14 @@ void DataCollector::collect(Action action,
       "\nTrial " << trialIndex << ": Food [" << foodName << "] Direction ["
                  << mAngleNames[directionIndex]
                  << "] \n\n");
-  mFeedingDemo->waitForUser("Start");
+
+  std::cout << "Set data collection params." << std::endl;;
 
   float rotateForqueAngle = mDirections[directionIndex] * M_PI / 180.0;
 
   setDataCollectionParams(false, foodIndex, directionIndex, trialIndex);
+
+  ROS_INFO("Starting data collection");
 
   if (action == VERTICAL_SKEWER)
   {
@@ -309,11 +318,12 @@ void DataCollector::collect(Action action,
   }
 
   // Move up a bit to test success
-  mFeedingDemo->moveInFrontOfPerson();
+  // mFeedingDemo->moveInFrontOfPerson();
 
   recordSuccess();
 
   ROS_INFO_STREAM("Terminating.");
+  return;
 }
 
 //==============================================================================
@@ -348,26 +358,35 @@ void DataCollector::recordSuccess()
   int trial = mCurrentTrial.load();
 
   auto fileName = mDataCollectionPath + "success/" + food + "-"
-          + direction + "-" + std::to_string(trial)
-          + "-" + getCurrentDateTime() + ".txt";
-
+          + direction + "-" + std::to_string(trial) + ".txt";
 
   ROS_INFO_STREAM("Record success for " << food << " direction " << direction <<
     " trial " << trial << " [y/n]");
 
-  char input = ' ';
-  std::cin.get(input);
 
-  if (input != 'y' && input != 'n')
+  std::vector<std::string> optionPrompts{"(1) success", "(2) fail", "(3) delete"};
+  auto input = getUserInputWithOptions(optionPrompts, "Did I succeed?");
+  if (input == 1)
   {
-    ROS_ERROR("Input is not y/n");
-    return recordSuccess();
+    std::cout << "Recording success" << std::endl;
+    std::ofstream ss;
+    ss.open(fileName);
+    ss << "success" << std::endl;
+    ss.close();
   }
-
-  std::ofstream ss;
-  ss.open(fileName);
-  ss << input << std::endl;
-  ss.close();
+  else if (input == 2 )
+  {
+    std::cout << "Recording failure" << std::endl;
+    std::ofstream ss;
+    ss.open(fileName);
+    ss << "fail" << std::endl;
+    ss.close();
+  }
+  else
+  {
+    ROS_ERROR_STREAM("Removing data "  << mDataCollectionPath);
+    removeDirectory(mDataCollectionPath);
+  }
 }
 
 //==============================================================================
@@ -382,8 +401,13 @@ void DataCollector::captureFrame()
 //==============================================================================
 std::string DataCollector::getCurrentDateTime()
 {
+  namespace pt = boost::posix_time;
+  pt::ptime now = pt::second_clock::local_time();
   std::stringstream ss;
-  ss <<  boost::posix_time::second_clock::universal_time();
+
+  ss << static_cast<int>(now.date().month()) << "-" << now.date().day()
+      << "-" << now.date().year() << "-" << now.time_of_day();
+  std::cout << ss.str() << std::endl;
   return ss.str();
 }
 
