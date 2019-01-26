@@ -26,10 +26,10 @@ find_package(aikido 0.3.0 REQUIRED
     io
     perception
     planner
+    planner_kunzretimer
     planner_ompl
     planner_parabolic
     planner_vectorfield
-    planner_kunzretimer
     robot
     rviz
     statespace
