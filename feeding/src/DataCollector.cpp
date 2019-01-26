@@ -293,7 +293,11 @@ void DataCollector::collect(Action action,
   }
   else if (action == TILTED_VERTICAL_SKEWER)
   {
-    if (!skewer(rotateForqueAngle, TiltStyle::VERTICAL))
+    std::stringstream ss;
+    ss << "Rotate the food " << mDirections[directionIndex] << " degrees" << std::endl;
+    mFeedingDemo->waitForUser(ss.str());
+
+    if (!skewer(0, TiltStyle::VERTICAL))
     {
       ROS_INFO_STREAM("Terminating.");
       return;
@@ -301,7 +305,11 @@ void DataCollector::collect(Action action,
   }
   else if (action == TILTED_ANGLED_SKEWER)
   {
-    if (!skewer(rotateForqueAngle, TiltStyle::ANGLED))
+    std::stringstream ss;
+    ss << "Rotate the food " << rotateForqueAngle << " degrees" << std::endl;
+    mFeedingDemo->waitForUser(ss.str());
+
+    if (!skewer(0, TiltStyle::ANGLED))
     {
       ROS_INFO_STREAM("Terminating.");
       return;
@@ -328,7 +336,10 @@ void DataCollector::collect(Action action,
 bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
 {
   // ===== ROTATE FORQUE ====
-  if (!mFeedingDemo->rotateForque(rotateForqueAngle, tiltStyle))
+  if (!mFeedingDemo->moveAboveFood(
+    "", // Ignore name.
+    mFeedingDemo->getDefaultFoodTransform(),
+    rotateForqueAngle, tiltStyle))
   {
     ROS_ERROR("Rotate Forque failed. Restart.");
     removeDirectory(mDataCollectionPath);
@@ -337,7 +348,18 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
   captureFrame();
 
   // ===== INTO TO FOOD ====
-  mFeedingDemo->moveInto(TargetItem::FOOD);
+  Eigen::Vector3d direction(0,0,-1);
+  if (tiltStyle == TiltStyle::ANGLED)
+  {
+    Eigen::Vector3d food(mFeedingDemo->getDefaultFoodTransform().translation());
+    Eigen::Vector3d hand(
+      mFeedingDemo->getAda()->getHand()
+      ->getEndEffectorBodyNode()->getTransform().translation());
+    direction = food - hand;
+    direction.normalize();
+  }
+
+  mFeedingDemo->moveInto(TargetItem::FOOD, tiltStyle, direction);
   captureFrame();
 
   // ===== OUT OF FOOD =====

@@ -123,8 +123,6 @@ int main(int argc, char** argv)
   }
   else
   {
-    feedingDemo->isCollisionFree();
-
     ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
     DataCollector dataCollector(
       feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
@@ -137,7 +135,6 @@ int main(int argc, char** argv)
     dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
   }
 
-  exit(0);
   return 0;
 }
 

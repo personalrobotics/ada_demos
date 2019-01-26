@@ -86,11 +86,6 @@ public:
   /// Valid only for simulation mode
   Eigen::Isometry3d getDefaultFoodTransform();
 
-  /// Checks robot and workspace collisions.
-  /// \param[out] result Contains reason for collision.
-  /// \return True if no collision was detected.
-  bool isCollisionFree();
-
   aikido::rviz::WorldInteractiveMarkerViewerPtr getViewer();
 
   void setFTThreshold(FTThreshold threshold);
@@ -109,16 +104,17 @@ public:
   void moveOutOf(TargetItem item, bool ignoreCollision = false);
 
   /// This function does not throw an exception if the trajectory is aborted,
-  /// because we expect that.
-  bool moveInto(TargetItem item);
+  /// because it is an expected behavior when FT sensor is activated.
+  /// \param[in] item
+  /// \param[in] tiltStyle
+  /// \param[in] endEffectorDirection Workspace direction for end effector to move along.
+  bool moveInto(TargetItem item,
+    TiltStyle tiltStyle = TiltStyle::VERTICAL,
+    const Eigen::Vector3d& endEffectorDirection = Eigen::Vector3d(0, 0, -1));
 
   bool moveAbove(
-      TargetItem item,
       const Eigen::Isometry3d& targetTransform,
       const Eigen::Isometry3d& endEffectorTransform,
-      float rotAngle,
-      TiltStyle tiltStyle,
-      double height,
       double horizontalTolerance,
       double verticalTolerance,
       double rotationTolerance,
@@ -127,8 +123,7 @@ public:
   void moveAboveForque();
 
   /// Moves the forque above the plate.
-  /// Optionally lift forque up before the action.
-  bool moveAbovePlate(bool liftUpBeforeAction = false);
+  bool moveAbovePlate();
 
   /// Moves the forque above the food item using the values in the ros
   /// parameters.
@@ -139,14 +134,6 @@ public:
       const Eigen::Isometry3d& foodTransform,
       float rotAngle,
       TiltStyle tiltStyle);
-
-  // Use pre-determined rotation and tilt angle for each food item.
-  bool moveAboveFood(
-      const Eigen::Isometry3d& foodTransform,
-      int pickupAngleMode);
-
-  bool rotateForque(float rotateAngle, TiltStyle tiltStyle);
-
 
   /// Moves the forque to a position ready to approach the person.
   bool moveInFrontOfPerson();
@@ -174,12 +161,9 @@ public:
       const std::string& foodName, bool waitTillDetected = true);
 
   Eigen::Isometry3d detectAndMoveAboveFood(
-      const std::string& foodName, int pickupAngleMode);
-
-  Eigen::Isometry3d detectAndMoveAboveFood(
       const std::string& foodName,
-      float rotAngle,
-      TiltStyle tiltStyle);
+      float rotAngle = 0.0,
+      TiltStyle tiltStyle = TiltStyle::VERTICAL);
 
   void scoop();
 

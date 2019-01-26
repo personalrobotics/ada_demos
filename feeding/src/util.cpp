@@ -266,4 +266,22 @@ void printRobotConfiguration(const std::shared_ptr<ada::Ada>& ada)
   ROS_INFO_STREAM("Current configuration" << defaultPose.format(CommaInitFmt));
 }
 
+//==============================================================================
+bool isCollisionFree(const std::shared_ptr<ada::Ada>& ada,
+  const aikido::constraint::dart::CollisionFreePtr& collisionFree)
+{
+  std::string result;
+  auto robotState = ada->getStateSpace()->getScopedStateFromMetaSkeleton(
+      ada->getMetaSkeleton().get());
+  aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
+  if (!collisionFree->isSatisfied(robotState, &collisionCheckOutcome))
+  {
+    result = "Robot is in collison: " + collisionCheckOutcome.toString();
+    return false;
+  }
+  result = "Robot is not in collision";
+  ROS_INFO_STREAM(result);
+  return true;
+}
+
 } // namespace feeding
