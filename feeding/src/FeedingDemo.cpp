@@ -906,7 +906,10 @@ void FeedingDemo::pickUpFork()
   waitForUser("In?");
   moveInto(TargetItem::FORQUE);
 
-  if (ada::util::waitForUser("Close?"))
+  std::vector<std::string> optionPrompts{"(1) close", "(2) leave-as-is"};
+  auto input = getUserInputWithOptions(optionPrompts, "Close Hand?");
+
+  if (input == 1)
   {
     mAda->closeHand();
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -1147,7 +1150,7 @@ void FeedingDemo::setFTThreshold(FTThreshold threshold)
 void FeedingDemo::waitForUser(const std::string& prompt)
 {
   if (!mAutoContinueDemo)
-    ada::util::waitForUser(prompt, TERMINATE_AT_USER_PROMPT);
+    ada::util::waitForUser(prompt, mAda);
 }
 
 //==============================================================================

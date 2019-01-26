@@ -284,13 +284,10 @@ void DataCollector::collect(Action action,
 
   ROS_INFO("Starting data collection");
 
+  bool result;
   if (action == VERTICAL_SKEWER)
   {
-    if (!skewer(rotateForqueAngle, TiltStyle::NONE))
-    {
-      ROS_INFO_STREAM("Terminating.");
-      return;
-    }
+    result = skewer(rotateForqueAngle, TiltStyle::NONE);
   }
   else if (action == TILTED_VERTICAL_SKEWER)
   {
@@ -308,13 +305,15 @@ void DataCollector::collect(Action action,
       return;
     }
   }
-
-  // tiltedSkewer -- TSR
-
-  // Twirling
   else if (action == SCOOP)
   {
     mFeedingDemo->scoop();
+  }
+
+  if (!result)
+  {
+    ROS_INFO_STREAM("Terminating.");
+    return;
   }
 
   // Move up a bit to test success
@@ -363,20 +362,19 @@ void DataCollector::recordSuccess()
   ROS_INFO_STREAM("Record success for " << food << " direction " << direction <<
     " trial " << trial << " [y/n]");
 
-
   std::vector<std::string> optionPrompts{"(1) success", "(2) fail", "(3) delete"};
   auto input = getUserInputWithOptions(optionPrompts, "Did I succeed?");
   if (input == 1)
   {
-    std::cout << "Recording success" << std::endl;
+    ROS_INFO("Recording success");
     std::ofstream ss;
     ss.open(fileName);
     ss << "success" << std::endl;
     ss.close();
   }
-  else if (input == 2 )
+  else if (input == 2)
   {
-    std::cout << "Recording failure" << std::endl;
+    ROS_INFO("Recording failure");
     std::ofstream ss;
     ss.open(fileName);
     ss << "fail" << std::endl;

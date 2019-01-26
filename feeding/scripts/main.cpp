@@ -61,8 +61,8 @@ int main(int argc, char** argv)
 
   bool useVisualServo = true;
   bool allowRotationFree = true;
-  // If demo type starts with "collect", not use visualServo
 
+  // If demo type starts with "collect", don't use visualServo
   if ((demoType.rfind("collect"), 0) == 0)
   {
     useVisualServo = false;
