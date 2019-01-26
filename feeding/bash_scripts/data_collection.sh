@@ -13,8 +13,11 @@ tf="tf"
 tfStatic="/tf_static"
 
 name=$1"-"$2"-"$3
+output=/home/herb/feeding/rosbag/$name
+echo $output
+
 source ${WSPATH}/devel/setup.bash
-rosbag record $cameraInfo $cameraAlignedDepthImageRaw $colorCameraInfo $colorCameraRaw $cameraExtrinsics $jointStates $forque $tf $tfStatic -O /home/herb/feeding/rosbag/$name /topic __name:=my_bag &
+rosbag record $cameraInfo $cameraAlignedDepthImageRaw $colorCameraInfo $colorCameraRaw $cameraExtrinsics $jointStates $forque $tf $tfStatic -O $output /topic __name:=my_bag &
 
 /home/herb/Workspace/gilwoo_ws/devel/bin/feeding -d collect_skewer --foodName $1 --direction $2 --trial $3 -af
 

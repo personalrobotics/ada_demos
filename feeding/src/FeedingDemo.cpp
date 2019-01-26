@@ -544,19 +544,22 @@ bool FeedingDemo::rotateForque(float rotateAngle, TiltStyle tiltStyle)
 
   aboveFoodTSR.mT0_w = getDefaultFoodTransform();
 
+  const double tiltAngle = M_PI / 4.0;
+  const double height = mFoodTSRParameters["height"] * 0.85;
   Eigen::AngleAxisd rotation = Eigen::AngleAxisd(-rotateAngle, Eigen::Vector3d::UnitZ());
   if (tiltStyle == TiltStyle::NONE)
   {
-    eeTransform.linear() = eeTransform.linear() * Eigen::Matrix3d(rotation);
+    eeTransform = createIsometry(0, 0, -height, -rotateAngle, 0, 0);
   }
   else if (tiltStyle == TiltStyle::VERTICAL)
   {
-    eeTransform.linear()
-        = eeTransform.linear()
-          * Eigen::Matrix3d(
-                rotation
-                * Eigen::AngleAxisd(
-                      M_PI + 0.5, rotation * Eigen::Vector3d::UnitX()));
+    eeTransform = createIsometry(
+                  sin(tiltAngle / 180.0 * M_PI),
+                  0,
+                  -height,
+                  -rotateAngle,
+                  tiltAngle,
+                  0);
   }
   else if (tiltStyle == TiltStyle::ANGLED)
   {
@@ -577,14 +580,15 @@ bool FeedingDemo::rotateForque(float rotateAngle, TiltStyle tiltStyle)
   }
 
   aboveFoodTSR.mBw = createBwMatrixForTSR(
-      mFoodTSRParameters["horizontalTolerance"],
-      mFoodTSRParameters["verticalTolerance"],
-      mFoodTSRParameters["rotationTolerance"]);
-  aboveFoodTSR.mTw_e.matrix() *= eeTransform.matrix();
+      0.0, 0.0, 0.0 );
+      // mFoodTSRParameters["horizontalTolerance"],
+      // mFoodTSRParameters["verticalTolerance"],
+      // mFoodTSRParameters["rotationTolerance"]);
+  aboveFoodTSR.mTw_e = eeTransform;
 
-  aboveFoodTSR.mTw_e.translation()
-        = Eigen::Vector3d{0, 0, -mFoodTSRParameters["height"] * 0.85};
 
+  auto tsr = mViewer->addTSRMarker(aboveFoodTSR);
+  waitForUser("Check TSR");
   if (!mAda->moveArmToTSR(aboveFoodTSR, mCollisionFreeConstraint,
         mPlanningTimeout,
         mMaxNumTrials))

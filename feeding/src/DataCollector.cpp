@@ -20,7 +20,9 @@ void createDirectory(const std::string& directory)
 
   if (!boost::filesystem::is_directory(directory))
   {
-    if (!boost::filesystem::create_directories(directory))
+    boost::filesystem::create_directories(directory);
+
+    if (!boost::filesystem::is_directory(directory))
     {
       ROS_ERROR_STREAM("Could not create " << directory << std::endl);
     }
@@ -264,7 +266,7 @@ void DataCollector::collect(Action action,
     throw std::invalid_argument(ss.str());
   }
 
-  std::string trialName = foodName + "-angle-" + mAngleNames[directionIndex] + "-trial-" + std::to_string(trialIndex);
+  std::string trialName = ActionToString.at(action) + "/" + foodName + "-angle-" + mAngleNames[directionIndex] + "-trial-" + std::to_string(trialIndex);
   mDataCollectionPath += trialName + "/";
   setupDirectoryPerData(mDataCollectionPath);
 
@@ -315,9 +317,6 @@ void DataCollector::collect(Action action,
     ROS_INFO_STREAM("Terminating.");
     return;
   }
-
-  // Move up a bit to test success
-  // mFeedingDemo->moveInFrontOfPerson();
 
   recordSuccess();
 
@@ -395,19 +394,5 @@ void DataCollector::captureFrame()
   mShouldRecordDepthImage.store(true);
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 }
-
-//==============================================================================
-std::string DataCollector::getCurrentDateTime()
-{
-  namespace pt = boost::posix_time;
-  pt::ptime now = pt::second_clock::local_time();
-  std::stringstream ss;
-
-  ss << static_cast<int>(now.date().month()) << "-" << now.date().day()
-      << "-" << now.date().year() << "-" << now.time_of_day();
-  std::cout << ss.str() << std::endl;
-  return ss.str();
-}
-
 
 } // namespace feeding

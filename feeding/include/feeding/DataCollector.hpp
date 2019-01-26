@@ -42,6 +42,11 @@ static const std::map<const std::string, Action> StringToAction{
  {"collect_tilted_vertical_skewer", TILTED_VERTICAL_SKEWER},
  {"collect_tilted_angled_skewer", TILTED_ANGLED_SKEWER}};
 
+static const std::map<Action, const std::string> ActionToString{
+ {VERTICAL_SKEWER, "collect_skewer"},
+ {TILTED_VERTICAL_SKEWER, "collect_tilted_vertical_skewer"},
+ {TILTED_ANGLED_SKEWER, "collect_tilted_angled_skewer"}};
+
 class DataCollector
 {
 public:
@@ -79,15 +84,9 @@ private:
 
   bool skewer(float rotateForqueAngle, TiltStyle tiltStyle);
 
-  // bool tiltedVerticalSkewer(float rotateForqueAngle);
-
-  // bool tiltedAngledSkewer(float rotateForqueAngle);
-
   void recordSuccess();
 
   void captureFrame();
-
-  std::string getCurrentDateTime();
 
   std::shared_ptr<FeedingDemo> mFeedingDemo;
   std::shared_ptr<ada::Ada> mAda;
