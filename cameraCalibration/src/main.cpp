@@ -186,7 +186,8 @@ int main(int argc, char** argv)
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
       0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
       0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
-      0.05, 3.58, 0, angle)); if
+      0.05, 3.58, 0, angle));
+    if
     (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
     {
       ROS_INFO_STREAM("Fail: Step " << i);

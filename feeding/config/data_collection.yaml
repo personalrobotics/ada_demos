@@ -3,7 +3,7 @@
 
 data:
   numTrials: 5
-  foods: ["banana", "strawberry", "cantaloupe", "grape", "broccoli"]
+  foods: ["banana", "strawberry", "cantaloupe", "red_grape", "grape", "broccoli", "pepper", "apple", "honeydew", "pineapple", "carrot", "cauliflower", "tomato", "celery"]
   tiltAngles: [0, 0, 0]
   tiltModes: [0, 0, 0]
   directions: [0, 45, 90, 135, 180, 225, 270, 315] #, 90, 135, 180, 225, 270, 315]
@@ -32,7 +32,7 @@ planning:
     rotationalToleranceAbovePlate: 0.0
     horizontalToleranceNearFood: 0.0
     verticalToleranceNearFood: 0.0
-    rotationToleranceNearFood: 0.3926 # PI / 8
+    rotationToleranceNearFood: 0.1926 # PI / 8
     tiltToleranceNearFood: 0.175 # 10 degrees
 
 # Parameters for the F/T sensor and the MoveUntilTouchController

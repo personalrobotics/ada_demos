@@ -28,7 +28,8 @@ enum Action
   VERTICAL_SKEWER,
   TILTED_VERTICAL_SKEWER,
   TILTED_ANGLED_SKEWER,
-  SCOOP
+  SCOOP,
+  IMAGE_ONLY
 };
 
 enum ImageType
@@ -40,12 +41,14 @@ enum ImageType
 static const std::map<const std::string, Action> StringToAction{
  {"collect_skewer", VERTICAL_SKEWER},
  {"collect_tilted_vertical_skewer", TILTED_VERTICAL_SKEWER},
- {"collect_tilted_angled_skewer", TILTED_ANGLED_SKEWER}};
+ {"collect_tilted_angled_skewer", TILTED_ANGLED_SKEWER},
+ {"collect_images", IMAGE_ONLY}};
 
 static const std::map<Action, const std::string> ActionToString{
  {VERTICAL_SKEWER, "collect_skewer"},
  {TILTED_VERTICAL_SKEWER, "collect_tilted_vertical_skewer"},
- {TILTED_ANGLED_SKEWER, "collect_tilted_angled_skewer"}};
+ {TILTED_ANGLED_SKEWER, "collect_tilted_angled_skewer"},
+ {IMAGE_ONLY, "collect_images"}};
 
 class DataCollector
 {
@@ -72,9 +75,13 @@ public:
     std::size_t directionIndex,
     std::size_t trialIndex);
 
+  /// Collect images from multiple views.
+  /// Does not perform any bite acquisition actions.
+  void collect_images(const std::string& foodName);
+
 private:
   void setDataCollectionParams(
-      bool pushCompleted, int foodId, int pushDirectionId, int trialId);
+      int foodId, int pushDirectionId, int trialId);
 
   void infoCallback(
       const sensor_msgs::CameraInfoConstPtr& msg, ImageType imageType);
@@ -87,6 +94,11 @@ private:
   void recordSuccess();
 
   void captureFrame();
+
+   /// Update mColorImageCount and mDepthImageCount to match
+   /// the number of images in the respective directories.
+  void updateImageCounts(const std::string& directory,
+      ImageType imageType);
 
   std::shared_ptr<FeedingDemo> mFeedingDemo;
   std::shared_ptr<ada::Ada> mAda;
@@ -111,13 +123,22 @@ private:
 
   std::atomic<bool> mShouldRecordColorImage;
   std::atomic<bool> mShouldRecordDepthImage;
-  std::atomic<bool> mShouldRecordInfo;
+  std::atomic<bool> mShouldRecordColorInfo;
+  std::atomic<bool> mShouldRecordDepthInfo;
   std::atomic<bool> isAfterPush;
   std::atomic<int> mCurrentFood;
   std::atomic<int> mCurrentDirection;
   std::atomic<int> mCurrentTrial;
   std::atomic<int> mColorImageCount;
   std::atomic<int> mDepthImageCount;
+
+  std::mutex mCallbackLock;
+  std::mutex mCameraInfoCallbackLock;
+
+  double mPlanningTimeout;
+  int mMaxNumPlanningTrials;
+  double mEndEffectorOffsetPositionTolerance;
+  double mEndEffectorOffsetAngularTolerance;
 };
 
 } // namespace feeding

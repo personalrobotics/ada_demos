@@ -16,6 +16,7 @@ using ada::util::createBwMatrixForTSR;
 using ada::util::createIsometry;
 using aikido::distance::NominalConfigurationRanker;
 using aikido::constraint::dart::TSR;
+using aikido::constraint::dart::CollisionFreePtr;
 
 const bool TERMINATE_AT_USER_PROMPT = true;
 
@@ -175,6 +176,12 @@ std::shared_ptr<ada::Ada> FeedingDemo::getAda()
 }
 
 //==============================================================================
+CollisionFreePtr FeedingDemo::getCollisionConstraint()
+{
+  return mCollisionFreeConstraint;
+}
+
+//==============================================================================
 Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
 {
   return mWorkspace->getDefaultFoodItem()
@@ -326,8 +333,8 @@ bool FeedingDemo::moveAbove(
 
   target.mTw_e.matrix() = endEffectorTransform.matrix();
 
-  auto tsr = mViewer->addTSRMarker(target);
-  waitForUser("Check TSR");
+  // auto tsr = mViewer->addTSRMarker(target);
+  // waitForUser("Check TSR");
   try
   {
     auto trajectoryCompleted
@@ -397,7 +404,7 @@ bool FeedingDemo::moveAboveFood(
     rotationTolerance = M_PI;
   }
 
-  moveAbove(target, eeTransform,
+  return moveAbove(target, eeTransform,
       mFoodTSRParameters["horizontalTolerance"],
       mFoodTSRParameters["verticalTolerance"],
       rotationTolerance,
@@ -481,6 +488,8 @@ bool FeedingDemo::moveInto(TargetItem item,
 
   waitForUser("Move into " + TargetToString.at(item));
 
+  setFTThreshold(GRAB_FOOD_FT_THRESHOLD);
+
   if (item != FOOD && item != FORQUE)
     throw std::invalid_argument(
         "MoveInto[" + TargetToString.at(item) + "] not supported");
@@ -525,7 +534,7 @@ bool FeedingDemo::moveInto(TargetItem item,
     return servoClient.wait(10000.0);
   }
 
-  double length = 0.05;
+  double length = 0.025;
 
   for(int i = 0; i < 2; ++i)
   {

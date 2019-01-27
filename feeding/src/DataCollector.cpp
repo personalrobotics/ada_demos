@@ -11,7 +11,33 @@
 
 using ada::util::getRosParam;
 using ada::util::waitForUser;
+using ada::util::createIsometry;
+using ada::util::createBwMatrixForTSR;
+using aikido::constraint::dart::TSR;
 
+namespace {
+
+// Robot To World
+static const Eigen::Isometry3d robotPose = createIsometry(
+  0.7, -0.1, -0.25, 0, 0, 3.1415);
+
+// Modification of cameraCalibaration's util::getCalibrationTSR
+TSR getSideViewTSR(int step)
+{
+  double angle = 0.1745*step;
+  auto tsr = pr_tsr::getDefaultPlateTSR();
+  tsr.mT0_w = robotPose.inverse() * createIsometry(
+      0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
+      0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
+      0.05, 3.58, 0, angle);
+
+  tsr.mBw = createBwMatrixForTSR(
+      0.001, 0.001, 0, 0);
+  return tsr;
+}
+
+
+}
 namespace feeding {
 
 //==============================================================================
@@ -45,6 +71,7 @@ void setupDirectoryPerData(const std::string& root)
     directory = root + folder;
     createDirectory(directory);
   }
+  createDirectory(root + "success");
 }
 
 //==============================================================================
@@ -64,15 +91,16 @@ void removeDirectory(const std::string directory)
 void DataCollector::infoCallback(
     const sensor_msgs::CameraInfoConstPtr& msg, ImageType imageType)
 {
+  if (imageType == COLOR && !mShouldRecordColorInfo.load())
+    return;
+  if (imageType == DEPTH && !mShouldRecordDepthInfo.load())
+    return;
+
   std::string folder = imageType == COLOR ? "color" : "depth";
 
-  if (mShouldRecordInfo.load())
+  if (mShouldRecordColorInfo.load() || mShouldRecordColorInfo.load())
   {
     ROS_INFO("recording camera info!");
-
-    std::string food = mFoods[mCurrentFood.load()];
-    std::string direction = mAngleNames[mCurrentDirection.load()];
-    int trial = mCurrentTrial.load();
 
     auto directory = mDataCollectionPath +
                            "CameraInfoMsgs/"
@@ -92,7 +120,16 @@ void DataCollector::infoCallback(
 
     ROS_INFO_STREAM("Wrote to " << infoFile);
 
-    mShouldRecordInfo.store(false);
+    if (imageType == COLOR)
+    {
+      mShouldRecordColorInfo.store(false);
+      std::cout << "color Set to " << mShouldRecordColorInfo.load() << std::endl;
+    }
+    else
+    {
+      mShouldRecordDepthInfo.store(false);
+      std::cout << "depth Set to " << mShouldRecordDepthInfo.load() << std::endl;
+    }
   }
 }
 
@@ -100,10 +137,25 @@ void DataCollector::infoCallback(
 void DataCollector::imageCallback(
     const sensor_msgs::ImageConstPtr& msg, ImageType imageType)
 {
+  if (imageType == COLOR && !mShouldRecordColorImage.load())
+    return;
+  if (imageType == DEPTH && !mShouldRecordDepthImage.load())
+    return;
+
   std::string folder = imageType == COLOR ? "color" : "depth";
+  std::lock_guard<std::mutex> lock(mCallbackLock);
 
   if (mShouldRecordColorImage.load() || mShouldRecordDepthImage.load())
   {
+
+    if (imageType == COLOR)
+    {
+      mShouldRecordColorImage.store(false);
+    }
+    else
+    {
+      mShouldRecordDepthImage.store(false);
+    }
     ROS_INFO("recording image!");
 
     cv_bridge::CvImagePtr cv_ptr;
@@ -130,6 +182,7 @@ void DataCollector::imageCallback(
     std::string imageFile
         = mDataCollectionPath + folder + +"/image_" + std::to_string(count) + ".png";
     bool worked = cv::imwrite(imageFile, cv_ptr->image);
+    std::cout << "Trying to save at " << imageFile << std::endl;
 
     if (imageType == COLOR)
     {
@@ -168,7 +221,8 @@ DataCollector::DataCollector(
   , mPerceptionReal{perceptionReal}
   , mShouldRecordColorImage{false}
   , mShouldRecordDepthImage{false}
-  , mShouldRecordInfo{false}
+  , mShouldRecordColorInfo{false}
+  , mShouldRecordDepthInfo{false}
   , mCurrentFood{0}
   , mCurrentDirection{0}
   , mCurrentTrial{0}
@@ -210,14 +264,24 @@ DataCollector::DataCollector(
         1,
         boost::bind(&DataCollector::infoCallback, this, _1, ImageType::DEPTH));
   }
+
+  mPlanningTimeout = getRosParam<double>("/planning/timeoutSeconds", mNodeHandle);
+  mMaxNumPlanningTrials = getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle);
+
+  mEndEffectorOffsetPositionTolerance
+      = getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
+  mEndEffectorOffsetAngularTolerance
+      = getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle);
 }
 
 //==============================================================================
 void DataCollector::setDataCollectionParams(
-    bool pushCompleted, int foodId, int pushDirectionId, int trialId)
+    int foodId, int pushDirectionId, int trialId)
 {
   if (mAdaReal)
   {
+    std::lock_guard<std::mutex> lockImage(mCallbackLock);
+
     std::this_thread::sleep_for(std::chrono::milliseconds(3));
 
     // Update only when positive.
@@ -228,15 +292,17 @@ void DataCollector::setDataCollectionParams(
       mCurrentTrial.store(trialId);
     }
 
-    mShouldRecordInfo.store(true);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-    // wait for first stream to be saved
-    while (mShouldRecordInfo.load())
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
+    mShouldRecordColorInfo.store(true);
+    mShouldRecordDepthInfo.store(true);
   }
+  // wait for first stream to be saved
+  /*
+  while (mShouldRecordColorInfo.load() || mShouldRecordDepthInfo.load())
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  std::cout << "Data collector complete" << std::endl;
+  */
 }
 
 //==============================================================================
@@ -282,7 +348,7 @@ void DataCollector::collect(Action action,
 
   float rotateForqueAngle = mDirections[directionIndex] * M_PI / 180.0;
 
-  setDataCollectionParams(false, foodIndex, directionIndex, trialIndex);
+  setDataCollectionParams(foodIndex, directionIndex, trialIndex);
 
   ROS_INFO("Starting data collection");
 
@@ -329,6 +395,72 @@ void DataCollector::collect(Action action,
   recordSuccess();
 
   ROS_INFO_STREAM("Terminating.");
+  return;
+}
+
+//==============================================================================
+void DataCollector::collect_images(const std::string& foodName)
+{
+  ROS_INFO_STREAM("Collect images for " << foodName);
+
+  mDataCollectionPath = mDataCollectionPath + "/" + foodName + "/";
+  setupDirectoryPerData(mDataCollectionPath);
+  setDataCollectionParams(0, 0, 0);
+
+  ROS_INFO_STREAM("Update image counts");
+  updateImageCounts(mDataCollectionPath, ImageType::COLOR);
+  updateImageCounts(mDataCollectionPath, ImageType::DEPTH);
+
+  // Move above food (center of plate)
+  ROS_INFO_STREAM("Move above food");
+  if (!mFeedingDemo->moveAboveFood(
+    "", // Ignore name.
+    mFeedingDemo->getDefaultFoodTransform(),
+    0.0, TiltStyle::NONE))
+  {
+    ROS_ERROR("Rotate Forque failed. Restart.");
+    return;
+  }
+
+  captureFrame();
+
+  // Move in a few centimeters.
+  ROS_INFO_STREAM("Move in 2.5 cm.");
+  double length = 0.025;
+  if(!mFeedingDemo->getAda()->moveArmToEndEffectorOffset(
+      Eigen::Vector3d(0,0,-1), length, nullptr,
+      mPlanningTimeout,
+      mEndEffectorOffsetPositionTolerance,
+      mEndEffectorOffsetAngularTolerance))
+  {
+    ROS_ERROR("Rotate Forque failed. Restart.");
+    return;
+  }
+
+  captureFrame();
+
+  // Rotate around and take photos.
+  // Modification of calibration viewpoints.
+  ROS_INFO_STREAM("Rotate around.");
+
+  for (int i = 0; i < 100; i += 10)
+  {
+    auto tsr = getSideViewTSR(i);
+
+    // auto marker = mFeedingDemo->getViewer()->addTSRMarker(tsr);
+    // mFeedingDemo->waitForUser("Check");
+
+    if(!mFeedingDemo->getAda()->moveArmToTSR(
+      tsr,
+      mFeedingDemo->getCollisionConstraint(),
+      mPlanningTimeout,
+      mMaxNumPlanningTrials))
+    {
+      ROS_INFO_STREAM("Fail: Step " << i);
+    } else {
+      captureFrame();
+    }
+  }
   return;
 }
 
@@ -390,6 +522,7 @@ void DataCollector::recordSuccess()
     ROS_INFO("Recording success");
     std::ofstream ss;
     ss.open(fileName);
+    ROS_INFO_STREAM(fileName);
     ss << "success" << std::endl;
     ss.close();
   }
@@ -398,6 +531,7 @@ void DataCollector::recordSuccess()
     ROS_INFO("Recording failure");
     std::ofstream ss;
     ss.open(fileName);
+    ROS_INFO_STREAM(fileName);
     ss << "fail" << std::endl;
     ss.close();
   }
@@ -412,9 +546,35 @@ void DataCollector::recordSuccess()
 void DataCollector::captureFrame()
 {
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+  mCallbackLock.lock();
   mShouldRecordColorImage.store(true);
   mShouldRecordDepthImage.store(true);
+  mCallbackLock.unlock();
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+}
+//==============================================================================
+void DataCollector::updateImageCounts(const std::string& directory,
+    ImageType imageType)
+{
+  using namespace boost::filesystem;
+
+  std::string folder = directory + (imageType == COLOR ? "color" : "depth");
+  int count = 0;
+  for (directory_iterator it(directory); it != directory_iterator(); ++it)
+  {
+    if (is_regular_file(it->status()))
+      count++;
+  }
+
+  if (imageType == COLOR)
+  {
+    mColorImageCount.store(count);
+  }
+  else
+  {
+    mDepthImageCount.store(count);
+  }
+  ROS_INFO_STREAM(folder + " has " << count << "images");
 }
 
 } // namespace feeding

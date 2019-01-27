@@ -19,7 +19,7 @@ echo $output
 source ${WSPATH}/devel/setup.bash
 rosbag record $cameraInfo $cameraAlignedDepthImageRaw $colorCameraInfo $colorCameraRaw $cameraExtrinsics $jointStates $forque $tf $tfStatic -O $output /topic __name:=my_bag &
 
-/home/herb/Workspace/gilwoo_ws/devel/bin/feeding -d collect_skewer --foodName $1 --direction $2 --trial $3 -af
+/home/herb/Workspace/gilwoo_ws/devel/bin/feeding -d collect_skewer --foodName $1 --direction $2 --trial $3 -af -o $4
 
 echo "Kill rosbag"
 rosnode kill /my_bag

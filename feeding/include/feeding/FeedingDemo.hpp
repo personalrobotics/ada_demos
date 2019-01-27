@@ -94,6 +94,8 @@ public:
 
   void visualizeTrajectory(aikido::trajectory::TrajectoryPtr trajectory);
 
+  aikido::constraint::dart::CollisionFreePtr getCollisionConstraint();
+
   /// Moves the robot to the start configuration as defined in the ros
   /// parameter.
   void moveToStartConfiguration();

@@ -51,7 +51,7 @@ int main(int argc, char** argv)
 
   // Arguments for data collection.
   std::string foodName{"strawberry"};
-  std::string dataCollectorPath{"/home/herb/feeding/data_collection/"};
+  std::string dataCollectorPath;
   std::size_t directionIndex{0};
   std::size_t trialIndex{0};
 
@@ -72,9 +72,14 @@ int main(int argc, char** argv)
   if (!adaReal)
     ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
+  if (dataCollectorPath == "")
+    throw std::invalid_argument("Need to provide output path");
+
   ROS_INFO_STREAM("DemoType: " << demoType);
   ROS_INFO_STREAM("perception " << perceptionReal);
   ROS_INFO_STREAM("useFTSensingToStopTrajectories " << useFTSensingToStopTrajectories);
+  ROS_INFO_STREAM("DataCollectorPath: " << dataCollectorPath);
+  ROS_INFO_STREAM("FoodName: " << foodName);
 
 #ifndef REWD_CONTROLLERS_FOUND
   ROS_WARN_STREAM(
@@ -132,7 +137,15 @@ int main(int argc, char** argv)
       throw std::invalid_argument(demoType + "not recognized.");
     }
 
-    dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
+    if (StringToAction.at(demoType) == Action::IMAGE_ONLY)
+    {
+      dataCollector.collect_images(foodName);
+    }
+    else
+    {
+      dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
+    }
+
   }
 
   return 0;
