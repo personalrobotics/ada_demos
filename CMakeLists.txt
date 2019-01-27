@@ -3,7 +3,7 @@ project(ada_demos)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-find_package(catkin)
+find_package(catkin REQUIRED COMPONENTS tf tf_conversions)
 catkin_package(
   INCLUDE_DIRS feeding/include
   LIBRARIES feeding
@@ -12,6 +12,10 @@ catkin_package(
 # ===============================================================================
 # Dependencies
 #
+
+find_package(tf_conversions REQUIRED)
+include_directories(${tf_conversions_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 
 find_package(DART 6.6.2 REQUIRED)
 include_directories(${DART_INCLUDE_DIRS})
@@ -59,6 +63,7 @@ add_subdirectory(soda_grasp)
 add_subdirectory(simple_trajectories)
 add_subdirectory(hand_control)
 add_subdirectory(feeding)
+add_subdirectory(cameraCalibration)
 
 # ===============================================================================
 # Formatting
