@@ -149,10 +149,10 @@ public:
 
   void feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted = true);
 
-  std::vector<TargetFoodItem> detectFoodItems(
+  std::vector<FoodItemWithActionScorePtr> detectFoodItems(
       const std::string& foodName = "");
 
-  TargetFoodItem detectAndMoveAboveFood(
+  FoodItemWithActionScorePtr detectAndMoveAboveFood(
       const std::string& foodName,
       float rotAngle = 0.0,
       TiltStyle tiltStyle = TiltStyle::VERTICAL);

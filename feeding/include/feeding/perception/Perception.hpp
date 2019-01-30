@@ -9,6 +9,7 @@
 #include <tf/transform_listener.h>
 
 #include "feeding/ranker/TargetFoodRanker.hpp"
+#include "feeding/FoodItem.hpp"
 
 namespace feeding {
 
@@ -40,9 +41,10 @@ public:
   /// the item ranked highest by the ranker.
   /// \param[out] foodTransform The transform of the detected food.
   /// \return All food items on the plate of matching name.
-  std::vector<TargetFoodItem> perceiveFood(const std::string& foodName = "") const;
+  std::vector<FoodItemWithActionScorePtr> perceiveFood(
+    const std::string& foodName = "") const;
 
-  void setFoodItemToTrack(const TargetFoodItem& target);
+  void setFoodItemToTrack(const FoodItem& target);
 
   /// Throws exception if target item is not set.
   Eigen::Isometry3d getTrackedFoodItemPose();
@@ -65,7 +67,7 @@ private:
   std::shared_ptr<aikido::perception::ObjectDatabase> mObjectDatabase;
 
   std::shared_ptr<TargetFoodRanker> mTargetFoodRanker;
-  TargetFoodItem mTargetFoodItem;
+  FoodItem mFoodItem;
 
   float mFaceZOffset;
   std::string mPerceivedFaceName;

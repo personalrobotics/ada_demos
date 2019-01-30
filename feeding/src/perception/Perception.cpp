@@ -68,7 +68,7 @@ Perception::Perception(
 }
 
 //==============================================================================
-std::vector<TargetFoodItem> Perception::perceiveFood(
+std::vector<FoodItemWithActionScorePtr> Perception::perceiveFood(
   const std::string& foodName)
 {
   if (foodName != "" & (
@@ -83,14 +83,15 @@ std::vector<TargetFoodItem> Perception::perceiveFood(
   auto detectedItems = mFoodDetector->detectObjects(
     mWorld, ros::Duration(mPerceptionTimeout));
 
-  std::vector<TargetFoodItem> detectedFoodItems;
+  std::vector<FoodItemWithActionScorePtr> detectedFoodItems;
   detectedFoodItems.reserve(detectedItems.size());
   for (const auto& item: detectedItems)
   {
-    auto targetFoodItem = TargetFoodItem(item);
-    if (foodName != "" && targetFoodItem.getName() != foodName)
+    auto itemWithActionScore = createFoodItemWIthActionScore(item);
+
+    if (foodName != "" && itemWithActionScore.item.name != foodName)
       continue;
-    detectedFoodItems.emplace_back(TargetFoodItem(item));
+    detectedFoodItems.emplace_back(std::move(itemWithActionScore));
   }
 
   // Return sorted items

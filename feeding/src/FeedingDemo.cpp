@@ -773,7 +773,7 @@ void FeedingDemo::feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted)
 }
 
 //==============================================================================
-std::vector<TargetFoodItem> FeedingDemo::detectFoodItems(
+std::vector<FoodItemWithActionScorePtr> FeedingDemo::detectFoodItems(
     const std::string& foodName)
 {
   if (!mAdaReal)
@@ -800,29 +800,30 @@ void FeedingDemo::waitForUser(const std::string& prompt)
 }
 
 //==============================================================================
-TargetFoodItem FeedingDemo::detectAndMoveAboveFood(
+FoodItemWithActionScorePtr FeedingDemo::detectAndMoveAboveFood(
       const std::string& foodName)
 {
   auto candidateItems = detectFoodItems(foodName);
 
-  TargetFoodItem targetItem;
+  FoodItemWithActionScorePtr targetItemWithScore;
 
   if (candidateItems.size() == 0)
     throw std::runtime_error("Failed to detect any food.");
 
   bool moveAboveSuccessful = false;
-  for(const auto& item, candidateItems)
+  for(const auto& itemWithScore, candidateItems)
   {
-    auto action = item.getAction();
+    auto action = itemWithScore.action;
+    auto item = itemWithScore.item;
 
-    if (!moveAboveFood(item.getName(), item.getPose(),
+    if (!moveAboveFood(item.name, item.pose,
         item.getAction(), action.rotationAngle, action.tiltAngle))
     {
       ROS_INFO_STREAM("Failed to move above " << item.getName());
       continue;
     }
     moveAboveSuccessful = true;
-    targetItem = item;
+    targetItemWithScore = itemWithScore;
     break;
   }
 
@@ -831,8 +832,8 @@ TargetFoodItem FeedingDemo::detectAndMoveAboveFood(
     ROS_ERROR("Failed to move above any food.");
     throw std::runtime_error("Failed to move above any food.");
   }
-  mPerception->setFoodItemToTrack(item);
-  return item;
+  mPerception->setFoodItemToTrack(targetItemWithScore.item);
+  return targetItemWithScore;
 }
 
 //==============================================================================
