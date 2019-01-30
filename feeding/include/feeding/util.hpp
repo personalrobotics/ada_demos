@@ -36,7 +36,6 @@ static const std::vector<std::string> ACTIONS
 /// \param[out] directionIndex Current direction (angle) for data collection
 /// \param[out] trialIndex Current trial index for data collection
 /// \param[out] dataCollectorPath Directory to store data collection
-
 /// on and off
 void handleArguments(
     int argc,
@@ -100,6 +99,15 @@ void printRobotConfiguration(const std::shared_ptr<ada::Ada>& ada);
 
 bool isCollisionFree(const std::shared_ptr<ada::Ada>& ada,
       const aikido::constraint::dart::CollisionFreePtr& collisionFree);
+
+double getDistance(
+    const Eigen::Isometry3d& item1,
+    const Eigen::Isometry3d& item2);
+
+Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener);
+
+aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
+    const std::shared_ptr<ada::Ada>& ada);
 
 } // feeding
 

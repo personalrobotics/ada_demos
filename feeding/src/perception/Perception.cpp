@@ -14,12 +14,13 @@ namespace feeding {
 Perception::Perception(
     aikido::planner::WorldPtr world,
     dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
-    ros::NodeHandle nodeHandle)
+    ros::NodeHandle nodeHandle,
+    std::shared_ptr<TargetFoodRanker> ranker,
+    float faceZOffset)
   : mWorld(world)
   , mNodeHandle(nodeHandle)
-  , mFaceZOffset(0.0)
-  , mLastPerceivedFoodTransform(Eigen::Isometry3d::Identity())
-  , mFoodDetectedAtLeastOnce(false)
+  , mTargetFoodRanker(ranker)
+  , mFaceZOffset(faceZOffset)
 {
   std::string detectorDataURI
       = getRosParam<std::string>("/perception/detectorDataUri", mNodeHandle);
@@ -60,132 +61,51 @@ Perception::Perception(
 
   mPerceptionTimeout
       = getRosParam<double>("/perception/timeoutSeconds", mNodeHandle);
-  // mFoodNameToPerceive
-  //     = getRosParam<std::string>("/perception/foodName", mNodeHandle);
   mPerceivedFaceName
       = getRosParam<std::string>("/perception/faceName", mNodeHandle);
-
   mFoodNames
       = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
 }
 
 //==============================================================================
-boost::optional<Eigen::Isometry3d> Perception::perceiveAllFood()
+std::vector<TargetFoodItem> Perception::perceiveFood(
+  const std::string& foodName)
 {
-  double shortestDistance = 1.0; // 1m.
-  Eigen::Isometry3d foodTransform;
-
-  for (std::string foodName : mFoodNames)
+  if (foodName != "" & (
+    std::find(mFoodNames.begin(), mFoodNames.end(), foodName) == mFoodNames.end()))
   {
-    Eigen::Isometry3d transform;
-    setFoodName(foodName);
-    auto detected = perceiveFood();
-    if (detected)
-    {
-      transform = detected.get();
-      auto distance = getDistanceFromForque(detected.get());
-      if (distance < shortestDistance)
-      {
-        shortestDistance = distance;
-        foodTransform = transform;
-      }
-    }
+    std::stringstream ss;
+    ss << "[" << foodName << "] is unknown." << std::endl;
+    throw std::invalid_argument(ss.str());
   }
 
-  if (shortestDistance >= 1)
-    return boost::optional<Eigen::Isometry3d>{};
-  else
+  // Detect items
+  auto detectedItems = mFoodDetector->detectObjects(
+    mWorld, ros::Duration(mPerceptionTimeout));
+
+  std::vector<TargetFoodItem> detectedFoodItems;
+  detectedFoodItems.reserve(detectedItems.size());
+  for (const auto& item: detectedItems)
   {
-    mLastPerceivedFoodTransform = foodTransform;
-    return foodTransform;
-  }
-}
-
-
-//==============================================================================
-boost::optional<Eigen::Isometry3d> Perception::perceiveFood()
-{
-  mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
-  Eigen::Isometry3d cameraToWorldTransform = getCameraToWorldTransform();
-
-  dart::dynamics::SkeletonPtr perceivedFood;
-  Eigen::Isometry3d foodTransform;
-
-  ROS_INFO_STREAM("Looking for food items of " << mFoodNameToPerceive << std::endl);
-
-  double distFromForque = 10.0; // 1m
-  std::string chosenFoodName("");
-
-  for (int skeletonFrameIdx = 0; skeletonFrameIdx < 5; skeletonFrameIdx++)
-  {
-    for (std::size_t index = 0; ; ++index)
-    {
-      std::string currentFoodName = mFoodNameToPerceive + "_" + std::to_string(index)
-                                    + "_" + std::to_string(skeletonFrameIdx);
-      auto currentPerceivedFood = mWorld->getSkeleton(currentFoodName);
-      if (!currentPerceivedFood)
-      {
-        if (index > 10)
-          break;
-        else
-          continue;
-      }
-
-      ROS_INFO_STREAM(currentFoodName << " detected ");
-
-      Eigen::Isometry3d currentFoodTransform
-          = currentPerceivedFood->getBodyNode(0)->getWorldTransform();
-
-      auto currentDistFromForque = getDistanceFromForque(currentFoodTransform);
-
-      ROS_INFO_STREAM("Distance " << currentDistFromForque);
-      if (currentDistFromForque < distFromForque)
-      {
-        foodTransform = currentFoodTransform;
-        chosenFoodName = currentFoodName;
-        distFromForque = currentDistFromForque;
-      }
-    }
+    auto targetFoodItem = TargetFoodItem(item);
+    if (foodName != "" && targetFoodItem.getName() != foodName)
+      continue;
+    detectedFoodItems.emplace_back(TargetFoodItem(item));
   }
 
-  if (distFromForque >= 1)
-  {
-    if (mFoodDetectedAtLeastOnce)
-    {
-      ROS_WARN("food perception failed, returning old transform");
-      return mLastPerceivedFoodTransform;
-    }
-    ROS_WARN("food perception failed.");
-    return boost::optional<Eigen::Isometry3d>{};
-  }
-
-  if (mFoodDetectedAtLeastOnce)
-  {
-    double distFromLastTransform = (mLastPerceivedFoodTransform.translation() - foodTransform.translation()).norm();
-    if (distFromLastTransform > 0.05) {
-      ROS_WARN("food transform too far from last one!");
-    return mLastPerceivedFoodTransform;
-    }
-  }
-
-
-  ROS_WARN_STREAM("Found " << chosenFoodName);
-  mLastPerceivedFoodTransform = foodTransform;
-  mFoodDetectedAtLeastOnce = true;
-
-  return foodTransform;
+  // Return sorted items
+  return mTargetFoodRanker->sort(
+    detectedFoodItems,
+    getForqueTransform());
 }
 
 //==============================================================================
-boost::optional<Eigen::Isometry3d> Perception::perceiveFace()
+Eigen::Isometry3d Perception::perceiveFace()
 {
-
-  bool detected
-      = mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
-  if (!detected)
+  if (!mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout)))
   {
     ROS_WARN("face perception failed");
-    return boost::optional<Eigen::Isometry3d>{};
+    throw std::runtime_error("Face perception failed");
   }
 
   // just choose one for now
@@ -214,8 +134,7 @@ boost::optional<Eigen::Isometry3d> Perception::perceiveFace()
     }
   }
   ROS_WARN("face perception failed");
-
-  return boost::optional<Eigen::Isometry3d>{};
+  throw std::runtime_error("Face perception failed");
 }
 
 //==============================================================================
@@ -227,72 +146,24 @@ bool Perception::isMouthOpen()
 }
 
 //==============================================================================
-Eigen::Isometry3d Perception::getOpticalToWorld()
+void Perception::setFoodItemToTrack(const TargetFoodItem& target)
 {
-  return getRelativeTransform(
-        mTFListener,
-        "/world",
-        "/camera_color_optical_frame");
+  mTargetFoodItem = target;
 }
 
 //==============================================================================
-Eigen::Isometry3d Perception::getForqueTransform()
+Eigen::Isometry3d Perception::getTrackedFoodItemPose()
 {
-  return getRelativeTransform(
-    mTFListener,
-    "/map",
-    "/j2n6s200_forque_end_effector");
-}
+  if (mTargetFoodItem.getName() == "")
+    throw std::runtime_error("Target item not set.");
 
-//==============================================================================
-Eigen::Isometry3d Perception::getCameraToWorldTransform()
-{
-  return getRelativeTransform(
-    mTFListener,
-    "/camera_color_optical_frame",
-    "/map");
-}
+  auto item = mFoodDetector->detectObject(mWorld,
+    mTargetFoodItem.getUID(),
+    ros::Duration(mPerceptionTimeout));
 
-//==============================================================================
-double Perception::getDistanceFromForque(const Eigen::Isometry3d& item)
-{
-  Eigen::Isometry3d forqueTransform = getForqueTransform();
-  std::cout << "Forque position " << forqueTransform.translation().transpose() << std::endl;
-
-  Eigen::Vector3d cameraDirection
-      = getCameraToWorldTransform().linear() * Eigen::Vector3d(0, 0, 1);
-  mDepthPlane = Eigen::Hyperplane<double, 3>(
-      cameraDirection, item.translation());
-
-
-  Eigen::Vector3d start(forqueTransform.translation());
-  Eigen::Vector3d end(start +
-      forqueTransform.linear() * Eigen::Vector3d(0, 0, 1));
-  Eigen::ParametrizedLine<double, 3> line(
-      start, (end - start).normalized());
-  Eigen::Vector3d intersection = line.intersectionPoint(mDepthPlane);
-
-  return (item.translation() - intersection).norm();
-}
-
-//==============================================================================
-bool Perception::setFoodName(std::string foodName) {
-
-  mFoodNameToPerceive = foodName;
-
-  if (std::find(mFoodNames.begin(), mFoodNames.end(), foodName) != mFoodNames.end())
-  {
-      mFoodNameToPerceive = foodName;
-      return true;
-  }
-  ROS_WARN_STREAM("Cannot find food " << foodName << " in the known food list.");
-  return false;
-}
-
-//==============================================================================
-void Perception::reset()
-{
-  mFoodDetectedAtLeastOnce = false;
+  // Update the current target item.
+  mTargetFoodItem = TargetFoodItem(item);
+  return mTargetFoodItem.getPose();
 }
 
 } // namespace feeding

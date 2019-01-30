@@ -24,6 +24,7 @@ static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
 static const std::size_t MAX_NUM_TRIALS = 3;
 static const double inf = std::numeric_limits<double>::infinity();
 static const std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 
 namespace feeding {
 
@@ -138,6 +139,10 @@ FeedingDemo::FeedingDemo(
       = getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
   mEndEffectorOffsetAngularTolerance
       = getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle);
+
+  mWaitTimeForFood
+      = std::chrono::milliseconds(
+        getRosParam<int>("/feedingDemo/waitMillisecsAtFood", mNodeHandle));
 }
 
 //==============================================================================
@@ -208,23 +213,6 @@ void FeedingDemo::ungrabAndDeleteFood()
 }
 
 //==============================================================================
-void FeedingDemo::moveToStartConfiguration()
-{
-  auto home
-      = getRosParam<std::vector<double>>("/ada/homeConfiguration", mNodeHandle);
-  if (mAdaReal)
-  {
-    ROS_INFO_STREAM("Real mode, not moving.");
-  }
-  else
-  {
-    ROS_INFO_STREAM("Set to home pose.");
-    mAda->getArm()->getMetaSkeleton()->setPositions(
-        Eigen::Vector6d(home.data()));
-  }
-}
-
-//==============================================================================
 void FeedingDemo::moveAboveForque()
 {
   double forkHolderAngle
@@ -282,38 +270,6 @@ bool FeedingDemo::moveAbovePlate()
 }
 
 //==============================================================================
-void FeedingDemo::visualizeTrajectory(
-    aikido::trajectory::TrajectoryPtr trajectory)
-{
-  dart::dynamics::BodyNodePtr endEffector
-      = mAda->getMetaSkeleton()->getBodyNode("j2n6s200_forque_end_effector");
-
-  if (!mViewer)
-  {
-    ROS_WARN("Visualize trajectory: viewer is nullptr");
-  }
-  else if (!endEffector)
-  {
-    ROS_WARN("Visualize trajectory: endEffector is nullptr");
-  }
-  else if (!trajectory)
-  {
-    ROS_WARN("Visualize trajectory: trajectory is nullptr");
-  }
-  else
-  {
-    mViewer->removeTrajectoryMarker(trajectoryMarkerPtr);
-    trajectoryMarkerPtr = mViewer->addTrajectoryMarker(
-        trajectory,
-        mAda->getArm()->getMetaSkeleton(),
-        *endEffector,
-        Eigen::Vector4d{1, 1, 1, 1},
-        0.01,
-        16u);
-  }
-}
-
-//==============================================================================
 bool FeedingDemo::moveAbove(
       const Eigen::Isometry3d& targetTransform,
       const Eigen::Isometry3d& endEffectorTransform,
@@ -341,7 +297,7 @@ bool FeedingDemo::moveAbove(
         = mAda->moveArmToTSR(target, mCollisionFreeConstraint,
           mPlanningTimeout,
           mMaxNumTrials,
-          getRanker(),
+          getConfigurationRanker(),
           velocityLimits,
           ada::TrajectoryPostprocessType::KUNZ);
     return trajectoryCompleted;
@@ -518,7 +474,7 @@ bool FeedingDemo::moveInto(TargetItem item,
 
     PerceptionServoClient servoClient(
         mNodeHandle,
-        boost::bind(&Perception::perceiveFood, mPerception.get()),
+        boost::bind(&Perception::getTrackedFoodItemPose, mPerception.get()),
         mArmSpace,
         mAda,
         mAda->getArm()->getMetaSkeleton(),
@@ -582,7 +538,7 @@ bool FeedingDemo::moveInFrontOfPerson()
     mCollisionFreeConstraint,
     mPlanningTimeout,
     mMaxNumTrials,
-    getRanker(),
+    getConfigurationRanker(),
     velocityLimits,
     ada::TrajectoryPostprocessType::KUNZ);
 }
@@ -640,7 +596,7 @@ void FeedingDemo::moveDirectlyToPerson(bool tilted)
       mCollisionFreeConstraint,
       mPlanningTimeout,
       mMaxNumTrials,
-      getRanker(),
+      getConfigurationRanker(),
       velocityLimits,
       ada::TrajectoryPostprocessType::KUNZ))
   {
@@ -707,11 +663,7 @@ aikido::rviz::WorldInteractiveMarkerViewerPtr FeedingDemo::getViewer()
 void FeedingDemo::pickUpFork()
 {
   mAda->openHand();
-
-  waitForUser("Forque?");
   moveAboveForque();
-
-  waitForUser("In?");
   moveInto(TargetItem::FORQUE);
 
   std::vector<std::string> optionPrompts{"(1) close", "(2) leave-as-is"};
@@ -723,10 +675,7 @@ void FeedingDemo::pickUpFork()
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   }
 
-  waitForUser("Out?");
   moveOutOf(TargetItem::FORQUE);
-
-  waitForUser("Above Plate?");
   moveAbovePlate();
 }
 
@@ -734,155 +683,49 @@ void FeedingDemo::pickUpFork()
 void FeedingDemo::putDownFork()
 {
   mAda->closeHand();
-
-  waitForUser("Forque?");
   moveAboveForque();
-
-  waitForUser("In?");
   moveInto(TargetItem::FORQUE);
 
   mAda->openHand();
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-  waitForUser("Out?");
   moveOutOf(TargetItem::FORQUE);
-
-  waitForUser("Above Plate?");
   moveAbovePlate();
 }
 
 //==============================================================================
-void FeedingDemo::skewer(
-    std::string foodName, ros::NodeHandle& nodeHandle, int max_trial_per_item,
-    bool ignoreCollisionWhenMovingOut)
+void FeedingDemo::skewer(std::string foodName)
 {
-  bool foodPickedUp = false;
-  int num_tries = 0;
+  moveAbovePlate();
+  TargetFoodItem item = detectAndMoveAboveFood(foodName);
 
-  if (foodName == "")
+  for(std::size_t i = 0; i < MAX_NUM_TRIALS; ++i)
   {
-    mPerception->reset();
-    foodName = getUserInput(true, nodeHandle);
-  }
-
-  while (!foodPickedUp)
-  {
-    auto pickupAngleMode = mPickUpAngleModes[foodName];
-
+    auto tiltStyle = item.getAction().tiltStyle;
     ROS_INFO_STREAM(
-        "Getting " << foodName << "with "
-                               << mFoodSkeweringForces[foodName]
-                               << "N with angle mode "
-                               << pickupAngleMode
-                               << std::endl);
-
-    // ===== Detect and Move Above Food =====
-    if (!mPerception->setFoodName(foodName))
-      throw std::runtime_error("Unknown food");
-
-    try{
-      // TODO: fix the tilt style
-      detectAndMoveAboveFood(foodName, 0.0, TiltStyle::VERTICAL);
-    }
-    catch(std::runtime_error e)
-    {
-     // ===== ABOVE PLATE =====
-      moveAbovePlate();
-      waitForUser("Move forque above plate complete");
-      continue;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+        "Getting " << foodName << "with " << mFoodSkeweringForces[foodName]
+                               << "N with angle mode " << tiltStyle);
 
     // ===== INTO FOOD =====
     waitForUser("Move forque into food");
-
-    double zForceBeforeSkewering = 0;
-    if (mFTThresholdHelper->startDataCollection(20))
-    {
-      Eigen::Vector3d currentForce, currentTorque;
-      while (!mFTThresholdHelper->isDataCollectionFinished(
-          currentForce, currentTorque))
-      {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-      }
-      zForceBeforeSkewering = currentForce.x();
-    }
-    double torqueThreshold = 2;
-
-    if (!mFTThresholdHelper->setThresholds(
-            mFoodSkeweringForces[foodName], torqueThreshold))
-    {
-      ROS_ERROR("Failed to set F/T threshold");
-      exit(1);
-    }
-
     moveInto(TargetItem::FOOD);
-
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(
-            getRosParam<int>("/feedingDemo/waitMillisecsAtFood", nodeHandle)));
     grabFoodWithForque();
+    std::this_thread::sleep_for(mWaitTimeForFood);
 
     // ===== OUT OF FOOD =====
-    moveOutOf(TargetItem::FOOD, ignoreCollisionWhenMovingOut);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    double forceDifference = 0;
-    double zForceAfter = 0;
-    if (mAdaReal && mFTThresholdHelper->startDataCollection(20))
-    {
-      Eigen::Vector3d currentForce, currentTorque;
-      while (!mFTThresholdHelper->isDataCollectionFinished(
-          currentForce, currentTorque))
-      {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-      }
-      zForceAfter = currentForce.x();
-      forceDifference = zForceBeforeSkewering - currentForce.x();
-    }
-    if (mAdaReal)
-      ROS_WARN_STREAM(
-          "force difference: " << (zForceBeforeSkewering - zForceAfter));
-
-    std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
-    // (mAdaReal && forceDifference > 0.01)
-    if (!mAdaReal ||
-      (mAdaReal && getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1))
+    moveOutOf(TargetItem::FOOD, true);
+    std::this_thread::sleep_for(mWaitTimeForFood);
+    if (!mAdaReal || (mAdaReal &&
+        getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1))
     {
       ROS_INFO_STREAM("Successful");
       return;
     }
-    else
-    {
-      ungrabAndDeleteFood();
-      if (num_tries >= max_trial_per_item)
-      {
-        ROS_WARN_STREAM(
-            "Ooops! I think I didn't manage to pick up the "
-            << foodName
-            << ".  Maybe we should try a different food item."
-            << std::endl);
-        mPerception->reset();
-        foodName = getUserInput(true, nodeHandle);
-        num_tries = 0;
-      }
-      else
-      {
-        ROS_WARN_STREAM(
-            "Ooops! I think I didn't manage to pick up the "
-            << foodName
-            << ". Let me try one more time."
-            << std::endl);
-
-        num_tries++;
-      }
-    }
-    // ===== ABOVE PLATE =====
-    moveOutOf(TargetItem::FOOD, true);
-    moveAbovePlate();
-    waitForUser("Move forque above plate complete");
-
+    ungrabAndDeleteFood();
+    ROS_INFO_STREAM("Try again.");
   }
+
+  moveAbovePlate();
 }
 
 //==============================================================================
@@ -930,22 +773,15 @@ void FeedingDemo::feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted)
 }
 
 //==============================================================================
-boost::optional<Eigen::Isometry3d> FeedingDemo::detectFood(
-    const std::string& foodName, bool waitTillDetected)
+std::vector<TargetFoodItem> FeedingDemo::detectFoodItems(
+    const std::string& foodName)
 {
   if (!mAdaReal)
-    return getDefaultFoodTransform();
-
-  for(std::size_t i = 0; i < MAX_NUM_TRIALS; ++i)
   {
-    auto detected = mPerception->perceiveFood();
-    if (!detected)
-    {
-      ROS_WARN_STREAM("I can't see the " << foodName << std::endl);
-      continue;
-    }
-    return detected.get();
+    return std::vector<TargetFoodItem>{
+      TargetFoodItem("item", nullptr, getDefaultFoodTransform(), 1.0)};
   }
+  return mPerception->perceiveFood(foodName);
 }
 
 //==============================================================================
@@ -964,30 +800,39 @@ void FeedingDemo::waitForUser(const std::string& prompt)
 }
 
 //==============================================================================
-Eigen::Isometry3d FeedingDemo::detectAndMoveAboveFood(
-      const std::string& foodName,
-      float rotAngle,
-      TiltStyle tiltStyle)
+TargetFoodItem FeedingDemo::detectAndMoveAboveFood(
+      const std::string& foodName)
 {
-  for(std::size_t i = 0; i < MAX_NUM_TRIALS; ++i)
-  {
-    auto foodTransform = detectFood(foodName, true);
-    if (!foodTransform)
-    {
-      ROS_WARN("Failed to detect food");
-      continue;
-    }
+  auto candidateItems = detectFoodItems(foodName);
 
-    if (!moveAboveFood(foodName, foodTransform.get(), rotAngle, tiltStyle))
+  TargetFoodItem targetItem;
+
+  if (candidateItems.size() == 0)
+    throw std::runtime_error("Failed to detect any food.");
+
+  bool moveAboveSuccessful = false;
+  for(const auto& item, candidateItems)
+  {
+    auto action = item.getAction();
+
+    if (!moveAboveFood(item.getName(), item.getPose(),
+        item.getAction(), action.rotationAngle, action.tiltAngle))
     {
-      mPerception->reset();
-      waitForUser("Trajectory failed! Reposition food and try again!");
+      ROS_INFO_STREAM("Failed to move above " << item.getName());
       continue;
     }
-    return foodTransform.get();
+    moveAboveSuccessful = true;
+    targetItem = item;
+    break;
   }
 
-  throw std::runtime_error("Failed to detect or move above food");
+  if (!moveAboveSuccessful)
+  {
+    ROS_ERROR("Failed to move above any food.");
+    throw std::runtime_error("Failed to move above any food.");
+  }
+  mPerception->setFoodItemToTrack(item);
+  return item;
 }
 
 //==============================================================================
@@ -995,26 +840,6 @@ void FeedingDemo::reset()
 {
   mWorkspace->reset();
 }
-
-//==============================================================================
-aikido::distance::ConfigurationRankerPtr FeedingDemo::getRanker(
-  const Eigen::VectorXd& configuration)
-{
-  auto metaSkeleton = mAda->getArm()->getMetaSkeleton();
-  auto nominalState = mArmSpace->createState();
-
-  if (configuration.size() > 0)
-    mArmSpace->convertPositionsToState(configuration, nominalState);
-  else
-    nominalState = mArmSpace->getScopedStateFromMetaSkeleton(metaSkeleton.get());
-
-  return std::make_shared<NominalConfigurationRanker>(
-    mArmSpace,
-    metaSkeleton,
-    weights,
-    nominalState);
-}
-
 
 //==============================================================================
 bool FeedingDemo::moveWithEndEffectorTwist(

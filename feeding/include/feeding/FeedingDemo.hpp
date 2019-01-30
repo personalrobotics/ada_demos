@@ -10,11 +10,12 @@
 #include <libada/Ada.hpp>
 
 #include "feeding/FTThresholdHelper.hpp"
+#include "feeding/AcquisitionAction.hpp"
 #include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
 #include "feeding/perception/PerceptionPreProcess.hpp"
 #include "feeding/perception/PerceptionServoClient.hpp"
-
+#include "feeding/ranker/TargetFoodRanker.hpp"
 
 namespace feeding {
 
@@ -24,13 +25,6 @@ enum TargetItem
   PLATE,
   FORQUE,
   PERSON
-};
-
-enum TiltStyle
-{
-  VERTICAL,
-  ANGLED,
-  NONE
 };
 
 static const std::map<TargetItem, const std::string> TargetToString{
@@ -58,6 +52,7 @@ public:
   /// \param[in] allowFreeRotation, If true, items specified as rotationFree
   /// get rotational freedom.
   /// \param[in] nodeHandle Handle of the ros node.
+  /// \param[in] targetFoodRanker Ranker for choosing food item.
   FeedingDemo(
       bool adaReal,
       ros::NodeHandle nodeHandle,
@@ -65,7 +60,8 @@ public:
       bool useVisualServo,
       bool allowFreeRotation,
       std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr,
-      bool autoContinueDemo = false);
+      bool autoContinueDemo = false,
+      std::shared_ptr<TargetFoodRanker> targetFoodRanker = nullptr);
 
   /// Destructor for the Feeding Demo.
   /// Also shuts down the trajectory controllers.
@@ -92,13 +88,7 @@ public:
 
   void waitForUser(const std::string& prompt);
 
-  void visualizeTrajectory(aikido::trajectory::TrajectoryPtr trajectory);
-
   aikido::constraint::dart::CollisionFreePtr getCollisionConstraint();
-
-  /// Moves the robot to the start configuration as defined in the ros
-  /// parameter.
-  void moveToStartConfiguration();
 
   /// Move out of target item.
   /// \param[in] item Item currently skewered by the robot
@@ -159,10 +149,10 @@ public:
 
   void feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted = true);
 
-  boost::optional<Eigen::Isometry3d> detectFood(
-      const std::string& foodName, bool waitTillDetected = true);
+  std::vector<TargetFoodItem> detectFoodItems(
+      const std::string& foodName = "");
 
-  Eigen::Isometry3d detectAndMoveAboveFood(
+  TargetFoodItem detectAndMoveAboveFood(
       const std::string& foodName,
       float rotAngle = 0.0,
       TiltStyle tiltStyle = TiltStyle::VERTICAL);
@@ -183,11 +173,6 @@ private:
 
   /// Detach food from forque and remove it from the aikido world.
   void ungrabAndDeleteFood();
-
-  /// Returns configuration ranker to be used for planners;
-  /// \param[in] configuration Nominal configuration for ranker.
-  aikido::distance::ConfigurationRankerPtr getRanker(
-    const Eigen::VectorXd& configuration = Eigen::VectorXd(0));
 
   bool mIsFTSensingEnabled;
   bool mAdaReal;
@@ -226,7 +211,7 @@ private:
   int mMaxNumTrials;
   double mEndEffectorOffsetPositionTolerance;
   double mEndEffectorOffsetAngularTolerance;
-
+  std::chrono::milliseconds mWaitTimeForFood;
 };
 }
 

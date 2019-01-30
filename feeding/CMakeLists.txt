@@ -25,8 +25,6 @@ find_package(DART 6.6.0 REQUIRED
 include_directories(include)
 
 add_executable(feeding
-  # scripts/datacollection.cpp
-  # scripts/datacollectionNoPush.cpp
   scripts/main.cpp
   scripts/demo.cpp
   scripts/acquisition.cpp
@@ -39,6 +37,7 @@ add_executable(feeding
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp
   src/perception/PerceptionPreProcess.cpp
+  src/ranker/ShortestDistanceRanker.cpp
 )
 
 include_directories(include $(rosbag_INCLUDE_DIRS))

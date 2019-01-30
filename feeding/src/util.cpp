@@ -284,4 +284,41 @@ bool isCollisionFree(const std::shared_ptr<ada::Ada>& ada,
   return true;
 }
 
+
+
+//==============================================================================
+double getDistance(
+    const Eigen::Isometry3d& item1,
+    const Eigen::Isometry3d& item2)
+{
+  auto translation = item1.translation() - item2.translation();
+  return translation.norm();
+}
+
+//==============================================================================
+Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener)
+{
+  return getRelativeTransform(
+    tfListener,
+    "/map",
+    "/j2n6s200_forque_end_effector");
+}
+
+//==============================================================================
+aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
+    const std::shared_ptr<ada::Ada>& ada)
+{
+  auto space = mAda->getArm()->getStateSpace();
+  auto metaSkeleton = mAda->getArm()->getMetaSkeleton();
+  auto nominalState = space->createState();
+
+  nominalState = mArmSpace->getScopedStateFromMetaSkeleton(metaSkeleton.get());
+
+  return std::make_shared<NominalConfigurationRanker>(
+    space,
+    metaSkeleton,
+    weights,
+    nominalState);
+}
+
 } // namespace feeding
