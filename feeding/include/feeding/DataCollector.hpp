@@ -62,7 +62,7 @@ public:
       bool autoContinueDemo,
       bool adaReal,
       bool perceptionReal,
-      const std::string& dataCollectionPath = "/home/herb/feeding/data_collection");
+      const std::string& dataCollectionPath);
 
   /// Collect data.
   /// \param[in] action Action to execute

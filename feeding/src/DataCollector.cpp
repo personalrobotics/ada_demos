@@ -98,7 +98,7 @@ void DataCollector::infoCallback(
 
   std::string folder = imageType == COLOR ? "color" : "depth";
 
-  if (mShouldRecordColorInfo.load() || mShouldRecordColorInfo.load())
+  if (mShouldRecordColorInfo.load() || mShouldRecordDepthInfo.load())
   {
     ROS_INFO("recording camera info!");
 
@@ -123,12 +123,10 @@ void DataCollector::infoCallback(
     if (imageType == COLOR)
     {
       mShouldRecordColorInfo.store(false);
-      std::cout << "color Set to " << mShouldRecordColorInfo.load() << std::endl;
     }
     else
     {
       mShouldRecordDepthInfo.store(false);
-      std::cout << "depth Set to " << mShouldRecordDepthInfo.load() << std::endl;
     }
   }
 }
@@ -294,15 +292,15 @@ void DataCollector::setDataCollectionParams(
 
     mShouldRecordColorInfo.store(true);
     mShouldRecordDepthInfo.store(true);
+
+    // wait for first stream to be saved
+    while (mShouldRecordColorInfo.load() || mShouldRecordDepthInfo.load())
+    {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    ROS_INFO_STREAM("Camera info saved");
   }
-  // wait for first stream to be saved
-  /*
-  while (mShouldRecordColorInfo.load() || mShouldRecordDepthInfo.load())
-  {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-  std::cout << "Data collector complete" << std::endl;
-  */
+
 }
 
 //==============================================================================
@@ -332,7 +330,9 @@ void DataCollector::collect(Action action,
     throw std::invalid_argument(ss.str());
   }
 
-  std::string trialName = ActionToString.at(action) + "/" + foodName + "-angle-" + mAngleNames[directionIndex] + "-trial-" + std::to_string(trialIndex);
+  std::string trialName = ActionToString.at(action)
+    + "/" + foodName + "-angle-"
+    + mAngleNames[directionIndex] + "-trial-" + std::to_string(trialIndex);
   mDataCollectionPath += trialName + "/";
   setupDirectoryPerData(mDataCollectionPath);
 
@@ -344,8 +344,6 @@ void DataCollector::collect(Action action,
                  << mAngleNames[directionIndex]
                  << "] \n\n");
 
-  std::cout << "Set data collection params." << std::endl;;
-
   float rotateForqueAngle = mDirections[directionIndex] * M_PI / 180.0;
 
   setDataCollectionParams(foodIndex, directionIndex, trialIndex);
@@ -355,30 +353,33 @@ void DataCollector::collect(Action action,
   bool result;
   if (action == VERTICAL_SKEWER)
   {
-    result = skewer(rotateForqueAngle, TiltStyle::NONE);
+    std::stringstream ss;
+    ss << "Rotate the food " << rotateForqueAngle << " degrees clockwise" << std::endl;
+    mFeedingDemo->waitForUser(ss.str());
+    result = skewer(0, TiltStyle::NONE);
   }
   else if (action == TILTED_VERTICAL_SKEWER)
   {
     std::stringstream ss;
-    ss << "Rotate the food " << mDirections[directionIndex] << " degrees" << std::endl;
+    ss << "Rotate the food " << mDirections[directionIndex] << " degrees clockwise" << std::endl;
     mFeedingDemo->waitForUser(ss.str());
 
     if (!skewer(0, TiltStyle::VERTICAL))
     {
       ROS_INFO_STREAM("Terminating.");
-      return;
+      // return;
     }
   }
   else if (action == TILTED_ANGLED_SKEWER)
   {
     std::stringstream ss;
-    ss << "Rotate the food " << rotateForqueAngle << " degrees" << std::endl;
+    ss << "Rotate the food " << rotateForqueAngle << " degrees clockwise" << std::endl;
     mFeedingDemo->waitForUser(ss.str());
 
     if (!skewer(0, TiltStyle::ANGLED))
     {
       ROS_INFO_STREAM("Terminating.");
-      return;
+      // return;
     }
   }
   else if (action == SCOOP)
@@ -389,7 +390,7 @@ void DataCollector::collect(Action action,
   if (!result)
   {
     ROS_INFO_STREAM("Terminating.");
-    return;
+    // return;
   }
 
   recordSuccess();
@@ -446,10 +447,6 @@ void DataCollector::collect_images(const std::string& foodName)
   for (int i = 0; i < 100; i += 10)
   {
     auto tsr = getSideViewTSR(i);
-
-    // auto marker = mFeedingDemo->getViewer()->addTSRMarker(tsr);
-    // mFeedingDemo->waitForUser("Check");
-
     if(!mFeedingDemo->getAda()->moveArmToTSR(
       tsr,
       mFeedingDemo->getCollisionConstraint(),
@@ -488,7 +485,10 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
       mFeedingDemo->getAda()->getHand()
       ->getEndEffectorBodyNode()->getTransform().translation());
     direction = food - hand;
+    direction = Eigen::Vector3d(0.1, 0, -0.18);
     direction.normalize();
+    std::cout << "Direction " << direction << std::endl;
+
   }
 
   mFeedingDemo->moveInto(TargetItem::FOOD, tiltStyle, direction);

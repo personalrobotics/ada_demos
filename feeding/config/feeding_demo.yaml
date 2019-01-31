@@ -63,12 +63,12 @@ planning:
     rotationToleranceAbovePlate: 3.1416
     horizontalToleranceNearFood: 0.005
     verticalToleranceNearFood: 0.005
-    rotationToleranceNearFood: 0.005
+    rotationToleranceNearFood: 0.001
     horizontalToleranceNearPerson: 0.002
     verticalToleranceNearPerson: 0.002
   endEffectorOffset:
     positionTolerance: 0.00008
-    angularTolerance: 0.004
+    angularTolerance: 0.002
   endEffectorTwist:
     positionTolerance: 0.0002
     angularTolerance: 0.004

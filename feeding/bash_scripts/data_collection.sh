@@ -12,14 +12,17 @@ forque="/forque/forqueSensor"
 tf="tf"
 tfStatic="/tf_static"
 
-name=$1"-"$2"-"$3
-output=/home/herb/feeding/rosbag/$name
+name=$2"-"$3"-"$4
+mkdir $5
+mkdir ${5}rosbag/
+#output=/home/herb/feeding/rosbag/$name
+output=${5}rosbag/$name
 echo $output
 
 source ${WSPATH}/devel/setup.bash
 rosbag record $cameraInfo $cameraAlignedDepthImageRaw $colorCameraInfo $colorCameraRaw $cameraExtrinsics $jointStates $forque $tf $tfStatic -O $output /topic __name:=my_bag &
 
-/home/herb/Workspace/gilwoo_ws/devel/bin/feeding -d collect_skewer --foodName $1 --direction $2 --trial $3 -af -o $4
+/home/herb/Workspace/gilwoo_ws/devel/bin/feeding -d $1 --foodName $2 --direction $3 --trial $4 -af -o $5
 
 echo "Kill rosbag"
 rosnode kill /my_bag

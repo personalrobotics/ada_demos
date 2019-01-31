@@ -393,7 +393,8 @@ bool FeedingDemo::moveAboveFood(
     eeTransform.translation() = Eigen::Vector3d{
       -sin(M_PI*0.25) * height * 0.5,
       0,
-      cos(M_PI*0.25) * height * 0.5};
+      cos(M_PI*0.25) * height * 0.3};
+      std::cout << eeTransform.translation() << std::endl;
   }
 
   double rotationTolerance = mFoodTSRParameters["rotationTolerance"];
@@ -534,9 +535,10 @@ bool FeedingDemo::moveInto(TargetItem item,
     return servoClient.wait(10000.0);
   }
 
-  double length = 0.025;
+  double length = tiltStyle == TiltStyle::ANGLED ? 0.018 : 0.025;
 
-  for(int i = 0; i < 2; ++i)
+  int num_trials = tiltStyle == TiltStyle::ANGLED ? 1 : 2;
+  for(int i = 0; i < num_trials; ++i)
   {
     // Collision constraint is not set because f/t sensor stops execution.
     auto result = mAda->moveArmToEndEffectorOffset(
