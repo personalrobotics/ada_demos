@@ -2,6 +2,7 @@
 #include "feeding/util.hpp"
 
 #include <algorithm>
+#include <aikido/perception/DetectedObject.hpp>
 #include <aikido/perception/ObjectDatabase.hpp>
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
@@ -79,13 +80,15 @@ std::vector<FoodItemWithActionScorePtr> Perception::perceiveFood(
     throw std::invalid_argument(ss.str());
   }
 
-  // Detect items
-  auto detectedItems = mFoodDetector->detectObjects(
-    mWorld, ros::Duration(mPerceptionTimeout));
-
   std::vector<FoodItemWithActionScorePtr> detectedFoodItems;
-  detectedFoodItems.reserve(detectedItems.size());
-  for (const auto& item: detectedItems)
+
+  // Detect items
+  std::vector<DetectedObject> detectedObjects;
+  mFoodDetector->detectObjects(
+      mWorld, detectedObjects, ros::Duration(mPerceptionTimeout));
+
+  detectedFoodItems.reserve(detectedObjects.size());
+  for (const auto& item: detectedObjects)
   {
     auto itemWithActionScore = createFoodItemWIthActionScore(item);
 

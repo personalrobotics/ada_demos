@@ -2,7 +2,7 @@
 #define FEEDING_FOODITEM_HPP_
 
 #include <dart/dart.hpp>
-#include <aikido/perception/detectedItem.hpp>
+#include <aikido/perception/DetectedObject.hpp>
 #include <aikido/common/pointers.hpp>
 
 namespace feeding {
@@ -25,7 +25,7 @@ struct FoodItemWithActionScore
 };
 
 FoodItemWithActionScorePtr createFoodItemWithActionScore(
-  const aikido::perception::DetectedItem& item);
+  const aikido::perception::DetectedObject& item);
 
 } // namespace feeding
 
