@@ -130,7 +130,7 @@ int main(int argc, char** argv)
   //   Start Perception Module
   /////////////////////////////////////////////////////////////////////////////
   std::string detectorDataURI = "package://pr_assets/data/objects/tag_data_foods.json";
-  std::string referenceFrameName = "j2n6s200_link_base";
+  std::string referenceFrameName = robotSkeleton->getBodyNode(0)->getName();
   std::string foodDetectorTopicName = getRosParamString(
       "/perception/foodDetectorTopicName", nh, "/simulated_pose/marker_array");
 
