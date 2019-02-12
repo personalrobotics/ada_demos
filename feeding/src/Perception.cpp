@@ -38,6 +38,7 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
 {
   mObjDetector->detectObjects(
       mWorld,
+      nullptr, // No need to load detected objects
       ros::Duration(
           getRosParam<double>("/perception/timeoutSeconds", mNodeHandle)));
 
