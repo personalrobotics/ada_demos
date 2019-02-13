@@ -157,7 +157,6 @@ int main(int argc, char** argv)
   while (ros::ok()) {
     mDetector->detectObjects(
       env,
-      nullptr, // No need to load detected objects
       ros::Duration(1.0));
     ros::spinOnce();
   }
