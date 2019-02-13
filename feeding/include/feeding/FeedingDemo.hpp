@@ -12,23 +12,14 @@
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/Workspace.hpp"
+#include "feeding/TargetItem.hpp"
+
 #include "feeding/perception/Perception.hpp"
 #include "feeding/perception/PerceptionPreProcess.hpp"
 #include "feeding/perception/PerceptionServoClient.hpp"
 #include "feeding/ranker/TargetFoodRanker.hpp"
 
 namespace feeding {
-
-enum TargetItem
-{
-  FOOD,
-  PLATE,
-  FORQUE,
-  PERSON
-};
-
-static const std::map<TargetItem, const std::string> TargetToString{
-    {FOOD, "food"}, {PLATE, "plate"}, {FORQUE, "forque"}, {PERSON, "person"}};
 
 /// The FeedingDemo class is responsible for
 /// - The robot (loading + control)
@@ -71,7 +62,7 @@ public:
   aikido::planner::WorldPtr getWorld();
 
   /// Gets the workspace
-  Workspace& getWorkspace();
+  std::shared_ptr<Workspace> getWorkspace();
 
   /// Gets Ada
   std::shared_ptr<ada::Ada> getAda();
@@ -82,78 +73,41 @@ public:
 
   aikido::rviz::WorldInteractiveMarkerViewerPtr getViewer();
 
-  void setFTThreshold(FTThreshold threshold);
-
   void waitForUser(const std::string& prompt);
 
   aikido::constraint::dart::CollisionFreePtr getCollisionConstraint();
 
-  /// Move out of target item.
-  /// \param[in] item Item currently skewered by the robot
-  /// \param[in] ignoreCollision If true, collision constraint is ignored in planning.
-  void moveOutOf(TargetItem item, bool ignoreCollision = false);
-
-  /// This function does not throw an exception if the trajectory is aborted,
-  /// because it is an expected behavior when FT sensor is activated.
-  /// \param[in] item
-  /// \param[in] tiltStyle
-  /// \param[in] endEffectorDirection Workspace direction for end effector to move along.
-  bool moveInto(TargetItem item,
-    TiltStyle tiltStyle = TiltStyle::VERTICAL,
-    const Eigen::Vector3d& endEffectorDirection = Eigen::Vector3d(0, 0, -1));
-
-  bool moveAbove(
-      const Eigen::Isometry3d& targetTransform,
-      const Eigen::Isometry3d& endEffectorTransform,
-      double horizontalTolerance,
-      double verticalTolerance,
-      double rotationTolerance,
-      double tiltTolerance);
-
-  void moveAboveForque();
-
-  /// Moves the forque above the plate.
-  bool moveAbovePlate();
-
-  /// Moves the forque above the food item using the values in the ros
-  /// parameters.
-  /// \param[in] foodTransform the transform of the food which the robot should
-  /// move over.
-  bool moveAboveFood(
-      std::string foodName,
-      const Eigen::Isometry3d& foodTransform,
-      float rotAngle,
-      TiltStyle tiltStyle);
-
-  /// Moves the forque to a position ready to approach the person.
-  bool moveInFrontOfPerson();
-
-  /// Moves the forque towards the person.
-  /// This function does not throw an exception if the trajectory is aborted,
-  /// because we expect that.
-  bool moveTowardsPerson();
-
-  void moveDirectlyToPerson(bool tilted);
-
-  void pickUpFork();
-  void putDownFork();
-
-  void skewer(const std::string& foodName);
-
-  void feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted = true);
-
-  FoodItemWithActionScorePtr detectAndMoveAboveFood(
-      const std::string& foodName);
-
-  void scoop();
-
   /// Resets the environmnet.
   void reset();
 
-  bool moveWithEndEffectorTwist(
-    const Eigen::Vector6d& twists,
-    double durations = 1.0,
-    bool respectCollision = true);
+  std::shared_ptr<FTThresholdHelper> getFTThresholdHelper();
+
+  Eigen::Isometry3d getPlateEndEffectorTransform() const;
+
+  // bool moveWithEndEffectorTwist(
+  //   const Eigen::Vector6d& twists,
+  //   double durations = 1.0,
+  //   bool respectCollision = true);
+
+
+  std::vector<std::string> mFoodNames;
+  std::vector<std::string> mRotationFreeFoodNames;
+  std::vector<double> mSkeweringForces;
+  std::unordered_map<std::string, double> mFoodSkeweringForces;
+  std::unordered_map<std::string, int> mPickUpAngleModes;
+
+  std::unordered_map<std::string, double> mPlateTSRParameters;
+  std::unordered_map<std::string, double> mFoodTSRParameters;
+  std::unordered_map<std::string, double> mPersonTSRParameters;
+  double mMoveOufOfFoodLength;
+
+  double mPlanningTimeout;
+  int mMaxNumTrials;
+  double mEndEffectorOffsetPositionTolerance;
+  double mEndEffectorOffsetAngularTolerance;
+  std::chrono::milliseconds mWaitTimeForFood;
+  std::chrono::milliseconds mWaitTimeForPerson;
+  std::vector<double> mVelocityLimits;
 
 private:
   /// Attach food to forque
@@ -175,7 +129,7 @@ private:
 
   std::shared_ptr<ada::Ada> mAda;
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
-  std::unique_ptr<Workspace> mWorkspace;
+  std::shared_ptr<Workspace> mWorkspace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
 
   std::unique_ptr<PerceptionServoClient> mServoClient;
@@ -186,20 +140,6 @@ private:
   aikido::rviz::FrameMarkerPtr frameMarker;
   aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
 
-  std::vector<std::string> mFoodNames;
-  std::vector<std::string> mRotationFreeFoodNames;
-  std::vector<double> mSkeweringForces;
-  std::unordered_map<std::string, double> mFoodSkeweringForces;
-  std::unordered_map<std::string, int> mPickUpAngleModes;
-
-  std::unordered_map<std::string, double> mPlateTSRParameters;
-  std::unordered_map<std::string, double> mFoodTSRParameters;
-
-  double mPlanningTimeout;
-  int mMaxNumTrials;
-  double mEndEffectorOffsetPositionTolerance;
-  double mEndEffectorOffsetAngularTolerance;
-  std::chrono::milliseconds mWaitTimeForFood;
 };
 }
 

@@ -27,14 +27,29 @@ include_directories(include)
 add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
-  scripts/acquisition.cpp
+  # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
-  src/DataCollector.cpp
+  # src/DataCollector.cpp
   src/FeedingDemo.cpp
   src/FTThresholdHelper.cpp
   src/Workspace.cpp
   src/util.cpp
   src/FoodItem.cpp
+  src/action/Grab.cpp
+  src/action/DetectAndMoveAboveFood.cpp
+  src/action/FeedFoodToPerson.cpp
+  src/action/MoveAbove.cpp
+  src/action/MoveAboveFood.cpp
+  # src/action/MoveAboveForque.cpp
+  src/action/MoveAbovePlate.cpp
+  # src/action/MoveDirectlyToPerson.cpp
+  src/action/MoveInFrontOfPerson.cpp
+  src/action/MoveInto.cpp
+  src/action/MoveOutOf.cpp
+  # src/action/MoveToPerson.cpp
+  # src/action/PickUpFork.cpp
+  # src/action/PutDownFork.cpp
+  src/action/Skewer.cpp
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp
   src/perception/PerceptionPreProcess.cpp

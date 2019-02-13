@@ -5,6 +5,10 @@
 
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/util.hpp"
+// #include "feeding/action/PickUpFork.hpp"
+// #include "feeding/action/PutDownFork.hpp"
+#include "feeding/action/FeedFoodToPerson.hpp"
+#include "feeding/action/Skewer.hpp"
 
 using ada::util::getRosParam;
 using ada::util::waitForUser;
@@ -18,14 +22,20 @@ const bool TERMINATE_AT_USER_PROMPT = true;
 
 void demo(
     FeedingDemo& feedingDemo,
+    std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle)
 {
 
   ROS_INFO_STREAM("==========  DEMO ==========");
 
+  auto ada = feedingDemo.getAda();
+  auto workspace = feedingDemo.getWorkspace();
+  auto collisionFree = feedingDemo.getCollisionConstraint();
+  auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
+
   while (true)
   {
-    feedingDemo.waitForUser("next step?");
+    waitForUser("next step?", ada);
 
     auto foodName = getUserInput(false, nodeHandle);
 
@@ -39,27 +49,67 @@ void demo(
     // ===== FORQUE PICKUP =====
     if (foodName == "pickupfork")
     {
-      feedingDemo.pickUpFork();
+      // action::pickUpFork(ada, collisionFree);
     }
     else if (foodName == "putdownfork")
     {
-      feedingDemo.putDownFork();
+      // action::putDownFork(ada);
     }
     else
     {
-      if (!getRosParam<bool>("/study/skipSkewering", nodeHandle))
-      {
-        feedingDemo.skewer(foodName);
-      }
+      action::skewer(
+        ada,
+        workspace,
+        collisionFree,
+        perception,
+        foodName,
+        plate,
+        feedingDemo.getPlateEndEffectorTransform(),
+        feedingDemo.mFoodSkeweringForces,
+        feedingDemo.mPlateTSRParameters["height"],
+        feedingDemo.mPlateTSRParameters["horizontalTolerance"],
+        feedingDemo.mPlateTSRParameters["verticalTolerance"],
+        feedingDemo.mPlateTSRParameters["rotationTolerance"],
+        feedingDemo.mFoodTSRParameters["height"],
+        feedingDemo.mFoodTSRParameters["horizontalTolerance"],
+        feedingDemo.mFoodTSRParameters["verticalTolerance"],
+        feedingDemo.mFoodTSRParameters["rotationTolerance"],
+        feedingDemo.mFoodTSRParameters["tiltTolerance"],
+        feedingDemo.mMoveOufOfFoodLength,
+        feedingDemo.mEndEffectorOffsetPositionTolerance,
+        feedingDemo.mEndEffectorOffsetAngularTolerance,
+        feedingDemo.mWaitTimeForFood,
+        feedingDemo.mPlanningTimeout,
+        feedingDemo.mMaxNumTrials,
+        feedingDemo.mVelocityLimits,
+        feedingDemo.getFTThresholdHelper());
 
       // ===== IN FRONT OF PERSON =====
-      feedingDemo.waitForUser("Move forque in front of person");
+      waitForUser("Move forque in front of person", ada);
 
       bool tilted = (foodName != "celery");
-      feedingDemo.feedFoodToPerson(nodeHandle, tilted);
+      action::feedFoodToPerson(
+        ada,
+        workspace,
+        collisionFree,
+        plate,
+        feedingDemo.getPlateEndEffectorTransform(),
+        feedingDemo.mWaitTimeForPerson,
+        tilted,
+        feedingDemo.mPlateTSRParameters["height"],
+        feedingDemo.mPlateTSRParameters["horizontalTolerance"],
+        feedingDemo.mPlateTSRParameters["verticalTolerance"],
+        feedingDemo.mPlateTSRParameters["rotationTolerance"],
+        feedingDemo.mPersonTSRParameters["distance"],
+        feedingDemo.mPersonTSRParameters["horizontalTolerance"],
+        feedingDemo.mPersonTSRParameters["verticalTolerance"],
+        feedingDemo.mPlanningTimeout,
+        feedingDemo.mMaxNumTrials,
+        feedingDemo.mVelocityLimits
+        );
     }
 
-    feedingDemo.reset();
+    workspace.reset();
   }
 
   // ===== DONE =====

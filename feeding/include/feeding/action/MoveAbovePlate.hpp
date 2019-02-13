@@ -1,0 +1,27 @@
+#ifndef FEEDING_ACTION_MOVEABOVEPLATE_HPP_
+#define FEEDING_ACTION_MOVEABOVEPLATE_HPP_
+
+#include <libada/Ada.hpp>
+#include "feeding/Workspace.hpp"
+
+// Contains motions which are mainly TSR actions
+namespace feeding {
+namespace action {
+
+bool moveAbovePlate(
+  const std::shared_ptr<ada::Ada>& ada,
+  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+  const Eigen::Isometry3d& plate,
+  const Eigen::Isometry3d& plateEndEffectorTransform,
+  double heightAbovePlate,
+  double horizontalTolerance,
+  double verticalTolerance,
+  double rotationTolerance,
+  double planningTimeout,
+  int maxNumTrials,
+  std::vector<double> velocityLimits);
+
+} // namespace action
+} // namespace feeding
+
+#endif

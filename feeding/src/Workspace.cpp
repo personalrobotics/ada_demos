@@ -135,4 +135,5 @@ dart::dynamics::ConstSkeletonPtr Workspace::getWheelchair() const
 {
   return mWheelchair;
 }
+
 }

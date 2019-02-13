@@ -22,4 +22,5 @@ struct AcquisitionAction
 };
 
 }
+
 #endif

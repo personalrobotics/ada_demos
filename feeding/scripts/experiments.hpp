@@ -23,6 +23,7 @@ void bite_location_detector(
 
 void demo(
     FeedingDemo& feedingDemo,
+    std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle);
 }
 

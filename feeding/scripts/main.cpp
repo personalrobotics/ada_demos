@@ -9,7 +9,7 @@
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/util.hpp"
 #include "feeding/perception/Perception.hpp"
-#include "feeding/DataCollector.hpp"
+// #include "feeding/DataCollector.hpp"
 
 #include "experiments.hpp"
 
@@ -124,27 +124,27 @@ int main(int argc, char** argv)
 
   if (demoType == "nips")
   {
-    demo(*feedingDemo, nodeHandle);
+    demo(*feedingDemo, perception, nodeHandle);
   }
   else
   {
-    ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
-    DataCollector dataCollector(
-      feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
+    // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
+    // DataCollector dataCollector(
+    //   feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
 
-    if (StringToAction.find(demoType) == StringToAction.end())
-    {
-      throw std::invalid_argument(demoType + "not recognized.");
-    }
+    // if (StringToAction.find(demoType) == StringToAction.end())
+    // {
+    //   throw std::invalid_argument(demoType + "not recognized.");
+    // }
 
-    if (StringToAction.at(demoType) == Action::IMAGE_ONLY)
-    {
-      dataCollector.collect_images(foodName);
-    }
-    else
-    {
-      dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
-    }
+    // if (StringToAction.at(demoType) == Action::IMAGE_ONLY)
+    // {
+    //   dataCollector.collect_images(foodName);
+    // }
+    // else
+    // {
+    //   dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
+    // }
 
   }
 
