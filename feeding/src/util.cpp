@@ -3,6 +3,7 @@
 #include <aikido/common/Spline.hpp>
 #include <aikido/common/StepSequence.hpp>
 #include <aikido/distance/defaults.hpp>
+#include <aikido/distance/NominalConfigurationRanker.hpp>
 #include <aikido/planner/parabolic/ParabolicTimer.hpp>
 #include <aikido/statespace/CartesianProduct.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
@@ -10,6 +11,10 @@
 #include <dart/common/StlHelpers.hpp>
 #include <libada/util.hpp>
 #include <tf_conversions/tf_eigen.h>
+
+static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
+
+using aikido::distance::NominalConfigurationRanker;
 
 namespace feeding {
 
@@ -308,11 +313,11 @@ Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener)
 aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
     const std::shared_ptr<ada::Ada>& ada)
 {
-  auto space = mAda->getArm()->getStateSpace();
-  auto metaSkeleton = mAda->getArm()->getMetaSkeleton();
+  auto space = ada->getArm()->getStateSpace();
+  auto metaSkeleton = ada->getArm()->getMetaSkeleton();
   auto nominalState = space->createState();
 
-  nominalState = mArmSpace->getScopedStateFromMetaSkeleton(metaSkeleton.get());
+  nominalState = space->getScopedStateFromMetaSkeleton(metaSkeleton.get());
 
   return std::make_shared<NominalConfigurationRanker>(
     space,

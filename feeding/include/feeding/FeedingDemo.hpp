@@ -52,7 +52,6 @@ public:
   /// \param[in] allowFreeRotation, If true, items specified as rotationFree
   /// get rotational freedom.
   /// \param[in] nodeHandle Handle of the ros node.
-  /// \param[in] targetFoodRanker Ranker for choosing food item.
   FeedingDemo(
       bool adaReal,
       ros::NodeHandle nodeHandle,
@@ -60,8 +59,7 @@ public:
       bool useVisualServo,
       bool allowFreeRotation,
       std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr,
-      bool autoContinueDemo = false,
-      std::shared_ptr<TargetFoodRanker> targetFoodRanker = nullptr);
+      bool autoContinueDemo = false);
 
   /// Destructor for the Feeding Demo.
   /// Also shuts down the trajectory controllers.
@@ -140,22 +138,12 @@ public:
   void pickUpFork();
   void putDownFork();
 
-  /// param[in] foodName if empty, takes user input.
-  void skewer(
-      std::string foodName,
-      ros::NodeHandle& nodeHandle,
-      int max_trial_per_item = 3,
-      bool ignoreCollisionWhenMovingOut = true);
+  void skewer(const std::string& foodName);
 
   void feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted = true);
 
-  std::vector<FoodItemWithActionScorePtr> detectFoodItems(
-      const std::string& foodName = "");
-
   FoodItemWithActionScorePtr detectAndMoveAboveFood(
-      const std::string& foodName,
-      float rotAngle = 0.0,
-      TiltStyle tiltStyle = TiltStyle::VERTICAL);
+      const std::string& foodName);
 
   void scoop();
 

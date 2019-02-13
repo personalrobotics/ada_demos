@@ -1,7 +1,9 @@
 #ifndef FEEDING_ACQUISITIONACTION_HPP_
-#define
+#define FEEDING_ACQUISITIONACTION_HPP_
+
 #include <dart/dart.hpp>
-#include <aikido/perception/detectedItem.hpp>
+#include <Eigen/Core>
+
 namespace feeding {
 
 enum TiltStyle
@@ -13,10 +15,10 @@ enum TiltStyle
 
 struct AcquisitionAction
 {
-  TiltStyle tiltStyle = TiltStyle::VERTICAL;
-  double rotationAngle = 0.0;
-  double tiltAngle = 0.0;
-  Eigen::Vector3d moveIntoDirection(-1.0, 0.0, 0.0);
+  TiltStyle tiltStyle; // = TiltStyle::VERTICAL;
+  double rotationAngle; // = 0.0;
+  double tiltAngle; // = 0.0;
+  Eigen::Vector3d moveIntoDirection; //(-1.0, 0.0, 0.0);
 };
 
 }

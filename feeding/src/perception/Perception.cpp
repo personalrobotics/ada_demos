@@ -7,7 +7,10 @@
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
 
+#include "feeding/FoodItem.hpp"
+
 using ada::util::getRosParam;
+using aikido::perception::DetectedObject;
 
 namespace feeding {
 
@@ -48,7 +51,7 @@ Perception::Perception(
           aikido::robot::util::getBodyNodeOrThrow(
               *adasMetaSkeleton, referenceFrameName)));
 
-  mFoodDetector->setObjectProjectionHeight(0.25);
+  //mFoodDetector->setObjectProjectionHeight(0.25);
 
   mFaceDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
@@ -90,28 +93,32 @@ std::vector<FoodItemWithActionScorePtr> Perception::perceiveFood(
   detectedFoodItems.reserve(detectedObjects.size());
   for (const auto& item: detectedObjects)
   {
-    auto itemWithActionScore = createFoodItemWIthActionScore(item);
+    auto itemWithActionScore = createFoodItemWithActionScore(item);
 
-    if (foodName != "" && itemWithActionScore.item.name != foodName)
+    if (foodName != "" && itemWithActionScore->item.name != foodName)
       continue;
-    detectedFoodItems.emplace_back(std::move(itemWithActionScore));
+    detectedFoodItems.emplace_back(itemWithActionScore);
   }
 
   // Return sorted items
   return mTargetFoodRanker->sort(
     detectedFoodItems,
-    getForqueTransform());
+    getForqueTransform(mTFListener));
 }
 
 //==============================================================================
 Eigen::Isometry3d Perception::perceiveFace()
 {
-  if (!mFaceDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout)))
+  std::vector<DetectedObject> detectedObjects;
+
+  if (!mFaceDetector->detectObjects(mWorld, detectedObjects,
+        ros::Duration(mPerceptionTimeout)))
   {
     ROS_WARN("face perception failed");
     throw std::runtime_error("Face perception failed");
   }
 
+  // TODO: the needs to be updated
   // just choose one for now
   for (int skeletonFrameIdx = 0; skeletonFrameIdx < 5; skeletonFrameIdx++)
   {
@@ -150,7 +157,7 @@ bool Perception::isMouthOpen()
 }
 
 //==============================================================================
-void Perception::setFoodItemToTrack(const TargetFoodItem& target)
+void Perception::setFoodItemToTrack(const FoodItem& target)
 {
   mTargetFoodItem = target;
 }
@@ -158,16 +165,19 @@ void Perception::setFoodItemToTrack(const TargetFoodItem& target)
 //==============================================================================
 Eigen::Isometry3d Perception::getTrackedFoodItemPose()
 {
-  if (mTargetFoodItem.getName() == "")
+  if (mTargetFoodItem.name == "")
     throw std::runtime_error("Target item not set.");
 
+  // TODO: uncomment this once aikido side has it.
+  /*
   auto item = mFoodDetector->detectObject(mWorld,
-    mTargetFoodItem.getUID(),
+    mTargetFoodItem.uid,
     ros::Duration(mPerceptionTimeout));
 
   // Update the current target item.
-  mTargetFoodItem = TargetFoodItem(item);
-  return mTargetFoodItem.getPose();
+  mTargetFoodItem = FoodItem(item);*/
+
+  return mTargetFoodItem.pose;
 }
 
 } // namespace feeding

@@ -9,8 +9,8 @@ class SuccessRateRanker : public TargetFoodRanker
 {
 public:
     // Documentation inherited.
-    std::vector<const TargetFoodItem> sort(
-        const std::vector<const TargetFoodItem>& items,
+    std::vector<FoodItem> sort(
+        const std::vector<FoodItem>& items,
         const Eigen::Isometry3d& forqueTransform) const = 0;
 }
 

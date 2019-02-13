@@ -1,6 +1,7 @@
 #ifndef FEEDING_SHORTESTDISTANCERANKER_HPP_
 
 #include "feeding/ranker/TargetFoodRanker.hpp"
+#include "feeding/FoodItem.hpp"
 
 namespace feeding{
 
@@ -9,10 +10,14 @@ class ShortestDistanceRanker : public TargetFoodRanker
 {
 public:
     // Documention inherited.
-    std::vector<const TargetFoodItem> sort(
-        const std::vector<const TargetFoodItem>& items,
-        const Eigen::Isometry3d& forqueTransform) const = 0;
-}
+    std::vector<FoodItem> sort(
+        const std::vector<FoodItem>& items,
+        const Eigen::Isometry3d& forqueTransform) const override;
+
+    std::vector<FoodItemWithActionScorePtr> sort(
+        const std::vector<FoodItemWithActionScorePtr>& items,
+        const Eigen::Isometry3d& forqueTransform) const override;
+};
 
 } // namespace feeding
 

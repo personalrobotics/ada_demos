@@ -49,7 +49,7 @@ Eigen::VectorXd getSymmetricLimits(
 //==============================================================================
 PerceptionServoClient::PerceptionServoClient(
     ::ros::NodeHandle node,
-    boost::function<boost::optional<Eigen::Isometry3d>(void)> getTransform,
+    boost::function<Eigen::Isometry3d(void)> getTransform,
     aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
         metaSkeletonStateSpace,
     std::shared_ptr<ada::Ada> ada,
@@ -313,13 +313,7 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   endEffectorTransform.linear() = rotation;
 
   auto pose = mGetTransform();
-  if (!pose)
-  {
-    ROS_INFO_STREAM("Pose not updated");
-    return false;
-  }
-  else
-    goalPose = pose.get() * endEffectorTransform;
+  goalPose = pose * endEffectorTransform;
 
   ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
   if (goalPose.translation().z() < -0.1)

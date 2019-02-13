@@ -1,32 +1,39 @@
-#include "feeding/ShortestDistanceRanker.hpp"
+#include "feeding/ranker/ShortestDistanceRanker.hpp"
 #include "feeding/util.hpp"
 
 namespace feeding {
 
 //==============================================================================
-std::vector<std::size_t> getRanking(
-    const std::vector<const TargetFoodItem>& items,
+std::vector<FoodItem> ShortestDistanceRanker::sort(
+        const std::vector<FoodItem>& items,
         const Eigen::Isometry3d& forqueTransform) const
 {
-    std::vector<std::size_t> ranks;
-    ranks.reserve(items.size());
+    std::vector<FoodItem> rankedFoodItems;
 
     std::vector<double> distancesToForque;
     for(const auto& item: items)
     {
         distancesToForque.emplace_back(
-            getDistance(item.getPose(), forqueTransform));
+            getDistance(item.pose, forqueTransform));
     }
 
     // Sort based on the distance
 
     // TODO
     for(std::size_t i = 0; i < items.size(); ++i)
-        ranks.emplace_back(i);
+        rankedFoodItems.emplace_back(items[i]);
 
-    return ranks;
+    return rankedFoodItems;
 }
 
-
+//==============================================================================
+std::vector<FoodItemWithActionScorePtr> ShortestDistanceRanker::sort(
+        const std::vector<FoodItemWithActionScorePtr>& items,
+        const Eigen::Isometry3d& forqueTransform) const
+{
+  // TODO
+  std::vector<FoodItemWithActionScorePtr> outItems;
+  return outItems;
+}
 
 } // namespace feeding

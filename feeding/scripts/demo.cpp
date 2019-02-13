@@ -49,8 +49,7 @@ void demo(
     {
       if (!getRosParam<bool>("/study/skipSkewering", nodeHandle))
       {
-        feedingDemo.skewer(foodName, nodeHandle,
-          MAX_TRIAL_PER_ITEM);
+        feedingDemo.skewer(foodName);
       }
 
       // ===== IN FRONT OF PERSON =====

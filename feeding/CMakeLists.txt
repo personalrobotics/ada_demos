@@ -34,6 +34,7 @@ add_executable(feeding
   src/FTThresholdHelper.cpp
   src/Workspace.cpp
   src/util.cpp
+  src/FoodItem.cpp
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp
   src/perception/PerceptionPreProcess.cpp

@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 
   ROS_INFO_STREAM("Startup complete.");
 
-  feedingDemo->moveToStartConfiguration();
+  //feedingDemo->moveToStartConfiguration();
 
   if (demoType == "nips")
   {

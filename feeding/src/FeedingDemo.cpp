@@ -1,6 +1,5 @@
 #include "feeding/FeedingDemo.hpp"
 #include <aikido/rviz/TrajectoryMarker.hpp>
-#include <aikido/distance/NominalConfigurationRanker.hpp>
 #include <boost/optional.hpp>
 
 #include <pr_tsr/plate.hpp>
@@ -9,18 +8,18 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+
 #include "feeding/util.hpp"
+#include "feeding/FoodItem.hpp"
 
 using ada::util::getRosParam;
 using ada::util::createBwMatrixForTSR;
 using ada::util::createIsometry;
-using aikido::distance::NominalConfigurationRanker;
 using aikido::constraint::dart::TSR;
 using aikido::constraint::dart::CollisionFreePtr;
 
 const bool TERMINATE_AT_USER_PROMPT = true;
 
-static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
 static const std::size_t MAX_NUM_TRIALS = 3;
 static const double inf = std::numeric_limits<double>::infinity();
 static const std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
@@ -34,14 +33,14 @@ FeedingDemo::FeedingDemo(
     ros::NodeHandle nodeHandle,
     bool useFTSensingToStopTrajectories,
     bool useVisualServo,
-    bool allowRotationFree,
+    bool allowFreeRotation,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
     bool autoContinueDemo)
   : mAdaReal(adaReal)
   , mNodeHandle(nodeHandle)
   , mFTThresholdHelper(ftThresholdHelper)
   , mVisualServo(useVisualServo)
-  , mAllowRotationFree(allowRotationFree)
+  , mAllowRotationFree(allowFreeRotation)
   , mAutoContinueDemo(autoContinueDemo)
   , mIsFTSensingEnabled(useFTSensingToStopTrajectories)
 {
@@ -297,7 +296,7 @@ bool FeedingDemo::moveAbove(
         = mAda->moveArmToTSR(target, mCollisionFreeConstraint,
           mPlanningTimeout,
           mMaxNumTrials,
-          getConfigurationRanker(),
+          getConfigurationRanker(mAda),
           velocityLimits,
           ada::TrajectoryPostprocessType::KUNZ);
     return trajectoryCompleted;
@@ -538,7 +537,7 @@ bool FeedingDemo::moveInFrontOfPerson()
     mCollisionFreeConstraint,
     mPlanningTimeout,
     mMaxNumTrials,
-    getConfigurationRanker(),
+    getConfigurationRanker(mAda),
     velocityLimits,
     ada::TrajectoryPostprocessType::KUNZ);
 }
@@ -596,7 +595,7 @@ void FeedingDemo::moveDirectlyToPerson(bool tilted)
       mCollisionFreeConstraint,
       mPlanningTimeout,
       mMaxNumTrials,
-      getConfigurationRanker(),
+      getConfigurationRanker(mAda),
       velocityLimits,
       ada::TrajectoryPostprocessType::KUNZ))
   {
@@ -694,14 +693,14 @@ void FeedingDemo::putDownFork()
 }
 
 //==============================================================================
-void FeedingDemo::skewer(std::string foodName)
+void FeedingDemo::skewer(const std::string& foodName)
 {
   moveAbovePlate();
-  TargetFoodItem item = detectAndMoveAboveFood(foodName);
+  auto itemWithActionScore = detectAndMoveAboveFood(foodName);
 
   for(std::size_t i = 0; i < MAX_NUM_TRIALS; ++i)
   {
-    auto tiltStyle = item.getAction().tiltStyle;
+    auto tiltStyle = itemWithActionScore->action.tiltStyle;
     ROS_INFO_STREAM(
         "Getting " << foodName << "with " << mFoodSkeweringForces[foodName]
                                << "N with angle mode " << tiltStyle);
@@ -773,18 +772,6 @@ void FeedingDemo::feedFoodToPerson(ros::NodeHandle& nodeHandle, bool tilted)
 }
 
 //==============================================================================
-std::vector<FoodItemWithActionScorePtr> FeedingDemo::detectFoodItems(
-    const std::string& foodName)
-{
-  if (!mAdaReal)
-  {
-    return std::vector<TargetFoodItem>{
-      TargetFoodItem("item", nullptr, getDefaultFoodTransform(), 1.0)};
-  }
-  return mPerception->perceiveFood(foodName);
-}
-
-//==============================================================================
 void FeedingDemo::setFTThreshold(FTThreshold threshold)
 {
   if (mAdaReal && mIsFTSensingEnabled)
@@ -803,7 +790,7 @@ void FeedingDemo::waitForUser(const std::string& prompt)
 FoodItemWithActionScorePtr FeedingDemo::detectAndMoveAboveFood(
       const std::string& foodName)
 {
-  auto candidateItems = detectFoodItems(foodName);
+  auto candidateItems = mPerception->perceiveFood(foodName);
 
   FoodItemWithActionScorePtr targetItemWithScore;
 
@@ -811,15 +798,15 @@ FoodItemWithActionScorePtr FeedingDemo::detectAndMoveAboveFood(
     throw std::runtime_error("Failed to detect any food.");
 
   bool moveAboveSuccessful = false;
-  for(const auto& itemWithScore, candidateItems)
+  for(const auto& itemWithScore: candidateItems)
   {
-    auto action = itemWithScore.action;
-    auto item = itemWithScore.item;
+    auto action = itemWithScore->action;
+    auto item = itemWithScore->item;
 
     if (!moveAboveFood(item.name, item.pose,
-        item.getAction(), action.rotationAngle, action.tiltAngle))
+        action.rotationAngle, action.tiltStyle))
     {
-      ROS_INFO_STREAM("Failed to move above " << item.getName());
+      ROS_INFO_STREAM("Failed to move above " << item.name);
       continue;
     }
     moveAboveSuccessful = true;
@@ -832,7 +819,7 @@ FoodItemWithActionScorePtr FeedingDemo::detectAndMoveAboveFood(
     ROS_ERROR("Failed to move above any food.");
     throw std::runtime_error("Failed to move above any food.");
   }
-  mPerception->setFoodItemToTrack(targetItemWithScore.item);
+  mPerception->setFoodItemToTrack(targetItemWithScore->item);
   return targetItemWithScore;
 }
 
