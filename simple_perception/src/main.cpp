@@ -8,7 +8,7 @@
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/DartLoader.hpp>
 #include <libada/Ada.hpp>
-#include <aikido/perception/ObjectDatabase.hpp>
+#include <aikido/perception/AssetDatabase.hpp>
 #include <aikido/perception/PoseEstimatorModule.hpp>
 
 namespace po = boost::program_options;
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
       new aikido::perception::PoseEstimatorModule(
           nh,
           foodDetectorTopicName,
-          std::make_shared<aikido::perception::ObjectDatabase>(
+          std::make_shared<aikido::perception::AssetDatabase>(
               resourceRetriever, detectorDataURI),
           resourceRetriever,
           referenceFrameName,
