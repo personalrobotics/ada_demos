@@ -100,16 +100,17 @@ void skewer(
 
     // ===== OUT OF FOOD =====
 
+    Eigen::Vector3d direction(0, 0, 1);
     bool ignoreCollision = true;
     moveOutOf(
       ada,
       nullptr,
       TargetItem::FOOD,
       moveOutofFoodLength,
+      direction,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
       endEffectorOffsetAngularTolerance,
-      ignoreCollision,
       ftThresholdHelper
     );
 

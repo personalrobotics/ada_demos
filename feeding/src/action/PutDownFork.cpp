@@ -2,6 +2,8 @@
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
+#include "feeding/action/MoveAboveForque.hpp"
+#include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/TargetItem.hpp"
 
 namespace feeding {
@@ -13,6 +15,7 @@ void putDownFork(
   double forkHolderAngle,
   std::vector<double> forkHolderTranslation,
   const Eigen::Isometry3d& plate,
+  const Eigen::Isometry3d& plateEndEffectorTransform,
   double heightAbovePlate,
   double horizontalToleranceAbovePlate,
   double verticalToleranceAbovePlate,
@@ -32,7 +35,16 @@ void putDownFork(
     forkHolderTranslation,
     planningTimeout,
     maxNumTrials);
-  moveInto(TargetItem::FORQUE);
+
+  moveInto(
+    ada,
+    collisionFree,
+    TargetItem::FORQUE,
+    planningTimeout,
+    endEffectorOffsetPositionTolerance,
+    endEffectorOffsetAngularTolerance,
+    Eigen::Vector3d(0, 1, 0), // direction
+    ftThresholdHelper);
 
   ada->openHand();
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
@@ -41,6 +53,8 @@ void putDownFork(
     ada,
     collisionFree,
     TargetItem::FORQUE,
+    0.04, // length
+    Eigen::Vector3d(0, -1, 0), // direction
     planningTimeout,
     endEffectorOffsetPositionTolerance,
     endEffectorOffsetAngularTolerance,
@@ -51,12 +65,11 @@ void putDownFork(
     ada,
     collisionFree,
     plate,
+    plateEndEffectorTransform,
     heightAbovePlate,
     horizontalToleranceAbovePlate,
     verticalToleranceAbovePlate,
     rotationToleranceAbovePlate,
-    endEffectorOffsetPositionTolerance,
-    endEffectorOffsetAngularTolerance,
     planningTimeout,
     maxNumTrials,
     velocityLimits

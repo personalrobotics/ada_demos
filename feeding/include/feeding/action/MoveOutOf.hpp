@@ -14,10 +14,10 @@ void moveOutOf(
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
   TargetItem item,
   double length,
+  Eigen::Vector3d direction,
   double planningTimeout,
   double endEffectorOffsetPositionTolerance,
   double endEffectorOffsetAngularTolerance,
-  bool ignoreCollision,
   const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper);
 
 }

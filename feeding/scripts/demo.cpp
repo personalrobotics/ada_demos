@@ -5,8 +5,8 @@
 
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/util.hpp"
-// #include "feeding/action/PickUpFork.hpp"
-// #include "feeding/action/PutDownFork.hpp"
+#include "feeding/action/PickUpFork.hpp"
+#include "feeding/action/PutDownFork.hpp"
 #include "feeding/action/FeedFoodToPerson.hpp"
 #include "feeding/action/Skewer.hpp"
 
@@ -15,10 +15,6 @@ using ada::util::waitForUser;
 using aikido::rviz::WorldInteractiveMarkerViewerPtr;
 
 namespace feeding {
-
-
-const int MAX_TRIAL_PER_ITEM = 3;
-const bool TERMINATE_AT_USER_PROMPT = true;
 
 void demo(
     FeedingDemo& feedingDemo,
@@ -49,11 +45,43 @@ void demo(
     // ===== FORQUE PICKUP =====
     if (foodName == "pickupfork")
     {
-      // action::pickUpFork(ada, collisionFree);
+      action::pickUpFork(
+        ada,
+        collisionFree,
+        feedingDemo.mForkHolderAngle,
+        feedingDemo.mForkHolderTranslation,
+        plate,
+        feedingDemo.getPlateEndEffectorTransform(),
+        feedingDemo.mPlateTSRParameters["height"],
+        feedingDemo.mPlateTSRParameters["horizontalTolerance"],
+        feedingDemo.mPlateTSRParameters["verticalTolerance"],
+        feedingDemo.mPlateTSRParameters["rotationTolerance"],
+        feedingDemo.mEndEffectorOffsetPositionTolerance,
+        feedingDemo.mEndEffectorOffsetAngularTolerance,
+        feedingDemo.mPlanningTimeout,
+        feedingDemo.mMaxNumTrials,
+        feedingDemo.mVelocityLimits,
+        feedingDemo.getFTThresholdHelper());
     }
     else if (foodName == "putdownfork")
     {
-      // action::putDownFork(ada);
+      action::putDownFork(
+        ada,
+        collisionFree,
+        feedingDemo.mForkHolderAngle,
+        feedingDemo.mForkHolderTranslation,
+        plate,
+        feedingDemo.getPlateEndEffectorTransform(),
+        feedingDemo.mPlateTSRParameters["height"],
+        feedingDemo.mPlateTSRParameters["horizontalTolerance"],
+        feedingDemo.mPlateTSRParameters["verticalTolerance"],
+        feedingDemo.mPlateTSRParameters["rotationTolerance"],
+        feedingDemo.mEndEffectorOffsetPositionTolerance,
+        feedingDemo.mEndEffectorOffsetAngularTolerance,
+        feedingDemo.mPlanningTimeout,
+        feedingDemo.mMaxNumTrials,
+        feedingDemo.mVelocityLimits,
+        feedingDemo.getFTThresholdHelper());
     }
     else
     {
@@ -88,14 +116,17 @@ void demo(
       waitForUser("Move forque in front of person", ada);
 
       bool tilted = (foodName != "celery");
+
       action::feedFoodToPerson(
         ada,
         workspace,
         collisionFree,
+        perception,
+        nodeHandle,
         plate,
         feedingDemo.getPlateEndEffectorTransform(),
+        feedingDemo.mPersonPose,
         feedingDemo.mWaitTimeForPerson,
-        tilted,
         feedingDemo.mPlateTSRParameters["height"],
         feedingDemo.mPlateTSRParameters["horizontalTolerance"],
         feedingDemo.mPlateTSRParameters["verticalTolerance"],
@@ -105,7 +136,10 @@ void demo(
         feedingDemo.mPersonTSRParameters["verticalTolerance"],
         feedingDemo.mPlanningTimeout,
         feedingDemo.mMaxNumTrials,
-        feedingDemo.mVelocityLimits
+        feedingDemo.mEndEffectorOffsetPositionTolerance,
+        feedingDemo.mEndEffectorOffsetAngularTolerance,
+        feedingDemo.mVelocityLimits,
+        tilted ? &feedingDemo.mTiltOffset : nullptr
         );
     }
 

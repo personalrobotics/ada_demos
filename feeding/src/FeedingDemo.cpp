@@ -2,7 +2,6 @@
 #include <aikido/rviz/TrajectoryMarker.hpp>
 #include <boost/optional.hpp>
 
-#include <pr_tsr/plate.hpp>
 #include <libada/util.hpp>
 
 #include <fstream>
@@ -152,6 +151,18 @@ FeedingDemo::FeedingDemo(
       = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
 
+  mPersonPose = createIsometry(
+    getRosParam<std::vector<double>>("/study/personPose", mNodeHandle));
+
+  mForkHolderAngle
+      = getRosParam<double>("/study/forkHolderAngle", mNodeHandle);
+  mForkHolderTranslation = getRosParam<std::vector<double>>(
+      "/study/forkHolderTranslation", mNodeHandle);
+
+  std::vector<double> tiltOffsetVector
+      = getRosParam<std::vector<double>>("/study/tiltOffset", mNodeHandle);
+  mTiltOffset = Eigen::Vector3d(
+        tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
 
   mVelocityLimits = std::vector<double>{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
 }

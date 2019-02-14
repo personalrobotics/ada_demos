@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <aikido/perception/PoseEstimatorModule.hpp>
+#include <aikido/perception/AssetDatabase.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <libada/Ada.hpp>
 #include <memory>
@@ -66,7 +67,7 @@ private:
 
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFoodDetector;
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFaceDetector;
-  std::shared_ptr<aikido::perception::ObjectDatabase> mObjectDatabase;
+  std::shared_ptr<aikido::perception::AssetDatabase> mAssetDatabase;
 
   std::shared_ptr<TargetFoodRanker> mTargetFoodRanker;
   FoodItem mTargetFoodItem;

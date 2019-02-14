@@ -1,23 +1,23 @@
-#ifndef FEEDING_ACTION_MOVETOPERSON_HPP_
-#define FEEDING_ACTION_MOVETOPERSON_HPP_
+#ifndef FEEDING_ACTION_MOVETOWARDSPERSON_HPP_
+#define FEEDING_ACTION_MOVETOWARDSPERSON_HPP_
 
 #include <libada/Ada.hpp>
 #include "feeding/Workspace.hpp"
+#include "feeding/perception/Perception.hpp"
 
-// Contains motions which are mainly TSR actions
 namespace feeding {
 namespace action {
 
-/// Moves the forque towards the person.
-/// This function does not throw an exception if the trajectory is aborted,
-/// because we expect that.
-bool moveToPerson(
+bool moveTowardsPerson(
   const std::shared_ptr<ada::Ada>& ada,
-  double distanceToPerson,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+  const std::shared_ptr<Perception>& perception,
+  ros::NodeHandle nodeHandle,
+  double distanceToPerson,
   double planningTimeout,
   double endEffectorOffsetPositionTolerenace,
   double endEffectorOffsetAngularTolerance);
+
 }
 }
 

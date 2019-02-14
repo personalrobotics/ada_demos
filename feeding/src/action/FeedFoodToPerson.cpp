@@ -3,6 +3,9 @@
 #include "feeding/action/Grab.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveInFrontOfPerson.hpp"
+#include "feeding/action/MoveDirectlyToPerson.hpp"
+#include "feeding/action/MoveTowardsPerson.hpp"
+
 namespace feeding {
 namespace action {
 
@@ -11,10 +14,12 @@ void feedFoodToPerson(
   const std::shared_ptr<ada::Ada>& ada,
   const std::shared_ptr<Workspace>& workspace,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+  const std::shared_ptr<Perception>& perception,
+  ros::NodeHandle nodeHandle,
   const Eigen::Isometry3d& plate,
   const Eigen::Isometry3d& plateEndEffectorTransform,
+  const Eigen::Isometry3d& personPose,
   std::chrono::milliseconds waitAtPerson,
-  bool tilted,
   double heightAbovePlate,
   double horizontalToleranceAbovePlate,
   double verticalToleranceAbovePlate,
@@ -24,31 +29,43 @@ void feedFoodToPerson(
   double verticalToleranceForPerson,
   double planningTimeout,
   int maxNumTrials,
-  std::vector<double> velocityLimits)
+  double endEffectorOffsetPositionTolerenace,
+  double endEffectorOffsetAngularTolerance,
+  std::vector<double> velocityLimits,
+  const Eigen::Vector3d* tiltOffset)
 {
+  auto moveIFOPerson = [&]
+  {
+    return moveInFrontOfPerson(
+      ada,
+      collisionFree,
+      workspace->getPersonPose(), // TODO why not personPose
+      distanceToPerson,
+      horizontalToleranceForPerson,
+      verticalToleranceForPerson,
+      planningTimeout,
+      maxNumTrials,
+      velocityLimits);
+  };
 
   bool moveSuccess = false;
 
-  moveInFrontOfPerson(
-    ada,
-    collisionFree,
-    workspace->getPersonPose(),
-    distanceToPerson,
-    horizontalToleranceForPerson,
-    verticalToleranceForPerson,
-    planningTimeout,
-    maxNumTrials,
-    velocityLimits
-    );
-  /*
   for (std::size_t i = 0; i < 2; ++i)
   {
-    moveInFrontOfPerson();
+    moveIFOPerson();
     nodeHandle.setParam("/feeding/facePerceptionOn", true);
 
-    waitForUser("Move towards person");
+    ada::util::waitForUser("Move towards person", ada);
 
-    moveSuccess = moveTowardsPerson();
+    moveSuccess = moveTowardsPerson(
+      ada,
+      collisionFree,
+      perception,
+      nodeHandle,
+      distanceToPerson,
+      planningTimeout,
+      endEffectorOffsetPositionTolerenace,
+      endEffectorOffsetAngularTolerance);
     nodeHandle.setParam("/feeding/facePerceptionOn", false);
 
     if (moveSuccess)
@@ -56,17 +73,27 @@ void feedFoodToPerson(
     ROS_INFO_STREAM("Moved failed, backing up and retrying");
   }
 
-  if (!moveSuccess) {
+  if (!moveSuccess)
+  {
     ROS_INFO_STREAM("Servoing failed. Falling back to direct movement...");
-    moveInFrontOfPerson();
-    moveDirectlyToPerson(tilted);
-  }*/
+    moveIFOPerson();
+    moveDirectlyToPerson(
+      ada,
+      collisionFree,
+      personPose,
+      distanceToPerson,
+      horizontalToleranceForPerson,
+      verticalToleranceForPerson,
+      planningTimeout,
+      maxNumTrials,
+      velocityLimits,
+      tiltOffset);
+  }
 
   // ===== EATING =====
-  // ROS_WARN("Human is eating");
+  ROS_WARN("Human is eating");
   std::this_thread::sleep_for(waitAtPerson);
   ungrabAndDeleteFood(ada, workspace);
-
   ada::util::waitForUser("Move away from person", ada);
 
   // ===== BACK TO PLATE =====

@@ -3,7 +3,7 @@
 
 #include <algorithm>
 #include <aikido/perception/DetectedObject.hpp>
-#include <aikido/perception/ObjectDatabase.hpp>
+#include <aikido/perception/AssetDatabase.hpp>
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
 
@@ -38,14 +38,14 @@ Perception::Perception(
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
 
-  mObjectDatabase = std::make_shared<aikido::perception::ObjectDatabase>(
+  mAssetDatabase = std::make_shared<aikido::perception::AssetDatabase>(
       resourceRetriever, detectorDataURI);
 
   mFoodDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
           mNodeHandle,
           foodDetectorTopicName,
-          mObjectDatabase,
+          mAssetDatabase,
           resourceRetriever,
           referenceFrameName,
           aikido::robot::util::getBodyNodeOrThrow(
@@ -57,7 +57,7 @@ Perception::Perception(
       new aikido::perception::PoseEstimatorModule(
           mNodeHandle,
           faceDetectorTopicName,
-          mObjectDatabase,
+          mAssetDatabase,
           resourceRetriever,
           referenceFrameName,
           aikido::robot::util::getBodyNodeOrThrow(
@@ -88,7 +88,7 @@ std::vector<FoodItemWithActionScorePtr> Perception::perceiveFood(
   // Detect items
   std::vector<DetectedObject> detectedObjects;
   mFoodDetector->detectObjects(
-      mWorld, detectedObjects, ros::Duration(mPerceptionTimeout));
+      mWorld, ros::Duration(mPerceptionTimeout), ros::Time(0), &detectedObjects);
 
   detectedFoodItems.reserve(detectedObjects.size());
   for (const auto& item: detectedObjects)
@@ -111,8 +111,8 @@ Eigen::Isometry3d Perception::perceiveFace()
 {
   std::vector<DetectedObject> detectedObjects;
 
-  if (!mFaceDetector->detectObjects(mWorld, detectedObjects,
-        ros::Duration(mPerceptionTimeout)))
+  if (!mFaceDetector->detectObjects(mWorld,
+        ros::Duration(mPerceptionTimeout), ros::Time(0), &detectedObjects))
   {
     ROS_WARN("face perception failed");
     throw std::runtime_error("Face perception failed");
@@ -151,7 +151,7 @@ Eigen::Isometry3d Perception::perceiveFace()
 //==============================================================================
 bool Perception::isMouthOpen()
 {
-  // return mObjectDatabase->mObjData["faceStatus"].as<bool>();
+  // return mAssetDatabase->mObjData["faceStatus"].as<bool>();
   ROS_WARN("Always returning true for isMouthOpen");
   return true;
 }
@@ -169,6 +169,8 @@ Eigen::Isometry3d Perception::getTrackedFoodItemPose()
     throw std::runtime_error("Target item not set.");
 
   // TODO: uncomment this once aikido side has it.
+  // This assumes that the same item (with same id) can be tracked by
+  // mFoodDetector and thus this side only needs to retreive that information.
   /*
   auto item = mFoodDetector->detectObject(mWorld,
     mTargetFoodItem.uid,

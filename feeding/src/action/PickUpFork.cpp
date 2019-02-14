@@ -3,7 +3,7 @@
 #include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
-#include "feeding/util/util.hpp"
+#include "feeding/util.hpp"
 #include "feeding/TargetItem.hpp"
 
 namespace feeding {
@@ -15,6 +15,7 @@ void pickUpFork(
   double forkHolderAngle,
   std::vector<double> forkHolderTranslation,
   const Eigen::Isometry3d& plate,
+  const Eigen::Isometry3d& plateEndEffectorTransform,
   double heightAbovePlate,
   double horizontalToleranceAbovePlate,
   double verticalToleranceAbovePlate,
@@ -55,10 +56,15 @@ void pickUpFork(
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   }
 
+  double length = 0.04;
+  Eigen::Vector3d direction(0, -1, 0);
+
   moveOutOf(
     ada,
-    collisionFree,
+    nullptr, // ignore collision
     TargetItem::FORQUE,
+    length,
+    direction,
     planningTimeout,
     endEffectorOffsetPositionTolerance,
     endEffectorOffsetAngularTolerance,
@@ -69,12 +75,11 @@ void pickUpFork(
     ada,
     collisionFree,
     plate,
+    plateEndEffectorTransform,
     heightAbovePlate,
     horizontalToleranceAbovePlate,
     verticalToleranceAbovePlate,
     rotationToleranceAbovePlate,
-    endEffectorOffsetPositionTolerance,
-    endEffectorOffsetAngularTolerance,
     planningTimeout,
     maxNumTrials,
     velocityLimits

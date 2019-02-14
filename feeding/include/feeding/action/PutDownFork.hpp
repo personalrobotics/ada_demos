@@ -13,6 +13,7 @@ void putDownFork(
   double forkHolderAngle,
   std::vector<double> forkHolderTranslation,
   const Eigen::Isometry3d& plate,
+  const Eigen::Isometry3d& plateEndEffectorTransform,
   double heightAbovePlate,
   double horizontalToleranceAbovePlate,
   double verticalToleranceAbovePlate,

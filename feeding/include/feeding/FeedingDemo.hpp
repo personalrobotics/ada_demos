@@ -109,6 +109,11 @@ public:
   std::chrono::milliseconds mWaitTimeForPerson;
   std::vector<double> mVelocityLimits;
 
+  double mForkHolderAngle;
+  std::vector<double> mForkHolderTranslation;
+  Eigen::Isometry3d mPersonPose;
+  Eigen::Vector3d mTiltOffset;
+
 private:
   /// Attach food to forque
   void grabFoodWithForque();

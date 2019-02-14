@@ -30,8 +30,7 @@ public:
       std::shared_ptr<ada::Ada> ada,
       ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
       ::dart::dynamics::BodyNodePtr bodyNode,
-      std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
-          trajectoryExecutor,
+      std::shared_ptr<aikido::control::TrajectoryExecutor> trajectoryExecutor,
       aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
       double perceptionUpdateTime,
       const Eigen::VectorXd& veloctiyLimits,
@@ -74,8 +73,8 @@ protected:
   /// BodyNode
   ::dart::dynamics::BodyNodePtr mBodyNode;
 
-  std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
-      mTrajectoryExecutor;
+  std::shared_ptr<aikido::control::TrajectoryExecutor> mTrajectoryExecutor;
+
   double mPerceptionUpdateTime;
 
   aikido::trajectory::SplinePtr mCurrentTrajectory;

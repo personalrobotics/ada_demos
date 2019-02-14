@@ -1,4 +1,4 @@
-#include "feeding/action/MoveToPerson.hpp"
+#include "feeding/action/MoveInFrontOfPerson.hpp"
 #include "feeding/util.hpp"
 #include <libada/util.hpp>
 

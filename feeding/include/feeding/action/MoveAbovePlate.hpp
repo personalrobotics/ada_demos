@@ -2,9 +2,7 @@
 #define FEEDING_ACTION_MOVEABOVEPLATE_HPP_
 
 #include <libada/Ada.hpp>
-#include "feeding/Workspace.hpp"
 
-// Contains motions which are mainly TSR actions
 namespace feeding {
 namespace action {
 

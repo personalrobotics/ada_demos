@@ -40,15 +40,15 @@ add_executable(feeding
   src/action/FeedFoodToPerson.cpp
   src/action/MoveAbove.cpp
   src/action/MoveAboveFood.cpp
-  # src/action/MoveAboveForque.cpp
+  src/action/MoveAboveForque.cpp
   src/action/MoveAbovePlate.cpp
-  # src/action/MoveDirectlyToPerson.cpp
+  src/action/MoveDirectlyToPerson.cpp
   src/action/MoveInFrontOfPerson.cpp
   src/action/MoveInto.cpp
   src/action/MoveOutOf.cpp
-  # src/action/MoveToPerson.cpp
-  # src/action/PickUpFork.cpp
-  # src/action/PutDownFork.cpp
+  src/action/MoveTowardsPerson.cpp
+  src/action/PickUpFork.cpp
+  src/action/PutDownFork.cpp
   src/action/Skewer.cpp
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp

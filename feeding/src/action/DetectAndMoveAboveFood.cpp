@@ -19,6 +19,8 @@ FoodItemWithActionScorePtr detectAndMoveAboveFood(
   int maxNumTrials,
   std::vector<double> velocityLimits)
 {
+  // Perception returns the list of good candidates, any one of them is good.
+  // Multiple candidates are preferrable since planning may fail.
   auto candidateItems = perception->perceiveFood(foodName);
 
   FoodItemWithActionScorePtr targetItemWithScore;

@@ -55,8 +55,7 @@ PerceptionServoClient::PerceptionServoClient(
     std::shared_ptr<ada::Ada> ada,
     ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
     ::dart::dynamics::BodyNodePtr bodyNode,
-    std::shared_ptr<aikido::control::ros::RosTrajectoryExecutor>
-        trajectoryExecutor,
+    std::shared_ptr<aikido::control::TrajectoryExecutor> trajectoryExecutor,
     aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
     double perceptionUpdateTime,
     const Eigen::VectorXd& veloctiyLimits,

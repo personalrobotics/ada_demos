@@ -1,5 +1,6 @@
 #include "feeding/action/MoveAboveForque.hpp"
-#include <libada/utl.hpp>
+#include <libada/util.hpp>
+#include <pr_tsr/plate.hpp>
 
 using ada::util::createBwMatrixForTSR;
 
@@ -15,11 +16,6 @@ void moveAboveForque(
   double planningTimeout,
   int maxNumTrials)
 {
-  // double forkHolderAngle
-  //     = getRosParam<double>("/study/forkHolderAngle", mNodeHandle);
-  // std::vector<double> forkHolderTranslation = getRosParam<std::vector<double>>(
-  //     "/study/forkHolderTranslation", mNodeHandle);
-
   auto aboveForqueTSR = pr_tsr::getDefaultPlateTSR();
   Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
   // y positive is closer to wheelchair

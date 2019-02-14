@@ -17,8 +17,6 @@ bool moveAbovePlate(
   int maxNumTrials,
   std::vector<double> velocityLimits)
 {
-
-  double tiltTolerance = 0.0;
   return moveAbove(
     ada,
     collisionFree,
@@ -27,7 +25,7 @@ bool moveAbovePlate(
     horizontalTolerance,
     verticalTolerance,
     rotationTolerance,
-    tiltTolerance,
+    0.0, // tilt tolereance
     planningTimeout,
     maxNumTrials,
     velocityLimits);
