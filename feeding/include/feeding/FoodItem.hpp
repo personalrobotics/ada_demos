@@ -10,23 +10,45 @@ namespace feeding {
 
 AIKIDO_DECLARE_POINTERS(FoodItemWithActionScore)
 
-struct FoodItem
+class FoodItem
 {
-  std::string name;
-  std::string uid; // unique id necessary for tracking
-  dart::dynamics::MetaSkeletonPtr skeleton;
-  Eigen::Isometry3d pose;
+public:
+  explicit FoodItem(
+    std::string name,
+    std::string uid,
+    dart::dynamics::MetaSkeletonPtr metaSkeleton);
+
+  Eigen::Isometry3d getPose() const;
+
+  std::string getName() const;
+
+  std::string getUid() const;
+
+  dart::dynamics::MetaSkeletonPtr getMetaSkeleton() const;
+
+private:
+  const std::string mName;
+  const std::string mUid; // unique id necessary for tracking
+  const dart::dynamics::MetaSkeletonPtr mMetaSkeleton;
 };
 
-struct FoodItemWithActionScore
+class FoodItemWithActionScore
 {
-  FoodItem item;
-  AcquisitionAction action;
-  double score;
-};
+public:
+  explicit FoodItemWithActionScore(
+    FoodItem item, AcquisitionAction action, double score);
 
-FoodItemWithActionScorePtr createFoodItemWithActionScore(
-  const aikido::perception::DetectedObject& item);
+  FoodItem* getItem();
+  AcquisitionAction const* getAction() const;
+  double getScore() const;
+
+
+private:
+
+  FoodItem mItem;
+  AcquisitionAction mAction;
+  double mScore;
+};
 
 } // namespace feeding
 

@@ -14,7 +14,7 @@ void feedFoodToPerson(
   const std::shared_ptr<Workspace>& workspace,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
   const std::shared_ptr<Perception>& perception,
-  ros::NodeHandle nodeHandle,
+  const ros::NodeHandle* nodeHandle,
   const Eigen::Isometry3d& plate,
   const Eigen::Isometry3d& plateEndEffectorTransform,
   const Eigen::Isometry3d& personPose,

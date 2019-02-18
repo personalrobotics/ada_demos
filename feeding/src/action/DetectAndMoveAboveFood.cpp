@@ -28,19 +28,22 @@ FoodItemWithActionScorePtr detectAndMoveAboveFood(
   if (candidateItems.size() == 0)
     throw std::runtime_error("Failed to detect any food.");
 
+  ROS_INFO_STREAM("Detected " << candidateItems.size() << " " << foodName);
+
   bool moveAboveSuccessful = false;
   for(const auto& itemWithScore: candidateItems)
   {
-    auto action = itemWithScore->action;
-    auto item = itemWithScore->item;
+    auto action = itemWithScore->getAction();
+    auto item = itemWithScore->getItem();
 
+    std::cout << "Tilt style " << action->getTiltStyle() << std::endl;
     if (!moveAboveFood(
       ada,
       collisionFree,
-      item.name,
-      item.pose,
-      action.rotationAngle,
-      action.tiltStyle,
+      item->getName(),
+      item->getPose(),
+      action->getRotationAngle(),
+      action->getTiltStyle(),
       heightAboveFood,
       horizontalTolerance,
       verticalTolerance,
@@ -50,7 +53,7 @@ FoodItemWithActionScorePtr detectAndMoveAboveFood(
       maxNumTrials,
       velocityLimits))
     {
-      ROS_INFO_STREAM("Failed to move above " << item.name);
+      ROS_INFO_STREAM("Failed to move above " << item->getName());
       continue;
     }
     moveAboveSuccessful = true;
@@ -63,7 +66,7 @@ FoodItemWithActionScorePtr detectAndMoveAboveFood(
     ROS_ERROR("Failed to move above any food.");
     throw std::runtime_error("Failed to move above any food.");
   }
-  perception->setFoodItemToTrack(targetItemWithScore->item);
+  perception->setFoodItemToTrack(targetItemWithScore->getItem());
   return targetItemWithScore;
 }
 

@@ -8,17 +8,33 @@ namespace feeding {
 
 enum TiltStyle
 {
-  VERTICAL,
-  ANGLED,
-  NONE
+  NONE = 0,
+  VERTICAL = 1,
+  ANGLED = 2
 };
 
-struct AcquisitionAction
+class AcquisitionAction
 {
-  TiltStyle tiltStyle; // = TiltStyle::VERTICAL;
-  double rotationAngle; // = 0.0;
-  double tiltAngle; // = 0.0;
-  Eigen::Vector3d moveIntoDirection; //(-1.0, 0.0, 0.0);
+public:
+  explicit AcquisitionAction(
+    TiltStyle tiltStyle = TiltStyle::NONE,
+    double rotationAngle = 0.0,
+    double tiltAngle = 0.0,
+    Eigen::Vector3d moveIntoDirection = Eigen::Vector3d(-1.0, 0.0, 0.0));
+
+  TiltStyle getTiltStyle() const;
+
+  double getRotationAngle() const;
+
+  double getTiltAngle() const;
+
+  Eigen::Vector3d moveIntoDirection() const;
+
+private:
+  TiltStyle mTiltStyle;
+  double mRotationAngle;
+  double mTiltAngle;
+  Eigen::Vector3d mMoveIntoDirection;
 };
 
 }

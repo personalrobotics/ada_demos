@@ -23,7 +23,7 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   PerceptionServoClient(
-      ::ros::NodeHandle node,
+      const ::ros::NodeHandle* node,
       boost::function<Eigen::Isometry3d (void)> getTransform,
       aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
           metaSkeletonStateSpace,
@@ -33,9 +33,13 @@ public:
       std::shared_ptr<aikido::control::TrajectoryExecutor> trajectoryExecutor,
       aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
       double perceptionUpdateTime,
-      const Eigen::VectorXd& veloctiyLimits,
       float originalDirectionExtension,
-      float goalPrecision);
+      float goalPrecision,
+      double planningTimeout,
+      double endEffectorOffsetPositionTolerance,
+      double endEffectorOffsetAngularTolerance,
+      std::vector<double> veloctiyLimits = std::vector<double>(6, 0.2));
+
   virtual ~PerceptionServoClient();
 
   void start();
@@ -61,7 +65,7 @@ protected:
   aikido::trajectory::SplinePtr planToGoalPoseAndResetMetaSkeleton(
       const Eigen::Isometry3d& goalPose);
 
-  ::ros::NodeHandle mNode;
+  ::ros::NodeHandle mNodeHandle;
   boost::function<Eigen::Isometry3d (void)> mGetTransform;
   /// Meta skeleton state space.
   aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
@@ -113,6 +117,11 @@ protected:
 
   float mOriginalDirectionExtension = 0;
   float mGoalPrecision = 0.01;
+
+  double mPlanningTimeout;
+  double mEndEffectorOffsetPositionTolerance;
+  double mEndEffectorOffsetAngularTolerance;
+  std::vector<double> mVelocityLimits;
 };
 }
 

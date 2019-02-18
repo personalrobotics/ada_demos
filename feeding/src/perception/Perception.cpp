@@ -17,23 +17,26 @@ namespace feeding {
 //==============================================================================
 Perception::Perception(
     aikido::planner::WorldPtr world,
-    dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
-    ros::NodeHandle nodeHandle,
+    dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
+    const ros::NodeHandle* nodeHandle,
     std::shared_ptr<TargetFoodRanker> ranker,
     float faceZOffset)
   : mWorld(world)
+  , mAdaMetaSkeleton(adaMetaSkeleton)
   , mNodeHandle(nodeHandle)
   , mTargetFoodRanker(ranker)
   , mFaceZOffset(faceZOffset)
 {
+  if (!mNodeHandle)
+    throw std::invalid_argument("Ros nodeHandle is nullptr.");
   std::string detectorDataURI
-      = getRosParam<std::string>("/perception/detectorDataUri", mNodeHandle);
+      = getRosParam<std::string>("/perception/detectorDataUri", *mNodeHandle);
   std::string referenceFrameName
-      = getRosParam<std::string>("/perception/referenceFrameName", mNodeHandle);
+      = getRosParam<std::string>("/perception/referenceFrameName", *mNodeHandle);
   std::string foodDetectorTopicName = getRosParam<std::string>(
-      "/perception/foodDetectorTopicName", mNodeHandle);
+      "/perception/foodDetectorTopicName", *mNodeHandle);
   std::string faceDetectorTopicName = getRosParam<std::string>(
-      "/perception/faceDetectorTopicName", mNodeHandle);
+      "/perception/faceDetectorTopicName", *mNodeHandle);
 
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
@@ -43,32 +46,35 @@ Perception::Perception(
 
   mFoodDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
-          mNodeHandle,
+          *mNodeHandle,
           foodDetectorTopicName,
           mAssetDatabase,
           resourceRetriever,
           referenceFrameName,
           aikido::robot::util::getBodyNodeOrThrow(
-              *adasMetaSkeleton, referenceFrameName)));
+              *adaMetaSkeleton, referenceFrameName)));
 
   //mFoodDetector->setObjectProjectionHeight(0.25);
 
   mFaceDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
-          mNodeHandle,
+          *mNodeHandle,
           faceDetectorTopicName,
           mAssetDatabase,
           resourceRetriever,
           referenceFrameName,
           aikido::robot::util::getBodyNodeOrThrow(
-              *adasMetaSkeleton, referenceFrameName)));
+              *adaMetaSkeleton, referenceFrameName)));
 
   mPerceptionTimeout
-      = getRosParam<double>("/perception/timeoutSeconds", mNodeHandle);
+      = getRosParam<double>("/perception/timeoutSeconds", *mNodeHandle);
   mPerceivedFaceName
-      = getRosParam<std::string>("/perception/faceName", mNodeHandle);
+      = getRosParam<std::string>("/perception/faceName", *mNodeHandle);
   mFoodNames
-      = getRosParam<std::vector<std::string>>("/foodItems/names", nodeHandle);
+      = getRosParam<std::vector<std::string>>("/foodItems/names", *nodeHandle);
+
+  if (!mTargetFoodRanker)
+    throw std::invalid_argument("TargetFoodRanker not set for perception.");
 }
 
 //==============================================================================
@@ -93,17 +99,21 @@ std::vector<FoodItemWithActionScorePtr> Perception::perceiveFood(
   detectedFoodItems.reserve(detectedObjects.size());
   for (const auto& item: detectedObjects)
   {
-    auto itemWithActionScore = createFoodItemWithActionScore(item);
+    auto itemWithActionScore = mTargetFoodRanker->createFoodItemWithActionScore(item);
 
-    if (foodName != "" && itemWithActionScore->item.name != foodName)
+    if (foodName != "" && itemWithActionScore->getItem()->getName() != foodName)
       continue;
     detectedFoodItems.emplace_back(itemWithActionScore);
   }
 
+  Eigen::Isometry3d forqueTF
+    = mAdaMetaSkeleton->getBodyNode("j2n6s200_forque_end_effector")->getWorldTransform();
+
   // Return sorted items
   return mTargetFoodRanker->sort(
     detectedFoodItems,
-    getForqueTransform(mTFListener));
+    forqueTF
+  );
 }
 
 //==============================================================================
@@ -130,7 +140,7 @@ Eigen::Isometry3d Perception::perceiveFace()
 
       // fixed distance:
       double fixedFaceY
-          = getRosParam<double>("/feedingDemo/fixedFaceY", mNodeHandle);
+          = getRosParam<double>("/feedingDemo/fixedFaceY", *mNodeHandle);
       if (fixedFaceY > 0)
       {
         faceTransform.translation().y() = fixedFaceY;
@@ -157,7 +167,7 @@ bool Perception::isMouthOpen()
 }
 
 //==============================================================================
-void Perception::setFoodItemToTrack(const FoodItem& target)
+void Perception::setFoodItemToTrack(FoodItem* target)
 {
   mTargetFoodItem = target;
 }
@@ -165,21 +175,21 @@ void Perception::setFoodItemToTrack(const FoodItem& target)
 //==============================================================================
 Eigen::Isometry3d Perception::getTrackedFoodItemPose()
 {
-  if (mTargetFoodItem.name == "")
+  if (!mTargetFoodItem)
     throw std::runtime_error("Target item not set.");
 
-  // TODO: uncomment this once aikido side has it.
-  // This assumes that the same item (with same id) can be tracked by
-  // mFoodDetector and thus this side only needs to retreive that information.
-  /*
-  auto item = mFoodDetector->detectObject(mWorld,
-    mTargetFoodItem.uid,
+  DetectedObject object;
+  auto detectionResult = mFoodDetector->detectObject(
+    mWorld,
+    mTargetFoodItem->getUid(),
+    object,
     ros::Duration(mPerceptionTimeout));
 
-  // Update the current target item.
-  mTargetFoodItem = FoodItem(item);*/
+  if (!detectionResult)
+    ROS_WARN("Failed to detect new update on the target object.");
 
-  return mTargetFoodItem.pose;
+  // Pose should've been updated since same metaSkeleton is shared.
+  return mTargetFoodItem->getPose();
 }
 
 } // namespace feeding

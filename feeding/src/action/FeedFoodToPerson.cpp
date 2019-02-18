@@ -15,7 +15,7 @@ void feedFoodToPerson(
   const std::shared_ptr<Workspace>& workspace,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
   const std::shared_ptr<Perception>& perception,
-  ros::NodeHandle nodeHandle,
+  const ros::NodeHandle* nodeHandle,
   const Eigen::Isometry3d& plate,
   const Eigen::Isometry3d& plateEndEffectorTransform,
   const Eigen::Isometry3d& personPose,
@@ -38,7 +38,7 @@ void feedFoodToPerson(
   {
     return moveInFrontOfPerson(
       ada,
-      collisionFree,
+      nullptr, // collisionFree,
       workspace->getPersonPose(), // TODO why not personPose
       distanceToPerson,
       horizontalToleranceForPerson,
@@ -53,7 +53,7 @@ void feedFoodToPerson(
   for (std::size_t i = 0; i < 2; ++i)
   {
     moveIFOPerson();
-    nodeHandle.setParam("/feeding/facePerceptionOn", true);
+    nodeHandle->setParam("/feeding/facePerceptionOn", true);
 
     ada::util::waitForUser("Move towards person", ada);
 
@@ -66,7 +66,7 @@ void feedFoodToPerson(
       planningTimeout,
       endEffectorOffsetPositionTolerenace,
       endEffectorOffsetAngularTolerance);
-    nodeHandle.setParam("/feeding/facePerceptionOn", false);
+    nodeHandle->setParam("/feeding/facePerceptionOn", false);
 
     if (moveSuccess)
       break;

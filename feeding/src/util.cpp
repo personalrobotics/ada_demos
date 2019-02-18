@@ -30,7 +30,6 @@ void handleArguments(
     bool& adaReal,
     bool& autoContinueDemo,
     bool& useFTSensing,
-    bool& perceptionReal,
     std::string& demoType,
     std::string& foodName,
     std::size_t& directionIndex,
@@ -46,7 +45,6 @@ void handleArguments(
       "adareal,a", po::bool_switch(&adaReal), "Run ADA in real")(
       "continueAuto,c", po::bool_switch(&autoContinueDemo),"Continue Demo automatically")
       ("ftSensing,f", po::bool_switch(&useFTSensing), "Use Force/Torque sensing")
-      ("perceptionReal,p", po::bool_switch(&perceptionReal), "Use real camera")
       ("demoType,d", po::value<std::string>(&demoType), "Demo type")
       ("foodName", po::value<std::string>(&foodName), "Name of food (for data collection)")
       ("direction", po::value<std::size_t>(&directionIndex), "Direction index(for data collection)")
@@ -62,9 +60,6 @@ void handleArguments(
     std::cout << po_desc << std::endl;
     exit(0);
   }
-
-  if (adaReal)
-    perceptionReal = true;
 }
 
 //==============================================================================
@@ -303,10 +298,12 @@ double getDistance(
 //==============================================================================
 Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener)
 {
+  /*
   return getRelativeTransform(
     tfListener,
     "/map",
     "/j2n6s200_forque_end_effector");
+  */
 }
 
 //==============================================================================

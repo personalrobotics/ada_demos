@@ -26,11 +26,8 @@ Workspace::Workspace(
                                           getRosParam<std::vector<double>>(
                                               "/person/pose", mNodeHandle));
   if (!adaReal)
-  {
     addToWorld(mPerson, "person", robotPose);
-    addToWorld(mDefaultFoodItem, "defaultFoodItem", robotPose);
-    mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
-  }
+
   reset();
 }
 
@@ -39,8 +36,6 @@ void Workspace::reset()
 {
   if (mDefaultFoodItem)
     deleteFood();
-  addToWorld(mDefaultFoodItem, "defaultFoodItem", mRobotPose);
-  mDefaultFoodItem->getRootBodyNode()->setCollidable(false);
 }
 //==============================================================================
 void Workspace::addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose)

@@ -12,6 +12,9 @@ public:
     std::vector<FoodItem> sort(
         const std::vector<FoodItem>& items,
         const Eigen::Isometry3d& forqueTransform) const = 0;
+
+    FoodItemWithActionScorePtr createFoodItemWithActionScore(
+        const aikido::perception::DetectedObject& item) const = 0;
 }
 
 } // namespace feeding

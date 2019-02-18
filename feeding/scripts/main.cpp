@@ -44,26 +44,26 @@ int main(int argc, char** argv)
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
-  // True if actual camera is running.
-  bool perceptionReal = false;
-
   std::string demoType{"nips"};
 
   // Arguments for data collection.
-  std::string foodName{"strawberry"};
+  std::string foodName{"testItem"};
   std::string dataCollectorPath;
   std::size_t directionIndex{0};
   std::size_t trialIndex{0};
 
   handleArguments(argc, argv,
-    adaReal, autoContinueDemo, useFTSensingToStopTrajectories, perceptionReal,
+    adaReal, autoContinueDemo, useFTSensingToStopTrajectories,
     demoType, foodName, directionIndex, trialIndex, dataCollectorPath);
 
   bool useVisualServo = true;
   bool allowRotationFree = true;
 
+  std::cout << "Demo type " << demoType << std::endl;
+  bool collect = demoType.rfind("collect") != std::string::npos;
+
   // If demo type starts with "collect", don't use visualServo
-  if ((demoType.rfind("collect"), 0) == 0)
+  if (collect)
   {
     useVisualServo = false;
     allowRotationFree = false;
@@ -72,11 +72,11 @@ int main(int argc, char** argv)
   if (!adaReal)
     ROS_INFO_STREAM("Simulation Mode: " << !adaReal);
 
-  if (dataCollectorPath == "")
+  std::cout << "collect " << collect << std::endl;
+  if (dataCollectorPath == "" && collect)
     throw std::invalid_argument("Need to provide output path");
 
   ROS_INFO_STREAM("DemoType: " << demoType);
-  ROS_INFO_STREAM("perception " << perceptionReal);
   ROS_INFO_STREAM("useFTSensingToStopTrajectories " << useFTSensingToStopTrajectories);
   ROS_INFO_STREAM("DataCollectorPath: " << dataCollectorPath);
   ROS_INFO_STREAM("FoodName: " << foodName);
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
   auto perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
       feedingDemo->getAda()->getMetaSkeleton(),
-      nodeHandle);
+      &nodeHandle);
 
   ftThresholdHelper->init();
   feedingDemo->getAda()->closeHand();

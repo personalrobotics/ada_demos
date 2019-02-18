@@ -30,7 +30,7 @@ void moveAboveForque(
       Eigen::AngleAxisd(forkHolderAngle, Eigen::Vector3d::UnitX()));
   aboveForqueTSR.mT0_w = forquePose;
 
-  aboveForqueTSR.mBw = createBwMatrixForTSR(0.0001, 0.0001, 0);
+  aboveForqueTSR.mBw = createBwMatrixForTSR(0.0001, 0.0001, 0.0001, 0);
   aboveForqueTSR.mTw_e.matrix()
       *= ada->getHand()->getEndEffectorTransform("plate")->matrix();
 

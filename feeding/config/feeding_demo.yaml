@@ -47,6 +47,7 @@ feedingDemo:
   heightAbovePlate: 0.10
   heightAboveFood: 0.10
   heightIntoFood: 0.05           # the real robot plans *below* the food. This parameter specifies how far
+  moveOutofFood: 0.01
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
   waitMillisecsAtFood: 00     # short pause after skewering the food
@@ -66,6 +67,7 @@ planning:
     rotationToleranceNearFood: 0.005
     horizontalToleranceNearPerson: 0.002
     verticalToleranceNearPerson: 0.002
+    tiltToleranceNearFood: 0.0
   endEffectorOffset:
     positionTolerance: 0.00008
     angularTolerance: 0.004
@@ -93,7 +95,7 @@ ftSensor:
 perception:
   detectorDataUri: package://pr_assets/data/objects/tag_data_foods.json
   foodDetectorTopicName: /deep_pose/marker_array
-  faceDetectorTopicName: /face_pose
+  faceDetectorTopicName: /face_pose/marker_array # TODO(GL): added marker_array
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
   faceName: mouth

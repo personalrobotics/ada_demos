@@ -20,6 +20,7 @@ void skewer(
   const std::shared_ptr<Workspace>& workspace,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
   const std::shared_ptr<Perception>& perception,
+  const ros::NodeHandle* nodeHandle,
   const std::string& foodName,
   const Eigen::Isometry3d& plate,
   const Eigen::Isometry3d& plateEndEffectorTransform,
@@ -70,9 +71,10 @@ void skewer(
     velocityLimits
     );
 
-  for(std::size_t i = 0; i < 3; ++i)
+  const std::size_t maxTrials = 3;
+  for(std::size_t i = 0; i < maxTrials; ++i)
   {
-    auto tiltStyle = itemWithActionScore->action.tiltStyle;
+    auto tiltStyle = itemWithActionScore->getAction()->getTiltStyle();
     ROS_INFO_STREAM(
         "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
                                << "N with angle mode " << tiltStyle);
@@ -88,7 +90,9 @@ void skewer(
     ada::util::waitForUser("Move forque into food", ada);
     moveInto(
       ada,
+      perception,
       collisionFree,
+      nodeHandle,
       TargetItem::FOOD,
       planningTimeout,
       endEffectorOffsetPositionTolerance,

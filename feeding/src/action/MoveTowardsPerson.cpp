@@ -10,7 +10,7 @@ bool moveTowardsPerson(
   const std::shared_ptr<ada::Ada>& ada,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
   const std::shared_ptr<Perception>& perception,
-  ros::NodeHandle nodeHandle,
+  const ros::NodeHandle* nodeHandle,
   double distanceToPerson,
   double planningTimeout,
   double endEffectorOffsetPositionTolerenace,
@@ -19,9 +19,7 @@ bool moveTowardsPerson(
   ada::util::waitForUser("Move towards person", ada);
 
   int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
-  Eigen::VectorXd velocityLimits = Eigen::VectorXd::Zero(numDofs);
-  for (int i = 0; i < numDofs; i++)
-    velocityLimits[i] = 0.2;
+  std::vector<double> velocityLimits(numDofs, 0.2);
 
   PerceptionServoClient servoClient(
       nodeHandle,
@@ -33,9 +31,12 @@ bool moveTowardsPerson(
       ada->getTrajectoryExecutor(),
       collisionFree,
       0.2,
-      velocityLimits,
       0,
-      0.06);
+      0.06,
+      planningTimeout,
+      endEffectorOffsetPositionTolerenace,
+      endEffectorOffsetAngularTolerance,
+      velocityLimits);
   servoClient.start();
   return servoClient.wait(30);
 

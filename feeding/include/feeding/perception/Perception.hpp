@@ -33,8 +33,8 @@ public:
   /// \param[in] ranker Ranker to rank detected items.
   Perception(
       aikido::planner::WorldPtr world,
-      dart::dynamics::MetaSkeletonPtr adasMetaSkeleton,
-      ros::NodeHandle nodeHandle,
+      dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
+      const ros::NodeHandle* nodeHandle,
       std::shared_ptr<TargetFoodRanker> ranker=std::make_shared<ShortestDistanceRanker>(),
       float faceZOffset = 0.0);
 
@@ -47,7 +47,7 @@ public:
   std::vector<FoodItemWithActionScorePtr> perceiveFood(
     const std::string& foodName = "");
 
-  void setFoodItemToTrack(const FoodItem& target);
+  void setFoodItemToTrack(FoodItem* target);
 
   /// Throws exception if target item is not set.
   Eigen::Isometry3d getTrackedFoodItemPose();
@@ -63,14 +63,15 @@ private:
 
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
-  ros::NodeHandle& mNodeHandle;
+  const ros::NodeHandle* mNodeHandle;
+  dart::dynamics::MetaSkeletonPtr mAdaMetaSkeleton;
 
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFoodDetector;
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFaceDetector;
   std::shared_ptr<aikido::perception::AssetDatabase> mAssetDatabase;
 
   std::shared_ptr<TargetFoodRanker> mTargetFoodRanker;
-  FoodItem mTargetFoodItem;
+  FoodItem* mTargetFoodItem;
 
   float mFaceZOffset;
   std::string mPerceivedFaceName;

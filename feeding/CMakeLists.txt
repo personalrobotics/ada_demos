@@ -30,11 +30,12 @@ add_executable(feeding
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
   # src/DataCollector.cpp
+  src/AcquisitionAction.cpp
+  src/FoodItem.cpp
   src/FeedingDemo.cpp
   src/FTThresholdHelper.cpp
   src/Workspace.cpp
   src/util.cpp
-  src/FoodItem.cpp
   src/action/Grab.cpp
   src/action/DetectAndMoveAboveFood.cpp
   src/action/FeedFoodToPerson.cpp

@@ -5,6 +5,7 @@
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
+#include "feeding/perception/PerceptionServoClient.hpp"
 #include "feeding/TargetItem.hpp"
 #include "feeding/util.hpp"
 
@@ -14,16 +15,16 @@ namespace action {
 
 bool moveInto(
   const std::shared_ptr<ada::Ada>& ada,
+  const std::shared_ptr<Perception>& perception,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+  const ::ros::NodeHandle* nodeHandle,
   TargetItem item,
   double planningTimeout,
-  double endEffectorOffsetPositionTolerenace,
+  double endEffectorOffsetPositionTolerance,
   double endEffectorOffsetAngularTolerance,
   const Eigen::Vector3d& endEffectorDirection,
   std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
 {
-  // using aikido::control::ros::RosTrajectoryExecutor;
-
   ada::util::waitForUser("Move into " + TargetToString.at(item), ada);
 
   if (ftThresholdHelper)
@@ -37,61 +38,54 @@ bool moveInto(
     return ada->moveArmToEndEffectorOffset(
         Eigen::Vector3d(0, 1, 0), 0.01, collisionFree,
     planningTimeout,
-    endEffectorOffsetPositionTolerenace,
+    endEffectorOffsetPositionTolerance,
     endEffectorOffsetAngularTolerance);
 
-  // TODO: fix
-  /*
-  if (mAdaReal && mPerception && mVisualServo)
+  if (perception)
   {
     ROS_INFO("Servoing into food");
-    auto rosExecutor
-        = std::dynamic_pointer_cast<RosTrajectoryExecutor>(
-          ada->getTrajectoryExecutor());
-
-    if (rosExecutor == nullptr)
-    {
-      throw std::runtime_error("no ros executor");
-    }
 
     int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
-    Eigen::VectorXd velocityLimits = Eigen::VectorXd::Ones(numDofs) * 0.2;
+    std::vector<double> velocityLimits(numDofs, 0.2);
+
+    std::cout << "Velocity limits " << velocityLimits.size() << std::endl;
+    for (const auto v : velocityLimits)
+      std::cout << v << std::endl;
 
     PerceptionServoClient servoClient(
-        mNodeHandle,
-        boost::bind(&Perception::getTrackedFoodItemPose, mPerception.get()),
-        mArmSpace,
-        mAda,
-        mAda->getArm()->getMetaSkeleton(),
-        mAda->getHand()->getEndEffectorBodyNode(),
-        rosExecutor,
-        CollisionFreePtr,
+        nodeHandle,
+        boost::bind(&Perception::getTrackedFoodItemPose, perception.get()),
+        ada->getArm()->getStateSpace(),
+        ada,
+        ada->getArm()->getMetaSkeleton(),
+        ada->getHand()->getEndEffectorBodyNode(),
+        ada->getTrajectoryExecutor(),
+        collisionFree,
         0.1,
-        velocityLimits,
         0.1,
-        0.002);
+        0.002,
+        planningTimeout,
+        endEffectorOffsetPositionTolerance,
+        endEffectorOffsetAngularTolerance,
+        velocityLimits);
     servoClient.start();
 
     return servoClient.wait(10000.0);
   }
-  */
-
-  double length = 0.025;
-
-  for(int i = 0; i < 2; ++i)
+  else
   {
+    double length = 0.05;
     // Collision constraint is not set because f/t sensor stops execution.
     auto result = ada->moveArmToEndEffectorOffset(
         endEffectorDirection, length, nullptr,
         planningTimeout,
-        endEffectorOffsetPositionTolerenace,
+        endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance);
     ROS_INFO_STREAM(" Execution result: " << result);
   }
 
   return true;
 }
-
 
 } // namespace feeding
 } // namespace action

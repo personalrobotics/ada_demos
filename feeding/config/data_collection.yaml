@@ -16,7 +16,6 @@ data:
 
 feedingDemo:
   heightAboveFood: 0.085
-  moveOutofFood: 0.01
   heightOutOfPlate: 0.01
   distBeforePush: 0.05
   distAfterPush: 0.05

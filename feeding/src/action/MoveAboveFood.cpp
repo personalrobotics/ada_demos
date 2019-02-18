@@ -71,7 +71,6 @@ bool moveAboveFood(
   //   rotationTolerance = M_PI;
   // }
 
-  // double tiltTolerance = 0.0;
   return moveAbove(ada,
       collisionFree,
       target,

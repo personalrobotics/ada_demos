@@ -39,7 +39,9 @@ void pickUpFork(
   Eigen::Vector3d endEffectorDirection(0, 0, -1);
   moveInto(
     ada,
+    nullptr,
     collisionFree,
+    nullptr,
     TargetItem::FORQUE,
     planningTimeout,
     endEffectorOffsetPositionTolerance,

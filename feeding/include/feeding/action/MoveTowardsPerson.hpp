@@ -12,7 +12,7 @@ bool moveTowardsPerson(
   const std::shared_ptr<ada::Ada>& ada,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
   const std::shared_ptr<Perception>& perception,
-  ros::NodeHandle nodeHandle,
+  const ros::NodeHandle* nodeHandle,
   double distanceToPerson,
   double planningTimeout,
   double endEffectorOffsetPositionTolerenace,
