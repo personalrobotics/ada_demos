@@ -178,11 +178,8 @@ Eigen::Isometry3d Perception::getTrackedFoodItemPose()
   if (!mTargetFoodItem)
     throw std::runtime_error("Target item not set.");
 
-  DetectedObject object;
-  auto detectionResult = mFoodDetector->detectObject(
+  auto detectionResult = mFoodDetector->detectObjects(
     mWorld,
-    mTargetFoodItem->getUid(),
-    object,
     ros::Duration(mPerceptionTimeout));
 
   if (!detectionResult)
