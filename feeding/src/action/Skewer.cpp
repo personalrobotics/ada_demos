@@ -56,7 +56,7 @@ void skewer(
     maxNumTrials,
     velocityLimits);
 
-  auto itemWithActionScore = detectAndMoveAboveFood(
+  auto item = detectAndMoveAboveFood(
     ada,
     collisionFree,
     perception,
@@ -74,7 +74,7 @@ void skewer(
   const std::size_t maxTrials = 3;
   for(std::size_t i = 0; i < maxTrials; ++i)
   {
-    auto tiltStyle = itemWithActionScore->getAction()->getTiltStyle();
+    auto tiltStyle = item->getAction()->getTiltStyle();
     ROS_INFO_STREAM(
         "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
                                << "N with angle mode " << tiltStyle);
@@ -84,8 +84,8 @@ void skewer(
     {
       endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
       endEffectorDirection.normalize();
-
     }
+
     // ===== INTO FOOD =====
     ada::util::waitForUser("Move forque into food", ada);
     moveInto(
@@ -103,7 +103,6 @@ void skewer(
     std::this_thread::sleep_for(waitTimeForFood);
 
     // ===== OUT OF FOOD =====
-
     Eigen::Vector3d direction(0, 0, 1);
     bool ignoreCollision = true;
     moveOutOf(

@@ -20,9 +20,21 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
     const aikido::perception::DetectedObject& item,
     const Eigen::Isometry3d& forqueTransform) const
 {
-    // TODO: change this based on item class
+  TiltStyle tiltStyle(TiltStyle::NONE);
+
+  // TODO: have a map of item -> strategy
+  if (item.getName() == "strawberry")
+  {
+    tiltStyle = TiltStyle::VERTICAL;
+  }
+  if (item.getName() == "banana")
+  {
+    tiltStyle = TiltStyle::ANGLED;
+  }
+
+    // TODO: check if rotation and tilt angle should change
     AcquisitionAction action(
-        TiltStyle::NONE, 0.0, 0.0, Eigen::Vector3d(-1, 0, 0));
+        tiltStyle, 0.0, 0.0, Eigen::Vector3d(0, 0, -1));
 
     auto itemPose = item.getMetaSkeleton()->getBodyNode(0)->getWorldTransform();
     double distance = getDistance(itemPose, forqueTransform);
