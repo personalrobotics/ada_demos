@@ -78,7 +78,7 @@ Perception::Perception(
 }
 
 //==============================================================================
-std::vector<FoodItemWithActionScorePtr> Perception::perceiveFood(
+std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
   const std::string& foodName)
 {
   if (foodName != "" & (
@@ -89,31 +89,31 @@ std::vector<FoodItemWithActionScorePtr> Perception::perceiveFood(
     throw std::invalid_argument(ss.str());
   }
 
-  std::vector<FoodItemWithActionScorePtr> detectedFoodItems;
+  std::vector<std::unique_ptr<FoodItem>> detectedFoodItems;
 
   // Detect items
   std::vector<DetectedObject> detectedObjects;
   mFoodDetector->detectObjects(
       mWorld, ros::Duration(mPerceptionTimeout), ros::Time(0), &detectedObjects);
 
+  std::cout << "Detected " << detectedObjects.size() << " " << foodName << std::endl;
   detectedFoodItems.reserve(detectedObjects.size());
-  for (const auto& item: detectedObjects)
-  {
-    auto itemWithActionScore = mTargetFoodRanker->createFoodItemWithActionScore(item);
-
-    if (foodName != "" && itemWithActionScore->getItem()->getName() != foodName)
-      continue;
-    detectedFoodItems.emplace_back(itemWithActionScore);
-  }
 
   Eigen::Isometry3d forqueTF
     = mAdaMetaSkeleton->getBodyNode("j2n6s200_forque_end_effector")->getWorldTransform();
 
-  // Return sorted items
-  return mTargetFoodRanker->sort(
-    detectedFoodItems,
-    forqueTF
-  );
+  for (const auto& item: detectedObjects)
+  {
+    auto foodItem = mTargetFoodRanker->createFoodItem(item, forqueTF);
+
+    if (foodName != "" && foodItem->getName() != foodName)
+      continue;
+    detectedFoodItems.emplace_back(std::move(foodItem));
+  }
+
+  // sort
+  mTargetFoodRanker->sort(detectedFoodItems);
+  return detectedFoodItems;
 }
 
 //==============================================================================

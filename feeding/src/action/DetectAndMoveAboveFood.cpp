@@ -5,7 +5,7 @@
 namespace feeding{
 namespace action{
 
-FoodItemWithActionScorePtr detectAndMoveAboveFood(
+std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   const std::shared_ptr<ada::Ada>& ada,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
   const std::shared_ptr<Perception>& perception,
@@ -23,18 +23,15 @@ FoodItemWithActionScorePtr detectAndMoveAboveFood(
   // Multiple candidates are preferrable since planning may fail.
   auto candidateItems = perception->perceiveFood(foodName);
 
-  FoodItemWithActionScorePtr targetItemWithScore;
-
   if (candidateItems.size() == 0)
     throw std::runtime_error("Failed to detect any food.");
 
   ROS_INFO_STREAM("Detected " << candidateItems.size() << " " << foodName);
 
   bool moveAboveSuccessful = false;
-  for(const auto& itemWithScore: candidateItems)
+  for(auto& item: candidateItems)
   {
-    auto action = itemWithScore->getAction();
-    auto item = itemWithScore->getItem();
+    auto action = item->getAction();
 
     std::cout << "Tilt style " << action->getTiltStyle() << std::endl;
     if (!moveAboveFood(
@@ -57,17 +54,17 @@ FoodItemWithActionScorePtr detectAndMoveAboveFood(
       continue;
     }
     moveAboveSuccessful = true;
-    targetItemWithScore = itemWithScore;
-    break;
+
+    perception->setFoodItemToTrack(item.get());
+    return std::move(item);
   }
 
   if (!moveAboveSuccessful)
   {
     ROS_ERROR("Failed to move above any food.");
-    throw std::runtime_error("Failed to move above any food.");
+    return nullptr;
   }
-  perception->setFoodItemToTrack(targetItemWithScore->getItem());
-  return targetItemWithScore;
+
 }
 
 }

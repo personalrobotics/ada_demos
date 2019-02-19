@@ -6,10 +6,14 @@ namespace feeding {
 FoodItem::FoodItem(
   std::string name,
   std::string uid,
-  dart::dynamics::MetaSkeletonPtr metaSkeleton)
+  dart::dynamics::MetaSkeletonPtr metaSkeleton,
+  AcquisitionAction action,
+  double score)
 : mName(name)
 , mUid(uid)
 , mMetaSkeleton(metaSkeleton)
+, mAction(action)
+, mScore(score)
 {
   if (!mMetaSkeleton)
     throw std::invalid_argument("MetaSkeleton is nullptr.");
@@ -40,29 +44,13 @@ dart::dynamics::MetaSkeletonPtr FoodItem::getMetaSkeleton() const
 }
 
 //==============================================================================
-FoodItemWithActionScore::FoodItemWithActionScore(
-  FoodItem item, AcquisitionAction action, double score)
-: mItem(item)
-, mAction(action)
-, mScore(score)
-{
-  // Do nothing
-}
-
-//==============================================================================
-FoodItem* FoodItemWithActionScore::getItem()
-{
-  return &mItem;
-}
-
-//==============================================================================
-AcquisitionAction const* FoodItemWithActionScore::getAction() const
+AcquisitionAction const* FoodItem::getAction() const
 {
   return &mAction;
 }
 
 //==============================================================================
-double FoodItemWithActionScore::getScore() const
+double FoodItem::getScore() const
 {
   return mScore;
 }

@@ -1,67 +1,39 @@
 #include "feeding/ranker/ShortestDistanceRanker.hpp"
+
+#include <dart/common/StlHelpers.hpp>
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/util.hpp"
 
 namespace feeding {
 
 //==============================================================================
-std::vector<FoodItem> ShortestDistanceRanker::sort(
-        const std::vector<FoodItem>& items,
-        const Eigen::Isometry3d& forqueTransform) const
+void ShortestDistanceRanker::sort(
+    std::vector<std::unique_ptr<FoodItem>>& items) const
 {
-  std::vector<FoodItem> rankedFoodItems;
-
-  std::vector<double> distancesToForque;
-  for(const auto& item: items)
-  {
-      distancesToForque.emplace_back(
-          getDistance(item.getPose(), forqueTransform));
-  }
-
-  // Sort based on the distance
-
-  // TODO
-  for(std::size_t i = 0; i < items.size(); ++i)
-      rankedFoodItems.emplace_back(items[i]);
-
-  return rankedFoodItems;
+  // Ascending since score is the distance.
+  TargetFoodRanker::sort(items, SORT_ORDER::ASCENDING);
 }
 
-//==============================================================================
-std::vector<FoodItemWithActionScorePtr> ShortestDistanceRanker::sort(
-        const std::vector<FoodItemWithActionScorePtr>& items,
-        const Eigen::Isometry3d& forqueTransform) const
-{
-  std::vector<FoodItemWithActionScorePtr> rankedFoodItems;
-
-  std::vector<double> distancesToForque;
-  for(const auto& item: items)
-  {
-      distancesToForque.emplace_back(
-          getDistance(item->getItem()->getPose(), forqueTransform));
-  }
-
-  // TODO: Sort items based on the distance
-
-  for(std::size_t i = 0; i < items.size(); ++i)
-      rankedFoodItems.emplace_back(items[i]);
-
-  return rankedFoodItems;
-}
 
 //==============================================================================
-FoodItemWithActionScorePtr
-ShortestDistanceRanker::createFoodItemWithActionScore(
-    const aikido::perception::DetectedObject& item) const
+std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
+    const aikido::perception::DetectedObject& item,
+    const Eigen::Isometry3d& forqueTransform) const
 {
-    FoodItem foodItem(item.getName(), item.getUid(), item.getMetaSkeleton());
-
     // TODO: change this based on item class
     AcquisitionAction action(
         TiltStyle::NONE, 0.0, 0.0, Eigen::Vector3d(-1, 0, 0));
 
-    return std::make_shared<FoodItemWithActionScore>(
-      foodItem, action, 1.0);
+    auto itemPose = item.getMetaSkeleton()->getBodyNode(0)->getWorldTransform();
+    double distance = getDistance(itemPose, forqueTransform);
+
+    return dart::common::make_unique<FoodItem>(
+      item.getName(),
+      item.getUid(),
+      item.getMetaSkeleton(),
+      action,
+      distance);
 }
+
 
 } // namespace feeding

@@ -44,7 +44,7 @@ public:
   /// the item ranked highest by the ranker.
   /// \param[out] foodTransform The transform of the detected food.
   /// \return All food items on the plate of matching name.
-  std::vector<FoodItemWithActionScorePtr> perceiveFood(
+  std::vector<std::unique_ptr<FoodItem>> perceiveFood(
     const std::string& foodName = "");
 
   void setFoodItemToTrack(FoodItem* target);

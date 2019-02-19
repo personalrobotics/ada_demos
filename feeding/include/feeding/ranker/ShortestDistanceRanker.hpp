@@ -9,17 +9,16 @@ namespace feeding{
 class ShortestDistanceRanker : public TargetFoodRanker
 {
 public:
-    // Documention inherited.
-    std::vector<FoodItem> sort(
-        const std::vector<FoodItem>& items,
-        const Eigen::Isometry3d& forqueTransform) const override;
 
-    std::vector<FoodItemWithActionScorePtr> sort(
-        const std::vector<FoodItemWithActionScorePtr>& items,
-        const Eigen::Isometry3d& forqueTransform) const override;
+    /// Returns a sorted list of items.
+    /// \param[in] items List of food items.
+    /// \param[out] items List of food items.
+    void sort(
+        std::vector<std::unique_ptr<FoodItem>>& items) const override;
 
-    FoodItemWithActionScorePtr createFoodItemWithActionScore(
-        const aikido::perception::DetectedObject& item) const override;
+    std::unique_ptr<FoodItem> createFoodItem(
+        const aikido::perception::DetectedObject& item,
+        const Eigen::Isometry3d& forqueTransform) const override;
 };
 
 } // namespace feeding

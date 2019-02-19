@@ -99,9 +99,10 @@ void feedFoodToPerson(
   // ===== BACK TO PLATE =====
   ada::util::waitForUser("Move back to plate", ada);
 
+  // TODO: add a back-out motion and then do move above plate with collisionFree.
   moveAbovePlate(
     ada,
-    collisionFree,
+    nullptr,
     plate,
     plateEndEffectorTransform,
     heightAbovePlate,

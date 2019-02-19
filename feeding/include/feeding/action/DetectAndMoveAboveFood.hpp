@@ -10,7 +10,7 @@
 namespace feeding {
 namespace action {
 
-FoodItemWithActionScorePtr detectAndMoveAboveFood(
+  std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   const std::shared_ptr<ada::Ada>& ada,
   const aikido::constraint::dart::CollisionFreePtr& collisionFree,
   const std::shared_ptr<Perception>& perception,

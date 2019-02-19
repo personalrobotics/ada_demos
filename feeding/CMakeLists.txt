@@ -55,6 +55,7 @@ add_executable(feeding
   src/perception/PerceptionServoClient.cpp
   src/perception/PerceptionPreProcess.cpp
   src/ranker/ShortestDistanceRanker.cpp
+  src/ranker/TargetFoodRanker.cpp
 )
 
 include_directories(include $(rosbag_INCLUDE_DIRS))
