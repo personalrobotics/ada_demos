@@ -1,4 +1,5 @@
 #ifndef FEEDING_SHORTESTDISTANCERANKER_HPP_
+#define FEEDING_SHORTESTDISTANCERANKER_HPP_
 
 #include "feeding/ranker/TargetFoodRanker.hpp"
 #include "feeding/FoodItem.hpp"

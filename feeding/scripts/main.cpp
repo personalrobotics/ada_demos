@@ -10,12 +10,13 @@
 #include "feeding/util.hpp"
 #include "feeding/perception/Perception.hpp"
 // #include "feeding/DataCollector.hpp"
+#include "feeding/ranker/SuccessRateRanker.hpp"
+#include "feeding/ranker/ShortestDistanceRanker.hpp"
 
 #include "experiments.hpp"
 
 using ada::util::getRosParam;
 using ada::util::waitForUser;
-
 
 ///
 /// OVERVIEW OF FEEDING DEMO CODE
@@ -108,10 +109,22 @@ int main(int argc, char** argv)
     ftThresholdHelper,
     autoContinueDemo);
 
+  std::shared_ptr<TargetFoodRanker> ranker;
+
+  if (demoType == "nips")
+  {
+    ranker = std::make_shared<ShortestDistanceRanker>();
+  }
+  else if (demoType == "spanet")
+  {
+    ranker = std::make_shared<SuccessRateRanker>();
+  }
+
   auto perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
       feedingDemo->getAda()->getMetaSkeleton(),
-      &nodeHandle);
+      &nodeHandle,
+      ranker);
 
   ftThresholdHelper->init();
   feedingDemo->getAda()->closeHand();
@@ -125,6 +138,10 @@ int main(int argc, char** argv)
   if (demoType == "nips")
   {
     demo(*feedingDemo, perception, nodeHandle);
+  }
+  else if (demoType == "spanet")
+  {
+    spanetDemo(*feedingDemo, perception, nodeHandle);
   }
   else
   {

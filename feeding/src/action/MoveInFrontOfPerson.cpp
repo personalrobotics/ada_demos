@@ -33,7 +33,12 @@ bool moveInFrontOfPerson(
   personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
 
   personTSR.mBw = createBwMatrixForTSR(
-      horizontalToleranceForPerson, verticalToleranceForPerson, 0, 0);
+      horizontalToleranceForPerson,
+      horizontalToleranceForPerson,
+      verticalToleranceForPerson,
+      0,
+      0,
+      0);
   personTSR.mTw_e.matrix()
       *= ada->getHand()->getEndEffectorTransform("person")->matrix();
 

@@ -381,8 +381,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
         nullptr,
         mPlanningTimeout,
         mEndEffectorOffsetPositionTolerance,
-        mEndEffectorOffsetAngularTolerance,
-        mVelocityLimits);
+        mEndEffectorOffsetAngularTolerance);
 
     if (!trajectory1)
     {
@@ -441,8 +440,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
         nullptr,
         mPlanningTimeout,
         mEndEffectorOffsetPositionTolerance,
-        mEndEffectorOffsetAngularTolerance,
-        mVelocityLimits);
+        mEndEffectorOffsetAngularTolerance);
 
     if (!trajectory2)
     {
@@ -480,8 +478,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
             direction2.normalized(), std::min(direction2.norm(), 0.2), nullptr,
             mPlanningTimeout,
             mEndEffectorOffsetPositionTolerance,
-            mEndEffectorOffsetAngularTolerance,
-            mVelocityLimits);
+            mEndEffectorOffsetAngularTolerance);
 
     setPositionLimits(mAda->getArm()->getMetaSkeleton(),
       limits.first, limits.second);

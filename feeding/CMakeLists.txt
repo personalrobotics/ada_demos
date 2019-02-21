@@ -27,6 +27,7 @@ include_directories(include)
 add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
+  scripts/spanetDemo.cpp
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
   # src/DataCollector.cpp
@@ -55,6 +56,7 @@ add_executable(feeding
   src/perception/PerceptionServoClient.cpp
   src/perception/PerceptionPreProcess.cpp
   src/ranker/ShortestDistanceRanker.cpp
+  src/ranker/SuccessRateRanker.cpp
   src/ranker/TargetFoodRanker.cpp
 )
 

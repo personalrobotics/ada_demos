@@ -35,9 +35,11 @@ bool moveDirectlyToPerson(
   {
     personTSR.mBw = createBwMatrixForTSR(
         horizontalToleranceForPerson,
+        horizontalToleranceForPerson,
         verticalToleranceForPerson,
-        -M_PI / 4,
-        M_PI / 4);
+        0,
+        M_PI / 4,
+        -M_PI / 4);
     Eigen::Isometry3d eeTransform
         = ada->getHand()->getEndEffectorTransform("person").get();
     eeTransform.linear()
@@ -50,7 +52,9 @@ bool moveDirectlyToPerson(
   else
   {
     personTSR.mBw = createBwMatrixForTSR(
-        horizontalToleranceForPerson, verticalToleranceForPerson, 0, 0);
+        horizontalToleranceForPerson,
+        horizontalToleranceForPerson,
+        verticalToleranceForPerson, 0, 0, 0);
     personTSR.mTw_e.matrix()
         *= ada->getHand()->getEndEffectorTransform("person")->matrix();
   }

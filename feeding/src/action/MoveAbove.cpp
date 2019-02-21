@@ -29,9 +29,11 @@ bool moveAbove(
   target.mT0_w = targetTransform;
   target.mBw = createBwMatrixForTSR(
     horizontalTolerance,
+    horizontalTolerance,
     verticalTolerance,
-    rotationTolerance,
-    tiltTolerance);
+    0,
+    tiltTolerance,
+    rotationTolerance);
 
   target.mTw_e.matrix() = endEffectorTransform.matrix();
 
