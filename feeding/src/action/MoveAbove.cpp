@@ -12,40 +12,41 @@ namespace feeding {
 namespace action {
 
 bool moveAbove(
-  const std::shared_ptr<::ada::Ada>& ada,
-  const CollisionFreePtr& collisionFree,
-  const Eigen::Isometry3d& targetTransform,
-  const Eigen::Isometry3d& endEffectorTransform,
-  double horizontalTolerance,
-  double verticalTolerance,
-  double rotationTolerance,
-  double tiltTolerance,
-  double planningTimeout,
-  int maxNumTrials,
-  const std::vector<double>& velocityLimits)
+    const std::shared_ptr<::ada::Ada>& ada,
+    const CollisionFreePtr& collisionFree,
+    const Eigen::Isometry3d& targetTransform,
+    const Eigen::Isometry3d& endEffectorTransform,
+    double horizontalTolerance,
+    double verticalTolerance,
+    double rotationTolerance,
+    double tiltTolerance,
+    double planningTimeout,
+    int maxNumTrials,
+    const std::vector<double>& velocityLimits)
 {
   TSR target;
 
   target.mT0_w = targetTransform;
   target.mBw = createBwMatrixForTSR(
-    horizontalTolerance,
-    horizontalTolerance,
-    verticalTolerance,
-    0,
-    tiltTolerance,
-    rotationTolerance);
+      horizontalTolerance,
+      horizontalTolerance,
+      verticalTolerance,
+      0,
+      tiltTolerance,
+      rotationTolerance);
 
   target.mTw_e.matrix() = endEffectorTransform.matrix();
 
   try
   {
-    auto trajectoryCompleted
-        = ada->moveArmToTSR(target, collisionFree,
-          planningTimeout,
-          maxNumTrials,
-          getConfigurationRanker(ada),
-          velocityLimits,
-          ::ada::TrajectoryPostprocessType::KUNZ);
+    auto trajectoryCompleted = ada->moveArmToTSR(
+        target,
+        collisionFree,
+        planningTimeout,
+        maxNumTrials,
+        getConfigurationRanker(ada),
+        velocityLimits,
+        ::ada::TrajectoryPostprocessType::KUNZ);
     return trajectoryCompleted;
   }
   catch (...)

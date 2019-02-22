@@ -24,7 +24,7 @@ public:
 
   PerceptionServoClient(
       const ::ros::NodeHandle* node,
-      boost::function<Eigen::Isometry3d (void)> getTransform,
+      boost::function<Eigen::Isometry3d(void)> getTransform,
       aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
           metaSkeletonStateSpace,
       std::shared_ptr<ada::Ada> ada,
@@ -66,7 +66,7 @@ protected:
       const Eigen::Isometry3d& goalPose);
 
   ::ros::NodeHandle mNodeHandle;
-  boost::function<Eigen::Isometry3d (void)> mGetTransform;
+  boost::function<Eigen::Isometry3d(void)> mGetTransform;
   /// Meta skeleton state space.
   aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
       mMetaSkeletonStateSpace;

@@ -1,83 +1,81 @@
 #include "feeding/action/Skewer.hpp"
+#include "feeding/action/DetectAndMoveAboveFood.hpp"
+#include "feeding/action/Grab.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
-#include "feeding/action/Grab.hpp"
-#include "feeding/action/DetectAndMoveAboveFood.hpp"
 
 #include <libada/util.hpp>
 
-
 static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
-
 
 namespace feeding {
 namespace action {
 
 //==============================================================================
 void skewer(
-  const std::shared_ptr<ada::Ada>& ada,
-  const std::shared_ptr<Workspace>& workspace,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  const std::shared_ptr<Perception>& perception,
-  const ros::NodeHandle* nodeHandle,
-  const std::string& foodName,
-  const Eigen::Isometry3d& plate,
-  const Eigen::Isometry3d& plateEndEffectorTransform,
-  const std::unordered_map<std::string, double>& foodSkeweringForces,
-  double heightAbovePlate,
-  double horizontalToleranceAbovePlate,
-  double verticalToleranceAbovePlate,
-  double rotationToleranceAbovePlate,
-  double heightAboveFood,
-  double horizontalToleranceForFood,
-  double verticalToleranceForFood,
-  double rotationToleranceForFood,
-  double tiltToleranceForFood,
-  double moveOutofFoodLength,
-  double endEffectorOffsetPositionTolerance,
-  double endEffectorOffsetAngularTolerance,
-  std::chrono::milliseconds waitTimeForFood,
-  double planningTimeout,
-  int maxNumTrials,
-  std::vector<double> velocityLimits,
-  const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper)
+    const std::shared_ptr<ada::Ada>& ada,
+    const std::shared_ptr<Workspace>& workspace,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const std::shared_ptr<Perception>& perception,
+    const ros::NodeHandle* nodeHandle,
+    const std::string& foodName,
+    const Eigen::Isometry3d& plate,
+    const Eigen::Isometry3d& plateEndEffectorTransform,
+    const std::unordered_map<std::string, double>& foodSkeweringForces,
+    double heightAbovePlate,
+    double horizontalToleranceAbovePlate,
+    double verticalToleranceAbovePlate,
+    double rotationToleranceAbovePlate,
+    double heightAboveFood,
+    double horizontalToleranceForFood,
+    double verticalToleranceForFood,
+    double rotationToleranceForFood,
+    double tiltToleranceForFood,
+    double moveOutofFoodLength,
+    double endEffectorOffsetPositionTolerance,
+    double endEffectorOffsetAngularTolerance,
+    std::chrono::milliseconds waitTimeForFood,
+    double planningTimeout,
+    int maxNumTrials,
+    std::vector<double> velocityLimits,
+    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper)
 {
   moveAbovePlate(
-    ada,
-    collisionFree,
-    plate,
-    plateEndEffectorTransform,
-    heightAbovePlate,
-    horizontalToleranceAbovePlate,
-    verticalToleranceAbovePlate,
-    rotationToleranceAbovePlate,
-    planningTimeout,
-    maxNumTrials,
-    velocityLimits);
+      ada,
+      collisionFree,
+      plate,
+      plateEndEffectorTransform,
+      heightAbovePlate,
+      horizontalToleranceAbovePlate,
+      verticalToleranceAbovePlate,
+      rotationToleranceAbovePlate,
+      planningTimeout,
+      maxNumTrials,
+      velocityLimits);
 
   auto item = detectAndMoveAboveFood(
-    ada,
-    collisionFree,
-    perception,
-    foodName,
-    heightAboveFood,
-    horizontalToleranceForFood,
-    verticalToleranceForFood,
-    rotationToleranceForFood,
-    tiltToleranceForFood,
-    planningTimeout,
-    maxNumTrials,
-    velocityLimits
-    );
+      ada,
+      collisionFree,
+      perception,
+      foodName,
+      heightAboveFood,
+      horizontalToleranceForFood,
+      verticalToleranceForFood,
+      rotationToleranceForFood,
+      tiltToleranceForFood,
+      planningTimeout,
+      maxNumTrials,
+      velocityLimits);
 
   const std::size_t maxTrials = 3;
-  for(std::size_t i = 0; i < maxTrials; ++i)
+  for (std::size_t i = 0; i < maxTrials; ++i)
   {
     auto tiltStyle = item->getAction()->getTiltStyle();
     ROS_INFO_STREAM(
         "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
-                               << "N with angle mode " << tiltStyle);
+                   << "N with angle mode "
+                   << tiltStyle);
 
     Eigen::Vector3d endEffectorDirection(0, 0, -1);
     if (tiltStyle == TiltStyle::ANGLED)
@@ -89,16 +87,16 @@ void skewer(
     // ===== INTO FOOD =====
     ada::util::waitForUser("Move forque into food", ada);
     moveInto(
-      ada,
-      perception,
-      collisionFree,
-      nodeHandle,
-      TargetItem::FOOD,
-      planningTimeout,
-      endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance,
-      endEffectorDirection,
-      ftThresholdHelper);
+        ada,
+        perception,
+        collisionFree,
+        nodeHandle,
+        TargetItem::FOOD,
+        planningTimeout,
+        endEffectorOffsetPositionTolerance,
+        endEffectorOffsetAngularTolerance,
+        endEffectorDirection,
+        ftThresholdHelper);
     grabFood(ada, workspace);
     std::this_thread::sleep_for(waitTimeForFood);
 
@@ -106,16 +104,15 @@ void skewer(
     Eigen::Vector3d direction(0, 0, 1);
     bool ignoreCollision = true;
     moveOutOf(
-      ada,
-      nullptr,
-      TargetItem::FOOD,
-      moveOutofFoodLength,
-      direction,
-      planningTimeout,
-      endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance,
-      ftThresholdHelper
-    );
+        ada,
+        nullptr,
+        TargetItem::FOOD,
+        moveOutofFoodLength,
+        direction,
+        planningTimeout,
+        endEffectorOffsetPositionTolerance,
+        endEffectorOffsetAngularTolerance,
+        ftThresholdHelper);
 
     std::this_thread::sleep_for(waitTimeForFood);
     if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
@@ -128,19 +125,17 @@ void skewer(
   }
 
   moveAbovePlate(
-    ada,
-    collisionFree,
-    plate,
-    plateEndEffectorTransform,
-    heightAbovePlate,
-    horizontalToleranceAbovePlate,
-    verticalToleranceAbovePlate,
-    rotationToleranceAbovePlate,
-    planningTimeout,
-    maxNumTrials,
-    velocityLimits
-  );
+      ada,
+      collisionFree,
+      plate,
+      plateEndEffectorTransform,
+      heightAbovePlate,
+      horizontalToleranceAbovePlate,
+      verticalToleranceAbovePlate,
+      rotationToleranceAbovePlate,
+      planningTimeout,
+      maxNumTrials,
+      velocityLimits);
 }
-
 }
 }

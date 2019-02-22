@@ -14,7 +14,6 @@ void ShortestDistanceRanker::sort(
   TargetFoodRanker::sort(items, SORT_ORDER::ASCENDING);
 }
 
-
 //==============================================================================
 std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
     const aikido::perception::DetectedObject& item,
@@ -32,20 +31,14 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
     tiltStyle = TiltStyle::ANGLED;
   }
 
-    // TODO: check if rotation and tilt angle should change
-    AcquisitionAction action(
-        tiltStyle, 0.0, 0.0, Eigen::Vector3d(0, 0, -1));
+  // TODO: check if rotation and tilt angle should change
+  AcquisitionAction action(tiltStyle, 0.0, 0.0, Eigen::Vector3d(0, 0, -1));
 
-    auto itemPose = item.getMetaSkeleton()->getBodyNode(0)->getWorldTransform();
-    double distance = getDistance(itemPose, forqueTransform);
+  auto itemPose = item.getMetaSkeleton()->getBodyNode(0)->getWorldTransform();
+  double distance = getDistance(itemPose, forqueTransform);
 
-    return dart::common::make_unique<FoodItem>(
-      item.getName(),
-      item.getUid(),
-      item.getMetaSkeleton(),
-      action,
-      distance);
+  return dart::common::make_unique<FoodItem>(
+      item.getName(), item.getUid(), item.getMetaSkeleton(), action, distance);
 }
-
 
 } // namespace feeding

@@ -1,18 +1,17 @@
 #include "feeding/AcquisitionAction.hpp"
 
-namespace feeding
-{
+namespace feeding {
 
 //==============================================================================
 AcquisitionAction::AcquisitionAction(
-  TiltStyle tiltStyle,
-  double rotationAngle,
-  double tiltAngle,
-  Eigen::Vector3d moveIntoDirection)
-: mTiltStyle(tiltStyle)
-, mRotationAngle(rotationAngle)
-, mTiltAngle(tiltAngle)
-, mMoveIntoDirection(moveIntoDirection)
+    TiltStyle tiltStyle,
+    double rotationAngle,
+    double tiltAngle,
+    Eigen::Vector3d moveIntoDirection)
+  : mTiltStyle(tiltStyle)
+  , mRotationAngle(rotationAngle)
+  , mTiltAngle(tiltAngle)
+  , mMoveIntoDirection(moveIntoDirection)
 {
   // Do nothing
 }

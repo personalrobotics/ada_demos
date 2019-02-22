@@ -1,6 +1,6 @@
 #include "feeding/action/MoveInFrontOfPerson.hpp"
-#include "feeding/util.hpp"
 #include <libada/util.hpp>
+#include "feeding/util.hpp"
 
 using aikido::constraint::dart::TSR;
 using ada::util::createBwMatrixForTSR;
@@ -12,15 +12,15 @@ namespace feeding {
 namespace action {
 
 bool moveInFrontOfPerson(
-  const std::shared_ptr<ada::Ada>& ada,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  const Eigen::Isometry3d& workspacePersonPose,
-  double distanceToPerson,
-  double horizontalToleranceForPerson,
-  double verticalToleranceForPerson,
-  double planningTimeout,
-  int maxNumTrials,
-  std::vector<double> velocityLimits)
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const Eigen::Isometry3d& workspacePersonPose,
+    double distanceToPerson,
+    double horizontalToleranceForPerson,
+    double verticalToleranceForPerson,
+    double planningTimeout,
+    int maxNumTrials,
+    std::vector<double> velocityLimits)
 {
   ROS_INFO_STREAM("move in front of person");
 
@@ -43,14 +43,13 @@ bool moveInFrontOfPerson(
       *= ada->getHand()->getEndEffectorTransform("person")->matrix();
 
   return ada->moveArmToTSR(
-    personTSR,
-    collisionFree,
-    planningTimeout,
-    maxNumTrials,
-    getConfigurationRanker(ada),
-    velocityLimits,
-    ada::TrajectoryPostprocessType::KUNZ);
+      personTSR,
+      collisionFree,
+      planningTimeout,
+      maxNumTrials,
+      getConfigurationRanker(ada),
+      velocityLimits,
+      ada::TrajectoryPostprocessType::KUNZ);
 }
-
 }
 }

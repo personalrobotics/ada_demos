@@ -8,13 +8,12 @@ namespace feeding {
 namespace action {
 
 void moveAboveForque(
-  const std::shared_ptr<ada::Ada>& ada,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  double forkHolderAngle,
-  std::vector<double> forkHolderTranslation,
-  double planningTimeout,
-  int maxNumTrials
-);
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    double forkHolderAngle,
+    std::vector<double> forkHolderTranslation,
+    double planningTimeout,
+    int maxNumTrials);
 
 } // namespace action
 } // namespace feeding

@@ -9,18 +9,17 @@ namespace feeding {
 namespace action {
 
 bool moveAbove(
-  const std::shared_ptr<::ada::Ada>& ada,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  const Eigen::Isometry3d& targetTransform,
-  const Eigen::Isometry3d& endEffectorTransform,
-  double horizontalTolerance,
-  double verticalTolerance,
-  double rotationTolerance,
-  double tiltTolerance,
-  double planningTimeout,
-  int maxNumTrials,
-  const std::vector<double>& velocityLimits);
-
+    const std::shared_ptr<::ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const Eigen::Isometry3d& targetTransform,
+    const Eigen::Isometry3d& endEffectorTransform,
+    double horizontalTolerance,
+    double verticalTolerance,
+    double rotationTolerance,
+    double tiltTolerance,
+    double planningTimeout,
+    int maxNumTrials,
+    const std::vector<double>& velocityLimits);
 }
 }
 

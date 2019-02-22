@@ -6,7 +6,6 @@
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
-#include <libada/Ada.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -14,6 +13,7 @@
 #include <ros/ros.h>
 #include <rosbag/bag.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <libada/Ada.hpp>
 
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
@@ -39,16 +39,16 @@ enum ImageType
 };
 
 static const std::map<const std::string, Action> StringToAction{
- {"collect_skewer", VERTICAL_SKEWER},
- {"collect_tilted_vertical_skewer", TILTED_VERTICAL_SKEWER},
- {"collect_tilted_angled_skewer", TILTED_ANGLED_SKEWER},
- {"collect_images", IMAGE_ONLY}};
+    {"collect_skewer", VERTICAL_SKEWER},
+    {"collect_tilted_vertical_skewer", TILTED_VERTICAL_SKEWER},
+    {"collect_tilted_angled_skewer", TILTED_ANGLED_SKEWER},
+    {"collect_images", IMAGE_ONLY}};
 
 static const std::map<Action, const std::string> ActionToString{
- {VERTICAL_SKEWER, "collect_skewer"},
- {TILTED_VERTICAL_SKEWER, "collect_tilted_vertical_skewer"},
- {TILTED_ANGLED_SKEWER, "collect_tilted_angled_skewer"},
- {IMAGE_ONLY, "collect_images"}};
+    {VERTICAL_SKEWER, "collect_skewer"},
+    {TILTED_VERTICAL_SKEWER, "collect_tilted_vertical_skewer"},
+    {TILTED_ANGLED_SKEWER, "collect_tilted_angled_skewer"},
+    {IMAGE_ONLY, "collect_images"}};
 
 class DataCollector
 {
@@ -62,26 +62,27 @@ public:
       bool autoContinueDemo,
       bool adaReal,
       bool perceptionReal,
-      const std::string& dataCollectionPath = "/home/herb/feeding/data_collection");
+      const std::string& dataCollectionPath
+      = "/home/herb/feeding/data_collection");
 
   /// Collect data.
   /// \param[in] action Action to execute
   /// \param[in] foodName Name of food for the data collection
-  /// \param[in] directionIndex Index of the direction as suggested by config file
+  /// \param[in] directionIndex Index of the direction as suggested by config
+  /// file
   /// \param[in] trialIndex Index of trial
   void collect(
-    Action action,
-    const std::string& foodName,
-    std::size_t directionIndex,
-    std::size_t trialIndex);
+      Action action,
+      const std::string& foodName,
+      std::size_t directionIndex,
+      std::size_t trialIndex);
 
   /// Collect images from multiple views.
   /// Does not perform any bite acquisition actions.
   void collect_images(const std::string& foodName);
 
 private:
-  void setDataCollectionParams(
-      int foodId, int pushDirectionId, int trialId);
+  void setDataCollectionParams(int foodId, int pushDirectionId, int trialId);
 
   void infoCallback(
       const sensor_msgs::CameraInfoConstPtr& msg, ImageType imageType);
@@ -95,10 +96,9 @@ private:
 
   void captureFrame();
 
-   /// Update mColorImageCount and mDepthImageCount to match
-   /// the number of images in the respective directories.
-  void updateImageCounts(const std::string& directory,
-      ImageType imageType);
+  /// Update mColorImageCount and mDepthImageCount to match
+  /// the number of images in the respective directories.
+  void updateImageCounts(const std::string& directory, ImageType imageType);
 
   std::shared_ptr<FeedingDemo> mFeedingDemo;
   std::shared_ptr<ada::Ada> mAda;

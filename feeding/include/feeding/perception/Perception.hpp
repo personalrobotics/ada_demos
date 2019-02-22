@@ -1,18 +1,18 @@
 #ifndef FEEDING_PERCEPTION_HPP_
 #define FEEDING_PERCEPTION_HPP_
 
-#include <Eigen/Dense>
-#include <aikido/perception/PoseEstimatorModule.hpp>
-#include <aikido/perception/AssetDatabase.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
-#include <libada/Ada.hpp>
 #include <memory>
+#include <Eigen/Dense>
+#include <aikido/perception/AssetDatabase.hpp>
+#include <aikido/perception/PoseEstimatorModule.hpp>
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+#include <libada/Ada.hpp>
 
-#include "feeding/ranker/TargetFoodRanker.hpp"
-#include "feeding/ranker/ShortestDistanceRanker.hpp"
 #include "feeding/FoodItem.hpp"
+#include "feeding/ranker/ShortestDistanceRanker.hpp"
+#include "feeding/ranker/TargetFoodRanker.hpp"
 
 namespace feeding {
 
@@ -35,7 +35,8 @@ public:
       aikido::planner::WorldPtr world,
       dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
       const ros::NodeHandle* nodeHandle,
-      std::shared_ptr<TargetFoodRanker> ranker=std::make_shared<ShortestDistanceRanker>(),
+      std::shared_ptr<TargetFoodRanker> ranker
+      = std::make_shared<ShortestDistanceRanker>(),
       float faceZOffset = 0.0);
 
   /// Gets food items of the name set by setFoodName
@@ -45,7 +46,7 @@ public:
   /// \param[out] foodTransform The transform of the detected food.
   /// \return All food items on the plate of matching name.
   std::vector<std::unique_ptr<FoodItem>> perceiveFood(
-    const std::string& foodName = "");
+      const std::string& foodName = "");
 
   void setFoodItemToTrack(FoodItem* target);
 
@@ -60,7 +61,6 @@ public:
   void setFaceZOffset();
 
 private:
-
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
   const ros::NodeHandle* mNodeHandle;

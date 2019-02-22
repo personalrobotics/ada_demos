@@ -1,20 +1,19 @@
 #include "feeding/action/MoveAboveForque.hpp"
-#include <libada/util.hpp>
 #include <pr_tsr/plate.hpp>
+#include <libada/util.hpp>
 
 using ada::util::createBwMatrixForTSR;
 
 namespace feeding {
 namespace action {
 
-
 void moveAboveForque(
-  const std::shared_ptr<ada::Ada>& ada,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  double forkHolderAngle,
-  std::vector<double> forkHolderTranslation,
-  double planningTimeout,
-  int maxNumTrials)
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    double forkHolderAngle,
+    std::vector<double> forkHolderTranslation,
+    double planningTimeout,
+    int maxNumTrials)
 {
   auto aboveForqueTSR = pr_tsr::getDefaultPlateTSR();
   Eigen::Isometry3d forquePose = Eigen::Isometry3d::Identity();
@@ -30,16 +29,12 @@ void moveAboveForque(
       Eigen::AngleAxisd(forkHolderAngle, Eigen::Vector3d::UnitX()));
   aboveForqueTSR.mT0_w = forquePose;
 
-  aboveForqueTSR.mBw = createBwMatrixForTSR(
-    0.0001, 0.0001, 0.0001, 0, 0, 0);
+  aboveForqueTSR.mBw = createBwMatrixForTSR(0.0001, 0.0001, 0.0001, 0, 0, 0);
   aboveForqueTSR.mTw_e.matrix()
       *= ada->getHand()->getEndEffectorTransform("plate")->matrix();
 
   if (!ada->moveArmToTSR(
-    aboveForqueTSR,
-    collisionFree,
-    planningTimeout,
-    maxNumTrials))
+          aboveForqueTSR, collisionFree, planningTimeout, maxNumTrials))
     throw std::runtime_error("Trajectory execution failed");
 }
 

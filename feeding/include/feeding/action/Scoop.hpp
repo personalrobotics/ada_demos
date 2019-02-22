@@ -7,9 +7,7 @@
 namespace feeding {
 namespace action {
 
-void scoop(
-  const std::shared_ptr<ada::Ada>& ada);
-
+void scoop(const std::shared_ptr<ada::Ada>& ada);
 }
 }
 

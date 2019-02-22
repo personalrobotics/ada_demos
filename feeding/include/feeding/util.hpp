@@ -8,8 +8,8 @@
 #include <aikido/statespace/StateSpace.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
 #include <aikido/trajectory/Spline.hpp>
-#include <boost/program_options.hpp>
 #include <boost/optional.hpp>
+#include <boost/program_options.hpp>
 #include <dart/dart.hpp>
 #include <libada/Ada.hpp>
 
@@ -66,8 +66,8 @@ void dumpSplinePhasePlot(
 /// param[in]] nodeHandle Ros Node to set food name for detection.
 std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle);
 
-int getUserInputWithOptions(const std::vector<std::string>& optionPrompts,
-    const std::string& prompt);
+int getUserInputWithOptions(
+    const std::vector<std::string>& optionPrompts, const std::string& prompt);
 
 /// Sets position limits of a metaskeleton.
 /// \param[in] metaSkeleton Metaskeleton to modify.
@@ -78,8 +78,9 @@ int getUserInputWithOptions(const std::vector<std::string>& optionPrompts,
 std::pair<Eigen::VectorXd, Eigen::VectorXd> setPositionLimits(
     const ::dart::dynamics::MetaSkeletonPtr& metaSkeleton,
     const Eigen::VectorXd& lowerLimits = Eigen::VectorXd::Ones(4) * -6.28,
-    const Eigen::VectorXd& upperLimits = Eigen::VectorXd::Ones(4) *  6.28,
-    const std::vector<std::size_t>& indices = std::vector<std::size_t>{0, 3, 4, 5});
+    const Eigen::VectorXd& upperLimits = Eigen::VectorXd::Ones(4) * 6.28,
+    const std::vector<std::size_t>& indices
+    = std::vector<std::size_t>{0, 3, 4, 5});
 
 /// Get relative transform between two transforms.
 /// \param[in] tfListner TFListener
@@ -87,20 +88,20 @@ std::pair<Eigen::VectorXd, Eigen::VectorXd> setPositionLimits(
 /// \param[in] to Transform to which the relative transform is computed.
 /// returns Relative transform from from to to.
 Eigen::Isometry3d getRelativeTransform(
-  tf::TransformListener& tfListener,
-  const std::string& from,
-  const std::string& to);
+    tf::TransformListener& tfListener,
+    const std::string& from,
+    const std::string& to);
 
 Eigen::Isometry3d removeRotation(const Eigen::Isometry3d& transform);
 
 void printRobotConfiguration(const std::shared_ptr<ada::Ada>& ada);
 
-bool isCollisionFree(const std::shared_ptr<ada::Ada>& ada,
-      const aikido::constraint::dart::CollisionFreePtr& collisionFree);
+bool isCollisionFree(
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree);
 
 double getDistance(
-    const Eigen::Isometry3d& item1,
-    const Eigen::Isometry3d& item2);
+    const Eigen::Isometry3d& item1, const Eigen::Isometry3d& item2);
 
 Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener);
 

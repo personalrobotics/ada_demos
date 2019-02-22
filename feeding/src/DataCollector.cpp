@@ -1,13 +1,13 @@
 #include "feeding/DataCollector.hpp"
-#include <boost/filesystem/path.hpp>
-#include <libada/util.hpp>
-#include <yaml-cpp/yaml.h>
 #include <boost/date_time.hpp>
+#include <boost/filesystem/path.hpp>
 #include <stdlib.h>
+#include <yaml-cpp/yaml.h>
+#include <libada/util.hpp>
 
-#include "boost/date_time/posix_time/posix_time.hpp"
 #include <iostream>
 #include <sstream>
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 using ada::util::getRosParam;
 using ada::util::waitForUser;
@@ -18,25 +18,26 @@ using aikido::constraint::dart::TSR;
 namespace {
 
 // Robot To World
-static const Eigen::Isometry3d robotPose = createIsometry(
-  0.7, -0.1, -0.25, 0, 0, 3.1415);
+static const Eigen::Isometry3d robotPose
+    = createIsometry(0.7, -0.1, -0.25, 0, 0, 3.1415);
 
 // Modification of cameraCalibaration's util::getCalibrationTSR
 TSR getSideViewTSR(int step)
 {
-  double angle = 0.1745*step;
+  double angle = 0.1745 * step;
   auto tsr = pr_tsr::getDefaultPlateTSR();
-  tsr.mT0_w = robotPose.inverse() * createIsometry(
-      0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
-      0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
-      0.05, 3.58, 0, angle);
+  tsr.mT0_w
+      = robotPose.inverse() * createIsometry(
+                                  0.425 + sin(angle) * 0.1 + cos(angle) * -0.03,
+                                  0.15 - cos(angle) * 0.1 + sin(angle) * -0.03,
+                                  0.05,
+                                  3.58,
+                                  0,
+                                  angle);
 
-  tsr.mBw = createBwMatrixForTSR(
-      0.001, 0.001, 0, 0);
+  tsr.mBw = createBwMatrixForTSR(0.001, 0.001, 0, 0);
   return tsr;
 }
-
-
 }
 namespace feeding {
 
@@ -63,7 +64,7 @@ void createDirectory(const std::string& directory)
 void setupDirectoryPerData(const std::string& root)
 {
   std::vector<std::string> folders{"color", "depth"};
-  for (auto & folder : folders)
+  for (auto& folder : folders)
   {
     auto directory = root + "CameraInfoMsgs/" + folder + "/";
     createDirectory(directory);
@@ -102,9 +103,7 @@ void DataCollector::infoCallback(
   {
     ROS_INFO("recording camera info!");
 
-    auto directory = mDataCollectionPath +
-                           "CameraInfoMsgs/"
-                           + folder + "/";
+    auto directory = mDataCollectionPath + "CameraInfoMsgs/" + folder + "/";
 
     std::string infoFile = directory + "cameraInfo.yaml";
 
@@ -123,12 +122,14 @@ void DataCollector::infoCallback(
     if (imageType == COLOR)
     {
       mShouldRecordColorInfo.store(false);
-      std::cout << "color Set to " << mShouldRecordColorInfo.load() << std::endl;
+      std::cout << "color Set to " << mShouldRecordColorInfo.load()
+                << std::endl;
     }
     else
     {
       mShouldRecordDepthInfo.store(false);
-      std::cout << "depth Set to " << mShouldRecordDepthInfo.load() << std::endl;
+      std::cout << "depth Set to " << mShouldRecordDepthInfo.load()
+                << std::endl;
     }
   }
 }
@@ -177,10 +178,11 @@ void DataCollector::imageCallback(
       return;
     }
 
-    auto count = imageType == COLOR ? mColorImageCount.load() : mDepthImageCount.load();
+    auto count = imageType == COLOR ? mColorImageCount.load()
+                                    : mDepthImageCount.load();
 
-    std::string imageFile
-        = mDataCollectionPath + folder + +"/image_" + std::to_string(count) + ".png";
+    std::string imageFile = mDataCollectionPath + folder + +"/image_"
+                            + std::to_string(count) + ".png";
     bool worked = cv::imwrite(imageFile, cv_ptr->image);
     std::cout << "Trying to save at " << imageFile << std::endl;
 
@@ -199,7 +201,6 @@ void DataCollector::imageCallback(
       ROS_INFO_STREAM("image saved to " << imageFile);
     else
       ROS_WARN_STREAM("image saving failed");
-
   }
 }
 
@@ -265,13 +266,15 @@ DataCollector::DataCollector(
         boost::bind(&DataCollector::infoCallback, this, _1, ImageType::DEPTH));
   }
 
-  mPlanningTimeout = getRosParam<double>("/planning/timeoutSeconds", mNodeHandle);
-  mMaxNumPlanningTrials = getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle);
+  mPlanningTimeout
+      = getRosParam<double>("/planning/timeoutSeconds", mNodeHandle);
+  mMaxNumPlanningTrials
+      = getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle);
 
-  mEndEffectorOffsetPositionTolerance
-      = getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
-  mEndEffectorOffsetAngularTolerance
-      = getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle);
+  mEndEffectorOffsetPositionTolerance = getRosParam<double>(
+      "/planning/endEffectorOffset/positionTolerance", mNodeHandle),
+  mEndEffectorOffsetAngularTolerance = getRosParam<double>(
+      "/planning/endEffectorOffset/angularTolerance", mNodeHandle);
 }
 
 //==============================================================================
@@ -306,7 +309,8 @@ void DataCollector::setDataCollectionParams(
 }
 
 //==============================================================================
-void DataCollector::collect(Action action,
+void DataCollector::collect(
+    Action action,
     const std::string& foodName,
     std::size_t directionIndex,
     std::size_t trialIndex)
@@ -315,36 +319,40 @@ void DataCollector::collect(Action action,
   {
     std::stringstream ss;
     ss << "Direction index [" << directionIndex
-    << "] is greater than the max index [" << mDirections.size() - 1 << "].\n";
+       << "] is greater than the max index [" << mDirections.size() - 1
+       << "].\n";
     throw std::invalid_argument(ss.str());
   }
   if (trialIndex >= mNumTrials)
   {
     std::stringstream ss;
-    ss << "Trial index [" << trialIndex
-    << "] is greater than the max index [" << mNumTrials - 1 << "].\n";
+    ss << "Trial index [" << trialIndex << "] is greater than the max index ["
+       << mNumTrials - 1 << "].\n";
     throw std::invalid_argument(ss.str());
   }
   if (std::find(mFoods.begin(), mFoods.end(), foodName) == mFoods.end())
   {
     std::stringstream ss;
-    ss << "Food " << foodName << " not in the list of foods.\n" ;
+    ss << "Food " << foodName << " not in the list of foods.\n";
     throw std::invalid_argument(ss.str());
   }
 
-  std::string trialName = ActionToString.at(action) + "/" + foodName + "-angle-" + mAngleNames[directionIndex] + "-trial-" + std::to_string(trialIndex);
+  std::string trialName = ActionToString.at(action) + "/" + foodName + "-angle-"
+                          + mAngleNames[directionIndex] + "-trial-"
+                          + std::to_string(trialIndex);
   mDataCollectionPath += trialName + "/";
   setupDirectoryPerData(mDataCollectionPath);
 
-  auto foodIndex = std::distance(mFoods.begin(),
-    std::find(mFoods.begin(), mFoods.end(), foodName));
+  auto foodIndex = std::distance(
+      mFoods.begin(), std::find(mFoods.begin(), mFoods.end(), foodName));
 
   ROS_INFO_STREAM(
       "\nTrial " << trialIndex << ": Food [" << foodName << "] Direction ["
                  << mAngleNames[directionIndex]
                  << "] \n\n");
 
-  std::cout << "Set data collection params." << std::endl;;
+  std::cout << "Set data collection params." << std::endl;
+  ;
 
   float rotateForqueAngle = mDirections[directionIndex] * M_PI / 180.0;
 
@@ -360,7 +368,8 @@ void DataCollector::collect(Action action,
   else if (action == TILTED_VERTICAL_SKEWER)
   {
     std::stringstream ss;
-    ss << "Rotate the food " << mDirections[directionIndex] << " degrees" << std::endl;
+    ss << "Rotate the food " << mDirections[directionIndex] << " degrees"
+       << std::endl;
     mFeedingDemo->waitForUser(ss.str());
 
     if (!skewer(0, TiltStyle::VERTICAL))
@@ -414,9 +423,10 @@ void DataCollector::collect_images(const std::string& foodName)
   // Move above food (center of plate)
   ROS_INFO_STREAM("Move above food");
   if (!mFeedingDemo->moveAboveFood(
-    "", // Ignore name.
-    mFeedingDemo->getDefaultFoodTransform(),
-    0.0, TiltStyle::NONE))
+          "", // Ignore name.
+          mFeedingDemo->getDefaultFoodTransform(),
+          0.0,
+          TiltStyle::NONE))
   {
     ROS_ERROR("Rotate Forque failed. Restart.");
     return;
@@ -427,11 +437,13 @@ void DataCollector::collect_images(const std::string& foodName)
   // Move in a few centimeters.
   ROS_INFO_STREAM("Move in 2.5 cm.");
   double length = 0.025;
-  if(!mFeedingDemo->getAda()->moveArmToEndEffectorOffset(
-      Eigen::Vector3d(0,0,-1), length, nullptr,
-      mPlanningTimeout,
-      mEndEffectorOffsetPositionTolerance,
-      mEndEffectorOffsetAngularTolerance))
+  if (!mFeedingDemo->getAda()->moveArmToEndEffectorOffset(
+          Eigen::Vector3d(0, 0, -1),
+          length,
+          nullptr,
+          mPlanningTimeout,
+          mEndEffectorOffsetPositionTolerance,
+          mEndEffectorOffsetAngularTolerance))
   {
     ROS_ERROR("Rotate Forque failed. Restart.");
     return;
@@ -450,14 +462,16 @@ void DataCollector::collect_images(const std::string& foodName)
     // auto marker = mFeedingDemo->getViewer()->addTSRMarker(tsr);
     // mFeedingDemo->waitForUser("Check");
 
-    if(!mFeedingDemo->getAda()->moveArmToTSR(
-      tsr,
-      mFeedingDemo->getCollisionConstraint(),
-      mPlanningTimeout,
-      mMaxNumPlanningTrials))
+    if (!mFeedingDemo->getAda()->moveArmToTSR(
+            tsr,
+            mFeedingDemo->getCollisionConstraint(),
+            mPlanningTimeout,
+            mMaxNumPlanningTrials))
     {
       ROS_INFO_STREAM("Fail: Step " << i);
-    } else {
+    }
+    else
+    {
       captureFrame();
     }
   }
@@ -469,9 +483,10 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
 {
   // ===== ROTATE FORQUE ====
   if (!mFeedingDemo->moveAboveFood(
-    "", // Ignore name.
-    mFeedingDemo->getDefaultFoodTransform(),
-    rotateForqueAngle, tiltStyle))
+          "", // Ignore name.
+          mFeedingDemo->getDefaultFoodTransform(),
+          rotateForqueAngle,
+          tiltStyle))
   {
     ROS_ERROR("Rotate Forque failed. Restart.");
     removeDirectory(mDataCollectionPath);
@@ -480,13 +495,16 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
   captureFrame();
 
   // ===== INTO TO FOOD ====
-  Eigen::Vector3d direction(0,0,-1);
+  Eigen::Vector3d direction(0, 0, -1);
   if (tiltStyle == TiltStyle::ANGLED)
   {
     Eigen::Vector3d food(mFeedingDemo->getDefaultFoodTransform().translation());
     Eigen::Vector3d hand(
-      mFeedingDemo->getAda()->getHand()
-      ->getEndEffectorBodyNode()->getTransform().translation());
+        mFeedingDemo->getAda()
+            ->getHand()
+            ->getEndEffectorBodyNode()
+            ->getTransform()
+            .translation());
     direction = food - hand;
     direction.normalize();
   }
@@ -509,13 +527,16 @@ void DataCollector::recordSuccess()
   std::string direction = mAngleNames[mCurrentDirection.load()];
   int trial = mCurrentTrial.load();
 
-  auto fileName = mDataCollectionPath + "success/" + food + "-"
-          + direction + "-" + std::to_string(trial) + ".txt";
+  auto fileName = mDataCollectionPath + "success/" + food + "-" + direction
+                  + "-" + std::to_string(trial) + ".txt";
 
-  ROS_INFO_STREAM("Record success for " << food << " direction " << direction <<
-    " trial " << trial << " [y/n]");
+  ROS_INFO_STREAM(
+      "Record success for " << food << " direction " << direction << " trial "
+                            << trial
+                            << " [y/n]");
 
-  std::vector<std::string> optionPrompts{"(1) success", "(2) fail", "(3) delete"};
+  std::vector<std::string> optionPrompts{
+      "(1) success", "(2) fail", "(3) delete"};
   auto input = getUserInputWithOptions(optionPrompts, "Did I succeed?");
   if (input == 1)
   {
@@ -537,7 +558,7 @@ void DataCollector::recordSuccess()
   }
   else
   {
-    ROS_ERROR_STREAM("Removing data "  << mDataCollectionPath);
+    ROS_ERROR_STREAM("Removing data " << mDataCollectionPath);
     removeDirectory(mDataCollectionPath);
   }
 }
@@ -553,8 +574,8 @@ void DataCollector::captureFrame()
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 }
 //==============================================================================
-void DataCollector::updateImageCounts(const std::string& directory,
-    ImageType imageType)
+void DataCollector::updateImageCounts(
+    const std::string& directory, ImageType imageType)
 {
   using namespace boost::filesystem;
 

@@ -9,15 +9,14 @@ namespace feeding {
 namespace action {
 
 bool moveTowardsPerson(
-  const std::shared_ptr<ada::Ada>& ada,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  const std::shared_ptr<Perception>& perception,
-  const ros::NodeHandle* nodeHandle,
-  double distanceToPerson,
-  double planningTimeout,
-  double endEffectorOffsetPositionTolerenace,
-  double endEffectorOffsetAngularTolerance);
-
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const std::shared_ptr<Perception>& perception,
+    const ros::NodeHandle* nodeHandle,
+    double distanceToPerson,
+    double planningTimeout,
+    double endEffectorOffsetPositionTolerenace,
+    double endEffectorOffsetAngularTolerance);
 }
 }
 

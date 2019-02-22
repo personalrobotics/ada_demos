@@ -7,14 +7,14 @@ namespace feeding {
 namespace action {
 
 bool moveTowardsPerson(
-  const std::shared_ptr<ada::Ada>& ada,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  const std::shared_ptr<Perception>& perception,
-  const ros::NodeHandle* nodeHandle,
-  double distanceToPerson,
-  double planningTimeout,
-  double endEffectorOffsetPositionTolerenace,
-  double endEffectorOffsetAngularTolerance)
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const std::shared_ptr<Perception>& perception,
+    const ros::NodeHandle* nodeHandle,
+    double distanceToPerson,
+    double planningTimeout,
+    double endEffectorOffsetPositionTolerenace,
+    double endEffectorOffsetAngularTolerance)
 {
   ada::util::waitForUser("Move towards person", ada);
 
@@ -39,8 +39,6 @@ bool moveTowardsPerson(
       velocityLimits);
   servoClient.start();
   return servoClient.wait(30);
-
 }
-
 }
 }

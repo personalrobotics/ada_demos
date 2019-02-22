@@ -8,8 +8,8 @@
 #include <iostream>
 #include <string>
 
-#include "feeding/util.hpp"
 #include "feeding/FoodItem.hpp"
+#include "feeding/util.hpp"
 
 using ada::util::getRosParam;
 using ada::util::createIsometry;
@@ -58,7 +58,8 @@ FeedingDemo::FeedingDemo(
   Eigen::Isometry3d robotPose = createIsometry(
       getRosParam<std::vector<double>>("/ada/baseFramePose", mNodeHandle));
 
-  mWorkspace = std::make_shared<Workspace>(mWorld, robotPose, mAdaReal, mNodeHandle);
+  mWorkspace
+      = std::make_shared<Workspace>(mWorld, robotPose, mAdaReal, mNodeHandle);
 
   // Setting up collisions
   dart::collision::CollisionDetectorPtr collisionDetector
@@ -71,8 +72,7 @@ FeedingDemo::FeedingDemo(
       = collisionDetector->createCollisionGroup(
           mWorkspace->getTable().get(),
           mWorkspace->getWorkspaceEnvironment().get(),
-          mWorkspace->getWheelchair().get()
-          );
+          mWorkspace->getWheelchair().get());
   mCollisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
           mArmSpace, mAda->getArm()->getMetaSkeleton(), collisionDetector);
@@ -95,10 +95,10 @@ FeedingDemo::FeedingDemo(
       = getRosParam<std::vector<std::string>>("/foodItems/names", mNodeHandle);
   mSkeweringForces
       = getRosParam<std::vector<double>>("/foodItems/forces", mNodeHandle);
-  mRotationFreeFoodNames
-      = getRosParam<std::vector<std::string>>("/rotationFree/names", mNodeHandle);
-  auto pickUpAngleModes
-      = getRosParam<std::vector<int>>("/foodItems/pickUpAngleModes", mNodeHandle);
+  mRotationFreeFoodNames = getRosParam<std::vector<std::string>>(
+      "/rotationFree/names", mNodeHandle);
+  auto pickUpAngleModes = getRosParam<std::vector<int>>(
+      "/foodItems/pickUpAngleModes", mNodeHandle);
 
   for (int i = 0; i < mFoodNames.size(); i++)
   {
@@ -117,52 +117,49 @@ FeedingDemo::FeedingDemo(
 
   mFoodTSRParameters["height"]
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
-  mFoodTSRParameters["horizontal"]
-      = getRosParam<double>("/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
-  mFoodTSRParameters["verticalTolerance"]
-      = getRosParam<double>("/planning/tsr/verticalToleranceNearFood", mNodeHandle);
-  mFoodTSRParameters["rotationTolerance"]
-      = getRosParam<double>("/planning/tsr/rotationToleranceNearFood", mNodeHandle);
+  mFoodTSRParameters["horizontal"] = getRosParam<double>(
+      "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
+  mFoodTSRParameters["verticalTolerance"] = getRosParam<double>(
+      "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
+  mFoodTSRParameters["rotationTolerance"] = getRosParam<double>(
+      "/planning/tsr/rotationToleranceNearFood", mNodeHandle);
   mFoodTSRParameters["tiltTolerance"]
       = getRosParam<double>("/planning/tsr/tiltToleranceNearFood", mNodeHandle);
-  mMoveOufOfFoodLength = getRosParam<double>("/feedingDemo/moveOutofFood", mNodeHandle);
+  mMoveOufOfFoodLength
+      = getRosParam<double>("/feedingDemo/moveOutofFood", mNodeHandle);
 
-  mPlanningTimeout = getRosParam<double>("/planning/timeoutSeconds", mNodeHandle);
+  mPlanningTimeout
+      = getRosParam<double>("/planning/timeoutSeconds", mNodeHandle);
   mMaxNumTrials = getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle);
 
-  mEndEffectorOffsetPositionTolerance
-      = getRosParam<double>("/planning/endEffectorOffset/positionTolerance", mNodeHandle),
-  mEndEffectorOffsetAngularTolerance
-      = getRosParam<double>("/planning/endEffectorOffset/angularTolerance", mNodeHandle);
+  mEndEffectorOffsetPositionTolerance = getRosParam<double>(
+      "/planning/endEffectorOffset/positionTolerance", mNodeHandle),
+  mEndEffectorOffsetAngularTolerance = getRosParam<double>(
+      "/planning/endEffectorOffset/angularTolerance", mNodeHandle);
 
-  mWaitTimeForFood
-      = std::chrono::milliseconds(
-        getRosParam<int>("/feedingDemo/waitMillisecsAtFood", mNodeHandle));
-  mWaitTimeForPerson
-      = std::chrono::milliseconds(
-        getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", mNodeHandle));
+  mWaitTimeForFood = std::chrono::milliseconds(
+      getRosParam<int>("/feedingDemo/waitMillisecsAtFood", mNodeHandle));
+  mWaitTimeForPerson = std::chrono::milliseconds(
+      getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", mNodeHandle));
 
   mPersonTSRParameters["distance"]
       = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
-  mPersonTSRParameters["horizontal"]
-      = getRosParam<double>(
+  mPersonTSRParameters["horizontal"] = getRosParam<double>(
       "/planning/tsr/horizontalToleranceNearPerson", mNodeHandle);
-  mPersonTSRParameters["vertical"]
-      = getRosParam<double>(
+  mPersonTSRParameters["vertical"] = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
 
   mPersonPose = createIsometry(
-    getRosParam<std::vector<double>>("/study/personPose", mNodeHandle));
+      getRosParam<std::vector<double>>("/study/personPose", mNodeHandle));
 
-  mForkHolderAngle
-      = getRosParam<double>("/study/forkHolderAngle", mNodeHandle);
+  mForkHolderAngle = getRosParam<double>("/study/forkHolderAngle", mNodeHandle);
   mForkHolderTranslation = getRosParam<std::vector<double>>(
       "/study/forkHolderTranslation", mNodeHandle);
 
   std::vector<double> tiltOffsetVector
       = getRosParam<std::vector<double>>("/study/tiltOffset", mNodeHandle);
   mTiltOffset = Eigen::Vector3d(
-        tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
+      tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
 
   mVelocityLimits = std::vector<double>{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
 }
@@ -228,7 +225,6 @@ void FeedingDemo::reset()
   mWorkspace->reset();
 }
 
-
 //==============================================================================
 std::shared_ptr<FTThresholdHelper> FeedingDemo::getFTThresholdHelper()
 {
@@ -244,9 +240,9 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
       = eeTransform.linear()
         * Eigen::Matrix3d(
               Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
-  eeTransform.translation() = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
+  eeTransform.translation()
+      = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
 
   return eeTransform;
-
 }
 } // namespace feeding

@@ -2,28 +2,27 @@
 
 #include <libada/util.hpp>
 
+#include "feeding/TargetItem.hpp"
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/perception/PerceptionServoClient.hpp"
-#include "feeding/TargetItem.hpp"
 #include "feeding/util.hpp"
-
 
 namespace feeding {
 namespace action {
 
 bool moveInto(
-  const std::shared_ptr<ada::Ada>& ada,
-  const std::shared_ptr<Perception>& perception,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  const ::ros::NodeHandle* nodeHandle,
-  TargetItem item,
-  double planningTimeout,
-  double endEffectorOffsetPositionTolerance,
-  double endEffectorOffsetAngularTolerance,
-  const Eigen::Vector3d& endEffectorDirection,
-  std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
+    const std::shared_ptr<ada::Ada>& ada,
+    const std::shared_ptr<Perception>& perception,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const ::ros::NodeHandle* nodeHandle,
+    TargetItem item,
+    double planningTimeout,
+    double endEffectorOffsetPositionTolerance,
+    double endEffectorOffsetAngularTolerance,
+    const Eigen::Vector3d& endEffectorDirection,
+    std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
 {
   ada::util::waitForUser("Move into " + TargetToString.at(item), ada);
 
@@ -36,10 +35,12 @@ bool moveInto(
 
   if (item == TargetItem::FORQUE)
     return ada->moveArmToEndEffectorOffset(
-        Eigen::Vector3d(0, 1, 0), 0.01, collisionFree,
-    planningTimeout,
-    endEffectorOffsetPositionTolerance,
-    endEffectorOffsetAngularTolerance);
+        Eigen::Vector3d(0, 1, 0),
+        0.01,
+        collisionFree,
+        planningTimeout,
+        endEffectorOffsetPositionTolerance,
+        endEffectorOffsetAngularTolerance);
 
   if (perception)
   {
@@ -77,7 +78,9 @@ bool moveInto(
     double length = 0.05;
     // Collision constraint is not set because f/t sensor stops execution.
     auto result = ada->moveArmToEndEffectorOffset(
-        endEffectorDirection, length, nullptr,
+        endEffectorDirection,
+        length,
+        nullptr,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance);

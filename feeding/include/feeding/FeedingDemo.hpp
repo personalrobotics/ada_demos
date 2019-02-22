@@ -1,18 +1,18 @@
 #ifndef FEEDING_FEEDINGDEMO_HPP_
 #define FEEDING_FEEDINGDEMO_HPP_
 
+#include <aikido/distance/ConfigurationRanker.hpp>
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/TSRMarker.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
-#include <aikido/distance/ConfigurationRanker.hpp>
 
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
 
-#include "feeding/FTThresholdHelper.hpp"
 #include "feeding/AcquisitionAction.hpp"
-#include "feeding/Workspace.hpp"
+#include "feeding/FTThresholdHelper.hpp"
 #include "feeding/TargetItem.hpp"
+#include "feeding/Workspace.hpp"
 
 #include "feeding/perception/Perception.hpp"
 #include "feeding/perception/PerceptionPreProcess.hpp"
@@ -89,7 +89,6 @@ public:
   //   double durations = 1.0,
   //   bool respectCollision = true);
 
-
   std::vector<std::string> mFoodNames;
   std::vector<std::string> mRotationFreeFoodNames;
   std::vector<double> mSkeweringForces;
@@ -144,7 +143,6 @@ private:
   aikido::rviz::WorldInteractiveMarkerViewerPtr mViewer;
   aikido::rviz::FrameMarkerPtr frameMarker;
   aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
-
 };
 }
 

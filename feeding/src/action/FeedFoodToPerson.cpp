@@ -2,8 +2,8 @@
 #include <libada/util.hpp>
 #include "feeding/action/Grab.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
-#include "feeding/action/MoveInFrontOfPerson.hpp"
 #include "feeding/action/MoveDirectlyToPerson.hpp"
+#include "feeding/action/MoveInFrontOfPerson.hpp"
 #include "feeding/action/MoveTowardsPerson.hpp"
 
 namespace feeding {
@@ -11,41 +11,40 @@ namespace action {
 
 //==============================================================================
 void feedFoodToPerson(
-  const std::shared_ptr<ada::Ada>& ada,
-  const std::shared_ptr<Workspace>& workspace,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  const std::shared_ptr<Perception>& perception,
-  const ros::NodeHandle* nodeHandle,
-  const Eigen::Isometry3d& plate,
-  const Eigen::Isometry3d& plateEndEffectorTransform,
-  const Eigen::Isometry3d& personPose,
-  std::chrono::milliseconds waitAtPerson,
-  double heightAbovePlate,
-  double horizontalToleranceAbovePlate,
-  double verticalToleranceAbovePlate,
-  double rotationToleranceAbovePlate,
-  double distanceToPerson,
-  double horizontalToleranceForPerson,
-  double verticalToleranceForPerson,
-  double planningTimeout,
-  int maxNumTrials,
-  double endEffectorOffsetPositionTolerenace,
-  double endEffectorOffsetAngularTolerance,
-  std::vector<double> velocityLimits,
-  const Eigen::Vector3d* tiltOffset)
+    const std::shared_ptr<ada::Ada>& ada,
+    const std::shared_ptr<Workspace>& workspace,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const std::shared_ptr<Perception>& perception,
+    const ros::NodeHandle* nodeHandle,
+    const Eigen::Isometry3d& plate,
+    const Eigen::Isometry3d& plateEndEffectorTransform,
+    const Eigen::Isometry3d& personPose,
+    std::chrono::milliseconds waitAtPerson,
+    double heightAbovePlate,
+    double horizontalToleranceAbovePlate,
+    double verticalToleranceAbovePlate,
+    double rotationToleranceAbovePlate,
+    double distanceToPerson,
+    double horizontalToleranceForPerson,
+    double verticalToleranceForPerson,
+    double planningTimeout,
+    int maxNumTrials,
+    double endEffectorOffsetPositionTolerenace,
+    double endEffectorOffsetAngularTolerance,
+    std::vector<double> velocityLimits,
+    const Eigen::Vector3d* tiltOffset)
 {
-  auto moveIFOPerson = [&]
-  {
+  auto moveIFOPerson = [&] {
     return moveInFrontOfPerson(
-      ada,
-      nullptr, // collisionFree,
-      workspace->getPersonPose(), // TODO why not personPose
-      distanceToPerson,
-      horizontalToleranceForPerson,
-      verticalToleranceForPerson,
-      planningTimeout,
-      maxNumTrials,
-      velocityLimits);
+        ada,
+        nullptr,                    // collisionFree,
+        workspace->getPersonPose(), // TODO why not personPose
+        distanceToPerson,
+        horizontalToleranceForPerson,
+        verticalToleranceForPerson,
+        planningTimeout,
+        maxNumTrials,
+        velocityLimits);
   };
 
   bool moveSuccess = false;
@@ -58,14 +57,14 @@ void feedFoodToPerson(
     ada::util::waitForUser("Move towards person", ada);
 
     moveSuccess = moveTowardsPerson(
-      ada,
-      collisionFree,
-      perception,
-      nodeHandle,
-      distanceToPerson,
-      planningTimeout,
-      endEffectorOffsetPositionTolerenace,
-      endEffectorOffsetAngularTolerance);
+        ada,
+        collisionFree,
+        perception,
+        nodeHandle,
+        distanceToPerson,
+        planningTimeout,
+        endEffectorOffsetPositionTolerenace,
+        endEffectorOffsetAngularTolerance);
     nodeHandle->setParam("/feeding/facePerceptionOn", false);
 
     if (moveSuccess)
@@ -78,16 +77,16 @@ void feedFoodToPerson(
     ROS_INFO_STREAM("Servoing failed. Falling back to direct movement...");
     moveIFOPerson();
     moveDirectlyToPerson(
-      ada,
-      collisionFree,
-      personPose,
-      distanceToPerson,
-      horizontalToleranceForPerson,
-      verticalToleranceForPerson,
-      planningTimeout,
-      maxNumTrials,
-      velocityLimits,
-      tiltOffset);
+        ada,
+        collisionFree,
+        personPose,
+        distanceToPerson,
+        horizontalToleranceForPerson,
+        verticalToleranceForPerson,
+        planningTimeout,
+        maxNumTrials,
+        velocityLimits,
+        tiltOffset);
   }
 
   // ===== EATING =====
@@ -99,21 +98,20 @@ void feedFoodToPerson(
   // ===== BACK TO PLATE =====
   ada::util::waitForUser("Move back to plate", ada);
 
-  // TODO: add a back-out motion and then do move above plate with collisionFree.
+  // TODO: add a back-out motion and then do move above plate with
+  // collisionFree.
   moveAbovePlate(
-    ada,
-    nullptr,
-    plate,
-    plateEndEffectorTransform,
-    heightAbovePlate,
-    horizontalToleranceAbovePlate,
-    verticalToleranceAbovePlate,
-    rotationToleranceAbovePlate,
-    planningTimeout,
-    maxNumTrials,
-    velocityLimits
-    );
+      ada,
+      nullptr,
+      plate,
+      plateEndEffectorTransform,
+      heightAbovePlate,
+      horizontalToleranceAbovePlate,
+      verticalToleranceAbovePlate,
+      rotationToleranceAbovePlate,
+      planningTimeout,
+      maxNumTrials,
+      velocityLimits);
 }
-
 }
 }

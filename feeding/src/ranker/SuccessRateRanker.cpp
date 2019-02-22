@@ -13,7 +13,6 @@ void SuccessRateRanker::sort(
   TargetFoodRanker::sort(items, SORT_ORDER::DESCENDING);
 }
 
-
 //==============================================================================
 std::unique_ptr<FoodItem> SuccessRateRanker::createFoodItem(
     const aikido::perception::DetectedObject& item,

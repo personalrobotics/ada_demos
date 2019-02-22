@@ -72,7 +72,6 @@ private:
   Eigen::Isometry3d mRobotPose;
   Eigen::Isometry3d mPersonPose;
 
-
   /// Takes a skeleton pointer, fills it with a new skeleton and adds that to
   /// the world.
   /// \param[out] skeleton The skeleton pointer where we want to store the

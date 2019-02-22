@@ -1,6 +1,6 @@
 #include "feeding/action/MoveDirectlyToPerson.hpp"
-#include "feeding/util.hpp"
 #include <libada/util.hpp>
+#include "feeding/util.hpp"
 
 using aikido::constraint::dart::TSR;
 using ada::util::createBwMatrixForTSR;
@@ -10,16 +10,16 @@ namespace feeding {
 namespace action {
 
 bool moveDirectlyToPerson(
-  const std::shared_ptr<ada::Ada>& ada,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  const Eigen::Isometry3d& personPose,
-  double distanceToPerson,
-  double horizontalToleranceForPerson,
-  double verticalToleranceForPerson,
-  double planningTimeout,
-  int maxNumTrials,
-  std::vector<double> velocityLimits,
-  const Eigen::Vector3d* tiltOffset)
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const Eigen::Isometry3d& personPose,
+    double distanceToPerson,
+    double horizontalToleranceForPerson,
+    double verticalToleranceForPerson,
+    double planningTimeout,
+    int maxNumTrials,
+    std::vector<double> velocityLimits,
+    const Eigen::Vector3d* tiltOffset)
 {
   Eigen::Isometry3d person(personPose);
   if (tiltOffset)
@@ -54,25 +54,27 @@ bool moveDirectlyToPerson(
     personTSR.mBw = createBwMatrixForTSR(
         horizontalToleranceForPerson,
         horizontalToleranceForPerson,
-        verticalToleranceForPerson, 0, 0, 0);
+        verticalToleranceForPerson,
+        0,
+        0,
+        0);
     personTSR.mTw_e.matrix()
         *= ada->getHand()->getEndEffectorTransform("person")->matrix();
   }
 
   if (!ada->moveArmToTSR(
-      personTSR,
-      collisionFree,
-      planningTimeout,
-      maxNumTrials,
-      getConfigurationRanker(ada),
-      velocityLimits,
-      ada::TrajectoryPostprocessType::KUNZ))
+          personTSR,
+          collisionFree,
+          planningTimeout,
+          maxNumTrials,
+          getConfigurationRanker(ada),
+          velocityLimits,
+          ada::TrajectoryPostprocessType::KUNZ))
   {
     ROS_WARN_STREAM("Execution failed");
     return false;
   }
   return true;
 }
-
 }
 }

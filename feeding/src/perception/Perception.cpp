@@ -2,8 +2,8 @@
 #include "feeding/util.hpp"
 
 #include <algorithm>
-#include <aikido/perception/DetectedObject.hpp>
 #include <aikido/perception/AssetDatabase.hpp>
+#include <aikido/perception/DetectedObject.hpp>
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
 
@@ -31,8 +31,8 @@ Perception::Perception(
     throw std::invalid_argument("Ros nodeHandle is nullptr.");
   std::string detectorDataURI
       = getRosParam<std::string>("/perception/detectorDataUri", *mNodeHandle);
-  std::string referenceFrameName
-      = getRosParam<std::string>("/perception/referenceFrameName", *mNodeHandle);
+  std::string referenceFrameName = getRosParam<std::string>(
+      "/perception/referenceFrameName", *mNodeHandle);
   std::string foodDetectorTopicName = getRosParam<std::string>(
       "/perception/foodDetectorTopicName", *mNodeHandle);
   std::string faceDetectorTopicName = getRosParam<std::string>(
@@ -54,7 +54,7 @@ Perception::Perception(
           aikido::robot::util::getBodyNodeOrThrow(
               *adaMetaSkeleton, referenceFrameName)));
 
-  //mFoodDetector->setObjectProjectionHeight(0.25);
+  // mFoodDetector->setObjectProjectionHeight(0.25);
 
   mFaceDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
@@ -79,10 +79,11 @@ Perception::Perception(
 
 //==============================================================================
 std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
-  const std::string& foodName)
+    const std::string& foodName)
 {
-  if (foodName != "" & (
-    std::find(mFoodNames.begin(), mFoodNames.end(), foodName) == mFoodNames.end()))
+  if (foodName != ""
+      & (std::find(mFoodNames.begin(), mFoodNames.end(), foodName)
+         == mFoodNames.end()))
   {
     std::stringstream ss;
     ss << "[" << foodName << "] is unknown." << std::endl;
@@ -94,15 +95,20 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
   // Detect items
   std::vector<DetectedObject> detectedObjects;
   mFoodDetector->detectObjects(
-      mWorld, ros::Duration(mPerceptionTimeout), ros::Time(0), &detectedObjects);
+      mWorld,
+      ros::Duration(mPerceptionTimeout),
+      ros::Time(0),
+      &detectedObjects);
 
-  std::cout << "Detected " << detectedObjects.size() << " " << foodName << std::endl;
+  std::cout << "Detected " << detectedObjects.size() << " " << foodName
+            << std::endl;
   detectedFoodItems.reserve(detectedObjects.size());
 
   Eigen::Isometry3d forqueTF
-    = mAdaMetaSkeleton->getBodyNode("j2n6s200_forque_end_effector")->getWorldTransform();
+      = mAdaMetaSkeleton->getBodyNode("j2n6s200_forque_end_effector")
+            ->getWorldTransform();
 
-  for (const auto& item: detectedObjects)
+  for (const auto& item : detectedObjects)
   {
     auto foodItem = mTargetFoodRanker->createFoodItem(item, forqueTF);
 
@@ -121,8 +127,11 @@ Eigen::Isometry3d Perception::perceiveFace()
 {
   std::vector<DetectedObject> detectedObjects;
 
-  if (!mFaceDetector->detectObjects(mWorld,
-        ros::Duration(mPerceptionTimeout), ros::Time(0), &detectedObjects))
+  if (!mFaceDetector->detectObjects(
+          mWorld,
+          ros::Duration(mPerceptionTimeout),
+          ros::Time(0),
+          &detectedObjects))
   {
     ROS_WARN("face perception failed");
     throw std::runtime_error("Face perception failed");
@@ -178,9 +187,8 @@ Eigen::Isometry3d Perception::getTrackedFoodItemPose()
   if (!mTargetFoodItem)
     throw std::runtime_error("Target item not set.");
 
-  auto detectionResult = mFoodDetector->detectObjects(
-    mWorld,
-    ros::Duration(mPerceptionTimeout));
+  auto detectionResult
+      = mFoodDetector->detectObjects(mWorld, ros::Duration(mPerceptionTimeout));
 
   if (!detectionResult)
     ROS_WARN("Failed to detect new update on the target object.");

@@ -32,15 +32,13 @@ boost::optional<Eigen::Isometry3d> PerceptionPreProcess::applyOffset()
   auto transform = mGetTransform();
   if (!transform)
     return boost::optional<Eigen::Isometry3d>{};
-  
+
   ROS_INFO_STREAM(transform.get().matrix());
   Eigen::Vector3d diff(0, mPrePushOffset, 0);
   transform.get().translation() += mForqueTransform.inverse().linear() * diff;
 
   ROS_INFO_STREAM(transform.get().matrix());
   return transform.get();
-  
-  
 }
 
 } // namespace feeding

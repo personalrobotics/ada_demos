@@ -2,15 +2,15 @@
 #include <algorithm>
 #include <aikido/common/Spline.hpp>
 #include <aikido/common/StepSequence.hpp>
-#include <aikido/distance/defaults.hpp>
 #include <aikido/distance/NominalConfigurationRanker.hpp>
+#include <aikido/distance/defaults.hpp>
 #include <aikido/planner/parabolic/ParabolicTimer.hpp>
 #include <aikido/statespace/CartesianProduct.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
 #include <dart/common/StlHelpers.hpp>
-#include <libada/util.hpp>
 #include <tf_conversions/tf_eigen.h>
+#include <libada/util.hpp>
 
 static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
 
@@ -43,13 +43,25 @@ void handleArguments(
   po::options_description po_desc(description);
   po_desc.add_options()("help,h", "Produce help message")(
       "adareal,a", po::bool_switch(&adaReal), "Run ADA in real")(
-      "continueAuto,c", po::bool_switch(&autoContinueDemo),"Continue Demo automatically")
-      ("ftSensing,f", po::bool_switch(&useFTSensing), "Use Force/Torque sensing")
-      ("demoType,d", po::value<std::string>(&demoType), "Demo type")
-      ("foodName", po::value<std::string>(&foodName), "Name of food (for data collection)")
-      ("direction", po::value<std::size_t>(&directionIndex), "Direction index(for data collection)")
-      ("trial", po::value<std::size_t>(&trialIndex), "Trial index (for data collection)")
-      ("output,o", po::value<std::string>(&dataCollectorPath), "Output directory (for data collection)");
+      "continueAuto,c",
+      po::bool_switch(&autoContinueDemo),
+      "Continue Demo automatically")(
+      "ftSensing,f",
+      po::bool_switch(&useFTSensing),
+      "Use Force/Torque sensing")(
+      "demoType,d", po::value<std::string>(&demoType), "Demo type")(
+      "foodName",
+      po::value<std::string>(&foodName),
+      "Name of food (for data collection)")(
+      "direction",
+      po::value<std::size_t>(&directionIndex),
+      "Direction index(for data collection)")(
+      "trial",
+      po::value<std::size_t>(&trialIndex),
+      "Trial index (for data collection)")(
+      "output,o",
+      po::value<std::string>(&dataCollectorPath),
+      "Output directory (for data collection)");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
@@ -174,11 +186,11 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
 
 //==============================================================================
 int getUserInputWithOptions(
-  const std::vector<std::string>& optionPrompts, const std::string& prompt)
+    const std::vector<std::string>& optionPrompts, const std::string& prompt)
 {
   ROS_INFO_STREAM(prompt);
 
-  for(const auto& option: optionPrompts)
+  for (const auto& option : optionPrompts)
   {
     ROS_INFO_STREAM(option);
   }
@@ -221,9 +233,9 @@ std::pair<Eigen::VectorXd, Eigen::VectorXd> setPositionLimits(
 
 //==============================================================================
 Eigen::Isometry3d getRelativeTransform(
-  tf::TransformListener& tfListener,
-  const std::string& from,
-  const std::string& to)
+    tf::TransformListener& tfListener,
+    const std::string& from,
+    const std::string& to)
 {
   tf::StampedTransform tfStampedTransform;
   try
@@ -267,8 +279,9 @@ void printRobotConfiguration(const std::shared_ptr<ada::Ada>& ada)
 }
 
 //==============================================================================
-bool isCollisionFree(const std::shared_ptr<ada::Ada>& ada,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree)
+bool isCollisionFree(
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree)
 {
   std::string result;
   auto robotState = ada->getStateSpace()->getScopedStateFromMetaSkeleton(
@@ -284,12 +297,9 @@ bool isCollisionFree(const std::shared_ptr<ada::Ada>& ada,
   return true;
 }
 
-
-
 //==============================================================================
 double getDistance(
-    const Eigen::Isometry3d& item1,
-    const Eigen::Isometry3d& item2)
+    const Eigen::Isometry3d& item1, const Eigen::Isometry3d& item2)
 {
   auto translation = item1.translation() - item2.translation();
   return translation.norm();
@@ -317,10 +327,7 @@ aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
   nominalState = space->getScopedStateFromMetaSkeleton(metaSkeleton.get());
 
   return std::make_shared<NominalConfigurationRanker>(
-    space,
-    metaSkeleton,
-    weights,
-    nominalState);
+      space, metaSkeleton, weights, nominalState);
 }
 
 } // namespace feeding

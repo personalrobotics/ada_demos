@@ -14,8 +14,7 @@ Workspace::Workspace(
     const Eigen::Isometry3d& robotPose,
     bool adaReal,
     ros::NodeHandle nodeHandle)
-  : mNodeHandle(nodeHandle), mWorld(world)
-  , mRobotPose(robotPose)
+  : mNodeHandle(nodeHandle), mWorld(world), mRobotPose(robotPose)
 {
   addToWorld(mPlate, "plate", robotPose);
   addToWorld(mTable, "table", robotPose);
@@ -130,5 +129,4 @@ dart::dynamics::ConstSkeletonPtr Workspace::getWheelchair() const
 {
   return mWheelchair;
 }
-
 }

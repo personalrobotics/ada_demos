@@ -1,9 +1,9 @@
 #ifndef FEEDING_FOODITEM_HPP_
 #define FEEDING_FOODITEM_HPP_
 
-#include <dart/dart.hpp>
-#include <aikido/perception/DetectedObject.hpp>
 #include <aikido/common/pointers.hpp>
+#include <aikido/perception/DetectedObject.hpp>
+#include <dart/dart.hpp>
 #include "feeding/AcquisitionAction.hpp"
 
 namespace feeding {
@@ -14,11 +14,11 @@ class FoodItem
 {
 public:
   FoodItem(
-    std::string name,
-    std::string uid,
-    dart::dynamics::MetaSkeletonPtr metaSkeleton,
-    AcquisitionAction action,
-    double score);
+      std::string name,
+      std::string uid,
+      dart::dynamics::MetaSkeletonPtr metaSkeleton,
+      AcquisitionAction action,
+      double score);
 
   Eigen::Isometry3d getPose() const;
 
@@ -42,7 +42,6 @@ private:
   AcquisitionAction mAction;
 
   double mScore;
-
 };
 
 } // namespace feeding

@@ -4,16 +4,16 @@ namespace feeding {
 
 //==============================================================================
 FoodItem::FoodItem(
-  std::string name,
-  std::string uid,
-  dart::dynamics::MetaSkeletonPtr metaSkeleton,
-  AcquisitionAction action,
-  double score)
-: mName(name)
-, mUid(uid)
-, mMetaSkeleton(metaSkeleton)
-, mAction(action)
-, mScore(score)
+    std::string name,
+    std::string uid,
+    dart::dynamics::MetaSkeletonPtr metaSkeleton,
+    AcquisitionAction action,
+    double score)
+  : mName(name)
+  , mUid(uid)
+  , mMetaSkeleton(metaSkeleton)
+  , mAction(action)
+  , mScore(score)
 {
   if (!mMetaSkeleton)
     throw std::invalid_argument("MetaSkeleton is nullptr.");

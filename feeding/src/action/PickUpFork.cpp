@@ -1,53 +1,53 @@
 #include "feeding/action/PickUpFork.hpp"
+#include "feeding/TargetItem.hpp"
 #include "feeding/action/MoveAboveForque.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
-#include "feeding/TargetItem.hpp"
 
 namespace feeding {
 namespace action {
 
 void pickUpFork(
-  const std::shared_ptr<ada::Ada>& ada,
-  const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-  double forkHolderAngle,
-  std::vector<double> forkHolderTranslation,
-  const Eigen::Isometry3d& plate,
-  const Eigen::Isometry3d& plateEndEffectorTransform,
-  double heightAbovePlate,
-  double horizontalToleranceAbovePlate,
-  double verticalToleranceAbovePlate,
-  double rotationToleranceAbovePlate,
-  double endEffectorOffsetPositionTolerance,
-  double endEffectorOffsetAngularTolerance,
-  double planningTimeout,
-  int maxNumTrials,
-  std::vector<double> velocityLimits,
-  std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    double forkHolderAngle,
+    std::vector<double> forkHolderTranslation,
+    const Eigen::Isometry3d& plate,
+    const Eigen::Isometry3d& plateEndEffectorTransform,
+    double heightAbovePlate,
+    double horizontalToleranceAbovePlate,
+    double verticalToleranceAbovePlate,
+    double rotationToleranceAbovePlate,
+    double endEffectorOffsetPositionTolerance,
+    double endEffectorOffsetAngularTolerance,
+    double planningTimeout,
+    int maxNumTrials,
+    std::vector<double> velocityLimits,
+    std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
 {
   ada->openHand();
   moveAboveForque(
-    ada,
-    collisionFree,
-    forkHolderAngle,
-    forkHolderTranslation,
-    planningTimeout,
-    maxNumTrials);
+      ada,
+      collisionFree,
+      forkHolderAngle,
+      forkHolderTranslation,
+      planningTimeout,
+      maxNumTrials);
 
   Eigen::Vector3d endEffectorDirection(0, 0, -1);
   moveInto(
-    ada,
-    nullptr,
-    collisionFree,
-    nullptr,
-    TargetItem::FORQUE,
-    planningTimeout,
-    endEffectorOffsetPositionTolerance,
-    endEffectorOffsetAngularTolerance,
-    endEffectorDirection,
-    ftThresholdHelper);
+      ada,
+      nullptr,
+      collisionFree,
+      nullptr,
+      TargetItem::FORQUE,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance,
+      endEffectorDirection,
+      ftThresholdHelper);
 
   std::vector<std::string> optionPrompts{"(1) close", "(2) leave-as-is"};
   auto input = getUserInputWithOptions(optionPrompts, "Close Hand?");
@@ -62,32 +62,29 @@ void pickUpFork(
   Eigen::Vector3d direction(0, -1, 0);
 
   moveOutOf(
-    ada,
-    nullptr, // ignore collision
-    TargetItem::FORQUE,
-    length,
-    direction,
-    planningTimeout,
-    endEffectorOffsetPositionTolerance,
-    endEffectorOffsetAngularTolerance,
-    ftThresholdHelper
-  );
+      ada,
+      nullptr, // ignore collision
+      TargetItem::FORQUE,
+      length,
+      direction,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance,
+      ftThresholdHelper);
 
   moveAbovePlate(
-    ada,
-    collisionFree,
-    plate,
-    plateEndEffectorTransform,
-    heightAbovePlate,
-    horizontalToleranceAbovePlate,
-    verticalToleranceAbovePlate,
-    rotationToleranceAbovePlate,
-    planningTimeout,
-    maxNumTrials,
-    velocityLimits
-  );
+      ada,
+      collisionFree,
+      plate,
+      plateEndEffectorTransform,
+      heightAbovePlate,
+      horizontalToleranceAbovePlate,
+      verticalToleranceAbovePlate,
+      rotationToleranceAbovePlate,
+      planningTimeout,
+      maxNumTrials,
+      velocityLimits);
 }
-
 
 } // namespace feeding
 } // namespace action

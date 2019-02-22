@@ -2,8 +2,8 @@
 #define FEEDING_ACQUISITIONACTION_HPP_
 
 #include <unordered_map>
-#include <dart/dart.hpp>
 #include <Eigen/Core>
+#include <dart/dart.hpp>
 
 namespace feeding {
 
@@ -15,18 +15,18 @@ enum TiltStyle
 };
 
 static const std::map<const std::string, TiltStyle> StringToTiltStyle{
- {"vertical", NONE},
- {"tilted-vertical", VERTICAL},
- {"tilted-angled", ANGLED}};
+    {"vertical", NONE},
+    {"tilted-vertical", VERTICAL},
+    {"tilted-angled", ANGLED}};
 
 class AcquisitionAction
 {
 public:
   explicit AcquisitionAction(
-    TiltStyle tiltStyle = TiltStyle::NONE,
-    double rotationAngle = 0.0,
-    double tiltAngle = 0.0,
-    Eigen::Vector3d moveIntoDirection = Eigen::Vector3d(-1.0, 0.0, 0.0));
+      TiltStyle tiltStyle = TiltStyle::NONE,
+      double rotationAngle = 0.0,
+      double tiltAngle = 0.0,
+      Eigen::Vector3d moveIntoDirection = Eigen::Vector3d(-1.0, 0.0, 0.0));
 
   TiltStyle getTiltStyle() const;
 
@@ -42,7 +42,6 @@ private:
   double mTiltAngle;
   Eigen::Vector3d mMoveIntoDirection;
 };
-
 }
 
 #endif

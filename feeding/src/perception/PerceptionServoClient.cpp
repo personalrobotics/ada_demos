@@ -100,10 +100,9 @@ PerceptionServoClient::PerceptionServoClient(
       this);
 
   // update Max velocity and acceleration
-  mMaxAcceleration
-      = getSymmetricLimits(
-          mMetaSkeleton->getAccelerationLowerLimits(),
-          mMetaSkeleton->getAccelerationUpperLimits());
+  mMaxAcceleration = getSymmetricLimits(
+      mMetaSkeleton->getAccelerationLowerLimits(),
+      mMetaSkeleton->getAccelerationUpperLimits());
 
   mCurrentPosition = Eigen::VectorXd::Zero(mMetaSkeleton->getNumDofs());
   mCurrentVelocity = Eigen::VectorXd::Zero(mMetaSkeleton->getNumDofs());
@@ -310,7 +309,8 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
 {
   // update new goal Pose
   Eigen::Isometry3d endEffectorTransform(Eigen::Isometry3d::Identity());
-  Eigen::Matrix3d rotation(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())
+  Eigen::Matrix3d rotation(
+      Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX())
       * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   endEffectorTransform.linear() = rotation;
 
@@ -328,7 +328,8 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   {
     goalPose.translation() = goalPose.translation()
                              + originalDirection * mOriginalDirectionExtension;
-    ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
+    ROS_INFO_STREAM(
+        "goal pose: " << goalPose.translation().transpose().matrix());
   }
   return true;
 }
@@ -473,21 +474,23 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   {
     auto limits = setPositionLimits(mAda->getArm()->getMetaSkeleton());
 
-    auto trajectory2
-        = mAda->planArmToEndEffectorOffset(
-            direction2.normalized(), std::min(direction2.norm(), 0.2), nullptr,
-            mPlanningTimeout,
-            mEndEffectorOffsetPositionTolerance,
-            mEndEffectorOffsetAngularTolerance);
+    auto trajectory2 = mAda->planArmToEndEffectorOffset(
+        direction2.normalized(),
+        std::min(direction2.norm(), 0.2),
+        nullptr,
+        mPlanningTimeout,
+        mEndEffectorOffsetPositionTolerance,
+        mEndEffectorOffsetAngularTolerance);
 
-    setPositionLimits(mAda->getArm()->getMetaSkeleton(),
-      limits.first, limits.second);
+    setPositionLimits(
+        mAda->getArm()->getMetaSkeleton(), limits.first, limits.second);
 
     if (!mHasOriginalDirection)
     {
       originalDirection = direction2.normalized();
       ROS_INFO_STREAM(
-        "Set original direction: " << originalDirection.transpose() << std::endl);
+          "Set original direction: " << originalDirection.transpose()
+                                     << std::endl);
       mHasOriginalDirection = true;
     }
 
@@ -509,7 +512,6 @@ SplinePtr PerceptionServoClient::planToGoalPose(
       return nullptr;
 
     return std::move(timedTraj);
-
   }
 }
 
