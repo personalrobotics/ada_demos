@@ -86,6 +86,7 @@ if(CLANG_FORMAT_EXECUTABLE)
     LIST_DIRECTORIES false
     soda_grasp/src/*.cpp
     simple_trajectories/src/*.cpp
+    simple_perception/src/*.cpp
     feeding/src/*.cpp
     feeding/include/feeding/*.hpp
   )
