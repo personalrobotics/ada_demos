@@ -104,16 +104,6 @@ int main(int argc, char** argv)
     home[1] = 3.14;
     home[2] = 3.14;
     armSkeleton->setPositions(home);
-
-    auto startState
-        = space->getScopedStateFromMetaSkeleton(robotSkeleton.get());
-
-    aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
-    if (!collision->isSatisfied(startState, &collisionCheckOutcome))
-    {
-      throw std::runtime_error(
-          "Robot is in collison: " + collisionCheckOutcome.toString());
-    }
   }
 
   // Add ADA to the viewer.
@@ -122,8 +112,7 @@ int main(int argc, char** argv)
 
   if (!adaSim)
   {
-    ROS_INFO("Start trajectory executor");
-    robot.startTrajectoryExecutor();
+    waitForUser("Move robot so camera can see objects. \n Press [ENTER] to proceed:");
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -152,7 +141,8 @@ int main(int argc, char** argv)
   //   Detect Objects
   /////////////////////////////////////////////////////////////////////////////
 
-  ROS_INFO("Running perception! Press ^C to exit...");
+  ROS_INFO("Running perception! You should now see published markers in RViz.");
+  ROS_INFO("Press ^C to exit...");
 
   while (ros::ok()) {
     mDetector->detectObjects(

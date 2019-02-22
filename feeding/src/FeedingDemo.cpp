@@ -335,13 +335,10 @@ bool FeedingDemo::moveArmToTSR(const aikido::constraint::dart::TSR& tsr)
 bool FeedingDemo::moveWithEndEffectorOffset(
     const Eigen::Vector3d& direction, double length)
 {
-  auto trajectory = mAda->planToEndEffectorOffset(
-      mArmSpace,
-      mAda->getArm()->getMetaSkeleton(),
-      mAda->getHand()->getEndEffectorBodyNode(),
-      mCollisionFreeConstraint,
+  auto trajectory = mAda->planArmToEndEffectorOffset(
       direction,
       length,
+      mCollisionFreeConstraint,
       getRosParam<double>("/planning/timeoutSeconds", mNodeHandle),
       getRosParam<double>(
           "/planning/endEffectorOffset/positionTolerance", mNodeHandle),
