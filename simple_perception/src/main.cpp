@@ -32,7 +32,12 @@ dart::common::Uri adaSrdfUri{
 
 void waitForUser(const std::string& msg)
 {
+  std::cin.sync_with_stdio(false);
   ROS_INFO(msg.c_str());
+  while (!std::cin.rdbuf()->in_avail())
+  {
+    ros::spinOnce();
+  }
   std::cin.get();
 }
 
@@ -51,7 +56,7 @@ std::string getRosParamString(
 
 #define BASE_NAME "j2n6s200_link_base"
 #define JOULE_NAME "j2n6s200_joule"
-void publishTransform(dart::dynamics::MetaSkeletonPtr metaSkeleton)
+void publishTransform(const dart::dynamics::MetaSkeletonPtr metaSkeleton)
 {
   static tf::TransformBroadcaster br;
   tf::Transform transform;
@@ -63,6 +68,13 @@ void publishTransform(dart::dynamics::MetaSkeletonPtr metaSkeleton)
   tf::transformEigenToTF(e, transform);
   br.sendTransform(
       tf::StampedTransform(transform, ros::Time::now(), BASE_NAME, JOULE_NAME));
+}
+
+void detectObjects(
+    aikido::planner::WorldPtr env,
+    std::shared_ptr<aikido::perception::PoseEstimatorModule> mDetector)
+{
+  mDetector->detectObjects(env, ros::Duration(1.0));
 }
 
 int main(int argc, char** argv)
@@ -110,7 +122,10 @@ int main(int argc, char** argv)
       env, execTopicName, baseFrameName);
 
   dart::dynamics::MetaSkeletonPtr metaSkeleton = robot.getMetaSkeleton();
-  publishTransform(metaSkeleton);
+
+  // Create TF publisher
+  ros::Timer tfTimer = nh.createTimer(
+      ros::Duration(0.1), boost::bind(publishTransform, metaSkeleton));
 
   auto armSkeleton = robot.getArm()->getMetaSkeleton();
 
@@ -125,7 +140,7 @@ int main(int argc, char** argv)
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);
   waitForUser(
-      "You can view ADA /dart_markers in RViz now. \n Press [ENTER] to "
+      "You can view ADA in RViz now. \n Press [ENTER] to "
       "proceed:");
 
   if (!adaSim)
@@ -146,8 +161,8 @@ int main(int argc, char** argv)
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
 
-  std::unique_ptr<aikido::perception::PoseEstimatorModule> mDetector
-      = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
+  std::shared_ptr<aikido::perception::PoseEstimatorModule> mDetector
+      = std::shared_ptr<aikido::perception::PoseEstimatorModule>(
           new aikido::perception::PoseEstimatorModule(
               nh,
               foodDetectorTopicName,
@@ -165,12 +180,9 @@ int main(int argc, char** argv)
   ROS_INFO("Running perception! You should now see published markers in RViz.");
   ROS_INFO("Press ^C to exit...");
 
-  while (ros::ok())
-  {
-    publishTransform(metaSkeleton);
-    mDetector->detectObjects(env, ros::Duration(1.0));
-    ros::spinOnce();
-  }
-
+  // Create detect objects thread
+  ros::Timer perceptionTimer = nh.createTimer(
+      ros::Duration(1.0), boost::bind(detectObjects, env, mDetector));
+  ros::spin();
   return 0;
 }
