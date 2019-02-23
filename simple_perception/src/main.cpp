@@ -162,7 +162,7 @@ int main(int argc, char** argv)
       = "package://pr_assets/data/objects/tag_data_foods.json";
   std::string referenceFrameName = BASE_NAME;
   std::string foodDetectorTopicName = getRosParamString(
-      "/perception/foodDetectorTopicName", nh, "/simulated_pose/marker_array");
+      "/perception/detectorTopicName", nh, "/simulated_pose/marker_array");
 
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
