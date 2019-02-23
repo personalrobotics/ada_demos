@@ -139,9 +139,15 @@ int main(int argc, char** argv)
 
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);
-  waitForUser(
-      "You can view ADA in RViz now. \n Press [ENTER] to "
-      "proceed:");
+  ROS_INFO("You can view ADA in RViz now.");
+  if (adaSim)
+  {
+    ROS_INFO(
+        "If running from the launch file, here are the simulated object "
+        "positions (map frame) from deep_pose_estimators:");
+    ros::Duration(0.5).sleep();
+  }
+  waitForUser("Press [ENTER] to proceed:");
 
   if (!adaSim)
   {
