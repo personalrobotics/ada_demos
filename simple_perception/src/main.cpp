@@ -9,6 +9,8 @@
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/DartLoader.hpp>
+#include <tf/transform_broadcaster.h>
+#include <tf_conversions/tf_eigen.h>
 #include <libada/Ada.hpp>
 
 namespace po = boost::program_options;
@@ -47,6 +49,22 @@ std::string getRosParamString(
   return value;
 }
 
+#define BASE_NAME "j2n6s200_link_base"
+#define JOULE_NAME "j2n6s200_joule"
+void publishTransform(dart::dynamics::MetaSkeletonPtr metaSkeleton)
+{
+  static tf::TransformBroadcaster br;
+  tf::Transform transform;
+
+  // Get Transform from MetaSkeleton
+  auto bodyNode = metaSkeleton->getBodyNode(BASE_NAME);
+  auto jouleNode = metaSkeleton->getBodyNode(JOULE_NAME);
+  Eigen::Isometry3d e = jouleNode->getTransform(bodyNode);
+  tf::transformEigenToTF(e, transform);
+  br.sendTransform(
+      tf::StampedTransform(transform, ros::Time::now(), BASE_NAME, JOULE_NAME));
+}
+
 int main(int argc, char** argv)
 {
   bool adaSim = true;
@@ -79,7 +97,6 @@ int main(int argc, char** argv)
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
-  auto robotSkeleton = robot.getMetaSkeleton();
 
   // Start Visualization Topic
   static const std::string execTopicName = topicName + "/simple_perception";
@@ -92,14 +109,10 @@ int main(int argc, char** argv)
   aikido::rviz::WorldInteractiveMarkerViewer viewer(
       env, execTopicName, baseFrameName);
 
-  auto space = robot.getStateSpace();
-  auto collision = robot.getSelfCollisionConstraint(space, robotSkeleton);
-
   dart::dynamics::MetaSkeletonPtr metaSkeleton = robot.getMetaSkeleton();
-  auto metaSpace = std::make_shared<MetaSkeletonStateSpace>(metaSkeleton.get());
+  publishTransform(metaSkeleton);
 
   auto armSkeleton = robot.getArm()->getMetaSkeleton();
-  auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
 
   if (adaSim)
   {
@@ -111,7 +124,9 @@ int main(int argc, char** argv)
 
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);
-  waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
+  waitForUser(
+      "You can view ADA /dart_markers in RViz now. \n Press [ENTER] to "
+      "proceed:");
 
   if (!adaSim)
   {
@@ -124,7 +139,7 @@ int main(int argc, char** argv)
   /////////////////////////////////////////////////////////////////////////////
   std::string detectorDataURI
       = "package://pr_assets/data/objects/tag_data_foods.json";
-  std::string referenceFrameName = robotSkeleton->getBodyNode(0)->getName();
+  std::string referenceFrameName = BASE_NAME;
   std::string foodDetectorTopicName = getRosParamString(
       "/perception/foodDetectorTopicName", nh, "/simulated_pose/marker_array");
 
@@ -152,6 +167,7 @@ int main(int argc, char** argv)
 
   while (ros::ok())
   {
+    publishTransform(metaSkeleton);
     mDetector->detectObjects(env, ros::Duration(1.0));
     ros::spinOnce();
   }

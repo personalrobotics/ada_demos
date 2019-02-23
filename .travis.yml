@@ -1,4 +1,4 @@
-dist: bionic
+dist: xenial
 
 sudo: required
 
@@ -28,6 +28,8 @@ before_install:
   - curl -sS "${DISTRIBUTION}" > distribution.yml
   - ./scripts/internal-setup.sh
   - export PACKAGE_NAMES="$(./scripts/internal-get-packages.py distribution.yml ${REPOSITORY})"
+  - sudo apt-get purge -y ros-kinetic-ompl
+  - sudo apt-get install -y libompl-dev
 
 install:
   - mv "${TRAVIS_BUILD_DIR}" src
