@@ -1,7 +1,6 @@
 #include "feeding/action/MoveAbove.hpp"
 #include <libada/util.hpp>
 #include "feeding/util.hpp"
-
 using aikido::constraint::dart::TSR;
 using ada::util::createBwMatrixForTSR;
 using aikido::constraint::dart::TSR;
@@ -9,7 +8,9 @@ using aikido::constraint::dart::CollisionFreePtr;
 
 // Contains motions which are mainly TSR actions
 namespace feeding {
+
 namespace action {
+
 
 bool moveAbove(
     const std::shared_ptr<::ada::Ada>& ada,
@@ -22,11 +23,21 @@ bool moveAbove(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    const std::vector<double>& velocityLimits)
+    const std::vector<double>& velocityLimits,
+    FeedingDemo* feedingDemo)
 {
   TSR target;
 
   target.mT0_w = targetTransform;
+
+  if(feedingDemo)
+  {
+    feedingDemo->getViewer()->addTSRMarker(target);
+    int n;
+    std::cout << "target transform \n" << targetTransform.matrix() << std::endl;
+    std::cin >> n;
+  }
+
   target.mBw = createBwMatrixForTSR(
       horizontalTolerance,
       horizontalTolerance,
@@ -34,6 +45,8 @@ bool moveAbove(
       0,
       tiltTolerance,
       rotationTolerance);
+  std::cout << "tiltTolerance "  << tiltTolerance << std::endl;
+  std::cout << "rotationTolerance "  << rotationTolerance << std::endl;
 
   target.mTw_e.matrix() = endEffectorTransform.matrix();
 
@@ -51,7 +64,7 @@ bool moveAbove(
   }
   catch (...)
   {
-    // ROS_WARN("Error in trajectory completion!");
+    ROS_WARN("Error in trajectory completion!");
     return false;
   }
 }

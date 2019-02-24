@@ -67,7 +67,6 @@ void putDownFork(
       collisionFree,
       plate,
       plateEndEffectorTransform,
-      heightAbovePlate,
       horizontalToleranceAbovePlate,
       verticalToleranceAbovePlate,
       rotationToleranceAbovePlate,

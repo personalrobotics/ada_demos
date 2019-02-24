@@ -34,7 +34,7 @@ defaultFoodItem:
   pose: [.445, 0.19, 0.0, 3.1415, 0, 0]
 person: # the mannequin
   urdfUri: package://pr_assets/data/objects/tom.urdf
-  pose: [0.425, -0.45, 0.502, 0, 0, 3.1415]
+  pose: [0.425, -0.45, 0.502, 0, 0, 1.57]
 workspaceEnvironment:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0, 0, 0, 0]
@@ -60,13 +60,13 @@ planning:
   timeoutSeconds: 2
   tsr:
     horizontalToleranceAbovePlate: 0.03
-    verticalToleranceAbovePlate: 0.01
+    verticalToleranceAbovePlate: 0.0
     rotationToleranceAbovePlate: 3.1416
     horizontalToleranceNearFood: 0.005
     verticalToleranceNearFood: 0.005
     rotationToleranceNearFood: 0.005
-    horizontalToleranceNearPerson: 0.002
-    verticalToleranceNearPerson: 0.002
+    horizontalToleranceNearPerson: 0.01
+    verticalToleranceNearPerson: 0.01
     tiltToleranceNearFood: 0.0
   endEffectorOffset:
     positionTolerance: 0.00008
@@ -94,7 +94,7 @@ ftSensor:
 # Perception parameters
 perception:
   detectorDataUri: package://pr_assets/data/objects/tag_data_foods.json
-  foodDetectorTopicName: /deep_pose/marker_array
+  foodDetectorTopicName: /food_detector/marker_array
   faceDetectorTopicName: /face_pose/marker_array # TODO(GL): added marker_array
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
@@ -108,7 +108,7 @@ foodItems:
   pickUpAngleModes: [0, 2, 2, 0, 0, 1, 0]
 
 rotationFree:
-  names: ["cantaloupe", "banana", "melon"]
+  names: ["cantaloupe", "banana", "melon", "strawberry"]
 
 study:
   skipSkewering: false

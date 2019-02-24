@@ -9,10 +9,12 @@
 #include "feeding/action/PutDownFork.hpp"
 #include "feeding/action/FeedFoodToPerson.hpp"
 #include "feeding/action/Skewer.hpp"
+#include "feeding/action/MoveAbove.hpp"
+#include "feeding/action/MoveInFrontOfPerson.hpp"
+#include "feeding/action/MoveDirectlyToPerson.hpp"
 
 using ada::util::getRosParam;
 using ada::util::waitForUser;
-using aikido::rviz::WorldInteractiveMarkerViewerPtr;
 
 namespace feeding {
 
@@ -28,6 +30,20 @@ void demo(
   auto workspace = feedingDemo.getWorkspace();
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
+
+  ROS_INFO_STREAM("Move above plate");
+  action::moveAbove(
+    ada,
+    collisionFree,
+    plate,
+    feedingDemo.getPlateEndEffectorTransform(),
+    feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
+    feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
+    feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
+    0,
+    feedingDemo.mPlanningTimeout,
+    feedingDemo.mMaxNumTrials,
+    feedingDemo.mVelocityLimits);
 
   while (true)
   {
@@ -52,10 +68,10 @@ void demo(
         feedingDemo.mForkHolderTranslation,
         plate,
         feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mPlateTSRParameters["height"],
-        feedingDemo.mPlateTSRParameters["horizontalTolerance"],
-        feedingDemo.mPlateTSRParameters["verticalTolerance"],
-        feedingDemo.mPlateTSRParameters["rotationTolerance"],
+        feedingDemo.mPlateTSRParameters.at("height"),
+        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
         feedingDemo.mEndEffectorOffsetPositionTolerance,
         feedingDemo.mEndEffectorOffsetAngularTolerance,
         feedingDemo.mPlanningTimeout,
@@ -72,10 +88,10 @@ void demo(
         feedingDemo.mForkHolderTranslation,
         plate,
         feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mPlateTSRParameters["height"],
-        feedingDemo.mPlateTSRParameters["horizontalTolerance"],
-        feedingDemo.mPlateTSRParameters["verticalTolerance"],
-        feedingDemo.mPlateTSRParameters["rotationTolerance"],
+        feedingDemo.mPlateTSRParameters.at("height"),
+        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
         feedingDemo.mEndEffectorOffsetPositionTolerance,
         feedingDemo.mEndEffectorOffsetAngularTolerance,
         feedingDemo.mPlanningTimeout,
@@ -95,15 +111,14 @@ void demo(
         plate,
         feedingDemo.getPlateEndEffectorTransform(),
         feedingDemo.mFoodSkeweringForces,
-        feedingDemo.mPlateTSRParameters["height"],
-        feedingDemo.mPlateTSRParameters["horizontalTolerance"],
-        feedingDemo.mPlateTSRParameters["verticalTolerance"],
-        feedingDemo.mPlateTSRParameters["rotationTolerance"],
-        feedingDemo.mFoodTSRParameters["height"],
-        feedingDemo.mFoodTSRParameters["horizontalTolerance"],
-        feedingDemo.mFoodTSRParameters["verticalTolerance"],
-        feedingDemo.mFoodTSRParameters["rotationTolerance"],
-        feedingDemo.mFoodTSRParameters["tiltTolerance"],
+        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
+        feedingDemo.mFoodTSRParameters.at("height"),
+        feedingDemo.mFoodTSRParameters.at("horizontalTolerance"),
+        feedingDemo.mFoodTSRParameters.at("verticalTolerance"),
+        feedingDemo.mFoodTSRParameters.at("rotationTolerance"),
+        feedingDemo.mFoodTSRParameters.at("tiltTolerance"),
         feedingDemo.mMoveOufOfFoodLength,
         feedingDemo.mEndEffectorOffsetPositionTolerance,
         feedingDemo.mEndEffectorOffsetAngularTolerance,
@@ -111,7 +126,9 @@ void demo(
         feedingDemo.mPlanningTimeout,
         feedingDemo.mMaxNumTrials,
         feedingDemo.mVelocityLimits,
-        feedingDemo.getFTThresholdHelper());
+        feedingDemo.getFTThresholdHelper(),
+        feedingDemo.mRotationFreeFoodNames,
+        &feedingDemo);
 
       // ===== IN FRONT OF PERSON =====
       waitForUser("Move forque in front of person", ada);
@@ -128,13 +145,13 @@ void demo(
         feedingDemo.getPlateEndEffectorTransform(),
         feedingDemo.mPersonPose,
         feedingDemo.mWaitTimeForPerson,
-        feedingDemo.mPlateTSRParameters["height"],
-        feedingDemo.mPlateTSRParameters["horizontalTolerance"],
-        feedingDemo.mPlateTSRParameters["verticalTolerance"],
-        feedingDemo.mPlateTSRParameters["rotationTolerance"],
-        feedingDemo.mPersonTSRParameters["distance"],
-        feedingDemo.mPersonTSRParameters["horizontalTolerance"],
-        feedingDemo.mPersonTSRParameters["verticalTolerance"],
+        feedingDemo.mPlateTSRParameters.at("height"),
+        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
+        feedingDemo.mPersonTSRParameters.at("distance"),
+        feedingDemo.mPersonTSRParameters.at("horizontalTolerance"),
+        feedingDemo.mPersonTSRParameters.at("verticalTolerance"),
         feedingDemo.mPlanningTimeout,
         feedingDemo.mMaxNumTrials,
         feedingDemo.mEndEffectorOffsetPositionTolerance,

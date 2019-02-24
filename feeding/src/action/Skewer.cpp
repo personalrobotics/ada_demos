@@ -23,7 +23,6 @@ void skewer(
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
     const std::unordered_map<std::string, double>& foodSkeweringForces,
-    double heightAbovePlate,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
     double rotationToleranceAbovePlate,
@@ -39,14 +38,16 @@ void skewer(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper)
+    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
+    std::vector<std::string> rotationFreeFoodNames,
+    FeedingDemo* feedingDemo)
 {
+  ROS_INFO_STREAM("Move above plate");
   moveAbovePlate(
       ada,
       collisionFree,
       plate,
       plateEndEffectorTransform,
-      heightAbovePlate,
       horizontalToleranceAbovePlate,
       verticalToleranceAbovePlate,
       rotationToleranceAbovePlate,
@@ -54,6 +55,15 @@ void skewer(
       maxNumTrials,
       velocityLimits);
 
+  if (std::find(rotationFreeFoodNames.begin(),
+      rotationFreeFoodNames.end(), foodName) !=
+      rotationFreeFoodNames.end())
+  {
+    rotationToleranceForFood = M_PI;
+  }
+  std::cout << "Rotational tolerance " << rotationToleranceForFood << std::endl;
+
+  ada::util::waitForUser("Detect and Move above food", ada);
   auto item = detectAndMoveAboveFood(
       ada,
       collisionFree,
@@ -66,7 +76,9 @@ void skewer(
       tiltToleranceForFood,
       planningTimeout,
       maxNumTrials,
-      velocityLimits);
+      velocityLimits,
+      feedingDemo);
+
 
   const std::size_t maxTrials = 3;
   for (std::size_t i = 0; i < maxTrials; ++i)
@@ -129,7 +141,6 @@ void skewer(
       collisionFree,
       plate,
       plateEndEffectorTransform,
-      heightAbovePlate,
       horizontalToleranceAbovePlate,
       verticalToleranceAbovePlate,
       rotationToleranceAbovePlate,

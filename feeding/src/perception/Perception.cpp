@@ -20,12 +20,15 @@ Perception::Perception(
     dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
     const ros::NodeHandle* nodeHandle,
     std::shared_ptr<TargetFoodRanker> ranker,
-    float faceZOffset)
+    float faceZOffset,
+    bool removeRotationForFood)
   : mWorld(world)
   , mAdaMetaSkeleton(adaMetaSkeleton)
   , mNodeHandle(nodeHandle)
   , mTargetFoodRanker(ranker)
   , mFaceZOffset(faceZOffset)
+  , mRemoveRotationForFood(removeRotationForFood)
+
 {
   if (!mNodeHandle)
     throw std::invalid_argument("Ros nodeHandle is nullptr.");
@@ -112,6 +115,11 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
   {
     auto foodItem = mTargetFoodRanker->createFoodItem(item, forqueTF);
 
+    if (mRemoveRotationForFood)
+    {
+      removeRotation(foodItem.get());
+    }
+
     if (foodName != "" && foodItem->getName() != foodName)
       continue;
     detectedFoodItems.emplace_back(std::move(foodItem));
@@ -194,7 +202,23 @@ Eigen::Isometry3d Perception::getTrackedFoodItemPose()
     ROS_WARN("Failed to detect new update on the target object.");
 
   // Pose should've been updated since same metaSkeleton is shared.
+  if (mRemoveRotationForFood)
+  {
+    removeRotation(mTargetFoodItem);
+  }
   return mTargetFoodItem->getPose();
+}
+
+//==============================================================================
+void Perception::removeRotation(const FoodItem* item)
+{
+  Eigen::Isometry3d foodPose(item->getPose());
+  // foodPose.linear() = Eigen::Matrix3d::Identity();
+
+  // std::cout << "remove Rotation" << std::endl;
+  // std::cout << foodPose.matrix() << std::endl;
+  // item->getMetaSkeleton()->getJoint(0)->setTransformFromParentBodyNode(foodPose);
+
 }
 
 } // namespace feeding

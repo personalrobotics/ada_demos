@@ -77,7 +77,6 @@ void pickUpFork(
       collisionFree,
       plate,
       plateEndEffectorTransform,
-      heightAbovePlate,
       horizontalToleranceAbovePlate,
       verticalToleranceAbovePlate,
       rotationToleranceAbovePlate,

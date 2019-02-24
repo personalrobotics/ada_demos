@@ -5,6 +5,7 @@
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
+#include "feeding/FeedingDemo.hpp"
 
 namespace feeding {
 namespace action {
@@ -19,7 +20,6 @@ void skewer(
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
     const std::unordered_map<std::string, double>& foodSkeweringForces,
-    double heightAbovePlate,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
     double rotationToleranceAbovePlate,
@@ -35,7 +35,9 @@ void skewer(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper);
+    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
+    std::vector<std::string> rotationFreeFoodNames = std::vector<std::string>(),
+    FeedingDemo* feedingDemo=nullptr);
 }
 }
 

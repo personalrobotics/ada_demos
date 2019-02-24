@@ -1,4 +1,7 @@
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
+#include <chrono>
+#include <thread>
+
 #include "feeding/action/MoveAboveFood.hpp"
 
 namespace feeding {
@@ -16,14 +19,26 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits)
+    std::vector<double> velocityLimits,
+    FeedingDemo* feedingDemo)
 {
-  // Perception returns the list of good candidates, any one of them is good.
-  // Multiple candidates are preferrable since planning may fail.
-  auto candidateItems = perception->perceiveFood(foodName);
+  std::vector<std::unique_ptr<FoodItem>> candidateItems;
+  while (true)
+  {
+    // Perception returns the list of good candidates, any one of them is good.
+    // Multiple candidates are preferrable since planning may fail.
+    candidateItems = perception->perceiveFood(foodName);
 
-  if (candidateItems.size() == 0)
-    throw std::runtime_error("Failed to detect any food.");
+    if (candidateItems.size() == 0)
+      ROS_WARN_STREAM("Failed to detect any food. Please place food on the plate.");
+    else
+    {
+      break;
+    }
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+
 
   ROS_INFO_STREAM("Detected " << candidateItems.size() << " " << foodName);
 
@@ -47,7 +62,8 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
             tiltTolerance,
             planningTimeout,
             maxNumTrials,
-            velocityLimits))
+            velocityLimits,
+            feedingDemo))
     {
       ROS_INFO_STREAM("Failed to move above " << item->getName());
       continue;

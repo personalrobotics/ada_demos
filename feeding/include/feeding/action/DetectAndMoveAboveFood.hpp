@@ -5,6 +5,7 @@
 #include "feeding/FoodItem.hpp"
 #include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
+#include "feeding/FeedingDemo.hpp"
 
 // Contains motions which are mainly TSR actions
 namespace feeding {
@@ -22,7 +23,8 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits);
+    std::vector<double> velocityLimits,
+    FeedingDemo* feedingDemo=nullptr);
 }
 }
 

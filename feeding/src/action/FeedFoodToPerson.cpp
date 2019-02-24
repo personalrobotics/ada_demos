@@ -38,7 +38,7 @@ void feedFoodToPerson(
     return moveInFrontOfPerson(
         ada,
         nullptr,                    // collisionFree,
-        workspace->getPersonPose(), // TODO why not personPose
+        personPose, // TODO why not personPose
         distanceToPerson,
         horizontalToleranceForPerson,
         verticalToleranceForPerson,
@@ -105,7 +105,6 @@ void feedFoodToPerson(
       nullptr,
       plate,
       plateEndEffectorTransform,
-      heightAbovePlate,
       horizontalToleranceAbovePlate,
       verticalToleranceAbovePlate,
       rotationToleranceAbovePlate,

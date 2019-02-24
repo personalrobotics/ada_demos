@@ -18,6 +18,8 @@
 using ada::util::getRosParam;
 using ada::util::waitForUser;
 
+extern aikido::rviz::WorldInteractiveMarkerViewerPtr feeding::VIEWER;
+
 ///
 /// OVERVIEW OF FEEDING DEMO CODE
 ///
@@ -32,6 +34,8 @@ using ada::util::waitForUser;
 int main(int argc, char** argv)
 {
   using namespace feeding;
+
+
   // ===== STARTUP =====
 
   // Is the real robot used or simulation?
@@ -119,6 +123,14 @@ int main(int argc, char** argv)
   {
     ranker = std::make_shared<SuccessRateRanker>();
   }
+
+  VIEWER = feedingDemo->getViewer();
+  auto viewer = feedingDemo->getViewer();
+
+  if (viewer)
+    std::cout << "viewer exists" << std::endl;
+  if (!VIEWER)
+    throw std::runtime_error("VIEWER is null");
 
   auto perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),

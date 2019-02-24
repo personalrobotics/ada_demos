@@ -25,7 +25,8 @@ bool moveAboveFood(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits)
+    std::vector<double> velocityLimits,
+    FeedingDemo* feedingDemo)
 {
   ada::util::waitForUser(
       "Rotate forque to angle " + std::to_string(rotateAngle), ada);
@@ -64,14 +65,8 @@ bool moveAboveFood(
                           cos(M_PI * 0.25) * heightAboveFood * 0.5};
   }
 
-  // double rotationTolerance = mFoodTSRParameters["rotationTolerance"];
-  // if (mAllowRotationFree
-  //   && std::find(mRotationFreeFoodNames.begin(),
-  //     mRotationFreeFoodNames.end(), foodName) !=
-  //     mRotationFreeFoodNames.end())
-  // {
-  //   rotationTolerance = M_PI;
-  // }
+  std::cout << "Tilt Style " << tiltStyle << std::endl;
+  std::cout << "Tilt Tolerance "  << tiltTolerance << std::endl;
 
   return moveAbove(
       ada,
@@ -81,10 +76,11 @@ bool moveAboveFood(
       horizontalTolerance,
       verticalTolerance,
       rotationTolerance,
-      tiltTolerance,
+      0.0,
       planningTimeout,
       maxNumTrials,
-      velocityLimits);
+      velocityLimits,
+      feedingDemo);
 }
 
 } // namespace feeding

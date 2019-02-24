@@ -20,7 +20,8 @@ bool moveInFrontOfPerson(
     double verticalToleranceForPerson,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits)
+    std::vector<double> velocityLimits,
+    FeedingDemo* feedingDemo)
 {
   ROS_INFO_STREAM("move in front of person");
 
@@ -48,8 +49,7 @@ bool moveInFrontOfPerson(
       planningTimeout,
       maxNumTrials,
       getConfigurationRanker(ada),
-      velocityLimits,
-      ada::TrajectoryPostprocessType::KUNZ);
+      velocityLimits);
 }
 }
 }

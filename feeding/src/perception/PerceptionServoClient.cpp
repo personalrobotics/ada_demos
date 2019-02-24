@@ -314,7 +314,21 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
       * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   endEffectorTransform.linear() = rotation;
 
-  auto pose = mGetTransform();
+  Eigen::Isometry3d pose;
+  try
+  {
+    pose = mGetTransform();
+    if (mRemoveRotation)
+    {
+      removeRotation(pose);
+    }
+  }
+  catch (std::runtime_error& e)
+  {
+    ROS_WARN_STREAM(e.what());
+    return false;
+  }
+
   goalPose = pose * endEffectorTransform;
 
   ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
@@ -358,8 +372,8 @@ SplinePtr PerceptionServoClient::planToGoalPose(
 
   Eigen::Isometry3d currentPose = mBodyNode->getTransform();
 
-  aikido::trajectory::Spline* spline1 = nullptr;
-  aikido::trajectory::Spline* spline2 = nullptr;
+  aikido::trajectory::Interpolated* interpolated1 = nullptr;
+  aikido::trajectory::Interpolated* interpolated2 = nullptr;
 
   Eigen::VectorXd currentConfig = mMetaSkeleton->getPositions();
   Eigen::Vector3d direction1
@@ -389,7 +403,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
       ROS_WARN("Failed in finding the first half");
       return nullptr;
     }
-    spline1 = dynamic_cast<aikido::trajectory::Spline*>(trajectory1.get());
+    interpolated1 = dynamic_cast<aikido::trajectory::Interpolated*>(trajectory1.get());
   }
   else
   {
@@ -407,15 +421,15 @@ SplinePtr PerceptionServoClient::planToGoalPose(
 
   aikido::trajectory::TrajectoryPtr trajectory2 = nullptr;
   aikido::trajectory::UniqueSplinePtr tSpline2;
-  if (spline1)
+  if (interpolated1)
   {
     MetaSkeletonStateSaver saver2(mMetaSkeleton);
     auto endState = mMetaSkeletonStateSpace->createState();
-    auto endTime = spline1->getEndTime();
+    auto endTime = interpolated1->getEndTime();
 
     try
     {
-      spline1->evaluate(spline1->getEndTime(), endState);
+      interpolated1->evaluate(interpolated1->getEndTime(), endState);
     }
     catch (const std::exception& e)
     {
@@ -447,12 +461,12 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     {
       ROS_WARN("Failed in finding the second half");
     }
-    spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
+    interpolated2 = dynamic_cast<aikido::trajectory::Interpolated*>(trajectory2.get());
 
-    if (!spline2)
+    if (!interpolated2)
       return nullptr;
 
-    auto concatenatedTraj = concatenate(*spline1, *spline2);
+    auto concatenatedTraj = concatenate(*interpolated1, *interpolated2);
     if (!concatenatedTraj)
       return nullptr;
 
@@ -501,12 +515,12 @@ SplinePtr PerceptionServoClient::planToGoalPose(
       return nullptr;
     }
 
-    spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
-    if (spline2 == nullptr)
+    interpolated2 = dynamic_cast<aikido::trajectory::Interpolated*>(trajectory2.get());
+    if (interpolated2 == nullptr)
       return nullptr;
 
     auto timedTraj = computeKunzTiming(
-        *spline2, velocityLimits, mMaxAcceleration, 1e-2, 3e-3);
+        *interpolated2, velocityLimits, mMaxAcceleration, 1e-2, 3e-3);
 
     if (!timedTraj)
       return nullptr;

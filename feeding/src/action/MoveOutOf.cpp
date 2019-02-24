@@ -24,20 +24,16 @@ void moveOutOf(
   if (ftThresholdHelper)
     ftThresholdHelper->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
 
-  // Do it three times
-  for (int i = 0; i < 3; ++i)
-  {
-    bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
-        direction,
-        length,
-        collisionFree,
-        planningTimeout,
-        endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);
+  bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
+      direction,
+      length,
+      collisionFree,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance);
 
-    // trajectoryCompleted might be false because the forque hit the food
-    // along the way and the trajectory was aborted
-  }
+  // trajectoryCompleted might be false because the forque hit the food
+  // along the way and the trajectory was aborted
 
   if (ftThresholdHelper)
     ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);

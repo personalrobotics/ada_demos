@@ -11,7 +11,6 @@ bool moveAbovePlate(
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
-    double heightAbovePlate,
     double horizontalTolerance,
     double verticalTolerance,
     double rotationTolerance,

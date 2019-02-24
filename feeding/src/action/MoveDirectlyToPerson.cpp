@@ -9,6 +9,7 @@ using ada::util::createBwMatrixForTSR;
 namespace feeding {
 namespace action {
 
+// TODO: This gets to MoveInfrontOfPerson pose. need moveInto?
 bool moveDirectlyToPerson(
     const std::shared_ptr<ada::Ada>& ada,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
@@ -19,7 +20,8 @@ bool moveDirectlyToPerson(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    const Eigen::Vector3d* tiltOffset)
+    const Eigen::Vector3d* tiltOffset,
+    FeedingDemo* feedingDemo)
 {
   Eigen::Isometry3d person(personPose);
   if (tiltOffset)
@@ -60,6 +62,14 @@ bool moveDirectlyToPerson(
         0);
     personTSR.mTw_e.matrix()
         *= ada->getHand()->getEndEffectorTransform("person")->matrix();
+  }
+
+  if(feedingDemo)
+  {
+    feedingDemo->getViewer()->addTSRMarker(personTSR);
+    std::cout << "check person TSR" << std::endl;
+    int n;
+    std::cin >> n;
   }
 
   if (!ada->moveArmToTSR(
