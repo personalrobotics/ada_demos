@@ -28,8 +28,7 @@ bool moveAboveFood(
     std::vector<double> velocityLimits,
     FeedingDemo* feedingDemo)
 {
-  ada::util::waitForUser(
-      "Rotate forque to angle " + std::to_string(rotateAngle), ada);
+  ROS_INFO_STREAM("Rotate forque to angle " << rotateAngle);
 
   Eigen::Isometry3d target;
   Eigen::Isometry3d eeTransform
@@ -41,7 +40,7 @@ bool moveAboveFood(
   {
     target = foodTransform;
     eeTransform.linear() = eeTransform.linear() * rotation;
-    eeTransform.translation()[2] = -heightAboveFood;
+    eeTransform.translation()[2] = heightAboveFood;
   }
   else if (tiltStyle == TiltStyle::VERTICAL)
   {
@@ -64,9 +63,6 @@ bool moveAboveFood(
                           0,
                           cos(M_PI * 0.25) * heightAboveFood * 0.5};
   }
-
-  std::cout << "Tilt Style " << tiltStyle << std::endl;
-  std::cout << "Tilt Tolerance "  << tiltTolerance << std::endl;
 
   return moveAbove(
       ada,

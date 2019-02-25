@@ -43,6 +43,13 @@ bool moveInFrontOfPerson(
   personTSR.mTw_e.matrix()
       *= ada->getHand()->getEndEffectorTransform("person")->matrix();
 
+  // if(feedingDemo)
+  // {
+  //   feedingDemo->getViewer()->addTSRMarker(personTSR);
+  //   int n;
+  //   std::cin >> n;
+  // }
+
   return ada->moveArmToTSR(
       personTSR,
       collisionFree,

@@ -25,10 +25,10 @@ ada:
 # Workspace parameters
 plate:
   urdfUri: package://pr_assets/data/objects/plate.urdf
-  pose: [.445, 0.19, -0.02, 0, 0, 0]
+  pose: [.445, 0.19, -0.04, 0, 0, 0]
 table:
   urdfUri: package://pr_assets/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.745, 0, 0, 0]
+  pose: [0.76, 0.38, -0.775, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_assets/data/objects/food_item.urdf
   pose: [.445, 0.19, 0.0, 3.1415, 0, 0]
@@ -45,7 +45,7 @@ wheelchair:
 # Feeding demo movement parameters
 feedingDemo:
   heightAbovePlate: 0.10
-  heightAboveFood: 0.10
+  heightAboveFood: 0.05
   heightIntoFood: 0.05           # the real robot plans *below* the food. This parameter specifies how far
   moveOutofFood: 0.01
   distanceToPerson: 0.25
@@ -65,8 +65,8 @@ planning:
     horizontalToleranceNearFood: 0.005
     verticalToleranceNearFood: 0.005
     rotationToleranceNearFood: 0.005
-    horizontalToleranceNearPerson: 0.01
-    verticalToleranceNearPerson: 0.01
+    horizontalToleranceNearPerson: 0.03
+    verticalToleranceNearPerson: 0.03
     tiltToleranceNearFood: 0.0
   endEffectorOffset:
     positionTolerance: 0.00008

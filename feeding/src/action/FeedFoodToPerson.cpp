@@ -37,8 +37,8 @@ void feedFoodToPerson(
   auto moveIFOPerson = [&] {
     return moveInFrontOfPerson(
         ada,
-        nullptr,                    // collisionFree,
-        personPose, // TODO why not personPose
+        nullptr, //collisionFree,
+        personPose,
         distanceToPerson,
         horizontalToleranceForPerson,
         verticalToleranceForPerson,
@@ -92,8 +92,15 @@ void feedFoodToPerson(
   // ===== EATING =====
   ROS_WARN("Human is eating");
   std::this_thread::sleep_for(waitAtPerson);
-  ungrabAndDeleteFood(ada, workspace);
-  ada::util::waitForUser("Move away from person", ada);
+  try
+  {
+    ungrabAndDeleteFood(ada, workspace);
+  }
+  catch (std::runtime_error& e)
+  {
+    // It's ok even if nothing's grabbed.
+    ROS_WARN_STREAM(e.what());
+  }
 
   // ===== BACK TO PLATE =====
   ada::util::waitForUser("Move back to plate", ada);

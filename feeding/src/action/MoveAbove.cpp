@@ -29,15 +29,6 @@ bool moveAbove(
   TSR target;
 
   target.mT0_w = targetTransform;
-
-  if(feedingDemo)
-  {
-    feedingDemo->getViewer()->addTSRMarker(target);
-    int n;
-    std::cout << "target transform \n" << targetTransform.matrix() << std::endl;
-    std::cin >> n;
-  }
-
   target.mBw = createBwMatrixForTSR(
       horizontalTolerance,
       horizontalTolerance,
@@ -49,6 +40,14 @@ bool moveAbove(
   std::cout << "rotationTolerance "  << rotationTolerance << std::endl;
 
   target.mTw_e.matrix() = endEffectorTransform.matrix();
+
+  // if(feedingDemo)
+  // {
+  //   feedingDemo->getViewer()->addTSRMarker(target);
+  //   int n;
+  //   std::cout << "target transform \n" << targetTransform.matrix() << std::endl;
+  //   std::cin >> n;
+  // }
 
   try
   {

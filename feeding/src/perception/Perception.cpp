@@ -151,23 +151,31 @@ Eigen::Isometry3d Perception::perceiveFace()
   {
     auto perceivedFace = mWorld->getSkeleton(
         mPerceivedFaceName + "_" + std::to_string(skeletonFrameIdx));
+
     if (perceivedFace != nullptr)
     {
       auto faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
+      ROS_INFO_STREAM(
+          "before\n"
+          << faceTransform.matrix());
 
-      // fixed distance:
+      //fixed distance:
       double fixedFaceY
           = getRosParam<double>("/feedingDemo/fixedFaceY", *mNodeHandle);
       if (fixedFaceY > 0)
       {
+        std::cout << "Update faceY" << std::endl;
         faceTransform.translation().y() = fixedFaceY;
       }
 
+      std::cout << "Update faceZ" << std::endl;
       faceTransform.translation().z()
           = faceTransform.translation().z() + mFaceZOffset;
+
       ROS_INFO_STREAM(
-          "perceived Face: "
-          << faceTransform.translation().matrix().transpose());
+          "perceived Face:\n"
+          << faceTransform.matrix());
+
       return faceTransform;
     }
   }
@@ -212,13 +220,23 @@ Eigen::Isometry3d Perception::getTrackedFoodItemPose()
 //==============================================================================
 void Perception::removeRotation(const FoodItem* item)
 {
-  Eigen::Isometry3d foodPose(item->getPose());
-  // foodPose.linear() = Eigen::Matrix3d::Identity();
+  Eigen::Isometry3d foodPose(Eigen::Isometry3d::Identity());
+  foodPose.translation() = item->getPose().translation();
 
-  // std::cout << "remove Rotation" << std::endl;
-  // std::cout << foodPose.matrix() << std::endl;
-  // item->getMetaSkeleton()->getJoint(0)->setTransformFromParentBodyNode(foodPose);
+  std::cout << "remove rotatoin" << std::endl;
+  // Downcast Joint to FreeJoint
+  dart::dynamics::FreeJoint* freejtptr
+      = dynamic_cast<dart::dynamics::FreeJoint*>(item->getMetaSkeleton()->getJoint(0));
 
+  if (freejtptr == nullptr)
+  {
+    dtwarn << "[Perception::removeRotation] Could not cast the joint "
+              "of the body to a Free Joint so ignoring the object "
+           << item->getName() << std::endl;
+    return;
+  }
+
+  freejtptr->setTransform(foodPose);
 }
 
 } // namespace feeding
