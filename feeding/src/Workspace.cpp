@@ -21,11 +21,13 @@ Workspace::Workspace(
   addToWorld(mWorkspaceEnvironment, "workspaceEnvironment", robotPose);
   addToWorld(mWheelchair, "wheelchair", Eigen::Isometry3d::Identity());
 
-  mPersonPose = robotPose.inverse() * createIsometry(
-                                          getRosParam<std::vector<double>>(
-                                              "/person/pose", mNodeHandle));
-  if (!adaReal)
-    addToWorld(mPerson, "person", robotPose);
+  // mPersonPose = robotPose.inverse() * createIsometry(
+  //                                         getRosParam<std::vector<double>>(
+  //                                             "/person/pose", mNodeHandle));
+  addToWorld(mPerson, "person", robotPose);
+  mPersonPose = mPerson->getRootBodyNode()->getWorldTransform();
+  std::cout << "Workspace: Person pose " << std::endl;
+  std::cout << mPersonPose.matrix() << std::endl;
 
   reset();
 }

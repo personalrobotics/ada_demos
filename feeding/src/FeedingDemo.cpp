@@ -150,15 +150,6 @@ FeedingDemo::FeedingDemo(
   mPersonTSRParameters["verticalTolerance"] = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
 
-  std::cout << "Planning Params" << std::endl;
-  std::cout << mPersonTSRParameters["horizontalTolerance"] << std::endl;
-  std::cout << mPersonTSRParameters["verticalTolerance"] << std::endl;
-  std::cout << mFoodTSRParameters["verticalTolerance"] << std::endl;
-  std::cout << mFoodTSRParameters["horizontalTolerance"] << std::endl;
-
-  mPersonPose = createIsometry(
-      getRosParam<std::vector<double>>("/study/personPose", mNodeHandle));
-
   mForkHolderAngle = getRosParam<double>("/study/forkHolderAngle", mNodeHandle);
   mForkHolderTranslation = getRosParam<std::vector<double>>(
       "/study/forkHolderTranslation", mNodeHandle);
