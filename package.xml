@@ -15,6 +15,7 @@
   <depend>tf_conversions</depend>
   <depend>rewd_controllers</depend>
   <depend>image_transport</depend>
+  <depend>image_geometry</depend>
   <depend>cv_bridge</depend>
 
   <depend>ada_description</depend>
