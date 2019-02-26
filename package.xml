@@ -14,6 +14,7 @@
   <depend>libada</depend>
   <depend>tf_conversions</depend>
   <depend>rewd_controllers</depend>
+  <depend>image_transport</depend>
 
   <depend>ada_description</depend>
   <depend>pr_assets</depend>
