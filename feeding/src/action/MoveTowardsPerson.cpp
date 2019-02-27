@@ -29,13 +29,13 @@ bool moveTowardsPerson(
       ada->getArm()->getMetaSkeleton(),
       ada->getHand()->getEndEffectorBodyNode(),
       ada->getTrajectoryExecutor(),
-      nullptr,
-      0.2,
-      0,
+      collisionFree,
+      1.0,
       0.06,
       planningTimeout,
       endEffectorOffsetPositionTolerenace,
       endEffectorOffsetAngularTolerance,
+      false, // not food
       velocityLimits);
   servoClient.start();
   return servoClient.wait(30);

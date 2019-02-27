@@ -28,8 +28,6 @@ bool moveAboveFood(
     std::vector<double> velocityLimits,
     FeedingDemo* feedingDemo)
 {
-  ROS_INFO_STREAM("Rotate forque to angle " << rotateAngle);
-
   Eigen::Isometry3d target;
   Eigen::Isometry3d eeTransform
       = *ada->getHand()->getEndEffectorTransform("food");

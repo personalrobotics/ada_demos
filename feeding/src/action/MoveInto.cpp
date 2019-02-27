@@ -24,10 +24,7 @@ bool moveInto(
     const Eigen::Vector3d& endEffectorDirection,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
 {
-  ada::util::waitForUser("Move into " + TargetToString.at(item), ada);
-
-  if (ftThresholdHelper)
-    ftThresholdHelper->setThresholds(GRAB_FOOD_FT_THRESHOLD);
+  ROS_INFO_STREAM("Move into " + TargetToString.at(item));
 
   if (item != FOOD && item != FORQUE)
     throw std::invalid_argument(
@@ -57,17 +54,17 @@ bool moveInto(
         ada->getArm()->getMetaSkeleton(),
         ada->getHand()->getEndEffectorBodyNode(),
         ada->getTrajectoryExecutor(),
-        collisionFree,
-        0.1,
-        0.1,
+        nullptr,
+        1.0,
         0.002,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
+        true, // servoFood
         velocityLimits);
     servoClient.start();
 
-    return servoClient.wait(10000.0);
+    return servoClient.wait(15.0);
   }
   else
   {

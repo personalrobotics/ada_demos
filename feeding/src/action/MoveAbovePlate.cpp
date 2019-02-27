@@ -24,8 +24,8 @@ bool moveAbovePlate(
       plateEndEffectorTransform,
       horizontalTolerance,
       verticalTolerance,
-      rotationTolerance,
-      0.0, // tilt tolereance
+      M_PI,
+      0.03,
       planningTimeout,
       maxNumTrials,
       velocityLimits);

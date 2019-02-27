@@ -36,18 +36,8 @@ bool moveAbove(
       0,
       tiltTolerance,
       rotationTolerance);
-  std::cout << "tiltTolerance "  << tiltTolerance << std::endl;
-  std::cout << "rotationTolerance "  << rotationTolerance << std::endl;
 
   target.mTw_e.matrix() = endEffectorTransform.matrix();
-
-  // if(feedingDemo)
-  // {
-  //   feedingDemo->getViewer()->addTSRMarker(target);
-  //   int n;
-  //   std::cout << "target transform \n" << targetTransform.matrix() << std::endl;
-  //   std::cin >> n;
-  // }
 
   try
   {
