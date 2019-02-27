@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_MOVEDIRECTLYTO_HPP_
 
 #include <libada/Ada.hpp>
+#include "feeding/FeedingDemo.hpp"
 
 namespace feeding {
 namespace action {
@@ -16,7 +17,8 @@ bool moveDirectlyToPerson(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    const Eigen::Vector3d* tiltOffset);
+    const Eigen::Vector3d* tiltOffset,
+    FeedingDemo* feedingDemo=nullptr);
 
 } // namespace action
 } // namespace feeding

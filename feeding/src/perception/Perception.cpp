@@ -20,12 +20,15 @@ Perception::Perception(
     dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
     const ros::NodeHandle* nodeHandle,
     std::shared_ptr<TargetFoodRanker> ranker,
-    float faceZOffset)
+    float faceZOffset,
+    bool removeRotationForFood)
   : mWorld(world)
   , mAdaMetaSkeleton(adaMetaSkeleton)
   , mNodeHandle(nodeHandle)
   , mTargetFoodRanker(ranker)
   , mFaceZOffset(faceZOffset)
+  , mRemoveRotationForFood(removeRotationForFood)
+
 {
   if (!mNodeHandle)
     throw std::invalid_argument("Ros nodeHandle is nullptr.");
@@ -112,6 +115,11 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
   {
     auto foodItem = mTargetFoodRanker->createFoodItem(item, forqueTF);
 
+    if (mRemoveRotationForFood)
+    {
+      removeRotation(foodItem.get());
+    }
+
     if (foodName != "" && foodItem->getName() != foodName)
       continue;
     detectedFoodItems.emplace_back(std::move(foodItem));
@@ -143,23 +151,31 @@ Eigen::Isometry3d Perception::perceiveFace()
   {
     auto perceivedFace = mWorld->getSkeleton(
         mPerceivedFaceName + "_" + std::to_string(skeletonFrameIdx));
+
     if (perceivedFace != nullptr)
     {
       auto faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
+      ROS_INFO_STREAM(
+          "before\n"
+          << faceTransform.matrix());
 
-      // fixed distance:
+      //fixed distance:
       double fixedFaceY
           = getRosParam<double>("/feedingDemo/fixedFaceY", *mNodeHandle);
       if (fixedFaceY > 0)
       {
+        std::cout << "Update faceY" << std::endl;
         faceTransform.translation().y() = fixedFaceY;
       }
 
+      std::cout << "Update faceZ" << std::endl;
       faceTransform.translation().z()
           = faceTransform.translation().z() + mFaceZOffset;
+
       ROS_INFO_STREAM(
-          "perceived Face: "
-          << faceTransform.translation().matrix().transpose());
+          "perceived Face:\n"
+          << faceTransform.matrix());
+
       return faceTransform;
     }
   }
@@ -194,7 +210,33 @@ Eigen::Isometry3d Perception::getTrackedFoodItemPose()
     ROS_WARN("Failed to detect new update on the target object.");
 
   // Pose should've been updated since same metaSkeleton is shared.
+  if (mRemoveRotationForFood)
+  {
+    removeRotation(mTargetFoodItem);
+  }
   return mTargetFoodItem->getPose();
+}
+
+//==============================================================================
+void Perception::removeRotation(const FoodItem* item)
+{
+  Eigen::Isometry3d foodPose(Eigen::Isometry3d::Identity());
+  foodPose.translation() = item->getPose().translation();
+
+  std::cout << "remove rotatoin" << std::endl;
+  // Downcast Joint to FreeJoint
+  dart::dynamics::FreeJoint* freejtptr
+      = dynamic_cast<dart::dynamics::FreeJoint*>(item->getMetaSkeleton()->getJoint(0));
+
+  if (freejtptr == nullptr)
+  {
+    dtwarn << "[Perception::removeRotation] Could not cast the joint "
+              "of the body to a Free Joint so ignoring the object "
+           << item->getName() << std::endl;
+    return;
+  }
+
+  freejtptr->setTransform(foodPose);
 }
 
 } // namespace feeding

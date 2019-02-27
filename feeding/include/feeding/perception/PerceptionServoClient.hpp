@@ -121,6 +121,8 @@ protected:
   double mPlanningTimeout;
   double mEndEffectorOffsetPositionTolerance;
   double mEndEffectorOffsetAngularTolerance;
+
+  bool mRemoveRotation;
   std::vector<double> mVelocityLimits;
 };
 }

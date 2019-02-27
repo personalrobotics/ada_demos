@@ -20,7 +20,8 @@ bool moveInFrontOfPerson(
     double verticalToleranceForPerson,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits)
+    std::vector<double> velocityLimits,
+    FeedingDemo* feedingDemo)
 {
   ROS_INFO_STREAM("move in front of person");
 
@@ -42,14 +43,20 @@ bool moveInFrontOfPerson(
   personTSR.mTw_e.matrix()
       *= ada->getHand()->getEndEffectorTransform("person")->matrix();
 
+  // if(feedingDemo)
+  // {
+  //   feedingDemo->getViewer()->addTSRMarker(personTSR);
+  //   int n;
+  //   std::cin >> n;
+  // }
+
   return ada->moveArmToTSR(
       personTSR,
       collisionFree,
       planningTimeout,
       maxNumTrials,
       getConfigurationRanker(ada),
-      velocityLimits,
-      ada::TrajectoryPostprocessType::KUNZ);
+      velocityLimits);
 }
 }
 }

@@ -49,10 +49,6 @@ bool moveInto(
     int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
     std::vector<double> velocityLimits(numDofs, 0.2);
 
-    std::cout << "Velocity limits " << velocityLimits.size() << std::endl;
-    for (const auto v : velocityLimits)
-      std::cout << v << std::endl;
-
     PerceptionServoClient servoClient(
         nodeHandle,
         boost::bind(&Perception::getTrackedFoodItemPose, perception.get()),

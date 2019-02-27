@@ -314,7 +314,21 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
       * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   endEffectorTransform.linear() = rotation;
 
-  auto pose = mGetTransform();
+  Eigen::Isometry3d pose;
+  try
+  {
+    pose = mGetTransform();
+    if (mRemoveRotation)
+    {
+      removeRotation(pose);
+    }
+  }
+  catch (std::runtime_error& e)
+  {
+    ROS_WARN_STREAM(e.what());
+    return false;
+  }
+
   goalPose = pose * endEffectorTransform;
 
   ROS_INFO_STREAM("goal pose: " << goalPose.translation().transpose().matrix());
@@ -357,44 +371,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     velocityLimits[i] = mVelocityLimits[i];
 
   Eigen::Isometry3d currentPose = mBodyNode->getTransform();
-
-  aikido::trajectory::Spline* spline1 = nullptr;
-  aikido::trajectory::Spline* spline2 = nullptr;
-
-  Eigen::VectorXd currentConfig = mMetaSkeleton->getPositions();
-  Eigen::Vector3d direction1
-      = currentPose.translation() - mOriginalPose.translation();
-
-  aikido::trajectory::TrajectoryPtr trajectory1 = nullptr;
-  aikido::trajectory::UniqueSplinePtr tSpline1 = nullptr;
-  if (direction1.norm() > 1e-2)
-  {
-    MetaSkeletonStateSaver saver1(mMetaSkeleton);
-    mMetaSkeleton->setPositions(mOriginalConfig);
-
-    auto originalState = mMetaSkeletonStateSpace->createState();
-    mMetaSkeletonStateSpace->convertPositionsToState(
-        mOriginalConfig, originalState);
-
-    trajectory1 = mAda->planArmToEndEffectorOffset(
-        direction1.normalized(),
-        direction1.norm() + 0.004,
-        nullptr,
-        mPlanningTimeout,
-        mEndEffectorOffsetPositionTolerance,
-        mEndEffectorOffsetAngularTolerance);
-
-    if (!trajectory1)
-    {
-      ROS_WARN("Failed in finding the first half");
-      return nullptr;
-    }
-    spline1 = dynamic_cast<aikido::trajectory::Spline*>(trajectory1.get());
-  }
-  else
-  {
-    ROS_INFO("Distance short. Going for the next phase");
-  }
+  aikido::trajectory::Interpolated* interpolated2 = nullptr;
 
   Eigen::Vector3d direction2
       = goalPose.translation() - currentPose.translation();
@@ -406,73 +383,8 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   }
 
   aikido::trajectory::TrajectoryPtr trajectory2 = nullptr;
-  aikido::trajectory::UniqueSplinePtr tSpline2;
-  if (spline1)
   {
-    MetaSkeletonStateSaver saver2(mMetaSkeleton);
-    auto endState = mMetaSkeletonStateSpace->createState();
-    auto endTime = spline1->getEndTime();
-
-    try
-    {
-      spline1->evaluate(spline1->getEndTime(), endState);
-    }
-    catch (const std::exception& e)
-    {
-      ROS_WARN(
-          "Trajectory evaluation failed. Printing current config and "
-          "direction:");
-      ROS_WARN_STREAM(currentConfig);
-      ROS_WARN_STREAM(direction1.matrix().transpose());
-      ROS_WARN("Retrying...");
-      ROS_WARN_STREAM(e.what());
-      mExecutionDone = true;
-      mNotFailed = false;
-      return nullptr;
-    }
-    mMetaSkeletonStateSpace->setState(mMetaSkeleton.get(), endState);
-
-    auto collisionConstraint = mAda->getArm()->getFullCollisionConstraint(
-        mMetaSkeletonStateSpace, mMetaSkeleton, nullptr);
-
-    trajectory2 = mAda->planArmToEndEffectorOffset(
-        direction2.normalized(),
-        std::min(direction2.norm(), 0.0) + 0.1,
-        nullptr,
-        mPlanningTimeout,
-        mEndEffectorOffsetPositionTolerance,
-        mEndEffectorOffsetAngularTolerance);
-
-    if (!trajectory2)
-    {
-      ROS_WARN("Failed in finding the second half");
-    }
-    spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
-
-    if (!spline2)
-      return nullptr;
-
-    auto concatenatedTraj = concatenate(*spline1, *spline2);
-    if (!concatenatedTraj)
-      return nullptr;
-
-    auto timedTraj = computeKunzTiming(
-        *concatenatedTraj, velocityLimits, mMaxAcceleration, 1e-2, 9e-3);
-
-    if (!timedTraj)
-      return nullptr;
-
-    currentConfig = mMetaSkeleton->getPositions();
-    double refTime
-        = findTimeOfClosestStateOnTrajectory(*timedTraj.get(), currentConfig);
-
-    auto partialTimedTraj = createPartialTrajectory(*timedTraj, refTime);
-
-    return std::move(partialTimedTraj);
-  }
-  else
-  {
-    auto limits = setPositionLimits(mAda->getArm()->getMetaSkeleton());
+    // auto limits = setPositionLimits(mAda->getArm()->getMetaSkeleton());
 
     auto trajectory2 = mAda->planArmToEndEffectorOffset(
         direction2.normalized(),
@@ -482,35 +394,31 @@ SplinePtr PerceptionServoClient::planToGoalPose(
         mEndEffectorOffsetPositionTolerance,
         mEndEffectorOffsetAngularTolerance);
 
-    setPositionLimits(
-        mAda->getArm()->getMetaSkeleton(), limits.first, limits.second);
-
-    if (!mHasOriginalDirection)
-    {
-      originalDirection = direction2.normalized();
-      ROS_INFO_STREAM(
-          "Set original direction: " << originalDirection.transpose()
-                                     << std::endl);
-      mHasOriginalDirection = true;
-    }
+    // setPositionLimits(
+    //     mAda->getArm()->getMetaSkeleton(), limits.first, limits.second);
 
     if (!trajectory2)
     {
+      ROS_INFO_STREAM("[PerceptionServoClient] Failed to plan");
       mExecutionDone = true;
       mNotFailed = false;
       return nullptr;
     }
 
-    spline2 = dynamic_cast<aikido::trajectory::Spline*>(trajectory2.get());
-    if (spline2 == nullptr)
+    interpolated2 = dynamic_cast<aikido::trajectory::Interpolated*>(trajectory2.get());
+    if (interpolated2 == nullptr)
       return nullptr;
 
     auto timedTraj = computeKunzTiming(
-        *spline2, velocityLimits, mMaxAcceleration, 1e-2, 3e-3);
+        *interpolated2, velocityLimits, mMaxAcceleration, 1e-2, 3e-3);
 
     if (!timedTraj)
+    {
+      ROS_WARN_STREAM("[PerceptionServoClient] Failed to retime");
+      mExecutionDone = true;
+      mNotFailed = false;
       return nullptr;
-
+    }
     return std::move(timedTraj);
   }
 }

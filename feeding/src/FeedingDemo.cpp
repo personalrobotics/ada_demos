@@ -85,6 +85,7 @@ FeedingDemo::FeedingDemo(
       getRosParam<std::string>("/visualization/topicName", mNodeHandle),
       getRosParam<std::string>("/visualization/baseFrameName", mNodeHandle));
   mViewer->setAutoUpdate(true);
+  std::cout << "Got viewer" << std::endl;
 
   if (mAdaReal)
   {
@@ -117,7 +118,7 @@ FeedingDemo::FeedingDemo(
 
   mFoodTSRParameters["height"]
       = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
-  mFoodTSRParameters["horizontal"] = getRosParam<double>(
+  mFoodTSRParameters["horizontalTolerance"] = getRosParam<double>(
       "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
   mFoodTSRParameters["verticalTolerance"] = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
@@ -144,13 +145,10 @@ FeedingDemo::FeedingDemo(
 
   mPersonTSRParameters["distance"]
       = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
-  mPersonTSRParameters["horizontal"] = getRosParam<double>(
+  mPersonTSRParameters["horizontalTolerance"] = getRosParam<double>(
       "/planning/tsr/horizontalToleranceNearPerson", mNodeHandle);
-  mPersonTSRParameters["vertical"] = getRosParam<double>(
+  mPersonTSRParameters["verticalTolerance"] = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
-
-  mPersonPose = createIsometry(
-      getRosParam<std::vector<double>>("/study/personPose", mNodeHandle));
 
   mForkHolderAngle = getRosParam<double>("/study/forkHolderAngle", mNodeHandle);
   mForkHolderTranslation = getRosParam<std::vector<double>>(

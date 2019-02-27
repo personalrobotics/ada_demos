@@ -37,7 +37,8 @@ public:
       const ros::NodeHandle* nodeHandle,
       std::shared_ptr<TargetFoodRanker> ranker
       = std::make_shared<ShortestDistanceRanker>(),
-      float faceZOffset = 0.0);
+      float faceZOffset = 0.0,
+      bool removeRotationForFood = true);
 
   /// Gets food items of the name set by setFoodName
   /// from active perception ros nodes and adds their new
@@ -61,6 +62,11 @@ public:
   void setFaceZOffset();
 
 private:
+
+  // Optionally used to remove rotation if mRemoveRotation is true..
+  void removeRotation(const FoodItem* foodItem);
+  bool mRemoveRotationForFood;
+
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
   const ros::NodeHandle* mNodeHandle;

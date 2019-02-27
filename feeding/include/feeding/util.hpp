@@ -12,6 +12,7 @@
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
 #include <libada/Ada.hpp>
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
@@ -19,10 +20,12 @@
 namespace feeding {
 
 static const std::vector<std::string> FOOD_NAMES
-    = {"strawberry", "melon", "cantaloupe", "celery", "carrot"};
+    = {"strawberry", "melon", "cantaloupe", "celery", "carrot", ""};
 
 static const std::vector<std::string> ACTIONS
     = {"calibrate", "pickupfork", "putdownfork"};
+
+static aikido::rviz::WorldInteractiveMarkerViewerPtr VIEWER;
 
 /// Deals with the arguments supplied to the executable.
 /// \param[in] description Description for this program

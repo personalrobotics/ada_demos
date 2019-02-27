@@ -43,7 +43,6 @@ void spanetDemo(
     plate,
     feedingDemo.getPlateEndEffectorTransform(),
     feedingDemo.mFoodSkeweringForces,
-    feedingDemo.mPlateTSRParameters["height"],
     feedingDemo.mPlateTSRParameters["horizontalTolerance"],
     feedingDemo.mPlateTSRParameters["verticalTolerance"],
     feedingDemo.mPlateTSRParameters["rotationTolerance"],

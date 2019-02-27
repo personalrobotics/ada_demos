@@ -16,7 +16,7 @@ bool moveTowardsPerson(
     double endEffectorOffsetPositionTolerenace,
     double endEffectorOffsetAngularTolerance)
 {
-  ada::util::waitForUser("Move towards person", ada);
+  ROS_INFO_STREAM("Move towards person");
 
   int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
   std::vector<double> velocityLimits(numDofs, 0.2);
@@ -29,7 +29,7 @@ bool moveTowardsPerson(
       ada->getArm()->getMetaSkeleton(),
       ada->getHand()->getEndEffectorBodyNode(),
       ada->getTrajectoryExecutor(),
-      collisionFree,
+      nullptr,
       0.2,
       0,
       0.06,

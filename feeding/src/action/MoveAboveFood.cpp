@@ -25,10 +25,10 @@ bool moveAboveFood(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits)
+    std::vector<double> velocityLimits,
+    FeedingDemo* feedingDemo)
 {
-  ada::util::waitForUser(
-      "Rotate forque to angle " + std::to_string(rotateAngle), ada);
+  ROS_INFO_STREAM("Rotate forque to angle " << rotateAngle);
 
   Eigen::Isometry3d target;
   Eigen::Isometry3d eeTransform
@@ -40,7 +40,7 @@ bool moveAboveFood(
   {
     target = foodTransform;
     eeTransform.linear() = eeTransform.linear() * rotation;
-    eeTransform.translation()[2] = -heightAboveFood;
+    eeTransform.translation()[2] = heightAboveFood;
   }
   else if (tiltStyle == TiltStyle::VERTICAL)
   {
@@ -64,15 +64,6 @@ bool moveAboveFood(
                           cos(M_PI * 0.25) * heightAboveFood * 0.5};
   }
 
-  // double rotationTolerance = mFoodTSRParameters["rotationTolerance"];
-  // if (mAllowRotationFree
-  //   && std::find(mRotationFreeFoodNames.begin(),
-  //     mRotationFreeFoodNames.end(), foodName) !=
-  //     mRotationFreeFoodNames.end())
-  // {
-  //   rotationTolerance = M_PI;
-  // }
-
   return moveAbove(
       ada,
       collisionFree,
@@ -81,10 +72,11 @@ bool moveAboveFood(
       horizontalTolerance,
       verticalTolerance,
       rotationTolerance,
-      tiltTolerance,
+      0.0,
       planningTimeout,
       maxNumTrials,
-      velocityLimits);
+      velocityLimits,
+      feedingDemo);
 }
 
 } // namespace feeding

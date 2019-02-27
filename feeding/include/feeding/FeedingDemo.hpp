@@ -110,7 +110,6 @@ public:
 
   double mForkHolderAngle;
   std::vector<double> mForkHolderTranslation;
-  Eigen::Isometry3d mPersonPose;
   Eigen::Vector3d mTiltOffset;
 
 private:

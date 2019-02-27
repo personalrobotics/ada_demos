@@ -3,6 +3,7 @@
 
 #include <libada/Ada.hpp>
 #include "feeding/Workspace.hpp"
+#include "feeding/FeedingDemo.hpp"
 
 // Contains motions which are mainly TSR actions
 namespace feeding {
@@ -17,7 +18,8 @@ bool moveInFrontOfPerson(
     double verticalToleranceForPerson,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits);
+    std::vector<double> velocityLimits,
+    FeedingDemo* feedingDemo=nullptr);
 }
 }
 
