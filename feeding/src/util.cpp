@@ -141,14 +141,20 @@ std::string getCurrentTimeDate()
 //==============================================================================
 std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
 {
-    std_msgs::String rosFoodWord = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
-    std::String foodWord = rosFoodWord.data.c_str()
+  boost::shared_ptr<std_msgs::String const> sharedPtr;
+    std_msgs::String rosFoodWord;
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+    rosFoodWord = *sharedPtr;
+    std::string foodWord = rosFoodWord.data.c_str();
     if (foodWord.compare("~~no_input~~") == 0)
     {
-      rosFoodWord = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
-      foodWord = rosFoodWord.data.c_str()
+      std_msgs::String rosFoodWord;
+      sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+      rosFoodWord = *sharedPtr;
+      std::string foodWord = rosFoodWord.data.c_str();
     }
-    ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs", 1, latch=true);
+    ROS_INFO_STREAM(foodWord);
+    ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs", 1, true);
     std_msgs::StringPtr str(new std_msgs::String);
     str->data = "~~no_input~~";
     pub.publish(str);
@@ -156,13 +162,13 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
     {
       if (ACTIONS[i].compare(foodWord) == 0)
       {
-        nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
-        nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
+        ROS_INFO_STREAM("Sucessfully returned");
+        nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
+        nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
         return foodWord;
       }
     }
     ROS_WARN_STREAM("Invalid argument. Try again.");
-    continue;
 }
 
 //==============================================================================
