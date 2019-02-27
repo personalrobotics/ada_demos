@@ -54,7 +54,6 @@ add_executable(feeding
   src/action/Skewer.cpp
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp
-  src/perception/PerceptionPreProcess.cpp
   src/ranker/ShortestDistanceRanker.cpp
   src/ranker/SuccessRateRanker.cpp
   src/ranker/TargetFoodRanker.cpp
