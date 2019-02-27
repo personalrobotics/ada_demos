@@ -37,7 +37,7 @@ void feedFoodToPerson(
   auto moveIFOPerson = [&] {
     return moveInFrontOfPerson(
         ada,
-        nullptr, //collisionFree,
+        collisionFree,
         personPose,
         distanceToPerson,
         horizontalToleranceForPerson,
@@ -47,18 +47,31 @@ void feedFoodToPerson(
         velocityLimits);
   };
 
+  bool moveIFOSuccess = false;
   bool moveSuccess = false;
-
   for (std::size_t i = 0; i < 2; ++i)
   {
-    moveIFOPerson();
+    moveIFOSuccess = moveIFOPerson();
+    if (!moveIFOSuccess)
+    {
+      ROS_WARN_STREAM("Failed to move in front of person, retry");
+      continue;
+    }
+    else
+      break;
+  }
+
+  std::cout << "IFO Current pose \n" <<
+    ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
+
+  if (moveIFOSuccess)
+  {
     nodeHandle->setParam("/feeding/facePerceptionOn", true);
 
-    ada::util::waitForUser("Move towards person", ada);
-
+    ROS_INFO_STREAM("Move towards person");
     moveSuccess = moveTowardsPerson(
         ada,
-        collisionFree,
+        nullptr,
         perception,
         nodeHandle,
         distanceToPerson,
@@ -66,40 +79,24 @@ void feedFoodToPerson(
         endEffectorOffsetPositionTolerenace,
         endEffectorOffsetAngularTolerance);
     nodeHandle->setParam("/feeding/facePerceptionOn", false);
-
-    if (moveSuccess)
-      break;
-    ROS_INFO_STREAM("Moved failed, backing up and retrying");
   }
 
-  if (!moveSuccess)
+  if (moveIFOSuccess && moveSuccess)
   {
-    ROS_INFO_STREAM("Servoing failed. Falling back to direct movement...");
-    moveIFOPerson();
-    moveDirectlyToPerson(
-        ada,
-        collisionFree,
-        personPose,
-        distanceToPerson,
-        horizontalToleranceForPerson,
-        verticalToleranceForPerson,
-        planningTimeout,
-        maxNumTrials,
-        velocityLimits,
-        tiltOffset);
-  }
+    // ===== EATING =====
+    ROS_WARN("Human is eating");
+    std::this_thread::sleep_for(waitAtPerson);
 
-  // ===== EATING =====
-  ROS_WARN("Human is eating");
-  std::this_thread::sleep_for(waitAtPerson);
-  try
-  {
-    ungrabAndDeleteFood(ada, workspace);
-  }
-  catch (std::runtime_error& e)
-  {
-    // It's ok even if nothing's grabbed.
-    ROS_WARN_STREAM(e.what());
+    // Backward
+    ada::util::waitForUser("Move backward", ada);
+    Eigen::Vector3d goalDirection(0, -1, 0);
+    ada->moveArmToEndEffectorOffset(
+      goalDirection.normalized(),
+      0.1,
+      nullptr,
+      planningTimeout,
+      endEffectorOffsetPositionTolerenace,
+      endEffectorOffsetAngularTolerance);
   }
 
   // ===== BACK TO PLATE =====
@@ -109,7 +106,7 @@ void feedFoodToPerson(
   // collisionFree.
   moveAbovePlate(
       ada,
-      nullptr,
+      collisionFree,
       plate,
       plateEndEffectorTransform,
       horizontalToleranceAbovePlate,
