@@ -155,27 +155,14 @@ Eigen::Isometry3d Perception::perceiveFace()
     if (perceivedFace != nullptr)
     {
       auto faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
-      ROS_INFO_STREAM(
-          "before\n"
-          << faceTransform.matrix());
 
       //fixed distance:
       double fixedFaceY
           = getRosParam<double>("/feedingDemo/fixedFaceY", *mNodeHandle);
       if (fixedFaceY > 0)
       {
-        std::cout << "Update faceY" << std::endl;
         faceTransform.translation().y() = fixedFaceY;
       }
-
-      std::cout << "Update faceZ" << std::endl;
-      faceTransform.translation().z()
-          = faceTransform.translation().z() + mFaceZOffset;
-
-      ROS_INFO_STREAM(
-          "perceived Face:\n"
-          << faceTransform.matrix());
-
       return faceTransform;
     }
   }
@@ -223,7 +210,6 @@ void Perception::removeRotation(const FoodItem* item)
   Eigen::Isometry3d foodPose(Eigen::Isometry3d::Identity());
   foodPose.translation() = item->getPose().translation();
 
-  std::cout << "remove rotatoin" << std::endl;
   // Downcast Joint to FreeJoint
   dart::dynamics::FreeJoint* freejtptr
       = dynamic_cast<dart::dynamics::FreeJoint*>(item->getMetaSkeleton()->getJoint(0));
@@ -235,7 +221,8 @@ void Perception::removeRotation(const FoodItem* item)
            << item->getName() << std::endl;
     return;
   }
-
+  // Fix the food height
+  foodPose.translation()[2] = 0.26;
   freejtptr->setTransform(foodPose);
 }
 
