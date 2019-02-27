@@ -33,12 +33,12 @@ public:
       std::shared_ptr<aikido::control::TrajectoryExecutor> trajectoryExecutor,
       aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
       double perceptionUpdateTime,
-      float originalDirectionExtension,
       float goalPrecision,
       double planningTimeout,
       double endEffectorOffsetPositionTolerance,
       double endEffectorOffsetAngularTolerance,
-      std::vector<double> veloctiyLimits = std::vector<double>(6, 0.2));
+      bool servoFood,
+      std::vector<double> velocityLimits = std::vector<double>(6, 0.2));
 
   virtual ~PerceptionServoClient();
 
@@ -53,17 +53,19 @@ public:
 protected:
   void nonRealtimeCallback(const ros::TimerEvent& event);
 
-  void jointStateUpdateCallback(const sensor_msgs::JointState::ConstPtr& msg);
-
   bool updatePerception(Eigen::Isometry3d& goalPose);
+
+  aikido::trajectory::SplinePtr planEndEffectorOffset(
+      const Eigen::Isometry3d& goalPose);
 
   aikido::trajectory::SplinePtr planToGoalPose(
       const Eigen::Isometry3d& goalPose);
 
-  double getElapsedTime();
+  aikido::trajectory::TrajectoryPtr planEndEffectorOffset(
+      const Eigen::Vector3d& goalDirection);
 
-  aikido::trajectory::SplinePtr planToGoalPoseAndResetMetaSkeleton(
-      const Eigen::Isometry3d& goalPose);
+  aikido::trajectory::UniqueSplinePtr createPartialTimedTrajectoryFromCurrentConfig(
+  const aikido::trajectory::Spline* trajectory);
 
   ::ros::NodeHandle mNodeHandle;
   boost::function<Eigen::Isometry3d(void)> mGetTransform;
@@ -82,6 +84,7 @@ protected:
   double mPerceptionUpdateTime;
 
   aikido::trajectory::SplinePtr mCurrentTrajectory;
+
   std::future<void> mExec;
 
   ros::Timer mNonRealtimeTimer;
@@ -90,7 +93,6 @@ protected:
   Eigen::VectorXd mMaxAcceleration;
 
   Eigen::VectorXd mCurrentPosition;
-  Eigen::VectorXd mCurrentVelocity;
 
   Eigen::Isometry3d mOriginalPose;
   Eigen::VectorXd mOriginalConfig;
@@ -102,20 +104,17 @@ protected:
   bool mExecutionDone;
   bool mIsRunning;
   bool mNotFailed;
+  bool mServoFood;
 
   ros::Subscriber mSub;
   std::mutex mJointStateUpdateMutex;
-  std::mutex timerMutex;
+  std::mutex mTimerMutex;
 
   std::shared_ptr<ada::Ada> mAda;
 
   std::chrono::time_point<std::chrono::system_clock> mStartTime;
   std::chrono::time_point<std::chrono::system_clock> mLastSuccess;
 
-  bool mHasOriginalDirection = false;
-  Eigen::Vector3d originalDirection;
-
-  float mOriginalDirectionExtension = 0;
   float mGoalPrecision = 0.01;
 
   double mPlanningTimeout;
@@ -123,7 +122,7 @@ protected:
   double mEndEffectorOffsetAngularTolerance;
 
   bool mRemoveRotation;
-  std::vector<double> mVelocityLimits;
+  Eigen::VectorXd mVelocityLimits;
 };
 }
 
