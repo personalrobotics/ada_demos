@@ -61,6 +61,10 @@ void dumpSplinePhasePlot(
     const std::string& filename,
     double timeStep);
 
+/// Gets user selection of food and actions using the Amazon Alexa
+/// param[in]] nodeHandle Ros Node to set food name for detection.
+std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle);
+
 /// Gets user selection of food and actions
 /// param[in] food_only If true, only food choices are valid
 /// param[in]] nodeHandle Ros Node to set food name for detection.

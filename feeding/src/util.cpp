@@ -11,6 +11,8 @@
 #include <dart/common/StlHelpers.hpp>
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
+#include "std_msgs/String.h"
+#include "ros/ros.h"
 
 static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
 
@@ -134,6 +136,33 @@ std::string getCurrentTimeDate()
   std::stringstream ss;
   ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
   return ss.str();
+}
+
+//==============================================================================
+std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
+{
+    std_msgs::String rosFoodWord = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+    std::String foodWord = rosFoodWord.data.c_str()
+    if (foodWord.compare("~~no_input~~") == 0)
+    {
+      rosFoodWord = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+      foodWord = rosFoodWord.data.c_str()
+    }
+    ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs", 1, latch=true);
+    std_msgs::StringPtr str(new std_msgs::String);
+    str->data = "~~no_input~~";
+    pub.publish(str);
+    for (std::size_t i = 0; i < ACTIONS.size(); ++i)
+    {
+      if (ACTIONS[i].compare(foodWord) == 0)
+      {
+        nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
+        nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
+        return foodWord;
+      }
+    }
+    ROS_WARN_STREAM("Invalid argument. Try again.");
+    continue;
 }
 
 //==============================================================================

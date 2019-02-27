@@ -33,7 +33,7 @@ void demo(
   {
     waitForUser("next step?", ada);
 
-    auto foodName = getUserInput(false, nodeHandle);
+    auto foodName = getUserInputFromAlexa(nodeHandle);
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
