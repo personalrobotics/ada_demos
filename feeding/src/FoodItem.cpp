@@ -22,9 +22,6 @@ FoodItem::FoodItem(
 //==============================================================================
 Eigen::Isometry3d FoodItem::getPose() const
 {
-  std::cout << "====== pose ====" << std::endl;
-  std::cout << mMetaSkeleton->getBodyNode(0)->getWorldTransform().matrix() << std::endl;
-  std::cout << "====== pose ====" << std::endl;
   return mMetaSkeleton->getBodyNode(0)->getWorldTransform();
 }
 
