@@ -31,35 +31,14 @@ void demo(
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
-  // ROS_INFO_STREAM("Move above plate");
-  // action::moveAbove(
-  //   ada,
-  //   collisionFree,
-  //   plate,
-  //   feedingDemo.getPlateEndEffectorTransform(),
-  //   feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-  //   feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-  //   feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-  //   0,
-  //   feedingDemo.mPlanningTimeout,
-  //   feedingDemo.mMaxNumTrials,
-  //   feedingDemo.mVelocityLimits);
-
-  // action::moveInFrontOfPerson(
-  //     ada,
-  //     nullptr, //collisionFree,
-  //     feedingDemo.mPersonPose,
-  //     feedingDemo.mPersonTSRParameters.at("distance"),
-  //     feedingDemo.mPersonTSRParameters.at("horizontalTolerance"),
-  //     feedingDemo.mPersonTSRParameters.at("verticalTolerance"),
-  //     feedingDemo.mPlanningTimeout,
-  //     feedingDemo.mMaxNumTrials,
-  //     feedingDemo.mVelocityLimits,
-  //     &feedingDemo);
+  std::cout << "Current pose \n" <<
+    ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
 
   while (true)
   {
     waitForUser("next step?", ada);
+
+    feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     auto foodName = getUserInput(false, nodeHandle);
 
@@ -113,37 +92,43 @@ void demo(
     }
     else
     {
-      // action::skewer(
-      //   ada,
-      //   workspace,
-      //   collisionFree,
-      //   perception,
-      //   &nodeHandle,
-      //   foodName,
-      //   plate,
-      //   feedingDemo.getPlateEndEffectorTransform(),
-      //   feedingDemo.mFoodSkeweringForces,
-      //   feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-      //   feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-      //   feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-      //   feedingDemo.mFoodTSRParameters.at("height"),
-      //   feedingDemo.mFoodTSRParameters.at("horizontalTolerance"),
-      //   feedingDemo.mFoodTSRParameters.at("verticalTolerance"),
-      //   feedingDemo.mFoodTSRParameters.at("rotationTolerance"),
-      //   feedingDemo.mFoodTSRParameters.at("tiltTolerance"),
-      //   feedingDemo.mMoveOufOfFoodLength,
-      //   feedingDemo.mEndEffectorOffsetPositionTolerance,
-      //   feedingDemo.mEndEffectorOffsetAngularTolerance,
-      //   feedingDemo.mWaitTimeForFood,
-      //   feedingDemo.mPlanningTimeout,
-      //   feedingDemo.mMaxNumTrials,
-      //   feedingDemo.mVelocityLimits,
-      //   feedingDemo.getFTThresholdHelper(),
-      //   feedingDemo.mRotationFreeFoodNames,
-      //   &feedingDemo);
+      bool skewer = action::skewer(
+        ada,
+        workspace,
+        collisionFree,
+        perception,
+        &nodeHandle,
+        foodName,
+        plate,
+        feedingDemo.getPlateEndEffectorTransform(),
+        feedingDemo.mFoodSkeweringForces,
+        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
+        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
+        feedingDemo.mFoodTSRParameters.at("height"),
+        feedingDemo.mFoodTSRParameters.at("horizontalTolerance"),
+        feedingDemo.mFoodTSRParameters.at("verticalTolerance"),
+        feedingDemo.mFoodTSRParameters.at("rotationTolerance"),
+        feedingDemo.mFoodTSRParameters.at("tiltTolerance"),
+        feedingDemo.mMoveOufOfFoodLength,
+        feedingDemo.mEndEffectorOffsetPositionTolerance,
+        feedingDemo.mEndEffectorOffsetAngularTolerance,
+        feedingDemo.mWaitTimeForFood,
+        feedingDemo.mPlanningTimeout,
+        feedingDemo.mMaxNumTrials,
+        feedingDemo.mVelocityLimits,
+        feedingDemo.getFTThresholdHelper(),
+        feedingDemo.mRotationFreeFoodNames,
+        &feedingDemo);
 
-      // // // ===== IN FRONT OF PERSON =====
-      // waitForUser("Move forque in front of person", ada);
+      if (!skewer)
+      {
+        ROS_WARN_STREAM("Restart from the beginning");
+        continue;
+      }
+
+      // ===== IN FRONT OF PERSON =====
+      waitForUser("Move forque in front of person", ada);
 
       bool tilted = (foodName != "celery");
 
@@ -172,8 +157,6 @@ void demo(
         tilted ? &feedingDemo.mTiltOffset : nullptr
         );
     }
-
-    workspace.reset();
   }
 
   // ===== DONE =====
