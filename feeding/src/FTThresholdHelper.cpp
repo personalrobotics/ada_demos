@@ -111,8 +111,10 @@ bool FTThresholdHelper::setThresholds(FTThreshold threshold)
   if (!mUseThresholdControl)
     return true;
 
+
 #ifdef REWD_CONTROLLERS_FOUND
   auto thresholdPair = getThresholdValues(threshold);
+  ROS_INFO_STREAM("Set thresholds " << thresholdPair.first << " " << thresholdPair.second);
   return mFTThresholdClient->setThresholds(
       thresholdPair.first, thresholdPair.second);
 #endif
@@ -125,6 +127,7 @@ bool FTThresholdHelper::setThresholds(double forces, double torques)
     return true;
 
 #ifdef REWD_CONTROLLERS_FOUND
+  ROS_INFO_STREAM("Set thresholds " << forces << " " << torques);
   return mFTThresholdClient->setThresholds(forces, torques);
 #endif
 }
