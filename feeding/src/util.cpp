@@ -143,7 +143,12 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
 {
   boost::shared_ptr<std_msgs::String const> sharedPtr;
     std_msgs::String rosFoodWord;
-    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(15));
+    if (sharedPtr == NULL)
+    {
+      ROS_INFO_STREAM("No message from alexa, please input manually");
+      return getUserInput(true, nodeHandle);
+    }
     rosFoodWord = *sharedPtr;
     std::string foodWord = rosFoodWord.data.c_str();
     if (foodWord.compare("~~no_input~~") == 0)
@@ -154,10 +159,10 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
       std::string foodWord = rosFoodWord.data.c_str();
     }
     ROS_INFO_STREAM(foodWord);
-    ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs", 1, true);
+    //ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs", 1, true);
     std_msgs::StringPtr str(new std_msgs::String);
     str->data = "~~no_input~~";
-    pub.publish(str);
+    //pub.publish(str);
     for (std::size_t i = 0; i < ACTIONS.size(); ++i)
     {
       if (ACTIONS[i].compare(foodWord) == 0)
