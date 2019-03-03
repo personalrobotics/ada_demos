@@ -20,7 +20,7 @@
 namespace feeding {
 
 static const std::vector<std::string> FOOD_NAMES
-    = {"strawberry", "melon", "cantaloupe", "celery", "carrot", ""};
+    = {"strawberry", "cantaloupe", "celery", "carrot"};
 
 static const std::vector<std::string> ACTIONS
     = {"calibrate", "pickupfork", "putdownfork"};
@@ -110,6 +110,10 @@ Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener);
 
 aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
     const std::shared_ptr<::ada::Ada>& ada);
+
+std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle);
+
+void talk(const std::string&, bool background = false);
 
 } // feeding
 

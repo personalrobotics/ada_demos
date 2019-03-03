@@ -38,6 +38,13 @@ bool moveAbove(
       rotationTolerance);
 
   target.mTw_e.matrix() = endEffectorTransform.matrix();
+  // if (feedingDemo && feedingDemo->getViewer())
+  // {
+  //   feedingDemo->getViewer()->addTSRMarker(target);
+  //   std::cout << "Check TSR" << std::endl;
+  //   int n;
+  //   std::cin >> n;
+  // }
 
   try
   {
@@ -49,6 +56,10 @@ bool moveAbove(
         getConfigurationRanker(ada),
         velocityLimits,
         ::ada::TrajectoryPostprocessType::KUNZ);
+
+    std::cout << "MoveAbove Current pose \n" <<
+      ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
+
     return trajectoryCompleted;
   }
   catch (...)

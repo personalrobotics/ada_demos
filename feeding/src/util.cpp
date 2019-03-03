@@ -11,6 +11,8 @@
 #include <dart/common/StlHelpers.hpp>
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
+#include <cstdlib>
+#include "std_msgs/String.h"
 
 static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
 
@@ -139,6 +141,15 @@ std::string getCurrentTimeDate()
 //==============================================================================
 std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
 {
+
+  std::string foodName;
+  foodName = getUserInputFromAlexa(nodeHandle);
+  if (foodName != "")
+  {
+    ROS_INFO_STREAM("Got " << foodName << " from Alexa.");
+    return foodName;
+  }
+
   ROS_INFO_STREAM("Which food item do you want?");
   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
   {
@@ -154,7 +165,7 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
     }
   }
 
-  std::string foodName;
+
   int max_id;
 
   if (!food_only)
@@ -182,6 +193,45 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
       foodName = ACTIONS[id - FOOD_NAMES.size()];
     return foodName;
   }
+}
+
+
+//==============================================================================
+std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
+{
+  boost::shared_ptr<std_msgs::String const> sharedPtr;
+  std_msgs::String rosFoodWord;
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(20));
+  if (sharedPtr == nullptr)
+  {
+    ROS_INFO_STREAM("No message from alexa, please input manually");
+    return "";
+  }
+  rosFoodWord = *sharedPtr;
+  std::string foodWord = rosFoodWord.data.c_str();
+  if (foodWord.compare("~~no_input~~") == 0)
+  {
+    std_msgs::String rosFoodWord;
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+    rosFoodWord = *sharedPtr;
+    std::string foodWord = rosFoodWord.data.c_str();
+  }
+  ROS_INFO_STREAM("Alexa got food " << foodWord);
+  //ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs", 1, true);
+  std_msgs::StringPtr str(new std_msgs::String);
+  str->data = "~~no_input~~";
+  //pub.publish(str);
+  for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
+  {
+    if (FOOD_NAMES[i].compare(foodWord) == 0)
+    {
+      ROS_INFO_STREAM("Sucessfully returned");
+      nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
+      nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
+      return foodWord;
+    }
+  }
+  return "";
 }
 
 //==============================================================================
@@ -327,7 +377,19 @@ aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
   nominalState = space->getScopedStateFromMetaSkeleton(metaSkeleton.get());
 
   return std::make_shared<NominalConfigurationRanker>(
-      space, metaSkeleton, weights, nominalState);
+      space, metaSkeleton, weights, std::move(nominalState));
 }
+
+//==============================================================================
+void talk(const std::string& statement, bool background) {
+  std::string cmd;
+  if(background) {
+    cmd = "aoss swift \"" + statement + "\"" + " &";
+  } else {
+    cmd = "aoss swift \"" + statement + "\"";
+  }
+  std::system(cmd.c_str());
+}
+
 
 } // namespace feeding

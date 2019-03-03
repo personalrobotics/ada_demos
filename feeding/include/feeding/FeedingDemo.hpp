@@ -15,7 +15,6 @@
 #include "feeding/Workspace.hpp"
 
 #include "feeding/perception/Perception.hpp"
-#include "feeding/perception/PerceptionPreProcess.hpp"
 #include "feeding/perception/PerceptionServoClient.hpp"
 #include "feeding/ranker/TargetFoodRanker.hpp"
 
@@ -77,6 +76,8 @@ public:
 
   aikido::constraint::dart::CollisionFreePtr getCollisionConstraint();
 
+  aikido::constraint::dart::CollisionFreePtr getCollisionConstraintWithWallFurtherBack();
+
   /// Resets the environmnet.
   void reset();
 
@@ -134,6 +135,7 @@ private:
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
   std::shared_ptr<Workspace> mWorkspace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
+  aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraintWithWallFurtherBack;
 
   std::unique_ptr<PerceptionServoClient> mServoClient;
 

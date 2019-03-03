@@ -44,7 +44,7 @@ FeedingDemo::FeedingDemo(
 
   std::string armTrajectoryExecutor = mIsFTSensingEnabled
                                           ? "move_until_touch_topic_controller"
-                                          : "trajectory_controller";
+                                          : "rewd_trajectory_controller";
 
   mAda = std::make_shared<ada::Ada>(
       mWorld,
@@ -73,11 +73,32 @@ FeedingDemo::FeedingDemo(
           mWorkspace->getTable().get(),
           mWorkspace->getWorkspaceEnvironment().get(),
           mWorkspace->getWheelchair().get());
+
   mCollisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
           mArmSpace, mAda->getArm()->getMetaSkeleton(), collisionDetector);
   mCollisionFreeConstraint->addPairwiseCheck(
       armCollisionGroup, envCollisionGroup);
+
+
+  dart::collision::CollisionDetectorPtr relaxedCollisionDetector
+      = dart::collision::FCLCollisionDetector::create();
+  std::shared_ptr<dart::collision::CollisionGroup> relaxedArmCollisionGroup
+      = relaxedCollisionDetector->createCollisionGroup(
+          mAda->getMetaSkeleton().get(),
+          mAda->getHand()->getEndEffectorBodyNode());
+  std::shared_ptr<dart::collision::CollisionGroup> relaxedEnvCollisionGroup
+      = relaxedCollisionDetector->createCollisionGroup(
+          mWorkspace->getTable().get(),
+          mWorkspace->getWorkspaceEnvironmentWithWallFurtherBack().get(),
+          mWorkspace->getWheelchair().get());
+
+  mCollisionFreeConstraintWithWallFurtherBack
+      = std::make_shared<aikido::constraint::dart::CollisionFree>(
+          mArmSpace, mAda->getArm()->getMetaSkeleton(), relaxedCollisionDetector);
+  mCollisionFreeConstraintWithWallFurtherBack->addPairwiseCheck(
+      relaxedArmCollisionGroup, relaxedEnvCollisionGroup);
+
 
   // visualization
   mViewer = std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
@@ -85,7 +106,6 @@ FeedingDemo::FeedingDemo(
       getRosParam<std::string>("/visualization/topicName", mNodeHandle),
       getRosParam<std::string>("/visualization/baseFrameName", mNodeHandle));
   mViewer->setAutoUpdate(true);
-  std::cout << "Got viewer" << std::endl;
 
   if (mAdaReal)
   {
@@ -202,6 +222,14 @@ CollisionFreePtr FeedingDemo::getCollisionConstraint()
 {
   return mCollisionFreeConstraint;
 }
+
+
+//==============================================================================
+CollisionFreePtr FeedingDemo::getCollisionConstraintWithWallFurtherBack()
+{
+  return mCollisionFreeConstraintWithWallFurtherBack;
+}
+
 
 //==============================================================================
 Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()

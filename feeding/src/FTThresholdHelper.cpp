@@ -24,6 +24,7 @@ FTThresholdHelper::FTThresholdHelper(
 #else
   mUseThresholdControl = false;
 #endif
+
 }
 
 //==============================================================================

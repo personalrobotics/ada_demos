@@ -4,6 +4,7 @@
 #include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
+#include "feeding/util.hpp"
 
 #include <libada/util.hpp>
 
@@ -13,7 +14,7 @@ namespace feeding {
 namespace action {
 
 //==============================================================================
-void skewer(
+bool skewer(
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
@@ -43,7 +44,7 @@ void skewer(
     FeedingDemo* feedingDemo)
 {
   ROS_INFO_STREAM("Move above plate");
-  moveAbovePlate(
+  bool abovePlaceSuccess = moveAbovePlate(
       ada,
       collisionFree,
       plate,
@@ -55,50 +56,76 @@ void skewer(
       maxNumTrials,
       velocityLimits);
 
+  if (!abovePlaceSuccess)
+  {
+    talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
+    ROS_WARN_STREAM("Move above plate failed. Please restart");
+    return false;
+  }
+
   if (std::find(rotationFreeFoodNames.begin(),
       rotationFreeFoodNames.end(), foodName) !=
       rotationFreeFoodNames.end())
   {
     rotationToleranceForFood = M_PI;
   }
-  std::cout << "Rotational tolerance " << rotationToleranceForFood << std::endl;
 
-  ada::util::waitForUser("Detect and Move above food", ada);
-  auto item = detectAndMoveAboveFood(
-      ada,
-      collisionFree,
-      perception,
-      foodName,
-      heightAboveFood,
-      horizontalToleranceForFood,
-      verticalToleranceForFood,
-      rotationToleranceForFood,
-      tiltToleranceForFood,
-      planningTimeout,
-      maxNumTrials,
-      velocityLimits,
-      feedingDemo);
+  double torqueThreshold = 2;
+  if (ftThresholdHelper)
+    ftThresholdHelper->setThresholds(foodSkeweringForces.at(foodName), torqueThreshold);
 
+  bool detectAndMoveAboveFoodSuccess = true;
+  Eigen::Vector3d endEffectorDirection(0, 0, -1);
 
-  const std::size_t maxTrials = 3;
-  for (std::size_t i = 0; i < maxTrials; ++i)
+  for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
   {
-    auto tiltStyle = item->getAction()->getTiltStyle();
-    ROS_INFO_STREAM(
-        "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
-                   << "N with angle mode "
-                   << tiltStyle);
-
-    Eigen::Vector3d endEffectorDirection(0, 0, -1);
-    if (tiltStyle == TiltStyle::ANGLED)
+    for(std::size_t i = 0; i < 2; ++i)
     {
-      endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
-      endEffectorDirection.normalize();
+      if(i == 0) {
+        talk(std::string("Let me plan to the ") + foodName + std::string("'s position."), true);
+      }
+      if(i == 1) {
+        talk("Adjusting, hold tight!", true);
+      }
+      ROS_INFO_STREAM("Detect and Move above food");
+      auto item = detectAndMoveAboveFood(
+          ada,
+          collisionFree,
+          perception,
+          foodName,
+          heightAboveFood,
+          horizontalToleranceForFood,
+          verticalToleranceForFood,
+          rotationToleranceForFood,
+          tiltToleranceForFood,
+          planningTimeout,
+          maxNumTrials,
+          velocityLimits,
+          feedingDemo);
+
+      if (!item)
+        continue;
+
+      auto tiltStyle = item->getAction()->getTiltStyle();
+      if (tiltStyle == TiltStyle::ANGLED)
+      {
+        endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
+        endEffectorDirection.normalize();
+      }
+      if (!item)
+        detectAndMoveAboveFoodSuccess = false;
     }
 
+    if (!detectAndMoveAboveFoodSuccess)
+      continue;
+
+    ROS_INFO_STREAM(
+          "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
+                     << "N with angle mode ");
+
     // ===== INTO FOOD =====
-    ada::util::waitForUser("Move forque into food", ada);
-    moveInto(
+    talk("Here we go!", true);
+    auto moveIntoSuccess = moveInto(
         ada,
         perception,
         collisionFree,
@@ -109,44 +136,40 @@ void skewer(
         endEffectorOffsetAngularTolerance,
         endEffectorDirection,
         ftThresholdHelper);
-    grabFood(ada, workspace);
+
+    if (!moveIntoSuccess)
+    {
+      ROS_INFO_STREAM("Failed. Retry");
+      talk("Sorry, I'm having a little trouble moving. Let me try again.");
+      continue;
+    }
+
     std::this_thread::sleep_for(waitTimeForFood);
 
     // ===== OUT OF FOOD =====
     Eigen::Vector3d direction(0, 0, 1);
-    bool ignoreCollision = true;
     moveOutOf(
         ada,
         nullptr,
         TargetItem::FOOD,
-        moveOutofFoodLength,
+        moveOutofFoodLength * 2.0,
         direction,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
         ftThresholdHelper);
 
-    std::this_thread::sleep_for(waitTimeForFood);
     if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
     {
       ROS_INFO_STREAM("Successful");
-      return;
+      return true;
     }
-    ungrabAndDeleteFood(ada, workspace);
-    ROS_INFO_STREAM("Try again.");
-  }
 
-  moveAbovePlate(
-      ada,
-      collisionFree,
-      plate,
-      plateEndEffectorTransform,
-      horizontalToleranceAbovePlate,
-      verticalToleranceAbovePlate,
-      rotationToleranceAbovePlate,
-      planningTimeout,
-      maxNumTrials,
-      velocityLimits);
+    ROS_INFO_STREAM("Failed.");
+    talk("Oops, let me try again.");
+  }
+  return false;
 }
-}
-}
+
+} // namespace action
+} // namespace feeding

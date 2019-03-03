@@ -57,8 +57,6 @@ Perception::Perception(
           aikido::robot::util::getBodyNodeOrThrow(
               *adaMetaSkeleton, referenceFrameName)));
 
-  // mFoodDetector->setObjectProjectionHeight(0.25);
-
   mFaceDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
       new aikido::perception::PoseEstimatorModule(
           *mNodeHandle,
@@ -222,7 +220,7 @@ void Perception::removeRotation(const FoodItem* item)
     return;
   }
   // Fix the food height
-  foodPose.translation()[2] = 0.26;
+  foodPose.translation()[2] = 0.22;
   freejtptr->setTransform(foodPose);
 }
 

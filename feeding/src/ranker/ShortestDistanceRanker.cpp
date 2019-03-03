@@ -26,10 +26,10 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
   {
     tiltStyle = TiltStyle::VERTICAL;
   }
-  if (item.getName() == "banana")
-  {
-    tiltStyle = TiltStyle::ANGLED;
-  }
+  // if (item.getName() == "banana")
+  // {
+  //   tiltStyle = TiltStyle::ANGLED;
+  // }
 
   // TODO: check if rotation and tilt angle should change
   AcquisitionAction action(tiltStyle, 0.0, 0.0, Eigen::Vector3d(0, 0, -1));

@@ -38,6 +38,8 @@ public:
   /// Gets the workspace environment
   dart::dynamics::ConstSkeletonPtr getWorkspaceEnvironment() const;
 
+  dart::dynamics::ConstSkeletonPtr getWorkspaceEnvironmentWithWallFurtherBack() const;
+
   /// Gets the default food item
   dart::dynamics::SkeletonPtr getDefaultFoodItem() const;
 
@@ -65,6 +67,7 @@ private:
   dart::dynamics::SkeletonPtr mPlate;
   dart::dynamics::SkeletonPtr mTable;
   dart::dynamics::SkeletonPtr mWorkspaceEnvironment;
+  dart::dynamics::SkeletonPtr mWorkspaceEnvironmentWithWallFurtherBack;
   dart::dynamics::SkeletonPtr mDefaultFoodItem;
   dart::dynamics::SkeletonPtr mPerson;
   dart::dynamics::SkeletonPtr mWheelchair;

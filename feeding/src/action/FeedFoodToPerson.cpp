@@ -5,6 +5,7 @@
 #include "feeding/action/MoveDirectlyToPerson.hpp"
 #include "feeding/action/MoveInFrontOfPerson.hpp"
 #include "feeding/action/MoveTowardsPerson.hpp"
+#include "feeding/util.hpp"
 
 namespace feeding {
 namespace action {
@@ -14,6 +15,7 @@ void feedFoodToPerson(
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFreeWithWallFurtherBack,
     const std::shared_ptr<Perception>& perception,
     const ros::NodeHandle* nodeHandle,
     const Eigen::Isometry3d& plate,
@@ -34,6 +36,7 @@ void feedFoodToPerson(
     std::vector<double> velocityLimits,
     const Eigen::Vector3d* tiltOffset)
 {
+  talk("Great! Bringing the food to you!", true);
   auto moveIFOPerson = [&] {
     return moveInFrontOfPerson(
         ada,
@@ -55,6 +58,7 @@ void feedFoodToPerson(
     if (!moveIFOSuccess)
     {
       ROS_WARN_STREAM("Failed to move in front of person, retry");
+      talk("Sorry, I'm having a little trouble moving. Let me try again.");
       continue;
     }
     else
@@ -69,9 +73,10 @@ void feedFoodToPerson(
     nodeHandle->setParam("/feeding/facePerceptionOn", true);
 
     ROS_INFO_STREAM("Move towards person");
+    talk("Ready? Make sure I can see your face.");
     moveSuccess = moveTowardsPerson(
         ada,
-        nullptr,
+        collisionFreeWithWallFurtherBack,
         perception,
         nodeHandle,
         distanceToPerson,
@@ -81,29 +86,34 @@ void feedFoodToPerson(
     nodeHandle->setParam("/feeding/facePerceptionOn", false);
   }
 
-  if (moveIFOSuccess && moveSuccess)
+  if (moveIFOSuccess)
   {
     // ===== EATING =====
     ROS_WARN("Human is eating");
+    talk("Ready to eat!");
     std::this_thread::sleep_for(waitAtPerson);
 
     // Backward
     ada::util::waitForUser("Move backward", ada);
+    talk("Let me get out of your way.", true);
     Eigen::Vector3d goalDirection(0, -1, 0);
-    ada->moveArmToEndEffectorOffset(
+    bool success = ada->moveArmToEndEffectorOffset(
       goalDirection.normalized(),
       0.1,
-      nullptr,
+      nullptr,// collisionFreeWithWallFurtherBack,
       planningTimeout,
-      endEffectorOffsetPositionTolerenace,
-      endEffectorOffsetAngularTolerance);
+      endEffectorOffsetPositionTolerenace * 2,
+      endEffectorOffsetAngularTolerance * 2);
+
+    ROS_INFO_STREAM("Backward " << success << std::endl);
   }
 
   // ===== BACK TO PLATE =====
-  ada::util::waitForUser("Move back to plate", ada);
+  ROS_INFO_STREAM("Move back to plate");
 
   // TODO: add a back-out motion and then do move above plate with
   // collisionFree.
+  talk("And now back to the plate.", true);
   moveAbovePlate(
       ada,
       collisionFree,

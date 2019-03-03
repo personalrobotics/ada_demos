@@ -338,22 +338,22 @@ SplinePtr PerceptionServoClient::planToGoalPose(
 
   // ============= Concatenate the two trajectories ==================//
   UniqueSplinePtr timedTraj;
-  if (trajFromOldToNew)
-  {
-    ROS_INFO_STREAM("Concatenate two trajectories");
-    auto concatenatedTraj = concatenate(
-      *dynamic_cast<Interpolated*>(trajFromOldToNew.get()),
-      *dynamic_cast<Interpolated*>(trajToGoal.get()));
-    timedTraj = computeKunzTiming(
-        *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
-        mVelocityLimits, mMaxAcceleration, 1e-2, 3e-3);
-  }
-  else
-  {
+  // if (trajFromOldToNew)
+  // {
+  //   ROS_INFO_STREAM("Concatenate two trajectories");
+  //   auto concatenatedTraj = concatenate(
+  //     *dynamic_cast<Interpolated*>(trajFromOldToNew.get()),
+  //     *dynamic_cast<Interpolated*>(trajToGoal.get()));
+  //   timedTraj = computeKunzTiming(
+  //       *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
+  //       mVelocityLimits, mMaxAcceleration, 1e-2, 3e-3);
+  // }
+  // else
+  // {
     timedTraj = computeKunzTiming(
         *dynamic_cast<Interpolated*>(trajToGoal.get()),
         mVelocityLimits, mMaxAcceleration, 1e-2, 3e-3);
-  }
+  // }
 
   if (!timedTraj)
   {
@@ -376,7 +376,7 @@ TrajectoryPtr PerceptionServoClient::planEndEffectorOffset(
 
   return mAda->planArmToEndEffectorOffset(
       goalDirection.normalized(),
-      std::min(goalDirection.norm(), 0.05),
+      std::min(goalDirection.norm(), 0.03),
       mCollisionFreeConstraint,
       mPlanningTimeout,
       mEndEffectorOffsetPositionTolerance,

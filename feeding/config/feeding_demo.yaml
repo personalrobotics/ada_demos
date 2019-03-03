@@ -28,7 +28,7 @@ plate:
   pose: [.445, 0.19, -0.04, 0, 0, 0]
 table:
   urdfUri: package://pr_assets/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.775, 0, 0, 0]
+  pose: [0.76, 0.38, -0.76, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_assets/data/objects/food_item.urdf
   pose: [.445, 0.19, 0.0, 3.1415, 0, 0]
@@ -38,32 +38,35 @@ person: # the mannequin
 workspaceEnvironment:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0, 0, 0, 0]
+workspaceEnvironmentWithWallFurtherBack:
+  urdfUri: package://pr_assets/data/furniture/workspace_feeding_without_wall.urdf
+  pose: [0, 0, 0, 0, 0, 0]
 wheelchair:
   urdfUri: package://pr_assets/data/furniture/wheelchair.urdf
   pose: [0.0, 0.0, 0, 0, 0, 0]
 
 # Feeding demo movement parameters
 feedingDemo:
-  heightAbovePlate: 0.10
+  heightAbovePlate: 0.15
   heightAboveFood: 0.05
   heightIntoFood: 0.05           # the real robot plans *below* the food. This parameter specifies how far
   moveOutofFood: 0.01
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
   waitMillisecsAtFood: 00     # short pause after skewering the food
-  waitMillisecsAtPerson: 5000   # long pause so person can take a bite
-  fixedFaceY: 0.23
+  waitMillisecsAtPerson: 3000   # long pause so person can take a bite
+  fixedFaceY: 0.27
 
 # Planning parameters
 planning:
   maxNumberOfTrials: 1
   timeoutSeconds: 2
   tsr:
-    horizontalToleranceAbovePlate: 0.03
-    verticalToleranceAbovePlate: 0.0
+    horizontalToleranceAbovePlate: 0.01
+    verticalToleranceAbovePlate: 0.03
     rotationToleranceAbovePlate: 3.1416
-    horizontalToleranceNearFood: 0.005
-    verticalToleranceNearFood: 0.005
+    horizontalToleranceNearFood: 0.003
+    verticalToleranceNearFood: 0.008
     rotationToleranceNearFood: 0.005
     horizontalToleranceNearPerson: 0.03
     verticalToleranceNearPerson: 0.03
@@ -82,7 +85,7 @@ ftSensor:
   # ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 3
+      force: 4
       torque: 2
     grabFood:       # active when going down to grab the food
       force: 22
@@ -90,12 +93,13 @@ ftSensor:
     afterGrabFood:  # active when going up after food has been grabbed
       force: 50
       torque: 2
+    
 
 # Perception parameters
 perception:
   detectorDataUri: package://pr_assets/data/objects/tag_data_foods.json
   foodDetectorTopicName: /food_detector/marker_array
-  faceDetectorTopicName: /face_pose/marker_array # TODO(GL): added marker_array
+  faceDetectorTopicName: /face_pose # TODO(GL): added marker_array
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
   faceName: mouth
@@ -104,8 +108,8 @@ foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
   names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "melon"]
-  forces: [10,3,3,7,22,10,7]
-  pickUpAngleModes: [0, 2, 2, 0, 0, 1, 0]
+  forces: [4,3,3,7,22,10,7]
+  pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
 
 rotationFree:
   names: ["cantaloupe", "banana", "melon", "strawberry"]

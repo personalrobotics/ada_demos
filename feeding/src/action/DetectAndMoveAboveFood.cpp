@@ -1,6 +1,7 @@
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include <chrono>
 #include <thread>
+#include "feeding/util.hpp"
 
 #include "feeding/action/MoveAboveFood.hpp"
 
@@ -29,16 +30,15 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     // Multiple candidates are preferrable since planning may fail.
     candidateItems = perception->perceiveFood(foodName);
 
-    if (candidateItems.size() == 0)
+    if (candidateItems.size() == 0) {
+      talk("I can't find that food. Try putting it on the plate.");
       ROS_WARN_STREAM("Failed to detect any food. Please place food on the plate.");
-    else
-    {
-      break;
     }
+    else
+      break;
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
-
 
   ROS_INFO_STREAM("Detected " << candidateItems.size() << " " << foodName);
 
@@ -66,6 +66,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
             feedingDemo))
     {
       ROS_INFO_STREAM("Failed to move above " << item->getName());
+      talk("Sorry, I'm having a little trouble moving. Let me try again.");
       continue;
     }
     moveAboveSuccessful = true;
@@ -77,6 +78,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   if (!moveAboveSuccessful)
   {
     ROS_ERROR("Failed to move above any food.");
+    talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
     return nullptr;
   }
 }

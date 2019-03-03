@@ -12,6 +12,8 @@
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/action/MoveInFrontOfPerson.hpp"
 #include "feeding/action/MoveDirectlyToPerson.hpp"
+#include <cstdlib>
+#include <ctime>
 
 using ada::util::getRosParam;
 using ada::util::waitForUser;
@@ -34,12 +36,16 @@ void demo(
   std::cout << "Current pose \n" <<
     ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
 
+  talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
+
+  srand(time(NULL));
+
   while (true)
   {
-    waitForUser("next step?", ada);
+    if (feedingDemo.getFTThresholdHelper())
+        feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
-    feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
-
+    talk("What food would you like?");
     auto foodName = getUserInput(false, nodeHandle);
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
@@ -48,6 +54,34 @@ void demo(
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     ROS_INFO_STREAM("Running bite transfer study for " << foodName);
+
+    switch((rand() % 10)) {
+        case 0:
+        talk("Good choice!");
+        break;
+        case 1:
+        talk(std::string("Great! I love ") + foodName + std::string("'s!"));
+        break;
+        case 2:
+        talk("Sounds delicious. I wish I had taste buds.");
+        break;
+        case 4:
+        talk("Roger Roger.");
+        break;
+        case 5:
+        talk("Nothing beats fresh fruit.");
+        break;
+        case 6:
+        talk("Nothing escapes my fork!");
+        break;
+        case 7:
+        talk("Thanks Alexa!");
+        break;
+        default:
+        talk("Alright.");
+    }
+
+    talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
 
     // ===== FORQUE PICKUP =====
     if (foodName == "pickupfork")
@@ -128,7 +162,7 @@ void demo(
       }
 
       // ===== IN FRONT OF PERSON =====
-      waitForUser("Move forque in front of person", ada);
+      ROS_INFO_STREAM("Move forque in front of person");
 
       bool tilted = (foodName != "celery");
 
@@ -136,6 +170,7 @@ void demo(
         ada,
         workspace,
         collisionFree,
+        feedingDemo.getCollisionConstraintWithWallFurtherBack(),
         perception,
         &nodeHandle,
         plate,
@@ -161,5 +196,6 @@ void demo(
 
   // ===== DONE =====
   ROS_INFO("Demo finished.");
+  talk("Thank you, I hope I was helpful!");
 }
 };

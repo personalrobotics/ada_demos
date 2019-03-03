@@ -30,7 +30,7 @@ bool moveTowardsPerson(
       ada->getHand()->getEndEffectorBodyNode(),
       ada->getTrajectoryExecutor(),
       collisionFree,
-      1.0,
+      0.2,
       0.06,
       planningTimeout,
       endEffectorOffsetPositionTolerenace,
@@ -38,7 +38,7 @@ bool moveTowardsPerson(
       false, // not food
       velocityLimits);
   servoClient.start();
-  return servoClient.wait(30);
+  return servoClient.wait(10);
 }
 }
 }

@@ -18,8 +18,6 @@
 using ada::util::getRosParam;
 using ada::util::waitForUser;
 
-extern aikido::rviz::WorldInteractiveMarkerViewerPtr feeding::VIEWER;
-
 ///
 /// OVERVIEW OF FEEDING DEMO CODE
 ///
@@ -99,9 +97,14 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(2); // 2 threads
   spinner.start();
 
+  std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr;
 
-  auto ftThresholdHelper = std::make_shared<FTThresholdHelper>(
+  if (useFTSensingToStopTrajectories)
+  {
+    std::cout << "Construct FTThresholdHelper" << std::endl;
+    ftThresholdHelper = std::make_shared<FTThresholdHelper>(
     adaReal && useFTSensingToStopTrajectories, nodeHandle);
+  }
 
   // start demo
   auto feedingDemo = std::make_shared<FeedingDemo>(
@@ -124,21 +127,15 @@ int main(int argc, char** argv)
     ranker = std::make_shared<SuccessRateRanker>();
   }
 
-  VIEWER = feedingDemo->getViewer();
-  auto viewer = feedingDemo->getViewer();
-
-  if (viewer)
-    std::cout << "viewer exists" << std::endl;
-  if (!VIEWER)
-    throw std::runtime_error("VIEWER is null");
-
   auto perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
       feedingDemo->getAda()->getMetaSkeleton(),
       &nodeHandle,
       ranker);
 
-  ftThresholdHelper->init();
+  if (ftThresholdHelper)
+    ftThresholdHelper->init();
+
   feedingDemo->getAda()->closeHand();
 
   feedingDemo->setPerception(perception);
