@@ -1,5 +1,5 @@
 #include "feeding/Perception.hpp"
-#include <aikido/perception/ObjectDatabase.hpp>
+#include <aikido/perception/AssetDatabase.hpp>
 #include "feeding/util.hpp"
 
 namespace feeding {
@@ -25,7 +25,7 @@ Perception::Perception(
       new aikido::perception::PoseEstimatorModule(
           mNodeHandle,
           detectorTopicName,
-          std::make_shared<aikido::perception::ObjectDatabase>(
+          std::make_shared<aikido::perception::AssetDatabase>(
               resourceRetriever, detectorDataURI),
           resourceRetriever,
           referenceFrameName,
