@@ -20,14 +20,14 @@ Perception::Perception(
     dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
     const ros::NodeHandle* nodeHandle,
     std::shared_ptr<TargetFoodRanker> ranker,
-    float faceZOffset,
-    bool removeRotationForFood)
+    bool removeRotationForFood,
+    bool projectFoodToTable)
   : mWorld(world)
   , mAdaMetaSkeleton(adaMetaSkeleton)
   , mNodeHandle(nodeHandle)
   , mTargetFoodRanker(ranker)
-  , mFaceZOffset(faceZOffset)
   , mRemoveRotationForFood(removeRotationForFood)
+  , mProjectFoodToTable(projectFoodToTable)
 
 {
   if (!mNodeHandle)
@@ -118,6 +118,11 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
       removeRotation(foodItem.get());
     }
 
+    if (mProjectFoodToTable)
+    {
+      projectToTable(foodItem.get());
+    }
+
     if (foodName != "" && foodItem->getName() != foodName)
       continue;
     detectedFoodItems.emplace_back(std::move(foodItem));
@@ -196,9 +201,11 @@ Eigen::Isometry3d Perception::getTrackedFoodItemPose()
 
   // Pose should've been updated since same metaSkeleton is shared.
   if (mRemoveRotationForFood)
-  {
     removeRotation(mTargetFoodItem);
-  }
+
+  if (mProjectFoodToTable)
+    projectToTable(mTargetFoodItem);
+
   return mTargetFoodItem->getPose();
 }
 
@@ -219,8 +226,29 @@ void Perception::removeRotation(const FoodItem* item)
            << item->getName() << std::endl;
     return;
   }
-  // Fix the food height
+  freejtptr->setTransform(foodPose);
+}
+
+//==============================================================================
+void Perception::projectToTable(const FoodItem* item)
+{
+  Eigen::Isometry3d foodPose(item->getPose());
+  auto rotation = foodPose.linear();
+  double yaw = rotation.eulerAngles(2, 1, 0)[0];
+  foodPose.linear() = Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix();
   foodPose.translation()[2] = 0.22;
+
+  // Downcast Joint to FreeJoint
+  dart::dynamics::FreeJoint* freejtptr
+      = dynamic_cast<dart::dynamics::FreeJoint*>(item->getMetaSkeleton()->getJoint(0));
+
+  if (freejtptr == nullptr)
+  {
+    dtwarn << "[Perception::projectToTable] Could not cast the joint "
+              "of the body to a Free Joint so ignoring the object "
+           << item->getName() << std::endl;
+    return;
+  }
   freejtptr->setTransform(foodPose);
 }
 

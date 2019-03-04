@@ -66,8 +66,8 @@ planning:
     verticalToleranceAbovePlate: 0.03
     rotationToleranceAbovePlate: 3.1416
     horizontalToleranceNearFood: 0.003
-    verticalToleranceNearFood: 0.008
-    rotationToleranceNearFood: 0.005
+    verticalToleranceNearFood: 0.01
+    rotationToleranceNearFood: 0.001
     horizontalToleranceNearPerson: 0.03
     verticalToleranceNearPerson: 0.03
     tiltToleranceNearFood: 0.0
@@ -107,8 +107,8 @@ perception:
 foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
-  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "melon"]
-  forces: [4,3,3,7,22,10,7]
+  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "honeydew", "broccoli"]
+  forces: [4,3,3,7,22,10,4, 10]
   pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
 
 rotationFree:

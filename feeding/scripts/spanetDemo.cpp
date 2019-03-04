@@ -58,7 +58,9 @@ void spanetDemo(
     feedingDemo.mPlanningTimeout,
     feedingDemo.mMaxNumTrials,
     feedingDemo.mVelocityLimits,
-    feedingDemo.getFTThresholdHelper());
+    feedingDemo.getFTThresholdHelper(),
+    std::vector<std::string>(),
+    &feedingDemo);
 
     workspace.reset();
   }

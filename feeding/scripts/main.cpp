@@ -124,6 +124,7 @@ int main(int argc, char** argv)
   }
   else if (demoType == "spanet")
   {
+    std::cout << "Create SuccessRateRanker" << std::endl;
     ranker = std::make_shared<SuccessRateRanker>();
   }
 
@@ -131,7 +132,8 @@ int main(int argc, char** argv)
       feedingDemo->getWorld(),
       feedingDemo->getAda()->getMetaSkeleton(),
       &nodeHandle,
-      ranker);
+      ranker,
+      demoType != "spanet");
 
   if (ftThresholdHelper)
     ftThresholdHelper->init();

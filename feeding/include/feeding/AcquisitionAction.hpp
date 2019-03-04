@@ -19,6 +19,11 @@ static const std::map<const std::string, TiltStyle> StringToTiltStyle{
     {"tilted-vertical", VERTICAL},
     {"tilted-angled", ANGLED}};
 
+static const std::map<TiltStyle, const std::string> TiltStyleToString{
+    {NONE, "vertical"},
+    {VERTICAL, "tilted-vertical"},
+    {ANGLED, "tilted-angled"}};
+
 class AcquisitionAction
 {
 public:
