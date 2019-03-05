@@ -81,8 +81,6 @@ public:
   /// Does not perform any bite acquisition actions.
   void collect_images(const std::string& foodName);
 
-  bool skewerWithSPANet();
-
 private:
   void setDataCollectionParams(int foodId, int pushDirectionId, int trialId);
 
