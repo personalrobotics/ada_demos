@@ -1,4 +1,11 @@
 #include "feeding/DataCollector.hpp"
+#include "feeding/action/Skewer.hpp"
+#include "feeding/action/DetectAndMoveAboveFood.hpp"
+#include "feeding/action/MoveAboveFood.hpp"
+#include "feeding/action/MoveAbovePlate.hpp"
+#include "feeding/action/MoveInto.hpp"
+#include "feeding/action/MoveOutOf.hpp"
+#include "feeding/util.hpp"
 #include <boost/date_time.hpp>
 #include <boost/filesystem/path.hpp>
 #include <stdlib.h>
@@ -392,7 +399,9 @@ void DataCollector::collect(
   }
   else if (action == SCOOP)
   {
-    mFeedingDemo->scoop();
+    ROS_INFO_STREAM("Scoop not implemented yet. Terminating.");
+    //mFeedingDemo->scoop();
+    return;
   }
 
   if (!result)
@@ -422,11 +431,22 @@ void DataCollector::collect_images(const std::string& foodName)
 
   // Move above food (center of plate)
   ROS_INFO_STREAM("Move above food");
-  if (!mFeedingDemo->moveAboveFood(
-          "", // Ignore name.
+  if (!action::moveAboveFood(
+          mFeedingDemo.getAda(),
+          mFeedingDemo.getCollisionConstraint(),
+          "",
           mFeedingDemo->getDefaultFoodTransform(),
           0.0,
-          TiltStyle::NONE))
+          TiltStyle::NONE,
+          mFeedingDemo.mFoodTSRParameters.at("height"),         
+          mFeedingDemo.mFoodTSRParameters.at("horizontalTolerance"),         
+          mFeedingDemo.mFoodTSRParameters.at("verticalTolerance"),         
+          mFeedingDemo.mFoodTSRParameters.at("rotationTolerance"),         
+          mFeedingDemo.mFoodTSRParameters.at("tiltTolerance"),         
+          mFeedingDemo.mPlanningTimeout,         
+          mFeedingDemo.mMaxNumTrials,         
+          mFeedingDemo.mVelocityLimits,         
+          &mFeedingDemo))
   {
     ROS_ERROR("Rotate Forque failed. Restart.");
     return;
@@ -482,11 +502,22 @@ void DataCollector::collect_images(const std::string& foodName)
 bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
 {
   // ===== ROTATE FORQUE ====
-  if (!mFeedingDemo->moveAboveFood(
-          "", // Ignore name.
+  if (!action::moveAboveFood(
+          mFeedingDemo.getAda(),
+          mFeedingDemo.getCollisionConstraint(),
+          "",
           mFeedingDemo->getDefaultFoodTransform(),
           rotateForqueAngle,
-          tiltStyle))
+          tiltStyle,
+          mFeedingDemo.mFoodTSRParameters.at("height"),         
+          mFeedingDemo.mFoodTSRParameters.at("horizontalTolerance"),         
+          mFeedingDemo.mFoodTSRParameters.at("verticalTolerance"),         
+          mFeedingDemo.mFoodTSRParameters.at("rotationTolerance"),         
+          mFeedingDemo.mFoodTSRParameters.at("tiltTolerance"),         
+          mFeedingDemo.mPlanningTimeout,         
+          mFeedingDemo.mMaxNumTrials,         
+          mFeedingDemo.mVelocityLimits,         
+          &mFeedingDemo))
   {
     ROS_ERROR("Rotate Forque failed. Restart.");
     removeDirectory(mDataCollectionPath);
@@ -509,15 +540,182 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
     direction.normalize();
   }
 
-  mFeedingDemo->moveInto(TargetItem::FOOD, tiltStyle, direction);
+  action::moveInto(
+          mFeedingDemo.getAda(),
+          mFeedingDemo.mPerception,
+          mFeedingDemo.getCollisionConstraint(),
+          mFeedingDemo.mNodeHandle,
+          TargetItem::FOOD,
+          mFeedingDemo.mPlanningTimeout,         
+          mFeedingDemo.mEndEffectorOffsetPositionTolerance,
+          mFeedingDemo.mEndEffectorOffsetAngularTolerance,
+          direction,
+          mFTThresholdHelper);
   captureFrame();
 
   // ===== OUT OF FOOD =====
   mFeedingDemo->setFTThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
-  mFeedingDemo->moveOutOf(TargetItem::FOOD, true);
+
+  action::moveOutOf(
+          mFeedingDemo.getAda(),
+          mFeedingDemo.getCollisionConstraint(),
+          TargetItem::FOOD,
+          mFeedingDemo.mMoveOufOfFoodLength,
+          mFeedingDemo.mPlanningTimeout,         
+          mFeedingDemo.mEndEffectorOffsetPositionTolerance,
+          mFeedingDemo.mEndEffectorOffsetAngularTolerance,
+          mFTThresholdHelper);
+
   captureFrame();
 
   return true;
+}
+
+//==============================================================================
+bool DataCollector::skewerWithSPANet(
+    const std::shared_ptr<ada::Ada>& ada,
+    const std::shared_ptr<Workspace>& workspace,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const std::shared_ptr<Perception>& perception,
+    const ros::NodeHandle* nodeHandle,
+    const std::string& foodName,
+    const Eigen::Isometry3d& plate,
+    const Eigen::Isometry3d& plateEndEffectorTransform,
+    const std::unordered_map<std::string, double>& foodSkeweringForces,
+    double horizontalToleranceAbovePlate,
+    double verticalToleranceAbovePlate,
+    double rotationToleranceAbovePlate,
+    double heightAboveFood,
+    double horizontalToleranceForFood,
+    double verticalToleranceForFood,
+    double rotationToleranceForFood,
+    double tiltToleranceForFood,
+    double moveOutofFoodLength,
+    double endEffectorOffsetPositionTolerance,
+    double endEffectorOffsetAngularTolerance,
+    std::chrono::milliseconds waitTimeForFood,
+    double planningTimeout,
+    int maxNumTrials,
+    std::vector<double> velocityLimits,
+    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
+    std::vector<std::string> rotationFreeFoodNames,
+    FeedingDemo* feedingDemo)
+{
+  ROS_INFO_STREAM("Skewering with SPANet");
+  // set parameters for convenience
+
+  std::vector<std::string> optionPrompts("(1) success", "(2) fail");
+  
+  bool abovePlaceSuccess = action::moveAbovePlate(
+      ada,
+      collisionFree,
+      plate,
+      plateEndEffectorTransform,
+      horizontalToleranceAbovePlate,
+      verticalToleranceAbovePlate,
+      rotationToleranceAbovePlate,
+      planningTimeout,
+      maxNumTrials,
+      velocityLimits);
+
+  if (!abovePlaceSuccess)
+  {
+    ROS_WARN_STREAM("Move above plate failed. Please restart");
+    return false;
+  }
+
+  if (std::find(rotationFreeFoodNames.begin(),
+      rotationFreeFoodNames.end(), foodName) !=
+      rotationFreeFoodNames.end())
+  {
+    rotationToleranceForFood = M_PI;
+  }
+
+  double torqueThreshold = 2;
+  if (ftThresholdHelper)
+    ftThresholdHelper->setThresholds(foodSkeweringForces.at(foodName), torqueThreshold);
+
+  bool detectAndMoveAboveFoodSuccess = true;
+  Eigen::Vector3d endEffectorDirection(0, 0, -1);
+
+  for(std::size_t i = 0; i < 2; ++i)
+  {
+    ROS_INFO_STREAM("Detect and Move above food");
+    auto item = action::detectAndMoveAboveFood(
+        ada,
+        collisionFree,
+        perception,
+        foodName,
+        heightAboveFood,
+        horizontalToleranceForFood,
+        verticalToleranceForFood,
+        rotationToleranceForFood,
+        tiltToleranceForFood,
+        planningTimeout,
+        maxNumTrials,
+        velocityLimits,
+        feedingDemo);
+
+    if (!item)
+      return false;
+
+    auto tiltStyle = item->getAction()->getTiltStyle();
+    if (tiltStyle == TiltStyle::ANGLED)
+    {
+      endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
+      endEffectorDirection.normalize();
+    }
+    if (!item)
+      detectAndMoveAboveFoodSuccess = false;
+  }
+
+  if (!detectAndMoveAboveFoodSuccess)
+    return false;
+
+  ROS_INFO_STREAM(
+        "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
+                   << "N with angle mode ");
+
+  // ===== INTO FOOD =====
+  auto moveIntoSuccess = action::moveInto(
+      ada,
+      perception,
+      collisionFree,
+      nodeHandle,
+      TargetItem::FOOD,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance,
+      endEffectorDirection,
+      ftThresholdHelper);
+
+  if (!moveIntoSuccess)
+  {
+    ROS_INFO_STREAM("Failed. Retry");
+    return false;
+  }
+
+  std::this_thread::sleep_for(waitTimeForFood);
+
+  // ===== OUT OF FOOD =====
+  Eigen::Vector3d direction(0, 0, 1);
+  action::moveOutOf(
+      ada,
+      nullptr,
+      TargetItem::FOOD,
+      moveOutofFoodLength * 2.0,
+      direction,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance,
+      ftThresholdHelper);
+
+  if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+  {
+    ROS_INFO_STREAM("Successful");
+    return true;
+  }
+  return false;
 }
 
 //==============================================================================
