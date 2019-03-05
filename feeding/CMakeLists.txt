@@ -28,10 +28,12 @@ add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
   scripts/spanetDemo.cpp
+  scripts/spanetDataCollection.cpp
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
   # src/DataCollector.cpp
   src/AcquisitionAction.cpp
+  src/DataCollector.cpp
   src/FoodItem.cpp
   src/FeedingDemo.cpp
   src/FTThresholdHelper.cpp
