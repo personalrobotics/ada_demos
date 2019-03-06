@@ -47,7 +47,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   {
     auto action = item->getAction();
 
-    std::cout << "Tilt style " << action->getTiltStyle() << std::endl;
+    std::cout << "[MoveAboveFood: ] Tilt style " << action->getTiltStyle() << " angle " << action->getRotationAngle() << std::endl;
     if (!moveAboveFood(
             ada,
             collisionFree,
@@ -67,6 +67,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     {
       ROS_INFO_STREAM("Failed to move above " << item->getName());
       talk("Sorry, I'm having a little trouble moving. Let me try again.");
+      std::cout << "Move to next item " << std::endl;
       continue;
     }
     moveAboveSuccessful = true;

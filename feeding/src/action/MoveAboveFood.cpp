@@ -43,11 +43,16 @@ bool moveAboveFood(
   else if (tiltStyle == TiltStyle::VERTICAL)
   {
     target = removeRotation(foodTransform);
+    // eeTransform.linear()
+    //     = eeTransform.linear()
+    //       * Eigen::AngleAxisd(-M_PI * 0.5, Eigen::Vector3d::UnitZ())
+    //       * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX())
+    //       * Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitX());
     eeTransform.linear()
         = eeTransform.linear()
-          * Eigen::AngleAxisd(-M_PI * 0.5, Eigen::Vector3d::UnitZ())
-          * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX())
-          * Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitX());
+          * rotation
+          * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX());
+          // * Eigen::AngleAxisd(-M_PI,  Eigen::Vector3d::UnitX());
     eeTransform.translation()[2] = heightAboveFood;
   }
   else // angled
@@ -63,6 +68,7 @@ bool moveAboveFood(
                           cos(M_PI * 0.25) * heightAboveFood * 0.5};
   }
 
+  std::cout <<" Rotation tolerance " << rotationTolerance << std::endl;
   return moveAbove(
       ada,
       collisionFree,

@@ -5,6 +5,7 @@
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
+#include "feeding/AcquisitionAction.hpp"
 
 #include <libada/util.hpp>
 
@@ -71,14 +72,14 @@ bool skewer(
   }
 
   double torqueThreshold = 2;
-  if (ftThresholdHelper)
-    ftThresholdHelper->setThresholds(foodSkeweringForces.at(foodName), torqueThreshold);
 
   bool detectAndMoveAboveFoodSuccess = true;
   Eigen::Vector3d endEffectorDirection(0, 0, -1);
 
   for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
   {
+    std::string selectedFoodName;
+    TiltStyle tiltStyle;
     for(std::size_t i = 0; i < 2; ++i)
     {
       if(i == 0) {
@@ -87,7 +88,6 @@ bool skewer(
       if(i == 1) {
         talk("Adjusting, hold tight!", true);
       }
-      ROS_INFO_STREAM("Detect and Move above food");
       auto item = detectAndMoveAboveFood(
           ada,
           collisionFree,
@@ -106,7 +106,18 @@ bool skewer(
       if (!item)
         continue;
 
-      auto tiltStyle = item->getAction()->getTiltStyle();
+      selectedFoodName = item->getName();
+
+      ROS_INFO_STREAM("Detected " << selectedFoodName);
+
+      if (ftThresholdHelper)
+      {
+        std::cout << "Set FT threshold" << std::endl;
+        ftThresholdHelper->setThresholds(foodSkeweringForces.at(selectedFoodName), torqueThreshold);
+      }
+
+
+      tiltStyle = item->getAction()->getTiltStyle();
       if (tiltStyle == TiltStyle::ANGLED)
       {
         endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
@@ -120,8 +131,8 @@ bool skewer(
       continue;
 
     ROS_INFO_STREAM(
-          "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
-                     << "N with angle mode ");
+          "Getting " << selectedFoodName << " with " << foodSkeweringForces.at(selectedFoodName)
+                     << "N with angle mode " << TiltStyleToString.at(tiltStyle));
 
     // ===== INTO FOOD =====
     talk("Here we go!", true);
