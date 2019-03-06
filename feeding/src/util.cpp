@@ -428,7 +428,7 @@ aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
   nominalState = space->getScopedStateFromMetaSkeleton(metaSkeleton.get());
 
   return std::make_shared<NominalConfigurationRanker>(
-      space, metaSkeleton, weights, std::move(nominalState));
+      space, metaSkeleton, std::move(nominalState), weights);
 }
 
 //==============================================================================

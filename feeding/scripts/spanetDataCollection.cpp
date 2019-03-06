@@ -29,7 +29,7 @@ using ada::util::waitForUser;
 ///
 /// Then the demo is run step by step.
 ///
-int main(int argc, char** argv)
+int spanetDataCollection(int argc, char** argv)
 {
   using namespace feeding;
 

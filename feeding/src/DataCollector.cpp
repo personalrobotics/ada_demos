@@ -378,7 +378,7 @@ void DataCollector::collect(
     std::stringstream ss;
     ss << "Rotate the food " << mDirections[directionIndex] << " degrees"
        << std::endl;
-    mFeedingDemo->waitForUser(ss.str());
+    waitForUser(ss.str(), mFeedingDemo->getAda());
 
     if (!skewer(0, TiltStyle::VERTICAL))
     {
@@ -390,7 +390,7 @@ void DataCollector::collect(
   {
     std::stringstream ss;
     ss << "Rotate the food " << rotateForqueAngle << " degrees" << std::endl;
-    mFeedingDemo->waitForUser(ss.str());
+    waitForUser(ss.str(), mFeedingDemo->getAda());
 
     if (!skewer(0, TiltStyle::ANGLED))
     {
@@ -609,7 +609,7 @@ bool DataCollector::skewerWithSPANet(
   ROS_INFO_STREAM("Skewering with SPANet");
   // set parameters for convenience
 
-  std::vector<std::string> optionPrompts("(1) success", "(2) fail");
+  std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 
   bool abovePlaceSuccess = action::moveAbovePlate(
       ada,
