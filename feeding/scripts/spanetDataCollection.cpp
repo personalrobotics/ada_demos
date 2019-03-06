@@ -51,12 +51,13 @@ int main(int argc, char** argv)
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
+  std::size_t trialIndex;
   std::string dataCollectorPath;
   std::string scenario;
 
-  handleArguments(argc, argv,
+  handleArgumentsSPANetDataCollection(argc, argv,
     adaReal, autoContinueDemo, useFTSensingToStopTrajectories,
-    demoType, foodName, scenario, dataCollectorPath);
+    demoType, foodName, trialIndex, scenario, dataCollectorPath);
 
   bool useVisualServo = true;
   bool allowRotationFree = true;
@@ -145,12 +146,13 @@ int main(int argc, char** argv)
   {
     ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
     DataCollector dataCollector(
-      feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
+      feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, adaReal, dataCollectorPath);
 
     dataCollector.skewerWithSPANet(foodName, trialIndex, scenario, perception, nodeHandle);
 
   } else {
     ROS_WARN_STREAM("unknown demoType option");
+  }
 
   return 0;
 }

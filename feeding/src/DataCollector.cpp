@@ -241,7 +241,7 @@ DataCollector::DataCollector(
   // See if we can save force/torque sensor data as well.
 
   // Set Standard Threshold
-  mFeedingDemo->setFTThreshold(STANDARD_FT_THRESHOLD);
+  mFeedingDemo->getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
   mNumTrials = getRosParam<int>("/data/numTrials", mNodeHandle);
   mFoods = getRosParam<std::vector<std::string>>("/data/foods", mNodeHandle);
@@ -433,21 +433,21 @@ void DataCollector::collect_images(const std::string& foodName)
   // Move above food (center of plate)
   ROS_INFO_STREAM("Move above food");
   if (!action::moveAboveFood(
-          mFeedingDemo.getAda(),
-          mFeedingDemo.getCollisionConstraint(),
+          mFeedingDemo->getAda(),
+          mFeedingDemo->getCollisionConstraint(),
           "",
           mFeedingDemo->getDefaultFoodTransform(),
           0.0,
           TiltStyle::NONE,
-          mFeedingDemo.mFoodTSRParameters.at("height"),         
-          mFeedingDemo.mFoodTSRParameters.at("horizontalTolerance"),         
-          mFeedingDemo.mFoodTSRParameters.at("verticalTolerance"),         
-          mFeedingDemo.mFoodTSRParameters.at("rotationTolerance"),         
-          mFeedingDemo.mFoodTSRParameters.at("tiltTolerance"),         
-          mFeedingDemo.mPlanningTimeout,         
-          mFeedingDemo.mMaxNumTrials,         
-          mFeedingDemo.mVelocityLimits,         
-          &mFeedingDemo))
+          mFeedingDemo->mFoodTSRParameters.at("height"),
+          mFeedingDemo->mFoodTSRParameters.at("horizontalTolerance"),
+          mFeedingDemo->mFoodTSRParameters.at("verticalTolerance"),
+          mFeedingDemo->mFoodTSRParameters.at("rotationTolerance"),
+          mFeedingDemo->mFoodTSRParameters.at("tiltTolerance"),
+          mFeedingDemo->mPlanningTimeout,
+          mFeedingDemo->mMaxNumTrials,
+          mFeedingDemo->mVelocityLimits,
+          mFeedingDemo.get()))
   {
     ROS_ERROR("Rotate Forque failed. Restart.");
     return;
@@ -504,21 +504,21 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
 {
   // ===== ROTATE FORQUE ====
   if (!action::moveAboveFood(
-          mFeedingDemo.getAda(),
-          mFeedingDemo.getCollisionConstraint(),
+          mFeedingDemo->getAda(),
+          mFeedingDemo->getCollisionConstraint(),
           "",
           mFeedingDemo->getDefaultFoodTransform(),
           rotateForqueAngle,
           tiltStyle,
-          mFeedingDemo.mFoodTSRParameters.at("height"),         
-          mFeedingDemo.mFoodTSRParameters.at("horizontalTolerance"),         
-          mFeedingDemo.mFoodTSRParameters.at("verticalTolerance"),         
-          mFeedingDemo.mFoodTSRParameters.at("rotationTolerance"),         
-          mFeedingDemo.mFoodTSRParameters.at("tiltTolerance"),         
-          mFeedingDemo.mPlanningTimeout,         
-          mFeedingDemo.mMaxNumTrials,         
-          mFeedingDemo.mVelocityLimits,         
-          &mFeedingDemo))
+          mFeedingDemo->mFoodTSRParameters.at("height"),
+          mFeedingDemo->mFoodTSRParameters.at("horizontalTolerance"),
+          mFeedingDemo->mFoodTSRParameters.at("verticalTolerance"),
+          mFeedingDemo->mFoodTSRParameters.at("rotationTolerance"),
+          mFeedingDemo->mFoodTSRParameters.at("tiltTolerance"),
+          mFeedingDemo->mPlanningTimeout,
+          mFeedingDemo->mMaxNumTrials,
+          mFeedingDemo->mVelocityLimits,
+          mFeedingDemo.get()))
   {
     ROS_ERROR("Rotate Forque failed. Restart.");
     removeDirectory(mDataCollectionPath);
@@ -542,30 +542,32 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
   }
 
   action::moveInto(
-          mFeedingDemo.getAda(),
-          mFeedingDemo.mPerception,
-          mFeedingDemo.getCollisionConstraint(),
-          mFeedingDemo.mNodeHandle,
+          mFeedingDemo->getAda(),
+          mFeedingDemo->getPerception(),
+          mFeedingDemo->getCollisionConstraint(),
+          mFeedingDemo->getNodeHandle(),
           TargetItem::FOOD,
-          mFeedingDemo.mPlanningTimeout,         
-          mFeedingDemo.mEndEffectorOffsetPositionTolerance,
-          mFeedingDemo.mEndEffectorOffsetAngularTolerance,
+          mFeedingDemo->mPlanningTimeout,
+          mFeedingDemo->mEndEffectorOffsetPositionTolerance,
+          mFeedingDemo->mEndEffectorOffsetAngularTolerance,
           direction,
-          mFTThresholdHelper);
+          mFeedingDemo->getFTThresholdHelper());
   captureFrame();
 
   // ===== OUT OF FOOD =====
-  mFeedingDemo->setFTThreshold(AFTER_GRAB_FOOD_FT_THRESHOLD);
+  mFeedingDemo->getFTThresholdHelper()->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
 
+  Eigen::Vector3d direction2(0, 0, 1);
   action::moveOutOf(
-          mFeedingDemo.getAda(),
-          mFeedingDemo.getCollisionConstraint(),
+          mFeedingDemo->getAda(),
+          mFeedingDemo->getCollisionConstraint(),
           TargetItem::FOOD,
-          mFeedingDemo.mMoveOufOfFoodLength,
-          mFeedingDemo.mPlanningTimeout,         
-          mFeedingDemo.mEndEffectorOffsetPositionTolerance,
-          mFeedingDemo.mEndEffectorOffsetAngularTolerance,
-          mFTThresholdHelper);
+          mFeedingDemo->mMoveOufOfFoodLength,
+          direction2,
+          mFeedingDemo->mPlanningTimeout,
+          mFeedingDemo->mEndEffectorOffsetPositionTolerance,
+          mFeedingDemo->mEndEffectorOffsetAngularTolerance,
+          mFeedingDemo->getFTThresholdHelper());
 
   captureFrame();
 
@@ -573,80 +575,42 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
 }
 
 //==============================================================================
-bool DataCollector::collectSPANet(
+bool DataCollector::skewerWithSPANet(
     const std::string& foodName,
     std::size_t trialIndex,
     const std::string& scenario,
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle)
 {
-    return skewerWithSPANet(
-            mFeedingDemo.getAda(),
-            mFeedingDemo.getWorkspace(),
-            mFeedingDemo.getCollisionConstraint(),
-            perception,
-            &nodeHandle,
-            foodName,
-            mFeedingDemo.getWorkspace()->getPlate()->getRootBodyNode()->getWorldTransform(),
-            mFeedingDemo.getPlateEndEffectorTransform,
-            mFeedingDemo.mFoodSkeweringForces,
-            mFeedingDemo.mPlateTSRParameters["horizontalTolerance"],
-            mFeedingDemo.mPlateTSRParameters["verticalTolerance"],
-            mFeedingDemo.mPlateTSRParameters["rotationTolerance"],
-            mFeedingDemo.mFoodTSRParameters["height"],
-            mFeedingDemo.mFoodTSRParameters["horizontalTolerance"],
-            mFeedingDemo.mFoodTSRParameters["verticalTolerance"],
-            mFeedingDemo.mFoodTSRParameters["rotationTolerance"],
-            mFeedingDemo.mFoodTSRParameters["tiltTolerance"],
-            mFeedingDemo.mMoveOufOfFoodLength,
-            mFeedingDemo.mEndEffectorOffsetPositionTolerance,
-            mFeedingDemo.mEndEffectorOffsetAngularTolerance,
-            mFeedingDemo.mWaitTimeForFood,
-            mFeedingDemo.mPlanningTimeout,
-            mFeedingDemo.mMaxNumTrials,
-            mFeedingDemo.mVelocityLimits,
-            mFeedingDemo.getFTThresholdHelper(),
-            mFeedingDemo.mRotationFreeFoodNames, 
-            trialIndex,
-            scenario);
-}
+  auto ada = mFeedingDemo->getAda();
+  auto workspace = mFeedingDemo->getWorkspace();
+  auto collisionFree = mFeedingDemo->getCollisionConstraint();
+  auto plate = mFeedingDemo->getWorkspace()->getPlate()->getRootBodyNode()->getWorldTransform();
+  auto plateEndEffectorTransform = mFeedingDemo->getPlateEndEffectorTransform();
+  auto foodSkeweringForces = mFeedingDemo->mFoodSkeweringForces;
+  double horizontalToleranceAbovePlate = mFeedingDemo->mPlateTSRParameters["horizontalTolerance"];
+  double verticalToleranceAbovePlate = mFeedingDemo->mPlateTSRParameters["verticalTolerance"];
+  double rotationToleranceAbovePlate = mFeedingDemo->mPlateTSRParameters["rotationTolerance"];
+  double heightAboveFood = mFeedingDemo->mFoodTSRParameters["height"];
+  double horizontalToleranceForFood = mFeedingDemo->mFoodTSRParameters["horizontalTolerance"];
+  double verticalToleranceForFood = mFeedingDemo->mFoodTSRParameters["verticalTolerance"];
+  double rotationToleranceForFood = mFeedingDemo->mFoodTSRParameters["rotationTolerance"];
+  double tiltToleranceForFood = mFeedingDemo->mFoodTSRParameters["tiltTolerance"];
+  double moveOutofFoodLength = mFeedingDemo->mMoveOufOfFoodLength;
+  double endEffectorOffsetPositionTolerance = mFeedingDemo->mEndEffectorOffsetPositionTolerance;
+  double endEffectorOffsetAngularTolerance = mFeedingDemo->mEndEffectorOffsetAngularTolerance;
+  auto waitTimeForFood = mFeedingDemo->mWaitTimeForFood;
+  double planningTimeout = mFeedingDemo->mPlanningTimeout;
+  int maxNumTrials = mFeedingDemo->mMaxNumTrials;
+  auto velocityLimits = mFeedingDemo->mVelocityLimits;
+  auto ftThresholdHelper = mFeedingDemo->getFTThresholdHelper();
+  auto rotationFreeFoodNames = mFeedingDemo->mRotationFreeFoodNames;
 
-//==============================================================================
-bool DataCollector::skewerWithSPANet(
-    const std::shared_ptr<ada::Ada>& ada,
-    const std::shared_ptr<Workspace>& workspace,
-    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-    const std::shared_ptr<Perception>& perception,
-    const ros::NodeHandle* nodeHandle,
-    const std::string& foodName,
-    const Eigen::Isometry3d& plate,
-    const Eigen::Isometry3d& plateEndEffectorTransform,
-    const std::unordered_map<std::string, double>& foodSkeweringForces,
-    double horizontalToleranceAbovePlate,
-    double verticalToleranceAbovePlate,
-    double rotationToleranceAbovePlate,
-    double heightAboveFood,
-    double horizontalToleranceForFood,
-    double verticalToleranceForFood,
-    double rotationToleranceForFood,
-    double tiltToleranceForFood,
-    double moveOutofFoodLength,
-    double endEffectorOffsetPositionTolerance,
-    double endEffectorOffsetAngularTolerance,
-    std::chrono::milliseconds waitTimeForFood,
-    double planningTimeout,
-    int maxNumTrials,
-    std::vector<double> velocityLimits,
-    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
-    std::vector<std::string> rotationFreeFoodNames,
-    std::size_t trialIndex,
-    const std::string& scenario)
-{
   ROS_INFO_STREAM("Skewering with SPANet");
   // set parameters for convenience
 
   std::vector<std::string> optionPrompts("(1) success", "(2) fail");
-  
+
   bool abovePlaceSuccess = action::moveAbovePlate(
       ada,
       collisionFree,
@@ -697,7 +661,7 @@ bool DataCollector::skewerWithSPANet(
         planningTimeout,
         maxNumTrials,
         velocityLimits,
-        mFeedingDemo);
+        mFeedingDemo.get());
 
     if (!item)
       return false;
@@ -724,7 +688,7 @@ bool DataCollector::skewerWithSPANet(
       ada,
       perception,
       collisionFree,
-      nodeHandle,
+      &nodeHandle,
       TargetItem::FOOD,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
@@ -754,7 +718,7 @@ bool DataCollector::skewerWithSPANet(
       ftThresholdHelper);
 
   auto action = TiltStyleToString.at(item->getAction()->getTiltStyle());
-  std::string trialName = "collect_spanet" + "/" + foodName + "-action-"
+  std::string trialName = "collect_spanet/" + foodName + "-action-"
                           + action + "-rotation-"
                           + std::to_string(item->getAction()->getRotationAngle()) + "-trial-"
                           + std::to_string(trialIndex) + "-scenario-"

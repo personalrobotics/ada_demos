@@ -240,6 +240,18 @@ Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
 }
 
 //==============================================================================
+ros::NodeHandle* FeedingDemo::getNodeHandle()
+{
+  return &mNodeHandle;
+}
+
+//==============================================================================
+std::shared_ptr<Perception> FeedingDemo::getPerception()
+{
+  return mPerception;
+}
+
+//==============================================================================
 aikido::rviz::WorldInteractiveMarkerViewerPtr FeedingDemo::getViewer()
 {
   return mViewer;

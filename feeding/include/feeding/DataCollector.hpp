@@ -81,7 +81,7 @@ public:
   /// Does not perform any bite acquisition actions.
   void collect_images(const std::string& foodName);
 
-  bool DataCollector::collectSPANet(
+  bool skewerWithSPANet(
       const std::string& foodName,
       std::size_t trialIndex,
       const std::string& scenario,
@@ -106,36 +106,6 @@ private:
   /// Update mColorImageCount and mDepthImageCount to match
   /// the number of images in the respective directories.
   void updateImageCounts(const std::string& directory, ImageType imageType);
-
-  bool DataCollector::skewerWithSPANet(
-      const std::shared_ptr<ada::Ada>& ada,
-      const std::shared_ptr<Workspace>& workspace,
-      const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-      const std::shared_ptr<Perception>& perception,
-      const ros::NodeHandle* nodeHandle,
-      const std::string& foodName,
-      const Eigen::Isometry3d& plate,
-      const Eigen::Isometry3d& plateEndEffectorTransform,
-      const std::unordered_map<std::string, double>& foodSkeweringForces,
-      double horizontalToleranceAbovePlate,
-      double verticalToleranceAbovePlate,
-      double rotationToleranceAbovePlate,
-      double heightAboveFood,
-      double horizontalToleranceForFood,
-      double verticalToleranceForFood,
-      double rotationToleranceForFood,
-      double tiltToleranceForFood,
-      double moveOutofFoodLength,
-      double endEffectorOffsetPositionTolerance,
-      double endEffectorOffsetAngularTolerance,
-      std::chrono::milliseconds waitTimeForFood,
-      double planningTimeout,
-      int maxNumTrials,
-      std::vector<double> velocityLimits,
-      const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
-      std::vector<std::string> rotationFreeFoodNames,
-      std::size_t trialIndex,
-      const std::string& scenario);
 
   std::shared_ptr<FeedingDemo> mFeedingDemo;
   std::shared_ptr<ada::Ada> mAda;

@@ -66,6 +66,10 @@ public:
   /// Gets Ada
   std::shared_ptr<ada::Ada> getAda();
 
+  ros::NodeHandle* getNodeHandle();
+
+  std::shared_ptr<Perception> getPerception();
+
   /// Gets the transform of the default food object (defined in Workspace)
   /// Valid only for simulation mode
   Eigen::Isometry3d getDefaultFoodTransform();

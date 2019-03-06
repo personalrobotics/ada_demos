@@ -52,6 +52,30 @@ void handleArguments(
     std::string& dataCollectorPath,
     const std::string& description = "Ada Feeding Demo");
 
+/// Deals with the arguments supplied to the executable.
+/// \param[in] description Description for this program
+/// \param[in] argc and argv are the typical parameters of main(..)
+/// \param[out] adaReal is true when the robot is used and not the simulation
+/// \param[out] autoContinueDemo is true when the demo continues to the next
+/// step without asking for confirmation
+/// \param[out] useFTSensing turns the FTSensor and the MoveUntilTouchController
+/// \param[out] foodName Name fo food for data collection
+/// \param[out] scenario Type of scenario for data collection
+/// \param[out] dataCollectorPath Directory to store data collection
+/// on and off
+void handleArgumentsSPANetDataCollection(
+    int argc,
+    char** argv,
+    bool& adaReal,
+    bool& autoContinueDemo,
+    bool& useFTSensing,
+    std::string& demoType,
+    std::string& foodName,
+    std::size_t& trialIndex,
+    std::string& scenario,
+    std::string& dataCollectorPath,
+    const std::string& description = "Ada Feeding Demo");
+
 void printStateWithTime(
     double t,
     std::size_t dimension,

@@ -77,6 +77,57 @@ void handleArguments(
 }
 
 //==============================================================================
+void handleArgumentsSPANetDataCollection(
+    int argc,
+    char** argv,
+    bool& adaReal,
+    bool& autoContinueDemo,
+    bool& useFTSensing,
+    std::string& demoType,
+    std::string& foodName,
+    std::size_t& trialIndex,
+    std::string& scenario,
+    std::string& dataCollectorPath,
+    const std::string& description)
+{
+  namespace po = boost::program_options;
+
+  // Default options for flags
+  po::options_description po_desc(description);
+  po_desc.add_options()("help,h", "Produce help message")(
+      "adareal,a", po::bool_switch(&adaReal), "Run ADA in real")(
+      "continueAuto,c",
+      po::bool_switch(&autoContinueDemo),
+      "Continue Demo automatically")(
+      "ftSensing,f",
+      po::bool_switch(&useFTSensing),
+      "Use Force/Torque sensing")(
+      "demoType,d", po::value<std::string>(&demoType), "Demo type")(
+      "foodName",
+      po::value<std::string>(&foodName),
+      "Name of food (for data collection)")(
+      "trial",
+      po::value<std::size_t>(&trialIndex),
+      "Trial index (for data collection)")(
+      "scenario",
+      po::value<std::string>(&scenario),
+      "Scenario (for data collection)")(
+      "output,o",
+      po::value<std::string>(&dataCollectorPath),
+      "Output directory (for data collection)");
+
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, po_desc), vm);
+  po::notify(vm);
+
+  if (vm.count("help"))
+  {
+    std::cout << po_desc << std::endl;
+    exit(0);
+  }
+}
+
+//==============================================================================
 void printStateWithTime(
     double t,
     std::size_t dimension,
