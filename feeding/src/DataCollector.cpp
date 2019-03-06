@@ -43,7 +43,7 @@ TSR getSideViewTSR(int step)
                                   0,
                                   angle);
 
-  tsr.mBw = createBwMatrixForTSR(0.001, 0.001, 0, 0);
+  tsr.mBw = createBwMatrixForTSR(0.001, 0.001, 0.001, 0, 0, 0);
   return tsr;
 }
 }
