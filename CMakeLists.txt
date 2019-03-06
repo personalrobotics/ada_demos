@@ -64,16 +64,20 @@ include_directories(${pr_tsr_INCLUDE_DIRS})
 find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
+find_package(gls REQUIRED)
+include_directories(${gls_INCLUDE_DIRS})
+
 # ===============================================================================
 # Demos
 #
 
-add_subdirectory(soda_grasp)
-add_subdirectory(simple_trajectories)
-add_subdirectory(simple_perception)
-add_subdirectory(hand_control)
+# add_subdirectory(soda_grasp)
+# add_subdirectory(simple_trajectories)
+# add_subdirectory(simple_perception)
+# add_subdirectory(hand_control)
 add_subdirectory(feeding)
-add_subdirectory(cameraCalibration)
+# add_subdirectory(cameraCalibration)
+add_subdirectory(gls_graph_generator)
 
 # ===============================================================================
 # Formatting
@@ -88,6 +92,7 @@ if(CLANG_FORMAT_EXECUTABLE)
     simple_trajectories/src/*.cpp
     feeding/src/*.cpp
     feeding/include/feeding/*.hpp
+    gls_graph_generator/src/*.cpp
   )
 
   clang_format_add_sources(${ALL_SOURCE_FILES})

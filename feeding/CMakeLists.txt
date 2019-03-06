@@ -24,7 +24,36 @@ find_package(DART 6.6.0 REQUIRED
 
 include_directories(include)
 
-add_executable(feeding
+add_library(feeding SHARED
+  src/AcquisitionAction.cpp
+  src/FoodItem.cpp
+  src/FeedingDemo.cpp
+  src/FTThresholdHelper.cpp
+  src/Workspace.cpp
+  src/util.cpp
+  src/action/Grab.cpp
+  src/action/DetectAndMoveAboveFood.cpp
+  src/action/FeedFoodToPerson.cpp
+  src/action/MoveAbove.cpp
+  src/action/MoveAboveFood.cpp
+  src/action/MoveAboveForque.cpp
+  src/action/MoveAbovePlate.cpp
+  src/action/MoveDirectlyToPerson.cpp
+  src/action/MoveInFrontOfPerson.cpp
+  src/action/MoveInto.cpp
+  src/action/MoveOutOf.cpp
+  src/action/MoveTowardsPerson.cpp
+  src/action/PickUpFork.cpp
+  src/action/PutDownFork.cpp
+  src/action/Skewer.cpp
+  src/perception/Perception.cpp
+  src/perception/PerceptionServoClient.cpp
+  src/ranker/ShortestDistanceRanker.cpp
+  src/ranker/SuccessRateRanker.cpp
+  src/ranker/TargetFoodRanker.cpp
+)
+
+add_executable(feeding-bin
   scripts/main.cpp
   scripts/demo.cpp
   scripts/spanetDemo.cpp
@@ -61,6 +90,17 @@ add_executable(feeding
 
 include_directories(include $(rosbag_INCLUDE_DIRS))
 
+target_link_libraries(feeding-bin
+  ${DART_LIBRARIES}
+  ${aikido_LIBRARIES}
+  ${Boost_LIBRARIES}
+  ${tf_conversions_LIBRARIES}
+  ${image_transport_LIBRARIES}
+  ${cv_bridge_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${rosbag_LIBRARIES}
+  libada)
+
 target_link_libraries(feeding
   ${DART_LIBRARIES}
   ${aikido_LIBRARIES}
@@ -72,8 +112,18 @@ target_link_libraries(feeding
   ${rosbag_LIBRARIES}
   libada)
 
+
 IF (rewd_controllers_FOUND)
   target_link_libraries(feeding ${rewd_controllers_LIBRARIES})
+  target_link_libraries(feeding-bin ${rewd_controllers_LIBRARIES})
+
 ENDIF()
 
-install(TARGETS feeding RUNTIME DESTINATION bin)
+install(TARGETS feeding-bin RUNTIME DESTINATION bin)
+install(TARGETS feeding EXPORT feedingConfig
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin)
+install(DIRECTORY include/ DESTINATION include)
+install(EXPORT feedingConfig DESTINATION share/feeding/cmake)
+export(TARGETS feeding FILE feedingConfig.cmake)
