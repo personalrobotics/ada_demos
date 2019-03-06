@@ -143,6 +143,8 @@ void generateHaltonPoints(const std::shared_ptr<ada::Ada>& robot,
   skeleton->setPositionLowerLimits(lowerLimits);
   skeleton->setPositionUpperLimits(upperLimits);
 
+  std::cout << "LowerBound " << skeleton->getPositionLowerLimits().transpose() << std::endl;
+  std::cout << "UpperBound " << skeleton->getPositionUpperLimits().transpose() << std::endl;
   std::vector<Eigen::VectorXd> configurations;
 
   // ==========================================================
@@ -300,21 +302,22 @@ int main(int argc, char** argv)
   auto armSkeleton = robot->getArm()->getMetaSkeleton();
   auto armSpace = robot->getArm()->getStateSpace();
 
-  // static const std::string execTopicName = topicName + "/ada";
+  static const std::string execTopicName = topicName + "/ada";
   // Start the RViz viewer.
   // ROS_INFO_STREAM(
   //     "You can view ADA in RViz now. \n"
   //     << "Starting viewer. Please subscribe to the '"
   //     << execTopicName
   //     << "' InteractiveMarker topic in RViz.");
-  // aikido::rviz::WorldInteractiveMarkerViewer viewer(
-  //     env, execTopicName, baseFrameName);
+  aikido::rviz::WorldInteractiveMarkerViewer viewer(
+      env, execTopicName, baseFrameName);
   // Add ADA to the viewer.
-  // viewer.setAutoUpdate(true);
-  // viewer.addFrame(robot->getRightHand()->getEndEffectorBodyNode(), 0.2, 0.01, 1.0);
+  viewer.setAutoUpdate(true);
+  viewer.addFrame(robot->getHand()->getEndEffectorBodyNode(), 0.2, 0.01, 1.0);
 
   // TODO[GL]: set with seed configurations
-  auto presetConfigurations = getSeedConfigurationsForFeeding();
+  std::vector<Eigen::VectorXd> presetConfigurations;
+  //auto presetConfigurations = getSeedConfigurationsForFeeding();
 
   Eigen::Isometry3d robotPose = createIsometry(
       getRosParam<std::vector<double>>("/ada/baseFramePose", nh));
