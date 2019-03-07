@@ -38,7 +38,7 @@ void demo(
   home[2] = 3.14;
 
   ada->moveArmToConfiguration(home, collisionFree, 1.0);
-  std::cin.ignore();
+  // std::cin.ignore();
 
   std::cout << "Current pose \n" <<
     ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
