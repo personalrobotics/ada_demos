@@ -23,7 +23,9 @@ find_package(tf_conversions REQUIRED)
 include_directories(${tf_conversions_INCLUDE_DIRS})
 include_directories(${catkin_INCLUDE_DIRS})
 
-find_package(DART 6.6.2 REQUIRED)
+find_package(DART 6.6.2 REQUIRED
+  COMPONENTS
+    utils-urdf utils optimizer-nlopt)
 include_directories(${DART_INCLUDE_DIRS})
 
 find_package(aikido 0.3.0 REQUIRED

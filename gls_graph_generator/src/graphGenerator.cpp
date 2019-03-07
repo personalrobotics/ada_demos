@@ -222,10 +222,15 @@ void generateHaltonPoints(const std::shared_ptr<ada::Ada>& robot,
       if (distance > threshold)
         continue;
 
+      Eigen::VectorXd direction(6);
+      direction = configurations[j] - configurations[i];
+      auto length = direction.norm();
+      direction = direction / length;
+
       // Check if the edge is collision-free with step-size.
-      for (int step = 1; step < 10; ++step)
+      for (int step = 1; step <= length / resolution; ++step)
       {
-        auto midConfiguration = configurations[i] + resolution*step*(configurations[j] - configurations[i]);
+        auto midConfiguration = configurations[i] + resolution* direction * step;
         auto midState = space->createState();
         space->convertPositionsToState(midConfiguration, midState);
         if (!constraint->isSatisfied(midState))
@@ -309,15 +314,15 @@ int main(int argc, char** argv)
   //     << "Starting viewer. Please subscribe to the '"
   //     << execTopicName
   //     << "' InteractiveMarker topic in RViz.");
-  aikido::rviz::WorldInteractiveMarkerViewer viewer(
-      env, execTopicName, baseFrameName);
+  //aikido::rviz::WorldInteractiveMarkerViewer viewer(
+  //    env, execTopicName, baseFrameName);
   // Add ADA to the viewer.
-  viewer.setAutoUpdate(true);
-  viewer.addFrame(robot->getHand()->getEndEffectorBodyNode(), 0.2, 0.01, 1.0);
+  //viewer.setAutoUpdate(true);
+  //viewer.addFrame(robot->getHand()->getEndEffectorBodyNode(), 0.2, 0.01, 1.0);
 
   // TODO[GL]: set with seed configurations
   std::vector<Eigen::VectorXd> presetConfigurations;
-  //auto presetConfigurations = getSeedConfigurationsForFeeding();
+  // auto presetConfigurations = getSeedConfigurationsForFeeding();
 
   Eigen::Isometry3d robotPose = createIsometry(
       getRosParam<std::vector<double>>("/ada/baseFramePose", nh));

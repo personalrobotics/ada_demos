@@ -33,6 +33,13 @@ void demo(
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
+  Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
+  home[1] = 3.64;
+  home[2] = 3.14;
+
+  ada->moveArmToConfiguration(home, collisionFree, 1.0);
+  std::cin.ignore();
+
   std::cout << "Current pose \n" <<
     ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
 

@@ -21,6 +21,9 @@ static const std::size_t MAX_NUM_TRIALS = 3;
 static const double inf = std::numeric_limits<double>::infinity();
 static const std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
 
+dart::common::Uri graphml{
+    "package://ada_demos/config/graph_1000_feeding.graphml"};
+
 namespace feeding {
 
 //==============================================================================
@@ -46,13 +49,15 @@ FeedingDemo::FeedingDemo(
                                           ? "move_until_touch_topic_controller"
                                           : "rewd_trajectory_controller";
 
+  std::cout << "Graph " << graphml.getPath() << std::endl;
   mAda = std::make_shared<ada::Ada>(
       mWorld,
       !mAdaReal,
       getRosParam<std::string>("/ada/urdfUri", mNodeHandle),
       getRosParam<std::string>("/ada/srdfUri", mNodeHandle),
       getRosParam<std::string>("/ada/endEffectorName", mNodeHandle),
-      armTrajectoryExecutor);
+      armTrajectoryExecutor,
+      "/home/herb/Workspace/demo_ws/devel/bin/graph_1000_feeding.graphml");
   mArmSpace = mAda->getArm()->getStateSpace();
 
   Eigen::Isometry3d robotPose = createIsometry(
@@ -81,23 +86,23 @@ FeedingDemo::FeedingDemo(
       armCollisionGroup, envCollisionGroup);
 
 
-  dart::collision::CollisionDetectorPtr relaxedCollisionDetector
-      = dart::collision::FCLCollisionDetector::create();
-  std::shared_ptr<dart::collision::CollisionGroup> relaxedArmCollisionGroup
-      = relaxedCollisionDetector->createCollisionGroup(
-          mAda->getMetaSkeleton().get(),
-          mAda->getHand()->getEndEffectorBodyNode());
-  std::shared_ptr<dart::collision::CollisionGroup> relaxedEnvCollisionGroup
-      = relaxedCollisionDetector->createCollisionGroup(
-          mWorkspace->getTable().get(),
-          mWorkspace->getWorkspaceEnvironmentWithWallFurtherBack().get(),
-          mWorkspace->getWheelchair().get());
+  // dart::collision::CollisionDetectorPtr relaxedCollisionDetector
+  //     = dart::collision::FCLCollisionDetector::create();
+  // std::shared_ptr<dart::collision::CollisionGroup> relaxedArmCollisionGroup
+  //     = relaxedCollisionDetector->createCollisionGroup(
+  //         mAda->getMetaSkeleton().get(),
+  //         mAda->getHand()->getEndEffectorBodyNode());
+  // std::shared_ptr<dart::collision::CollisionGroup> relaxedEnvCollisionGroup
+  //     = relaxedCollisionDetector->createCollisionGroup(
+  //         mWorkspace->getTable().get(),
+  //         mWorkspace->getWorkspaceEnvironmentWithWallFurtherBack().get(),
+  //         mWorkspace->getWheelchair().get());
 
-  mCollisionFreeConstraintWithWallFurtherBack
-      = std::make_shared<aikido::constraint::dart::CollisionFree>(
-          mArmSpace, mAda->getArm()->getMetaSkeleton(), relaxedCollisionDetector);
-  mCollisionFreeConstraintWithWallFurtherBack->addPairwiseCheck(
-      relaxedArmCollisionGroup, relaxedEnvCollisionGroup);
+  // mCollisionFreeConstraintWithWallFurtherBack
+  //     = std::make_shared<aikido::constraint::dart::CollisionFree>(
+  //         mArmSpace, mAda->getArm()->getMetaSkeleton(), relaxedCollisionDetector);
+  // mCollisionFreeConstraintWithWallFurtherBack->addPairwiseCheck(
+  //     relaxedArmCollisionGroup, relaxedEnvCollisionGroup);
 
 
   // visualization

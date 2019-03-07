@@ -11,10 +11,11 @@ if __name__ == '__main__':
 
     G = nx.Graph()
 
-    default_vertex_location = 'vertices.txt'
-    default_edges_location = 'edges.txt'
-    edgeStates_location = 'edgesViz.txt'
-    graph_save_location = 'graph_1000_feeding.graphml'
+    directory = "/home/herb/Workspace/demo_ws/devel/bin/"
+    default_vertex_location = directory + 'vertices.txt'
+    default_edges_location = directory + 'edges.txt'
+    edgeStates_location = directory + 'edgesViz.txt'
+    graph_save_location = directory + 'graph_1000_feeding.graphml'
 
 
     # Collect vertices.
@@ -38,13 +39,8 @@ if __name__ == '__main__':
     # Adding Edges
     print("Adding edges")
     for i in range(numpy.shape(haltonEdges)[0]):
-        if numpy.shape(haltonEdges)[1] == 2:
-            source = numpy.array(edgeStates[i, 0:8])
-            target = numpy.array(edgeStates[i, 8:])
-            dist = numpy.linalg.norm(source - target)
-        else:
-            dist = haltonEdges[i][-1]
-        G.add_edge(int(haltonEdges[i][0]), int(haltonEdges[i][1]), length = dist)
+        dist = haltonEdges[i][-1]
+        G.add_edge(int(haltonEdges[i][0]), int(haltonEdges[i][1]), length = float(dist))
 
     print('Average degree: ', G.number_of_edges() * 2.0 / n)
     print('Connected: ', nx.is_connected(G))
