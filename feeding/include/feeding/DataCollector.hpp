@@ -81,6 +81,13 @@ public:
   /// Does not perform any bite acquisition actions.
   void collect_images(const std::string& foodName);
 
+  bool skewerWithSPANet(
+      const std::string& foodName,
+      std::size_t trialIndex,
+      const std::string& scenario,
+      std::shared_ptr<Perception>& perception,
+      ros::NodeHandle nodeHandle);
+
 private:
   void setDataCollectionParams(int foodId, int pushDirectionId, int trialId);
 
