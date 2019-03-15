@@ -9,7 +9,7 @@
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/util.hpp"
 #include "feeding/perception/Perception.hpp"
-// #include "feeding/DataCollector.hpp"
+#include "feeding/DataCollector.hpp"
 #include "feeding/ranker/SuccessRateRanker.hpp"
 #include "feeding/ranker/ShortestDistanceRanker.hpp"
 
@@ -54,10 +54,11 @@ int main(int argc, char** argv)
   std::string dataCollectorPath;
   std::size_t directionIndex{0};
   std::size_t trialIndex{0};
+  std::string scenario;
 
   handleArguments(argc, argv,
     adaReal, autoContinueDemo, useFTSensingToStopTrajectories,
-    demoType, foodName, directionIndex, trialIndex, dataCollectorPath);
+    demoType, foodName, directionIndex, trialIndex, scenario, dataCollectorPath);
 
   bool useVisualServo = true;
   bool allowRotationFree = true;
@@ -122,7 +123,7 @@ int main(int argc, char** argv)
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
-  else if (demoType == "spanet")
+  else if (demoType == "spanet" || demoType == "collect_spanet")
   {
     std::cout << "Create SuccessRateRanker" << std::endl;
     ranker = std::make_shared<SuccessRateRanker>();
@@ -154,8 +155,18 @@ int main(int argc, char** argv)
   {
     spanetDemo(*feedingDemo, perception, nodeHandle);
   }
-  else
+  else if (demoType == "collect_spanet")
   {
+    ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
+    DataCollector dataCollector(
+      feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, adaReal, dataCollectorPath);
+
+    dataCollector.skewerWithSPANet(foodName, trialIndex, scenario, perception, nodeHandle);
+
+  } else {
+    ROS_WARN_STREAM("unknown demoType option");
+  }
+  // {
     // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
     // DataCollector dataCollector(
     //   feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
@@ -174,7 +185,7 @@ int main(int argc, char** argv)
     //   dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
     // }
 
-  }
+  // }
 
   return 0;
 }

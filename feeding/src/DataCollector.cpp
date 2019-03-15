@@ -241,7 +241,8 @@ DataCollector::DataCollector(
   // See if we can save force/torque sensor data as well.
 
   // Set Standard Threshold
-  mFeedingDemo->getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
+  if (mFeedingDemo->getFTThresholdHelper())
+    mFeedingDemo->getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
   mNumTrials = getRosParam<int>("/data/numTrials", mNodeHandle);
   mFoods = getRosParam<std::vector<std::string>>("/data/foods", mNodeHandle);
@@ -588,14 +589,14 @@ bool DataCollector::skewerWithSPANet(
   auto plate = mFeedingDemo->getWorkspace()->getPlate()->getRootBodyNode()->getWorldTransform();
   auto plateEndEffectorTransform = mFeedingDemo->getPlateEndEffectorTransform();
   auto foodSkeweringForces = mFeedingDemo->mFoodSkeweringForces;
-  double horizontalToleranceAbovePlate = mFeedingDemo->mPlateTSRParameters["horizontalTolerance"];
-  double verticalToleranceAbovePlate = mFeedingDemo->mPlateTSRParameters["verticalTolerance"];
-  double rotationToleranceAbovePlate = mFeedingDemo->mPlateTSRParameters["rotationTolerance"];
-  double heightAboveFood = mFeedingDemo->mFoodTSRParameters["height"];
-  double horizontalToleranceForFood = mFeedingDemo->mFoodTSRParameters["horizontalTolerance"];
-  double verticalToleranceForFood = mFeedingDemo->mFoodTSRParameters["verticalTolerance"];
-  double rotationToleranceForFood = mFeedingDemo->mFoodTSRParameters["rotationTolerance"];
-  double tiltToleranceForFood = mFeedingDemo->mFoodTSRParameters["tiltTolerance"];
+  double horizontalToleranceAbovePlate = mFeedingDemo->mPlateTSRParameters.at("horizontalTolerance");
+  double verticalToleranceAbovePlate = mFeedingDemo->mPlateTSRParameters.at("verticalTolerance");
+  double rotationToleranceAbovePlate = mFeedingDemo->mPlateTSRParameters.at("rotationTolerance");
+  double heightAboveFood = mFeedingDemo->mFoodTSRParameters.at("height");
+  double horizontalToleranceForFood = mFeedingDemo->mFoodTSRParameters.at("horizontalTolerance");
+  double verticalToleranceForFood = mFeedingDemo->mFoodTSRParameters.at("verticalTolerance");
+  double rotationToleranceForFood = mFeedingDemo->mFoodTSRParameters.at("rotationTolerance");
+  double tiltToleranceForFood = mFeedingDemo->mFoodTSRParameters.at("tiltTolerance");
   double moveOutofFoodLength = mFeedingDemo->mMoveOufOfFoodLength;
   double endEffectorOffsetPositionTolerance = mFeedingDemo->mEndEffectorOffsetPositionTolerance;
   double endEffectorOffsetAngularTolerance = mFeedingDemo->mEndEffectorOffsetAngularTolerance;
@@ -629,12 +630,12 @@ bool DataCollector::skewerWithSPANet(
     return false;
   }
 
-  if (std::find(rotationFreeFoodNames.begin(),
-      rotationFreeFoodNames.end(), foodName) !=
-      rotationFreeFoodNames.end())
-  {
-    rotationToleranceForFood = M_PI;
-  }
+  // if (std::find(rotationFreeFoodNames.begin(),
+  //     rotationFreeFoodNames.end(), foodName) !=
+  //     rotationFreeFoodNames.end())
+  // {
+  //   rotationToleranceForFood = M_PI;
+  // }
 
   double torqueThreshold = 2;
   if (ftThresholdHelper)
@@ -652,7 +653,7 @@ bool DataCollector::skewerWithSPANet(
         ada,
         collisionFree,
         perception,
-        foodName,
+        "",
         heightAboveFood,
         horizontalToleranceForFood,
         verticalToleranceForFood,
@@ -717,6 +718,7 @@ bool DataCollector::skewerWithSPANet(
       endEffectorOffsetAngularTolerance,
       ftThresholdHelper);
 
+  std::cout << "Tilt style " << item->getAction()->getTiltStyle() << std::endl;
   auto action = TiltStyleToString.at(item->getAction()->getTiltStyle());
   std::string trialName = "collect_spanet/" + foodName + "-action-"
                           + action + "-rotation-"

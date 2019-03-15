@@ -28,7 +28,7 @@ add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
   scripts/spanetDemo.cpp
-  scripts/spanetDataCollection.cpp
+  # scripts/spanetDataCollection.cpp
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
   # src/DataCollector.cpp
