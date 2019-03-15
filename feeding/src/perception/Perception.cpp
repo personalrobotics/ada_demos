@@ -91,6 +91,7 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
     throw std::invalid_argument(ss.str());
   }
 
+  std::cout << "PerceiveFood" << std::endl;
   std::vector<std::unique_ptr<FoodItem>> detectedFoodItems;
 
   // Detect items
@@ -184,6 +185,7 @@ bool Perception::isMouthOpen()
 //==============================================================================
 void Perception::setFoodItemToTrack(FoodItem* target)
 {
+  std::cout << "Set Food Item To Track" << target->getName() << std::endl;
   mTargetFoodItem = target;
 }
 

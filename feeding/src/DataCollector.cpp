@@ -583,6 +583,8 @@ bool DataCollector::skewerWithSPANet(
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle)
 {
+  ROS_INFO_STREAM("Skewer");
+
   auto ada = mFeedingDemo->getAda();
   auto workspace = mFeedingDemo->getWorkspace();
   auto collisionFree = mFeedingDemo->getCollisionConstraint();
@@ -597,6 +599,7 @@ bool DataCollector::skewerWithSPANet(
   double verticalToleranceForFood = mFeedingDemo->mFoodTSRParameters.at("verticalTolerance");
   double rotationToleranceForFood = mFeedingDemo->mFoodTSRParameters.at("rotationTolerance");
   double tiltToleranceForFood = mFeedingDemo->mFoodTSRParameters.at("tiltTolerance");
+
   double moveOutofFoodLength = mFeedingDemo->mMoveOufOfFoodLength;
   double endEffectorOffsetPositionTolerance = mFeedingDemo->mEndEffectorOffsetPositionTolerance;
   double endEffectorOffsetAngularTolerance = mFeedingDemo->mEndEffectorOffsetAngularTolerance;
@@ -629,17 +632,16 @@ bool DataCollector::skewerWithSPANet(
     ROS_WARN_STREAM("Move above plate failed. Please restart");
     return false;
   }
+  captureFrame();
 
-  // if (std::find(rotationFreeFoodNames.begin(),
-  //     rotationFreeFoodNames.end(), foodName) !=
-  //     rotationFreeFoodNames.end())
-  // {
-  //   rotationToleranceForFood = M_PI;
-  // }
 
+  ROS_INFO_STREAM("Move above succeeded");
   double torqueThreshold = 2;
   if (ftThresholdHelper)
-    ftThresholdHelper->setThresholds(foodSkeweringForces.at(foodName), torqueThreshold);
+  {
+
+    ftThresholdHelper->setThresholds(FTThreshold::GRAB_FOOD_FT_THRESHOLD);
+  }
 
   bool detectAndMoveAboveFoodSuccess = true;
   Eigen::Vector3d endEffectorDirection(0, 0, -1);
@@ -664,6 +666,8 @@ bool DataCollector::skewerWithSPANet(
         velocityLimits,
         mFeedingDemo.get());
 
+    std::cout << "Got item " << std::endl;
+
     if (!item)
       return false;
 
@@ -681,9 +685,10 @@ bool DataCollector::skewerWithSPANet(
     return false;
 
   ROS_INFO_STREAM(
-        "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
+        "Getting " << foodName << "with " // foodSkeweringForces.at(foodName)
                    << "N with angle mode ");
 
+  captureFrame();
   // ===== INTO FOOD =====
   auto moveIntoSuccess = action::moveInto(
       ada,
@@ -705,6 +710,7 @@ bool DataCollector::skewerWithSPANet(
 
   std::this_thread::sleep_for(waitTimeForFood);
 
+  captureFrame();
   // ===== OUT OF FOOD =====
   Eigen::Vector3d direction(0, 0, 1);
   action::moveOutOf(
@@ -727,6 +733,7 @@ bool DataCollector::skewerWithSPANet(
                           + scenario;
   mDataCollectionPath += trialName + "/";
   setupDirectoryPerData(mDataCollectionPath);
+  captureFrame();
 
   recordSuccess();
 

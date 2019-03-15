@@ -23,6 +23,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     std::vector<double> velocityLimits,
     FeedingDemo* feedingDemo)
 {
+  std::cout << "DetectAndMoveAboveFood" << std::endl;
   std::vector<std::unique_ptr<FoodItem>> candidateItems;
   while (true)
   {
@@ -71,8 +72,8 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
       continue;
     }
     moveAboveSuccessful = true;
-
     perception->setFoodItemToTrack(item.get());
+    std::cout << "set FoodItemToTrack succesful" << std::endl;
     return std::move(item);
   }
 
