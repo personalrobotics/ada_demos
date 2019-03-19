@@ -14,7 +14,7 @@
 #include <cstdlib>
 #include "std_msgs/String.h"
 
-static const std::vector<double> weights = {1, 1, 10, 0.01, 0.01, 0.01};
+static const std::vector<double> weights = {1, 1, 0.01, 0.01, 0.01, 0.01};
 
 using aikido::distance::NominalConfigurationRanker;
 
