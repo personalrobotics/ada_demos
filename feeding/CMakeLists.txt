@@ -18,7 +18,7 @@ find_package(cv_bridge REQUIRED)
 find_package(rosbag REQUIRED)
 
 find_package(DART 6.6.0 REQUIRED
-  COMPONENTS optimizer-nlopt utils
+  COMPONENTS utils utils-urdf optimizer-nlopt
   CONFIG
 )
 
