@@ -24,8 +24,7 @@ include_directories(${tf_conversions_INCLUDE_DIRS})
 include_directories(${catkin_INCLUDE_DIRS})
 
 find_package(DART 6.6.2 REQUIRED
-  COMPONENTS
-    utils-urdf utils optimizer-nlopt)
+  COMPONENTS utils-urdf utils optimizer-nlopt)
 include_directories(${DART_INCLUDE_DIRS})
 
 find_package(aikido 0.3.0 REQUIRED
@@ -74,12 +73,12 @@ include_directories(${gls_INCLUDE_DIRS})
 #
 
 # add_subdirectory(soda_grasp)
-# add_subdirectory(simple_trajectories)
+add_subdirectory(simple_trajectories)
 # add_subdirectory(simple_perception)
 # add_subdirectory(hand_control)
 add_subdirectory(feeding)
 # add_subdirectory(cameraCalibration)
-add_subdirectory(gls_graph_generator)
+# add_subdirectory(gls_graph_generator)
 
 # ===============================================================================
 # Formatting

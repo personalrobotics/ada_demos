@@ -71,10 +71,10 @@ void moveArmTo(
   armSpace->convertStateToPositions(state, positions);
   ROS_INFO_STREAM(positions.transpose());
 
-  auto smoothTrajectory
-      = robot.smoothPath(armSkeleton, trajectory.get(), satisfied);
+  // auto smoothTrajectory
+      // = robot.smoothPath(armSkeleton, trajectory.get(), satisfied);
   aikido::trajectory::TrajectoryPtr timedTrajectory
-      = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+      = std::move(robot.retimePath(armSkeleton, trajectory.get()));
 
   waitForUser("Press key to move arm to goal");
   auto future = robot.executeTrajectory(timedTrajectory);
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
-  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
+  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri, "/home/adityavk/workspaces/ada-ws/src/ada_demos/feeding/config/graph_1000_feeding.graphml");
   auto robotSkeleton = robot.getMetaSkeleton();
 
   // Start Visualization Topic
@@ -188,6 +188,11 @@ int main(int argc, char** argv)
   movedPose(5) -= 0.5;
 
   moveArmTo(robot, armSpace, armSkeleton, movedPose);
+
+  Eigen::VectorXd homeConfiguration(6);
+  homeConfiguration << 3.89015, 3.34645, 2.28738, -1.39666, 2.96761, 2.49281;
+
+  moveArmTo(robot, armSpace, armSkeleton, homeConfiguration);
 
   waitForUser("Press [ENTER] to exit. ");
   ros::shutdown();
