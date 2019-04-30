@@ -612,6 +612,16 @@ bool DataCollector::skewerWithSPANet(
 
   ROS_INFO_STREAM("Skewering with SPANet");
   // set parameters for convenience
+  auto foodIndex = std::distance(
+      mFoods.begin(), std::find(mFoods.begin(), mFoods.end(), foodName));
+  setDataCollectionParams(foodIndex, 0, trialIndex); // No direction index
+
+  std::string trialName = "collect_spanet/" + foodName + "-trial-"
+                          + std::to_string(trialIndex) + "-scenario-"
+                          + scenario;
+  mDataCollectionPath += trialName + "/";
+  setupDirectoryPerData(mDataCollectionPath);
+
 
   std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 
@@ -723,31 +733,29 @@ bool DataCollector::skewerWithSPANet(
       endEffectorOffsetPositionTolerance,
       endEffectorOffsetAngularTolerance,
       ftThresholdHelper);
-
-  std::cout << "Tilt style " << item->getAction()->getTiltStyle() << std::endl;
-  auto action = TiltStyleToString.at(item->getAction()->getTiltStyle());
-  std::string trialName = "collect_spanet/" + foodName + "-action-"
-                          + action + "-rotation-"
-                          + std::to_string(item->getAction()->getRotationAngle()) + "-trial-"
-                          + std::to_string(trialIndex) + "-scenario-"
-                          + scenario;
-  mDataCollectionPath += trialName + "/";
-  setupDirectoryPerData(mDataCollectionPath);
   captureFrame();
 
-  recordSuccess();
+  // Record action used
+  auto action = TiltStyleToString.at(item->getAction()->getTiltStyle());
+  ROS_INFO_STREAM("Tilt style " << action << " angle " << item->getAction()->getRotationAngle());
+  recordSuccess(action + "-" + std::to_string((int)(item->getAction()->getRotationAngle())));
 
   return true;
 }
 
 //==============================================================================
-void DataCollector::recordSuccess()
+void DataCollector::recordSuccess(const std::string& info)
 {
   std::string food = mFoods[mCurrentFood.load()];
   std::string direction = mAngleNames[mCurrentDirection.load()];
   int trial = mCurrentTrial.load();
 
-  auto fileName = mDataCollectionPath + "success/" + food + "-" + direction
+  std::string fileName;
+  if (info != "")
+    fileName = mDataCollectionPath + "success/" + food + "-" + direction
+                  + "-" + std::to_string(trial) + "-" + info + ".txt";
+  else
+    fileName = mDataCollectionPath + "success/" + food + "-" + direction
                   + "-" + std::to_string(trial) + ".txt";
 
   ROS_INFO_STREAM(

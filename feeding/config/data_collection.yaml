@@ -31,8 +31,8 @@ planning:
     rotationalToleranceAbovePlate: 0.0
     horizontalToleranceNearFood: 0.0
     verticalToleranceNearFood: 0.0
-    rotationToleranceNearFood: 0.1926 # PI / 8
-    tiltToleranceNearFood: 0.175 # 10 degrees
+    rotationToleranceNearFood: 0.175
+    tiltToleranceNearFood: 0.35 # 20 degrees
 
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:

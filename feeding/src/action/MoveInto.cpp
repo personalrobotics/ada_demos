@@ -9,6 +9,8 @@
 #include "feeding/perception/PerceptionServoClient.hpp"
 #include "feeding/util.hpp"
 
+#define USE_SERVO
+
 namespace feeding {
 namespace action {
 
@@ -39,35 +41,32 @@ bool moveInto(
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance);
 
-  // if (perception)
-  // {
-  //   ROS_INFO("Servoing into food");
+#ifdef USE_SERVO
 
-  //   int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
-  //   std::vector<double> velocityLimits(numDofs, 0.2);
+    ROS_INFO("Servoing into food");
 
-  //   PerceptionServoClient servoClient(
-  //       nodeHandle,
-  //       boost::bind(&Perception::getTrackedFoodItemPose, perception.get()),
-  //       ada->getArm()->getStateSpace(),
-  //       ada,
-  //       ada->getArm()->getMetaSkeleton(),
-  //       ada->getHand()->getEndEffectorBodyNode(),
-  //       ada->getTrajectoryExecutor(),
-  //       nullptr,
-  //       1.0,
-  //       0.002,
-  //       planningTimeout,
-  //       endEffectorOffsetPositionTolerance,
-  //       endEffectorOffsetAngularTolerance,
-  //       true, // servoFood
-  //       velocityLimits);
-  //   servoClient.start();
+    int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
+    std::vector<double> velocityLimits(numDofs, 0.2);
 
-  //   return servoClient.wait(15.0);
-  // }
-  // else
-
+    PerceptionServoClient servoClient(
+        nodeHandle,
+        boost::bind(&Perception::getTrackedFoodItemPose, perception.get()),
+        ada->getArm()->getStateSpace(),
+        ada,
+        ada->getArm()->getMetaSkeleton(),
+        ada->getHand()->getEndEffectorBodyNode(),
+        ada->getTrajectoryExecutor(),
+        nullptr,
+        1.0,
+        0.002,
+        planningTimeout,
+        endEffectorOffsetPositionTolerance,
+        endEffectorOffsetAngularTolerance,
+        true, // servoFood
+        velocityLimits);
+    servoClient.start();
+    return servoClient.wait(15.0);
+#else
   std::cout << "endEffectorDirection " << endEffectorDirection.transpose() << std::endl;
   {
     double length = 0.05;
@@ -83,8 +82,9 @@ bool moveInto(
         endEffectorOffsetAngularTolerance);
     ROS_INFO_STREAM(" Execution result: " << result);
   }
-
   return true;
+#endif
+
 }
 
 } // namespace feeding
