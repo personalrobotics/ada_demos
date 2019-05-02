@@ -96,66 +96,6 @@ aikido::constraint::dart::TSR getCalibrationTSR(const Eigen::Isometry3d& transfo
 }
 
 //==============================================================================
-bool moveArmToTSR(
-    aikido::constraint::dart::TSR& tsr,
-    ada::Ada& ada,
-    std::shared_ptr<aikido::constraint::dart::CollisionFree> collisionFreeConstraint,
-    std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace)
-{
-  auto goalTSR = std::make_shared<aikido::constraint::dart::TSR>(tsr);
-  double timeoutSeconds = 0.1;
-  double maxNumberOfTrials = 1;
-
-
-  auto trajectory = ada.planToTSR(
-      armSpace,
-      ada.getArm()->getMetaSkeleton(),
-      ada.getHand()->getEndEffectorBodyNode(),
-      goalTSR,
-      collisionFreeConstraint,
-      timeoutSeconds,
-      maxNumberOfTrials);
-
-  return moveArmOnTrajectory(trajectory, ada, collisionFreeConstraint, armSpace);
-}
-
-//==============================================================================
-bool moveArmOnTrajectory(
-    aikido::trajectory::TrajectoryPtr trajectory,
-    ada::Ada& ada,
-    std::shared_ptr<aikido::constraint::dart::CollisionFree> collisionFreeConstraint,
-    std::shared_ptr<aikido::statespace::dart::MetaSkeletonStateSpace> armSpace)
-{
-  if (!trajectory)
-  {
-    return false;
-  }
-
-  std::vector<aikido::constraint::ConstTestablePtr> constraints;
-  if (collisionFreeConstraint)
-  {
-    constraints.push_back(collisionFreeConstraint);
-  }
-  auto testable = std::make_shared<aikido::constraint::TestableIntersection>(
-      armSpace, constraints);
-
-  aikido::trajectory::TrajectoryPtr timedTrajectory = ada.smoothPath(
-          ada.getArm()->getMetaSkeleton(), trajectory.get(), testable);
-
-  auto future = ada.executeTrajectory(std::move(timedTrajectory));
-  try
-  {
-    future.get();
-  }
-  catch (const std::exception& e)
-  {
-    ROS_INFO_STREAM("trajectory execution failed: " << e.what());
-    return false;
-  }
-  return true;
-}
-
-//==============================================================================
 void printPose(const Eigen::Isometry3d& pose)
 {
   double x1 = pose.translation().x();

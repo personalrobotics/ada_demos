@@ -22,6 +22,9 @@ static const Eigen::Isometry3d targetToWorld = robotPose.inverse() * createIsome
   .425, 0.15, -0.005, 3.1415, 0, 0);
 std::vector<Eigen::Isometry3d> cameraToJouleEstimates;
 
+static const double planningTimeout = 1.0;
+static const int maxNumTrials = 50;
+
 bool tryPerceivePoint(
         std::string frameName,
         Perception& perception,
@@ -84,9 +87,7 @@ int main(int argc, char** argv)
       "package://ada_description/robots_urdf/ada_with_camera.urdf",
       "package://ada_description/robots_urdf/ada_with_camera.srdf",
       "j2n6s200_hand_tip");
-  auto armSpace
-      = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
-          ada.getArm()->getMetaSkeleton().get());
+  auto armSpace = ada.getArm()->getStateSpace();
 
   // Setting up workspace
   const auto resourceRetriever
@@ -171,7 +172,7 @@ int main(int argc, char** argv)
   dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "targetFrame", targetPointPose);
   auto targetFrameMarker = viewer.addFrame(targetFrame.get(), 0.07, 0.007);
 
-  if (!moveArmToTSR(targetTSR, ada, collisionFreeConstraint, armSpace))
+  if (!ada.moveArmToTSR(targetTSR, collisionFreeConstraint, planningTimeout, maxNumTrials))
   {
     throw std::runtime_error("Trajectory execution failed");
   }
@@ -186,8 +187,10 @@ int main(int argc, char** argv)
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
       0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
       0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
-      0.05, 3.58, 0, angle)); if
-    (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+      0.05, 3.58, 0, angle));
+    if (!ada.moveArmToTSR(tsr, collisionFreeConstraint,
+        planningTimeout, maxNumTrials))
+
     {
       ROS_INFO_STREAM("Fail: Step " << i);
     } else {
@@ -215,7 +218,8 @@ int main(int argc, char** argv)
               3.98,
               0,
               angle));
-    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+    if (!ada.moveArmToTSR(tsr, collisionFreeConstraint,
+          planningTimeout, maxNumTrials))
     {
       ROS_INFO_STREAM("Fail: Step " << i);
     }
@@ -251,7 +255,8 @@ int main(int argc, char** argv)
       0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
       0.05, 3.58, 0, angle));
 
-    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+    if (!ada.moveArmToTSR(tsr, collisionFreeConstraint,
+      planningTimeout, maxNumTrials))
     {
       ROS_INFO_STREAM("Fail: Step " << i);
     } else
@@ -265,7 +270,8 @@ int main(int argc, char** argv)
 
   waitForUser("Move back to center");
 
-  if (!moveArmToTSR(targetTSR, ada, collisionFreeConstraint, armSpace))
+  if (!ada.moveArmToTSR(targetTSR, collisionFreeConstraint,
+      planningTimeout, maxNumTrials))
   {
     throw std::runtime_error("Trajectory execution failed");
   }
