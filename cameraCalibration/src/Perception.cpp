@@ -1,6 +1,7 @@
 #include "cameraCalibration/Perception.hpp"
 #include <Eigen/Eigenvalues>
 #include <opencv2/core/eigen.hpp>
+#include <ros/ros.h>
 
 namespace cameraCalibration {
 
@@ -125,13 +126,12 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
   std::vector<int> inliers;
 
   ROS_INFO("cameraToJouleGuess");
-  ROS_INFO_STREAM(cameraToJouleGuess.matrix());
+  ROS_INFO_STREAM("\n" << cameraToJouleGuess.matrix());
 
   // Initial guess
   // LensToWorld = JouleToWorld * CameraToJoule * LensToCamera;
   auto lensToWorldGuess = worldToJoule.inverse() * cameraToJouleGuess * cameraToLens.inverse();
   auto worldToLensGuess = lensToWorldGuess.inverse();
-
 
   cv::Mat cb_rvec, cb_tvec;
   cv::Mat cb_rmat;
@@ -150,6 +150,15 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
       8.0,
       0.99,
       inliers);
+  // cv::solvePnPRansac(
+  //     pointsToWorld,
+  //     corners,
+  //     mCameraModel.intrinsicMatrix(),
+  //     mCameraModel.distortionCoeffs(),
+  //     cb_rvec,
+  //     cb_tvec,
+  //     true);
+
 
   ROS_INFO_STREAM("Inliers: " << inliers.size());
 
@@ -158,6 +167,8 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
 
   ROS_INFO("Solved PnP");
 
+
+  // Turn this on to visualize the mapping
   visualizeProjection(cb_rvec, cb_tvec, pointsToWorld, corners, image);
 
   cv::Rodrigues(cb_rvec, cb_rmat);
@@ -178,9 +189,11 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
   // <--> CameraToJoule = JouleToWorld.inv() * LensToWorld * LensToCamera.inverse()
   auto cameraToJoule = worldToJoule * lensToWorld * cameraToLens;
 
-  ROS_INFO("Solved CameraToJoule");
-  ROS_INFO_STREAM(cameraToJoule.matrix());
+  ROS_INFO_STREAM("Solved CameraToJoule. " <<
+    "This should not be too different from the initial guess.");
+  ROS_INFO_STREAM("\n" << cameraToJoule.matrix());
 
+  // Turn this on to visualize the mapping
   visualizeProjection(targetToWorld, worldToJoule, cameraToLens, cameraToJoule);
 
   return cameraToJoule;
@@ -216,6 +229,7 @@ bool Perception::recordView(
         0
       );
       Eigen::Translation3d pointToWorld((targetToWorld * pointToTarget).translation());
+      std::cout << "pointsToWorld " << pointToWorld.x() << " " <<  pointToWorld.y() << " " <<  pointToWorld.z() << std::endl;
       pointsToWorld.push_back(cv::Point3f(pointToWorld.x(), pointToWorld.y(), pointToWorld.z()));
     }
   }
@@ -268,11 +282,13 @@ Eigen::Isometry3d Perception::computeMeanCameraToJouleEstimate(
   ROS_INFO_STREAM("Average CameraToJoule" << std::endl << cameraToJoule.matrix() << std::endl);
   ROS_INFO_STREAM("Yaw: " << eulerAngles.x() << "\npitch: " << eulerAngles.y() << "\nroll: " << eulerAngles.z() << std::endl);
 
-  auto jouleToCamera = cameraToJoule.inverse();
-  eulerAngles = jouleToCamera.linear().eulerAngles(2, 1, 0);
-  ROS_INFO_STREAM("Average JouleToCamera" << std::endl << jouleToCamera.matrix() << std::endl);
-  ROS_INFO_STREAM("Yaw: " << eulerAngles.x() << "\npitch: " << eulerAngles.y() << "\nroll: " << eulerAngles.z() << std::endl);
+  // auto jouleToCamera = cameraToJoule.inverse();
+  // eulerAngles = jouleToCamera.linear().eulerAngles(2, 1, 0);
+  // ROS_INFO_STREAM("Average JouleToCamera" << std::endl << jouleToCamera.matrix() << std::endl);
+  // ROS_INFO_STREAM("Yaw: " << eulerAngles.x() << "\npitch: " << eulerAngles.y() << "\nroll: " << eulerAngles.z() << std::endl);
 
+  ROS_INFO_STREAM("Replace st_joule2camera in ada_launch/default.launch with "
+   << translation.transpose() << " " << eulerAngles.x() << " " << eulerAngles.y() << " " << eulerAngles.z() << std::endl);
   return cameraToJoule;
 }
 

@@ -136,9 +136,10 @@ int main(int argc, char** argv)
       "/camera/color/image_raw/compressed",
       "/camera/color/camera_info",
       true,
-      5,
-      4,
-      0.0215);
+      6, // number of center points in width
+      4, // number of center points in height
+      0.015 // size of checkerboard in meter
+      );
   tf::TransformListener tfListener;
   std::vector<Eigen::Isometry3d> targetPointsInCameraLensFrame;
   std::vector<Eigen::Isometry3d> cameraLensPointsInWorldFrame;
@@ -206,6 +207,8 @@ int main(int argc, char** argv)
     }
   }
 
+  ROS_INFO_STREAM("Done taking pics");
+
   for (int i = 20; i <= 56; i+=5)
   {
     double angle = 0.1745 * i;
@@ -237,9 +240,10 @@ int main(int argc, char** argv)
     }
   }
 
-
   // ===== CALCULATE CALIBRATION =====
   ROS_INFO_STREAM("Got " << cameraToJouleEstimates.size() << " estimates.");
+  ROS_INFO_STREAM("Solving for Mean CameraToJoule ");
+
   auto cameraToJoule = perception.computeMeanCameraToJouleEstimate(cameraToJouleEstimates);
   Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
   perception.visualizeProjection(targetToWorld, worldToJoule,
