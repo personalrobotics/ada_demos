@@ -746,8 +746,8 @@ bool DataCollector::skewerWithSPANet(
 //==============================================================================
 void DataCollector::recordSuccess(const std::string& info)
 {
-  std::string food = mFoods[mCurrentFood.load()];
-  std::string direction = mAngleNames[mCurrentDirection.load()];
+  std::string food = mFoods.at(mCurrentFood.load());
+  std::string direction = mAngleNames.at(mCurrentDirection.load());
   int trial = mCurrentTrial.load();
 
   std::string fileName;
