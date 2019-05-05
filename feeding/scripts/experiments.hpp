@@ -30,6 +30,11 @@ void spanetDemo(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle);
+
+void kinovaScoopDemo(
+    FeedingDemo& feedingDemo,
+    ros::NodeHandle nodeHandle);
+
 };
 
 #endif

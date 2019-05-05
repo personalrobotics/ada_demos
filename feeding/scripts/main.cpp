@@ -47,7 +47,8 @@ int main(int argc, char** argv)
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
-  std::string demoType{"nips"};
+  // std::string demoType{"nips"};
+  std::string demoType{"kinova"};
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
@@ -85,11 +86,11 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM("DataCollectorPath: " << dataCollectorPath);
   ROS_INFO_STREAM("FoodName: " << foodName);
 
-#ifndef REWD_CONTROLLERS_FOUND
-  ROS_WARN_STREAM(
-      "Package rewd_controllers not found. The F/T sensor connection is not "
-      "going to work.");
-#endif
+  #ifndef REWD_CONTROLLERS_FOUND
+    ROS_WARN_STREAM(
+        "Package rewd_controllers not found. The F/T sensor connection is not "
+        "going to work.");
+  #endif
 
   // start node
   ros::init(argc, argv, "feeding");
@@ -119,7 +120,7 @@ int main(int argc, char** argv)
 
   std::shared_ptr<TargetFoodRanker> ranker;
 
-  if (demoType == "nips")
+  if (demoType == "nips" || demoType == "kinova")
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
@@ -141,7 +142,7 @@ int main(int argc, char** argv)
 
   feedingDemo->getAda()->closeHand();
 
-  feedingDemo->setPerception(perception);
+  // feedingDemo->setPerception(perception);
 
   ROS_INFO_STREAM("Startup complete.");
 
@@ -163,7 +164,14 @@ int main(int argc, char** argv)
 
     dataCollector.skewerWithSPANet(foodName, trialIndex, scenario, perception, nodeHandle);
 
-  } else {
+  }
+  else if (demoType == "kinova")
+  {
+    kinovaScoopDemo(*feedingDemo, nodeHandle);
+  }
+
+  else 
+  {
     ROS_WARN_STREAM("unknown demoType option");
   }
   // {

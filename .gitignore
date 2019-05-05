@@ -55,3 +55,6 @@ flycheck_*.el
 *.vscode
 .vscode/
 feeding/.vscode/
+
+# Mac
+*.DS_Store

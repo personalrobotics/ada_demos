@@ -28,6 +28,9 @@ add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
   scripts/spanetDemo.cpp
+
+  scripts/kinovaScoopDemo.cpp
+
   # scripts/spanetDataCollection.cpp
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
@@ -54,6 +57,9 @@ add_executable(feeding
   src/action/PickUpFork.cpp
   src/action/PutDownFork.cpp
   src/action/Skewer.cpp
+
+  src/action/KinovaScoop.cpp
+
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp
   src/ranker/ShortestDistanceRanker.cpp

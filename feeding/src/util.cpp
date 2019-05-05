@@ -148,7 +148,7 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
 {
 
   std::string foodName;
-  foodName = getUserInputFromAlexa(nodeHandle);
+  //foodName = getUserInputFromAlexa(nodeHandle);
   if (foodName != "")
   {
     ROS_INFO_STREAM("Got " << foodName << " from Alexa.");
