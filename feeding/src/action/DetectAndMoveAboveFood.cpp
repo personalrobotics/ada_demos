@@ -48,7 +48,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   {
     auto action = item->getAction();
 
-    std::cout << "[MoveAboveFood: ] Tilt style " << action->getTiltStyle() << " angle " << action->getRotationAngle() << std::endl;
+    ROS_INFO_STREAM("Tilt style " << TiltStyleToString.at(action->getTiltStyle()) << " angle " << action->getRotationAngle());
     if (!moveAboveFood(
             ada,
             collisionFree,

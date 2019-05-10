@@ -99,7 +99,9 @@ private:
 
   bool skewer(float rotateForqueAngle, TiltStyle tiltStyle);
 
-  void recordSuccess();
+  /// \param[in] info Custom text to file name
+  /// In /c skewerWithSPANet(), set to "actionName-angle"
+  void recordSuccess(const std::string& info="");
 
   void captureFrame();
 
