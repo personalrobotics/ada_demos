@@ -140,13 +140,13 @@ int main(int argc, char** argv)
   if (ftThresholdHelper)
     ftThresholdHelper->init();
 
-  feedingDemo->getAda()->closeHand();
+  feedingDemo->getAda()->closeHand(); 
 
-  // feedingDemo->setPerception(perception);
+  feedingDemo->setPerception(perception);
 
   ROS_INFO_STREAM("Startup complete.");
 
-  //feedingDemo->moveToStartConfiguration();
+  feedingDemo->moveToStartConfiguration();
 
   if (demoType == "nips")
   {

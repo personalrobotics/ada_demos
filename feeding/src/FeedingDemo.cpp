@@ -80,7 +80,6 @@ FeedingDemo::FeedingDemo(
   mCollisionFreeConstraint->addPairwiseCheck(
       armCollisionGroup, envCollisionGroup);
 
-
   dart::collision::CollisionDetectorPtr relaxedCollisionDetector
       = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<dart::collision::CollisionGroup> relaxedArmCollisionGroup
