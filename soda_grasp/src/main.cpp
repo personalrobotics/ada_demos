@@ -11,6 +11,19 @@
 #include <pr_tsr/can.hpp>
 #include <libada/Ada.hpp>
 
+#include <aikido/constraint/dart/InverseKinematicsSampleable.hpp>
+#include <aikido/constraint/dart/JointStateSpaceHelpers.hpp>
+#include <aikido/distance/NominalConfigurationRanker.hpp>
+#include <aikido/statespace/dart/MetaSkeletonStateSaver.hpp>
+
+using aikido::constraint::dart::createSampleableBounds;
+using aikido::constraint::dart::InverseKinematicsSampleable;
+using aikido::distance::NominalConfigurationRanker;
+using aikido::statespace::dart::MetaSkeletonStateSaver;
+
+using dart::dynamics::InverseKinematics;
+using dart::dynamics::InverseKinematicsPtr;
+
 namespace po = boost::program_options;
 
 using dart::dynamics::SkeletonPtr;
@@ -124,8 +137,15 @@ int main(int argc, char** argv)
   viewer.setAutoUpdate(true);
 
   // Predefined positions ////////////////////////////////////////////////////
-  Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
-  armRelaxedHome << 0.631769, -2.82569, -1.31347, -1.29491, -0.774963, 1.6772;
+
+  Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Zero(6));
+  armRelaxedHome[1] = 3.14;
+  armRelaxedHome[2] = 3.14;
+
+  // Eigen::VectorXd armRelaxedHome(Eigen::VectorXd::Ones(6));
+  // armRelaxedHome << 0.631769, -2.82569, -1.31347, -1.29491, -0.774963, 1.6772;
+
+  Eigen::VectorXd goalConfigOut(6);
 
   auto arm = robot.getArm();
   auto armSkeleton = arm->getMetaSkeleton();
@@ -143,7 +163,7 @@ int main(int argc, char** argv)
   auto sodaTSR = pr_tsr::getDefaultCanTSR();
   sodaTSR.mT0_w = sodaPose;
 
-  waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
+  waitForUser("KEK You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
   auto defaultPose = getCurrentConfig(robot);
 
@@ -151,29 +171,129 @@ int main(int argc, char** argv)
   sodaTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("cylinder")->matrix();
   auto goalTsr = std::make_shared<TSR>(sodaTSR);
 
-  auto trajectory = robot.planToTSR(
+  // Create an IK solver.
+  InverseKinematicsPtr mIK = InverseKinematics::create(hand->getEndEffectorBodyNode());
+  mIK->setDofs(armSkeleton->getDofs());
+
+  InverseKinematicsSampleable ikSampleable(
+    armSpace,
+    armSkeleton,
+    std::const_pointer_cast<aikido::constraint::dart::TSR>(goalTsr),
+    createSampleableBounds(armSpace, robot.cloneRNG()),
+    mIK,
+    10);
+  auto generator = ikSampleable.createSampleGenerator();
+
+  // auto saver = MetaSkeletonStateSaver(armSkeleton);
+  // DART_UNUSED(saver);
+
+  auto coreSkeleton = armSkeleton->getBodyNode(0)->getSkeleton();
+
+  std::vector<MetaSkeletonStateSpace::ScopedState> configurations;
+
+  // Use ranker to pick the goal config closest to the start config.
+  auto startState = armSpace->createState();
+  armSpace->getState(armSkeleton.get(), startState);
+  auto nominalState = armSpace->createState();
+  armSpace->copyState(startState, nominalState);
+  auto configurationRanker = std::make_shared<const NominalConfigurationRanker>(
       armSpace,
       armSkeleton,
-      hand->getEndEffectorBodyNode(),
-      goalTsr,
-      nullptr,
-      planningTimeout,
-      5);
+      nominalState,
+      std::vector<double>());
 
-  if (!trajectory)
+  auto goalState = armSpace->createState();
+
+  // Sampling loop.
+  static const std::size_t maxSamples{100};
+  std::size_t samples = 0;
+  while (samples < maxSamples && generator->canSample())
   {
-    throw std::runtime_error("Failed to find a solution");
+    // Sample from TSR
+    std::lock_guard<std::mutex> lock(coreSkeleton->getMutex());
+    bool sampled = generator->sample(goalState);
+
+    // Increment even if it's not a valid sample since this loop
+    // has to terminate even if none are valid.
+    ++samples;
+
+    if (!sampled)
+      continue;
+
+    configurations.emplace_back(goalState.clone());
   }
 
-  auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
-  aikido::trajectory::TrajectoryPtr timedTrajectory
-      = robot.retimePath(armSkeleton, trajectory.get());
+  // NOTE: Zero config represents failure here!
+  if (configurations.empty())
+  {
+    std::cout << "" << std::endl;
+    std::cout << "Couldn't sample TSR IK!" << std::endl;
 
-  auto future = robot.executeTrajectory(timedTrajectory);
-  future.wait();
+    return 1;
+  }
 
-  getCurrentConfig(robot);
+  configurationRanker->rankConfigurations(configurations);
 
-  std::cin.get();
+  for (std::size_t i = 0; i < configurations.size(); ++i)
+  {
+    // Now that configs are sorted, return the first free goal state.
+    armSpace->convertStateToPositions(configurations[i], goalConfigOut);
+
+    waitForUser("PRESS TO VIZ");
+    armSkeleton->setPositions(goalConfigOut);
+
+    waitForUser("PRESS TO PLAN");
+
+    armSkeleton->setPositions(armRelaxedHome);
+
+    auto trajectory = robot.planToConfiguration(
+        armSpace, armSkeleton, goalConfigOut, nullptr, planningTimeout);
+
+    if (trajectory)
+    {
+      auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
+
+      auto smoothTrajectory
+        = robot.smoothPath(armSkeleton, trajectory.get(), testable);
+      aikido::trajectory::TrajectoryPtr timedTrajectory
+          = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+
+      waitForUser("ENTER TO EXEC!");
+      auto future = robot.executeTrajectory(timedTrajectory);
+      future.wait();
+
+      return 0;
+    }
+  }
+
+
+
+  // moveArmTo(robot, armSpace, armSkeleton, goalConfigOut);
+
+  //
+  // auto trajectory = robot.planToTSR(
+  //     armSpace,
+  //     armSkeleton,
+  //     hand->getEndEffectorBodyNode(),
+  //     goalTsr,
+  //     nullptr,
+  //     20.0,
+  //     100);
+  //
+  // if (!trajectory)
+  // {
+  //   throw std::runtime_error("Failed to find a solution");
+  // }
+  //
+  // auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
+  // aikido::trajectory::TrajectoryPtr timedTrajectory
+  //     = robot.retimePath(armSkeleton, trajectory.get());
+  //
+  // auto future = robot.executeTrajectory(timedTrajectory);
+  // future.wait();
+  //
+  // getCurrentConfig(robot);
+  //
+  // std::cin.get();
   return 0;
 }

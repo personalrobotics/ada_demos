@@ -21,10 +21,10 @@ using aikido::robot::Robot;
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
-dart::common::Uri adaUrdfUri{
-    "package://ada_description/robots_urdf/ada_with_camera.urdf"};
-dart::common::Uri adaSrdfUri{
-    "package://ada_description/robots_urdf/ada_with_camera.srdf"};
+// dart::common::Uri adaUrdfUri{
+//     "package://ada_description/robots_urdf/ada_with_camera.urdf"};
+// dart::common::Uri adaSrdfUri{
+//     "package://ada_description/robots_urdf/ada_with_camera.srdf"};
 
 static const double planningTimeout{5.};
 
@@ -87,20 +87,20 @@ int main(int argc, char** argv)
 {
   bool adaSim = true;
 
-  // Default options for flags
-  po::options_description po_desc("simple_trajectories options");
-  po_desc.add_options()("help", "Produce help message")(
-      "adasim,a", po::bool_switch(&adaSim), "Run ADA in sim");
-
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, po_desc), vm);
-  po::notify(vm);
-
-  if (vm.count("help"))
-  {
-    std::cout << po_desc << std::endl;
-    return 0;
-  }
+  // // Default options for flags
+  // po::options_description po_desc("simple_trajectories options");
+  // po_desc.add_options()("help", "Produce help message")(
+  //     "adasim,a", po::bool_switch(&adaSim), "Run ADA in sim");
+  //
+  // po::variables_map vm;
+  // po::store(po::parse_command_line(argc, argv, po_desc), vm);
+  // po::notify(vm);
+  //
+  // if (vm.count("help"))
+  // {
+  //   std::cout << po_desc << std::endl;
+  //   return 0;
+  // }
 
   std::cout << "Simulation Mode: " << adaSim << std::endl;
 
@@ -114,7 +114,10 @@ int main(int argc, char** argv)
 
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
-  ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
+  ada::Ada robot(env, adaSim);
+
+  std::cout << "[DEBUG] DONE LOADING" << std::endl;
+
   auto robotSkeleton = robot.getMetaSkeleton();
 
   // Start Visualization Topic
