@@ -15,9 +15,12 @@ bool kinovaScoop(
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
+    double hight,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
     double rotationToleranceAbovePlate,
+    double endEffectorOffsetPositionTolerance,
+    double endEffectorOffsetAngularTolerance,
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits);

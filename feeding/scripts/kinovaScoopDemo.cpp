@@ -26,11 +26,7 @@ void kinovaScoopDemo(
   {
     waitForUser("next step?", ada);
 
-    // is this two param necessary?
-    // nodeHandle.setParam("/deep_pose/forceFood", false);
-    // nodeHandle.setParam("/deep_pose/publish_spanet", (true));
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     ROS_INFO_STREAM("Running Kinova Scoop demo");
 
@@ -39,9 +35,12 @@ void kinovaScoopDemo(
     collisionFree,
     plate,
     feedingDemo.getPlateEndEffectorTransform(),
+    feedingDemo.mPlateTSRParameters.at("height"),
     feedingDemo.mPlateTSRParameters["horizontalTolerance"],
     feedingDemo.mPlateTSRParameters["verticalTolerance"],
     feedingDemo.mPlateTSRParameters["rotationTolerance"],
+    feedingDemo.mEndEffectorOffsetPositionTolerance,
+    feedingDemo.mEndEffectorOffsetAngularTolerance,
     feedingDemo.mPlanningTimeout,
     feedingDemo.mMaxNumTrials,
     feedingDemo.mVelocityLimits);

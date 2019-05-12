@@ -73,7 +73,7 @@ bool skewer(
 
   double torqueThreshold = 2;
 
-  bool detectAndMoveAboveFoodSuccess = true;
+  bool detectAndMoveAboveFoodSuccess = true; // should be false?
   Eigen::Vector3d endEffectorDirection(0, 0, -1);
 
   for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
@@ -103,7 +103,7 @@ bool skewer(
           velocityLimits,
           feedingDemo);
 
-      if (!item)
+      if (!item) // what if it fails twice
         continue;
 
       selectedFoodName = item->getName();
@@ -115,7 +115,6 @@ bool skewer(
         std::cout << "Set FT threshold" << std::endl;
         ftThresholdHelper->setThresholds(foodSkeweringForces.at(selectedFoodName), torqueThreshold);
       }
-
 
       tiltStyle = item->getAction()->getTiltStyle();
       if (tiltStyle == TiltStyle::ANGLED)

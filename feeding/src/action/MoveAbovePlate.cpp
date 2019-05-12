@@ -18,9 +18,12 @@ bool moveAbovePlate(
 {
 
   Eigen::VectorXd config(6);
+  // is this the config of the point above the plate? change it to test.
   config << -2.15583, 3.0954,  1.61802,  -2.45501,  -2.04492, -4.73983 ;
   bool success = ada->moveArmToConfiguration(config, collisionFree, 2.0);
-  if (!success)
+  // what's the difference between ada->moveArmToConfiguration and moveAbove
+  if (!success) {
+    std::cout <<"Try moveAbove"<<std::endl;
     return moveAbove(
         ada,
         collisionFree,
@@ -33,6 +36,7 @@ bool moveAbovePlate(
         planningTimeout,
         maxNumTrials,
         velocityLimits);
+  }
   else
     return success;
 }

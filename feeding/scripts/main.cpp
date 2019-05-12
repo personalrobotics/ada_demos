@@ -109,6 +109,7 @@ int main(int argc, char** argv)
   }
 
   // start demo
+  std::cout<<"hi"<<std::endl;
   auto feedingDemo = std::make_shared<FeedingDemo>(
     adaReal,
     nodeHandle,
@@ -117,6 +118,7 @@ int main(int argc, char** argv)
     allowRotationFree,
     ftThresholdHelper,
     autoContinueDemo);
+  std::cout<<"hi"<<std::endl;
 
   std::shared_ptr<TargetFoodRanker> ranker;
 
@@ -146,7 +148,7 @@ int main(int argc, char** argv)
 
   ROS_INFO_STREAM("Startup complete.");
 
-  feedingDemo->moveToStartConfiguration();
+  // feedingDemo->moveToStartConfiguration();
 
   if (demoType == "nips")
   {

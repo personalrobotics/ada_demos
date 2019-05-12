@@ -273,6 +273,7 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
 {
   Eigen::Isometry3d eeTransform
       = mAda->getHand()->getEndEffectorTransform("plate").get();
+  std::cout << eeTransform.linear() << std::endl; // debug test
   eeTransform.linear()
       = eeTransform.linear()
         * Eigen::Matrix3d(
