@@ -28,6 +28,7 @@ before_install:
   - curl -sS "${DISTRIBUTION}" > distribution.yml
   - ./scripts/internal-setup.sh
   - export PACKAGE_NAMES="$(./scripts/internal-get-packages.py distribution.yml ${REPOSITORY})"
+  - sudo apt-get install -y libompl-dev=1.0.0+ds2-1build1
 
 install:
   - mv "${TRAVIS_BUILD_DIR}" src
