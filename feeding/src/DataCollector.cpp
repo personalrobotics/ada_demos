@@ -625,6 +625,7 @@ bool DataCollector::skewerWithSPANet(
 
   std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 
+  std::cout << "MoveAbovePlate" << std::endl;
   bool abovePlaceSuccess = action::moveAbovePlate(
       ada,
       collisionFree,
@@ -654,13 +655,16 @@ bool DataCollector::skewerWithSPANet(
   }
 
   bool detectAndMoveAboveFoodSuccess = true;
-  Eigen::Vector3d endEffectorDirection(0, 0, -1);
+
+  Eigen::Vector3d endEffectorDirection(0.0, 0, -1);
 
   std::unique_ptr<FoodItem> item;
 
-  for(std::size_t i = 0; i < 2; ++i)
+  for(std::size_t i = 0; i < 1; ++i)
   {
-    ROS_INFO_STREAM("Detect and Move above food");
+    std::this_thread::sleep_for(waitTimeForFood);
+
+    ROS_INFO_STREAM("Detect and Move above food " << i << "/5");
     item = action::detectAndMoveAboveFood(
         ada,
         collisionFree,
@@ -685,6 +689,17 @@ bool DataCollector::skewerWithSPANet(
     if (tiltStyle == TiltStyle::ANGLED)
     {
       endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
+      endEffectorDirection.normalize();
+    }
+    else if (tiltStyle == TiltStyle::VERTICAL)
+    {
+      endEffectorDirection = Eigen::Vector3d(-0.1, 0.05, -1);
+      endEffectorDirection.normalize();
+    }
+    else if (tiltStyle == TiltStyle::NONE)
+    {
+      // endEffectorDirection = Eigen::Vector3d(0.1, 0.0, -1);
+      endEffectorDirection = Eigen::Vector3d(0.0, 0.0, -1);
       endEffectorDirection.normalize();
     }
     if (!item)
@@ -784,11 +799,11 @@ void DataCollector::recordSuccess(const std::string& info)
     ss << "fail" << std::endl;
     ss.close();
   }
-  else
-  {
-    ROS_ERROR_STREAM("Removing data " << mDataCollectionPath);
-    removeDirectory(mDataCollectionPath);
-  }
+  // else
+  // {
+  //   ROS_ERROR_STREAM("Removing data " << mDataCollectionPath);
+  //   removeDirectory(mDataCollectionPath);
+  // }
 }
 
 //==============================================================================

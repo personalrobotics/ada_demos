@@ -114,16 +114,21 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
   {
     auto foodItem = mTargetFoodRanker->createFoodItem(item, forqueTF);
 
-    if (mRemoveRotationForFood)
-    {
-      removeRotation(foodItem.get());
-    }
+    //if (mRemoveRotationForFood)
+    //{
+    //  ROS_WARN_STREAM("REMOVING ROTATION");
+      //removeRotation(foodItem.get());
+  //}
 
     if (mProjectFoodToTable)
     {
-      projectToTable(foodItem.get());
+     projectToTable(foodItem.get());
     }
 
+    Eigen::Isometry3d foodPose(foodItem->getPose());
+    std::cout << "Original food pose\n" << foodPose.matrix() << std::endl;
+
+    std::cout << "PerceiveFood " << foodItem->getName() << " " << foodItem->getAction()->getRotationAngle() * 180 / 3.14 << std::endl;
     if (foodName != "" && foodItem->getName() != foodName)
       continue;
     detectedFoodItems.emplace_back(std::move(foodItem));
@@ -202,8 +207,8 @@ Eigen::Isometry3d Perception::getTrackedFoodItemPose()
     ROS_WARN("Failed to detect new update on the target object.");
 
   // Pose should've been updated since same metaSkeleton is shared.
-  if (mRemoveRotationForFood)
-    removeRotation(mTargetFoodItem);
+  //if (mRemoveRotationForFood)
+  //  removeRotation(mTargetFoodItem);
 
   if (mProjectFoodToTable)
     projectToTable(mTargetFoodItem);
@@ -234,11 +239,16 @@ void Perception::removeRotation(const FoodItem* item)
 //==============================================================================
 void Perception::projectToTable(const FoodItem* item)
 {
+  std::cout << "Perception Project to table" << std::endl;
   Eigen::Isometry3d foodPose(item->getPose());
+  std::cout << "Original food pose\n" << foodPose.matrix() << std::endl;
   auto rotation = foodPose.linear();
   double yaw = rotation.eulerAngles(2, 1, 0)[0];
+  std::cout << "Rotation " << rotation.eulerAngles(2, 1, 0).transpose() << std::endl;
   foodPose.linear() = Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ()).toRotationMatrix();
-  foodPose.translation()[2] = 0.22;
+
+  // foodPose.translation()[2] = 0.22;
+  std::cout << "Projected food pose\n" << foodPose.matrix() << std::endl;
 
   // Downcast Joint to FreeJoint
   dart::dynamics::FreeJoint* freejtptr

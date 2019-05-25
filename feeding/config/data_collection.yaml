@@ -1,5 +1,5 @@
 # Configuration file for the data collection of skewering
-# 
+#
 
 data:
   numTrials: 5
@@ -15,7 +15,7 @@ data:
 
 
 feedingDemo:
-  heightAboveFood: 0.085
+  # heightAboveFood: 0.06
   heightOutOfPlate: 0.01
   distBeforePush: 0.05
   distAfterPush: 0.05
@@ -31,17 +31,17 @@ planning:
     rotationalToleranceAbovePlate: 0.0
     horizontalToleranceNearFood: 0.0
     verticalToleranceNearFood: 0.0
-    rotationToleranceNearFood: 0.175
-    tiltToleranceNearFood: 0.35 # 20 degrees
+    rotationToleranceNearFood: 0.0 #0.175
+    tiltToleranceNearFood: 0.0 #.35 # 20 degrees
 
 # Parameters for the F/T sensor and the MoveUntilTouchController
 ftSensor:
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 25
+      force: 15
       torque: 2
     grabFood:       # active when going down to grab the food
-      force: 25
+      force: 15
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
       force: 50

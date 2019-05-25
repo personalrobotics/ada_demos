@@ -27,6 +27,9 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   std::vector<std::unique_ptr<FoodItem>> candidateItems;
   while (true)
   {
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    ROS_INFO_STREAM("Perceive");
     // Perception returns the list of good candidates, any one of them is good.
     // Multiple candidates are preferrable since planning may fail.
     candidateItems = perception->perceiveFood(foodName);
@@ -37,18 +40,19 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     }
     else
       break;
-
-    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 
   ROS_INFO_STREAM("Detected " << candidateItems.size() << " " << foodName);
 
   bool moveAboveSuccessful = false;
-  for (auto& item : candidateItems)
-  {
+
+  auto& item = candidateItems[0];
+
+  //for (auto& item : candidateItems)
+  // {
     auto action = item->getAction();
 
-    ROS_INFO_STREAM("Tilt style " << TiltStyleToString.at(action->getTiltStyle()) << " angle " << action->getRotationAngle());
+    ROS_INFO_STREAM("Tilt style " << TiltStyleToString.at(action->getTiltStyle()) << " angle " << action->getRotationAngle() * 180 / 3.14 );
     if (!moveAboveFood(
             ada,
             collisionFree,
@@ -67,20 +71,38 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
             feedingDemo))
     {
       ROS_INFO_STREAM("Failed to move above " << item->getName());
-      talk("Sorry, I'm having a little trouble moving. Let me try again.");
-      std::cout << "Move to next item " << std::endl;
-      continue;
+      // ROS_INFO_STREAM("Try again with 180 degrees added in rotationa angle");
+
+      // if (!moveAboveFood(
+      //       ada,
+      //       collisionFree,
+      //       item->getName(),
+      //       item->getPose(),
+      //       action->getRotationAngle() + 3.141592,
+      //       action->getTiltStyle(),
+      //       heightAboveFood,
+      //       horizontalTolerance,
+      //       verticalTolerance,
+      //       rotationTolerance,
+      //       tiltTolerance,
+      //       planningTimeout,
+      //       maxNumTrials,
+      //       velocityLimits,
+      //       feedingDemo))
+      // {
+      //   ROS_INFO_STREAM("Failed to move above " << item->getName());
+      // }
     }
+
     moveAboveSuccessful = true;
     perception->setFoodItemToTrack(item.get());
     std::cout << "set FoodItemToTrack succesful" << std::endl;
     return std::move(item);
-  }
+  //}
 
   if (!moveAboveSuccessful)
   {
     ROS_ERROR("Failed to move above any food.");
-    talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
     return nullptr;
   }
 }

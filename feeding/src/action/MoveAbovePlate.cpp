@@ -17,10 +17,10 @@ bool moveAbovePlate(
     std::vector<double> velocityLimits)
 {
 
-  Eigen::VectorXd config(6);
-  config << -2.15583, 3.0954,  1.61802,  -2.45501,  -2.04492, -4.73983 ;
-  bool success = ada->moveArmToConfiguration(config, collisionFree, 2.0);
-  if (!success)
+  // Eigen::VectorXd config(6);
+  // config << -1.21321, 3.05786, 1.33674, -2.66234, -1.65711, -0.00439555;
+  // bool success = ada->moveArmToConfiguration(config, collisionFree, 2.0);
+  // if (!success)
     return moveAbove(
         ada,
         collisionFree,
@@ -33,8 +33,8 @@ bool moveAbovePlate(
         planningTimeout,
         maxNumTrials,
         velocityLimits);
-  else
-    return success;
+  // else
+  //   return success;
 }
 
 } // namespace action

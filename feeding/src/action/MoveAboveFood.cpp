@@ -33,6 +33,7 @@ bool moveAboveFood(
       = *ada->getHand()->getEndEffectorTransform("food");
   Eigen::AngleAxisd rotation
       = Eigen::AngleAxisd(-rotateAngle, Eigen::Vector3d::UnitZ());
+  ROS_WARN_STREAM("MoveAboveFood" << rotateAngle * 180 / M_PI);
 
   if (tiltStyle == TiltStyle::NONE)
   {
@@ -42,17 +43,19 @@ bool moveAboveFood(
   }
   else if (tiltStyle == TiltStyle::VERTICAL)
   {
-    target = removeRotation(foodTransform);
+    target = foodTransform;
     // eeTransform.linear()
     //     = eeTransform.linear()
     //       * Eigen::AngleAxisd(-M_PI * 0.5, Eigen::Vector3d::UnitZ())
     //       * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX())
     //       * Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitX());
+    rotation
+      = Eigen::AngleAxisd(-rotateAngle, Eigen::Vector3d::UnitZ());
     eeTransform.linear()
         = eeTransform.linear()
           * rotation
-          * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX());
-          // * Eigen::AngleAxisd(-M_PI,  Eigen::Vector3d::UnitX());
+          * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX())
+          * Eigen::AngleAxisd(-M_PI,  Eigen::Vector3d::UnitX());
     eeTransform.translation()[2] = heightAboveFood;
   }
   else // angled

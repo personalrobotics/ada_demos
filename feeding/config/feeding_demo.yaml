@@ -25,13 +25,14 @@ ada:
 # Workspace parameters
 plate:
   urdfUri: package://pr_assets/data/objects/plate.urdf
-  pose: [.445, 0.19, -0.04, 0, 0, 0]
+  pose: [.7, 0.29, -0.28, 0, 0, 0]
 table:
   urdfUri: package://pr_assets/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.76, 0, 0, 0]
+  # pose: [0.76, 0.38, -0.87, 0, 0, 0]
+  pose: [0.76, 0.38, -1.05, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_assets/data/objects/food_item.urdf
-  pose: [.445, 0.19, 0.0, 3.1415, 0, 0]
+  pose: [.7, 0.29, -0.95, 3.1415, 0, 0]
 person: # the mannequin
   urdfUri: package://pr_assets/data/objects/tom.urdf
   pose: [0.425, -0.45, 0.502, 0, 0, 1.57]
@@ -39,7 +40,7 @@ workspaceEnvironment:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0, 0, 0, 0]
 workspaceEnvironmentWithWallFurtherBack:
-  urdfUri: package://pr_assets/data/furniture/workspace_feeding_without_wall.urdf
+  urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0, 0, 0, 0]
 wheelchair:
   urdfUri: package://pr_assets/data/furniture/wheelchair.urdf
@@ -47,10 +48,10 @@ wheelchair:
 
 # Feeding demo movement parameters
 feedingDemo:
-  heightAbovePlate: 0.15
-  heightAboveFood: 0.05
-  heightIntoFood: 0.05           # the real robot plans *below* the food. This parameter specifies how far
-  moveOutofFood: 0.01
+  heightAbovePlate: 0.16
+  heightAboveFood: 0.04
+  heightIntoFood: 0.10           # the real robot plans *below* the food. This parameter specifies how far
+  moveOutofFood: 0.05
   distanceToPerson: 0.25
   distanceFromPerson: 0.15
   waitMillisecsAtFood: 00     # short pause after skewering the food
@@ -62,12 +63,12 @@ planning:
   maxNumberOfTrials: 1
   timeoutSeconds: 2
   tsr:
-    horizontalToleranceAbovePlate: 0.01
-    verticalToleranceAbovePlate: 0.03
+    horizontalToleranceAbovePlate: 0.001
+    verticalToleranceAbovePlate: 0.00
     rotationToleranceAbovePlate: 3.1416
     horizontalToleranceNearFood: 0.003
-    verticalToleranceNearFood: 0.01
-    rotationToleranceNearFood: 0.001
+    verticalToleranceNearFood: 0.00
+    rotationToleranceNearFood: 0.05 # 2.8 degrees
     horizontalToleranceNearPerson: 0.03
     verticalToleranceNearPerson: 0.03
     tiltToleranceNearFood: 0.0
@@ -88,12 +89,12 @@ ftSensor:
       force: 4
       torque: 2
     grabFood:       # active when going down to grab the food
-      force: 22
+      force: 10
       torque: 2
     afterGrabFood:  # active when going up after food has been grabbed
       force: 50
       torque: 2
-    
+
 
 # Perception parameters
 perception:

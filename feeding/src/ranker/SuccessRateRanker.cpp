@@ -31,7 +31,11 @@ std::unique_ptr<FoodItem> SuccessRateRanker::createFoodItem(
 
   // TODO: Make AcquisitionAction deterministic on tiltStyle?
 
+  // AcquisitionAction action(tiltStyle, rotation, 0.0, Eigen::Vector3d(0, 0, -1));
+  std::cout << "Rotation " << std::endl;
   AcquisitionAction action(tiltStyle, rotation, 0.0, Eigen::Vector3d(0, 0, -1));
+
+  std::cout << "Wall type " << item.getInfoByKey<std::string>("annotation") << std::endl;
 
   auto itemPose = item.getMetaSkeleton()->getBodyNode(0)->getWorldTransform();
 
@@ -43,7 +47,7 @@ std::unique_ptr<FoodItem> SuccessRateRanker::createFoodItem(
     std::cout << "name " << name << std::endl;
   }
 
-  std::cout << "SuccessRateRanker " << successRate << ", " << item.getInfoByKey<double>("rotation") * M_PI / 180.0  << " " << item.getName() << std::endl;
+  std::cout << "SuccessRateRanker " << successRate << ", " << item.getInfoByKey<double>("rotation") <<  " " << item.getName() << std::endl;
   std::cout << "tiltStyle " << itemAction << std::endl;
 
   return dart::common::make_unique<FoodItem>(

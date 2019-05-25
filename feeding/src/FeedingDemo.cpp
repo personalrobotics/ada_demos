@@ -19,7 +19,7 @@ const bool TERMINATE_AT_USER_PROMPT = true;
 
 static const std::size_t MAX_NUM_TRIALS = 3;
 static const double inf = std::numeric_limits<double>::infinity();
-static const std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+static const std::vector<double> velocityLimits{0.1, 0.1, 0.1, 0.1, 0.1, 0.2};
 
 namespace feeding {
 

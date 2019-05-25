@@ -276,6 +276,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     const Eigen::Isometry3d& goalPose)
 {
   // auto oldLimits = setPositionLimits(mMetaSkeleton);
+  ROS_WARN_STREAM("goal pose: " << goalPose.translation().transpose());
   Eigen::Isometry3d currentPose = mBodyNode->getTransform();
   std::cout << "current Position " << currentPose.translation().transpose() << std::endl;
   Eigen::Vector3d goalDirection

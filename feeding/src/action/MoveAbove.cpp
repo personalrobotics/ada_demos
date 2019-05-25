@@ -38,13 +38,15 @@ bool moveAbove(
       rotationTolerance);
 
   target.mTw_e.matrix() = endEffectorTransform.matrix();
+  // std::cout << "Visualize TSR" << std::endl;
   // if (feedingDemo && feedingDemo->getViewer())
   // {
   //   feedingDemo->getViewer()->addTSRMarker(target);
   //   std::cout << "Check TSR" << std::endl;
-  //   int n;
-  //   std::cin >> n;
   // }
+
+  // int n;
+  // std::cin >> n;
 
   try
   {

@@ -41,7 +41,7 @@ bool moveInto(
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance);
 
-#ifdef USE_SERVO
+/*#ifdef USE_SERVO
 
     ROS_INFO("Servoing into food");
 
@@ -66,10 +66,10 @@ bool moveInto(
         velocityLimits);
     servoClient.start();
     return servoClient.wait(15.0);
-#else
+#else*/
   std::cout << "endEffectorDirection " << endEffectorDirection.transpose() << std::endl;
   {
-    double length = 0.05;
+    double length = 0.08;
     int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
     // Collision constraint is not set because f/t sensor stops execution.
 
@@ -83,7 +83,7 @@ bool moveInto(
     ROS_INFO_STREAM(" Execution result: " << result);
   }
   return true;
-#endif
+//#endif
 
 }
 

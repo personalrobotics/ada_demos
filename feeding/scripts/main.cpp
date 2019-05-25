@@ -50,7 +50,7 @@ int main(int argc, char** argv)
   std::string demoType{"nips"};
 
   // Arguments for data collection.
-  std::string foodName{"testItem"};
+  std::string foodName;
   std::string dataCollectorPath;
   std::size_t directionIndex{0};
   std::size_t trialIndex{0};
@@ -66,6 +66,7 @@ int main(int argc, char** argv)
   std::cout << "Demo type " << demoType << std::endl;
   bool collect = demoType.rfind("collect") != std::string::npos;
 
+  std::cout << "foodName " << foodName << std::endl;
   // If demo type starts with "collect", don't use visualServo
   if (collect)
   {
@@ -144,6 +145,11 @@ int main(int argc, char** argv)
   feedingDemo->setPerception(perception);
 
   ROS_INFO_STREAM("Startup complete.");
+
+  std::cout << "Pose" << std::endl;
+  std::cout << feedingDemo->getAda()->getMetaSkeleton()->getPositions().transpose() << std::endl;
+  // int n;
+  // std::cin >> n;
 
   //feedingDemo->moveToStartConfiguration();
 
