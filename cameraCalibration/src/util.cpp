@@ -108,7 +108,7 @@ void printPose(const Eigen::Isometry3d& pose)
 //==============================================================================
 Eigen::Isometry3d getWorldToJoule(tf::TransformListener& tfListener) {
   return getRelativeTransform(tfListener,
-    "/j2n6s200_joule", "/map");
+    "/map", "j2n6s200_joule");
 }
 
 //==============================================================================

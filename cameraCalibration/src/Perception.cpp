@@ -124,14 +124,13 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
   //=======================  Solve PnP ==============================
   std::vector<int> inliers;
 
-  ROS_INFO("cameraToJouleGuess");
-  ROS_INFO_STREAM(cameraToJouleGuess.matrix());
+  ROS_INFO("cameraToJouleGuess\n");
+  ROS_INFO_STREAM("\n" << cameraToJouleGuess.matrix());
 
   // Initial guess
   // LensToWorld = JouleToWorld * CameraToJoule * LensToCamera;
   auto lensToWorldGuess = worldToJoule.inverse() * cameraToJouleGuess * cameraToLens.inverse();
   auto worldToLensGuess = lensToWorldGuess.inverse();
-
 
   cv::Mat cb_rvec, cb_tvec;
   cv::Mat cb_rmat;
@@ -179,9 +178,15 @@ Eigen::Isometry3d Perception::computeCameraToJoule(
   auto cameraToJoule = worldToJoule * lensToWorld * cameraToLens;
 
   ROS_INFO("Solved CameraToJoule");
-  ROS_INFO_STREAM(cameraToJoule.matrix());
+  ROS_INFO_STREAM("\n" << cameraToJoule.matrix());
 
-  visualizeProjection(targetToWorld, worldToJoule, cameraToLens, cameraToJoule);
+  lensToWorld = worldToJoule.inverse() * cameraToJoule * cameraToLens.inverse();
+  worldToLens = lensToWorld.inverse();
+  isometryTocv(worldToLens, cb_rvec, cb_tvec);
+
+  visualizeProjection(cb_rvec, cb_tvec, pointsToWorld, corners, image,
+    cv::Scalar(0, 0, 255, 255),
+    cv::Scalar(255, 0, 0, 255));
 
   return cameraToJoule;
 }
@@ -313,7 +318,6 @@ void Perception::visualizeProjection(
   // LensToWorld = JouleToWorld * CameraToJoule * LensToCamera;
   auto lensToWorld = worldToJoule.inverse() * cameraToJoule * cameraToLens.inverse();
   auto worldToLens = lensToWorld.inverse();
-  // get rvec
 
   cv::Mat rvec, tvec;
   isometryTocv(worldToLens, rvec, tvec);

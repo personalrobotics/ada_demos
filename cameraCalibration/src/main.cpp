@@ -14,12 +14,11 @@
 using namespace cameraCalibration;
 
 // Robot To World
-static const Eigen::Isometry3d robotPose = createIsometry(
-  0.7, -0.1, -0.25, 0, 0, 3.1415);
+static const Eigen::Isometry3d robotPose = createIsometry(0.0, 0, 0, 0, 0, 3.1415);
 
 // TargetToWorld = RobotToWorld * TargetToRobot
-static const Eigen::Isometry3d targetToWorld = robotPose.inverse() * createIsometry(
-  .425, 0.15, -0.005, 3.1415, 0, 0);
+// static const Eigen::Isometry3d targetToWorld = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
+static const Eigen::Isometry3d targetToWorld = robotPose.inverse() * createIsometry(0.0, 0.4, 0, 3.1415, 0, 0);
 std::vector<Eigen::Isometry3d> cameraToJouleEstimates;
 
 static const double planningTimeout = 1.0;
@@ -38,6 +37,7 @@ bool tryPerceivePoint(
 
   Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
   Eigen::Isometry3d cameraToJoule = getCameraToJoule(tfListener);
+
   try{
 
     cameraToJouleEstimates.emplace_back(
@@ -89,22 +89,18 @@ int main(int argc, char** argv)
       "j2n6s200_hand_tip");
   auto armSpace = ada.getArm()->getStateSpace();
 
+  std::cout << ada.getArm()->getMetaSkeleton()->getPositions().transpose() << std::endl;
+
   // Setting up workspace
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
   Eigen::Isometry3d tablePose
-      = robotPose.inverse() * createIsometry(0.76, 0.38, -0.745, 0, 0, 0);
+      = robotPose.inverse() * createIsometry(-0.35, 0.38, -0.745, 0, 0, 0);
   auto table = loadSkeletonFromURDF(
       resourceRetriever,
       "package://pr_assets/data/furniture/table_feeding.urdf",
       tablePose);
   world->addSkeleton(table);
-  Eigen::Isometry3d wheelchairPose = createIsometry(0, 0, 0, 0, 0, 0);
-  auto wheelchair = loadSkeletonFromURDF(
-      resourceRetriever,
-      "package://pr_assets/data/furniture/wheelchair.urdf",
-      wheelchairPose);
-  world->addSkeleton(wheelchair);
   Eigen::Isometry3d environmentPose
       = robotPose.inverse() * createIsometry(0, 0, 0, 0, 0, 0);
   auto environment = loadSkeletonFromURDF(
@@ -121,7 +117,7 @@ int main(int argc, char** argv)
           ada.getMetaSkeleton().get(), ada.getHand()->getEndEffectorBodyNode());
   std::shared_ptr<dart::collision::CollisionGroup> envCollisionGroup
       = collisionDetector->createCollisionGroup(
-          table.get(), wheelchair.get(), environment.get());
+          table.get(), environment.get());
   auto collisionFreeConstraint
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
           armSpace, ada.getArm()->getMetaSkeleton(), collisionDetector);
@@ -136,9 +132,9 @@ int main(int argc, char** argv)
       "/camera/color/image_raw/compressed",
       "/camera/color/camera_info",
       true,
-      6, // number of center points in width
+      5, // number of center points in width
       4, // number of center points in height
-      0.015 // size of checkerboard in meter
+      0.012 // size of checkerboard in meter
       );
   tf::TransformListener tfListener;
   std::vector<Eigen::Isometry3d> targetPointsInCameraLensFrame;
@@ -167,10 +163,8 @@ int main(int argc, char** argv)
   waitForUser("Move to initial position");
 
   // ===== CALIBRATION PROCEDURE =====
-  Eigen::Isometry3d targetPointPose
-      = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
-  auto targetTSR = getCalibrationTSR(targetPointPose);
-  dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "targetFrame", targetPointPose);
+  auto targetTSR = getCalibrationTSR(targetToWorld);
+  dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "targetFrame", targetToWorld);
   auto targetFrameMarker = viewer.addFrame(targetFrame.get(), 0.07, 0.007);
 
   if (!ada.moveArmToTSR(targetTSR, collisionFreeConstraint, planningTimeout, maxNumTrials))
@@ -182,12 +176,13 @@ int main(int argc, char** argv)
   std::vector<dart::dynamics::SimpleFramePtr> frames;
   std::vector<aikido::rviz::FrameMarkerPtr> frameMarkers;
 
+  /*
     // 20 - 56
-  for (int i= 20; i<=56; i+=5) {
+  for (int i= 20; i<=56; i+=2) {
     double angle = 0.1745*i;
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
-      0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
-      0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
+      0.0 + sin(angle)*0.1 + cos(angle)*-0.03,
+      0.4 - cos(angle)*0.1 + sin(angle)*-0.03,
       0.05, 3.58, 0, angle));
     if (!ada.moveArmToTSR(tsr, collisionFreeConstraint,
         planningTimeout, maxNumTrials))
@@ -206,30 +201,24 @@ int main(int argc, char** argv)
       }
     }
   }
+  */
 
-  ROS_INFO_STREAM("Done taking pics");
 
-  for (int i = 20; i <= 56; i+=5)
-  {
-    double angle = 0.1745 * i;
-    auto tsr = getCalibrationTSR(
-        robotPose.inverse()
-        * createIsometry(
-              .425 + sin(angle) * 0.2,
-              0.15 - cos(angle) * 0.2,
-              0.1,
-              3.98,
-              0,
-              angle));
+    // 20 - 56
+  for (int i= 20; i<=56; i+=2) {
+    double angle = 0.1745*i;
+    auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
+      0.0 + sin(angle)*0.1 + cos(angle)*-0.03,
+      0.4 - cos(angle)*0.1 + sin(angle)*-0.03,
+      0.1, 3.58, 0, angle));
     if (!ada.moveArmToTSR(tsr, collisionFreeConstraint,
-          planningTimeout, maxNumTrials))
+        planningTimeout, maxNumTrials))
+
     {
       ROS_INFO_STREAM("Fail: Step " << i);
-    }
-    else
-    {
+    } else {
       std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-      if (tryPerceivePoint("circle2_step" + std::to_string(i),
+      if (tryPerceivePoint("circle1_step" + std::to_string(i),
             perception, tfListener, jouleViewer, targetPointViewer,
             targetPointsInCameraLensFrame, cameraLensPointsInWorldFrame,
             frames, frameMarkers)) {
@@ -246,6 +235,7 @@ int main(int argc, char** argv)
 
   auto cameraToJoule = perception.computeMeanCameraToJouleEstimate(cameraToJouleEstimates);
   Eigen::Isometry3d worldToJoule = getWorldToJoule(tfListener);
+
   perception.visualizeProjection(targetToWorld, worldToJoule,
     getCameraToLens(tfListener),
     cameraToJoule);
@@ -255,8 +245,8 @@ int main(int argc, char** argv)
   for (int i= 20; i<=56; i+=15) {
     double angle = 0.1745*i;
     auto tsr = getCalibrationTSR(robotPose.inverse() * createIsometry(
-      0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
-      0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
+      0.0 + sin(angle)*0.1 + cos(angle)*-0.03,
+      0.4 - cos(angle)*0.1 + sin(angle)*-0.03,
       0.05, 3.58, 0, angle));
 
     if (!ada.moveArmToTSR(tsr, collisionFreeConstraint,
