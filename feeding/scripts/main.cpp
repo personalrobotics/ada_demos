@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <libada/util.hpp>
 
+#include <tf/transform_listener.h>
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/util.hpp"
@@ -93,11 +94,30 @@ int main(int argc, char** argv)
 #endif
 
   // start node
-  ros::init(argc, argv, "feeding");
+  ros::init(argc, argv, "feedingtest");
   ros::NodeHandle nodeHandle("~");
   nodeHandle.setParam("/feeding/facePerceptionOn", false);
   ros::AsyncSpinner spinner(2); // 2 threads
   spinner.start();
+
+
+  // // -----------------------------------------------------------
+  // tf::StampedTransform tfStampedTransform;
+  // tf::TransformListener tfListener;
+
+  // try {
+  //   tfListener.waitForTransform( "/j2n6s200_link_3", "/j2n6s200_link_4", ros::Time(0), ros::Duration(10.0) );
+
+  //   tfListener.lookupTransform(
+  //     "/j2n6s200_link_3", "/j2n6s200_link_4",
+  //     ros::Time(0), tfStampedTransform);
+  //   std::cout << "Found " << std::endl;
+  // }
+  // catch (tf::TransformException ex) {
+  //   throw std::runtime_error("Failed to get TF Transform: " + std::string(ex.what()));
+  // }
+  // // -----------------------------------------------------------
+
 
   std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr;
 
@@ -132,6 +152,7 @@ int main(int argc, char** argv)
 
   auto perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
+      feedingDemo->getAda(),
       feedingDemo->getAda()->getMetaSkeleton(),
       &nodeHandle,
       ranker,
@@ -148,8 +169,8 @@ int main(int argc, char** argv)
 
   std::cout << "Pose" << std::endl;
   std::cout << feedingDemo->getAda()->getMetaSkeleton()->getPositions().transpose() << std::endl;
-  // int n;
-  // std::cin >> n;
+  int n;
+  std::cin >> n;
 
   //feedingDemo->moveToStartConfiguration();
 
