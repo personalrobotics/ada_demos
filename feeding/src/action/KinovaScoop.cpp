@@ -8,6 +8,8 @@
 #include "feeding/AcquisitionAction.hpp"
 
 #include "aikido/trajectory/util.hpp"
+#include "aikido/robot/util.hpp"
+#include <aikido/trajectory/Interpolated.hpp>
 #include <libada/util.hpp>
 
 static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
@@ -167,121 +169,76 @@ bool kinovaScoop(
   PolyTraj scoopTraj = PolyTraj(-height, minima);
   std::vector<Pose> wayPoints = scoopTraj.getWayPoints(num);
   Pose last_pose = scoopTraj.eval(0);
-  std::cout <<"begin scoop traj"<<std::endl;
-  std::cout <<"endEffectorOffsetPositionTolerance = "<<endEffectorOffsetPositionTolerance<<std::endl;
-  double delta_x, delta_z, delta_l, delta_roll;
-  double bias_x, bias_z;
 
-  // std::vector<TrajectoryPtr> traj_vector;
+  std::cout <<"begin scoop traj"<<std::endl;
+  double delta_x, delta_z, delta_l, delta_roll;
   TrajectoryPtr *traj_vector = new TrajectoryPtr[wayPoints.size()];
+  
+  auto mArm = ada->getArm();
+  auto mArmSpace = mArm->getStateSpace();
+  auto metaSkeleton = mArm->getMetaSkeleton();
+  // auto startState = mArmSpace->createState();
+  State* startState;
+  mArmSpace->getState(metaSkeleton.get(), startState);
+  // auto startState = ada->getArm()->getMetaSkeleton().get()->getPositions()
+  
   int i = 0;
   for (auto pose = wayPoints.begin(); pose != wayPoints.end(); ++pose) {
       delta_x = (*pose).z - last_pose.z;
       delta_z = (*pose).y - last_pose.y;
       delta_roll = (*pose).roll_angle - last_pose.roll_angle;
-      delta_l = sqrt(delta_x*delta_x + delta_z*delta_z);
+      delta_l = sqrt(delta_x*delta_x + delta_z*delta_z); // length
       delta_x = delta_x/delta_l;
       delta_z = delta_z/delta_l;
-
-      std::cout << "waypoint = [" << (*pose).z << ", " << (*pose).y <<", "<< (*pose).roll_angle << "]" << std::endl;
-      std::cout << "direction = [" << delta_x << ", " << 0 <<", "<< delta_z << "]" << std::endl;
-      std::cout << "length = " << delta_l << std::endl;
+      // std::cout << "waypoint = [" << (*pose).z << ", " << (*pose).y <<", "<< (*pose).roll_angle << "]" << std::endl;
+      // std::cout << "direction = [" << delta_x << ", " << 0 <<", "<< delta_z << "]" << std::endl;
+      // std::cout << "length = " << delta_l << std::endl;
 
       Eigen::Vector3d direction = Eigen::Vector3d(delta_x, 0.0, delta_z);
-      bias_x = last_pose.z - 0.0;
-      bias_z = last_pose.y - 0.0;
-      // Eigen::Vector6d bias = Eigen::VectorXd(bias_x, 0.0, bias_z, 0.0, 0.0, 0.0);
-      // Eigen::VectorXd bias(6);
-      // bias << bias_x, 0.0, bias_z, bias_x, 0.0, bias_z;
-      // std::cout << "bias = " << bias << std::endl;
-
+      
       auto traj = ada->planArmToEndEffectorOffset(
       direction,
       delta_l,
-      // bias,
+      // startState,
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
       endEffectorOffsetAngularTolerance);
 
+      auto _traj = dynamic_cast<Interpolated*>(traj.get());
+      startState = const_cast<State*>(_traj->getWaypoint(_traj->getNumWaypoints()-1));
+      
       ada->moveArmOnTrajectory(traj, collisionFree, ada::KUNZ, velocityLimits);
 
       traj_vector[i] = traj;
       i++; 
       last_pose = (*pose);
-      // bool testSuccess = ada->moveArmToEndEffectorOffset(
-      // direction, // what's the reference frame ?
-      // delta_l,
-      // collisionFree,
-      // planningTimeout,
-      // endEffectorOffsetPositionTolerance,
-      // endEffectorOffsetAngularTolerance);
-
-      // if (!testSuccess) {
-      //     std::cout <<"Test Fail!!!!!!!!!"<<std::endl;
-      //     return false;
-      // }
   } 
-  // i = 0;
-  TrajectoryPtr trajnext, concatenatedTraj = traj_vector[0];
-  
-  // for (int k=0; k<wayPoints.size(); k++) {
-  //   trajnext = traj_vector[k]; 
-  //   ada->moveArmOnTrajectory(trajnext, collisionFree, ada::KUNZ, velocityLimits);
-  //   std::cout << "here's start position:" << ada->getArm()->getMetaSkeleton().get()->getPositions() << std::endl;
-  //   // std::cout << "traj["<<k<<"]" << trajnext.get() << std::endl;
-  // } 
 
+  TrajectoryPtr trajnext, concatenatedTraj = traj_vector[0];
+
+  // concatenate all trajs
   for (int k=1; k<wayPoints.size(); k++) {
     trajnext = traj_vector[k]; 
     concatenatedTraj = concatenate( 
-      // trajprev, trajnext
       *dynamic_cast<Interpolated*>(concatenatedTraj.get()), 
       *dynamic_cast<Interpolated*>(trajnext.get())
     );
   }
   ada->moveArmOnTrajectory(concatenatedTraj, collisionFree, ada::KUNZ, velocityLimits);
 
-  // if (traj_vector.empty())
-  //   std::cout << "it's empty" << std::endl;
-  // else
-  //   trajprev = traj_vector.pop_back();
-  // while (!traj_vector.empty()) { 
-  //   count++; 
-  //   trajnext = traj_vector.pop_back(); 
-  //   concatenatedTraj = concatenate(
-  //     *dynamic_cast<Interpolated*>(trajprev.get()), // not sure?
-  //     *dynamic_cast<Interpolated*>(trajnext.get()));
-  //   trajprev = concatenatedTraj;
-  // } 
+  // test twists---- it works! nice!
 
-  // bool testSuccess = ada->moveArmToEndEffectorOffset(
-  //     Eigen::Vector3d(0, 0, 1), // what's the reference frame ?
-  //     0.0001,
-  //     collisionFree,
-  //     planningTimeout,
-  //     endEffectorOffsetPositionTolerance,
-  //     endEffectorOffsetAngularTolerance);
-
-  //   testSuccess = ada->moveArmToEndEffectorOffset(
-  //     Eigen::Vector3d(0, 0, -1), // what's the reference frame ?
-  //     0.005,
-  //     collisionFree,
-  //     planningTimeout,
-  //     endEffectorOffsetPositionTolerance,
-  //     endEffectorOffsetAngularTolerance);
-
-  // if (!testSuccess)
-  // {
-  //   std::cout <<"Test Fail!!!!!!!!!"<<std::endl;
-  //   talk("Test Fail!!!!!!!!!", true);
-  //   return false;
-  // }
-  // else
-  // {
-  //   talk("Move above Place Success");
-  // }
-
+  // Eigen::VectorXd twists(6);
+  // twists << 2.0, 0.0, 0.0, 0.0, 3, 0;
+  // bool testSuccess = ada->moveArmWithEndEffectorTwist(
+  //   twists,
+  //   5,
+  //   collisionFree,
+  //   planningTimeout,
+  //   endEffectorOffsetPositionTolerance,
+  //   endEffectorOffsetAngularTolerance,
+  //   velocityLimits);  
   return true;
 }
 

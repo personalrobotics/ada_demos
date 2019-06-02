@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 
   std::shared_ptr<TargetFoodRanker> ranker;
 
-  if (demoType == "nips" || demoType == "kinova")
+  if (demoType == "nips" || demoType == "kinova" || demoType == "scoop")
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
@@ -171,7 +171,10 @@ int main(int argc, char** argv)
   {
     kinovaScoopDemo(*feedingDemo, nodeHandle);
   }
-
+  else if (demoType == "scoop")
+  {
+    ScoopDemo(*feedingDemo, nodeHandle);
+  }
   else 
   {
     ROS_WARN_STREAM("unknown demoType option");
