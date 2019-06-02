@@ -7,17 +7,20 @@
 #include "feeding/util.hpp"
 #include "feeding/AcquisitionAction.hpp"
 
+#include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include "aikido/trajectory/util.hpp"
 #include "aikido/robot/util.hpp"
 #include <aikido/trajectory/Interpolated.hpp>
 #include <libada/util.hpp>
 
-static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
+#include "magi/solution/PlanSolution.hpp"
 
 #include <iostream>
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include <vector>
 #include <math.h>
+
+static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 
 using namespace std;
 using namespace Eigen;
@@ -25,7 +28,10 @@ using aikido::trajectory::concatenate;
 using aikido::trajectory::Interpolated;
 using aikido::trajectory::TrajectoryPtr;
 using State = aikido::statespace::dart::MetaSkeletonStateSpace::State;
+using aikido::statespace::dart::MetaSkeletonStateSpace;
 
+using magi::solution::PlanSolution;
+using ada::util::createIsometry;
 class Pose
 {
 public:
@@ -179,10 +185,11 @@ bool kinovaScoop(
   auto mArmSpace = mArm->getStateSpace();
   auto metaSkeleton = mArm->getMetaSkeleton();
   // auto startState = mArmSpace->createState();
-  State* startState;
-  mArmSpace->getState(metaSkeleton.get(), startState);
+//   State* startState;
   // auto startState = ada->getArm()->getMetaSkeleton().get()->getPositions()
-  
+  auto startState = mArmSpace->createState();
+  mArmSpace->getState(metaSkeleton.get(), startState);
+
   int i = 0;
   for (auto pose = wayPoints.begin(); pose != wayPoints.end(); ++pose) {
       delta_x = (*pose).z - last_pose.z;
@@ -196,23 +203,44 @@ bool kinovaScoop(
       // std::cout << "length = " << delta_l << std::endl;
 
       Eigen::Vector3d direction = Eigen::Vector3d(delta_x, 0.0, delta_z);
-      
-      auto traj = ada->planArmToEndEffectorOffset(
-      direction,
-      delta_l,
+      // Eigen::Isometry3d goalPose = createIsometry((*pose).z, 0.0, (*pose).y, 0, 0, 0)
+      Eigen::Isometry3d goalPose = createIsometry(0, 0.0, 0, 0, 0, 0);
+      if (i != 0)
+          goalPose = createIsometry((*pose).z, 0.0, (*pose).y, 0, 0, 0);
+
+      // auto traj = ada->planArmToEndEffectorOffset(
+      // direction,
+      // delta_l,
       // startState,
+      // collisionFree,
+      // planningTimeout,
+      // endEffectorOffsetPositionTolerance,
+      // endEffectorOffsetAngularTolerance);
+
+      Eigen::VectorXd twists(6);
+      twists << delta_x, 0.0, delta_z, 0.0, 0.0, 0.0;
+      // auto traj = ada->planWithEndEffectorTwist(
+      //   twists,
+      //   0.1,
+      //   collisionFree,
+      //   planningTimeout,
+      //   endEffectorOffsetPositionTolerance,
+      //   endEffectorOffsetAngularTolerance);  
+
+      auto traj = ada->planToEndEffectorPose(
+      goalPose,
+      1, //??? test it 
+      // State* startState,
       collisionFree,
       planningTimeout,
-      endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);
+      0.001);
 
       auto _traj = dynamic_cast<Interpolated*>(traj.get());
-      // startState = dynamic_cast<State*>((_traj->getWaypoint(_traj->getNumWaypoints()-1)).get());
-      
+      // _traj->evaluate(_traj->getEndTime(), startState);
       ada->moveArmOnTrajectory(traj, collisionFree, ada::KUNZ, velocityLimits);
 
       traj_vector[i] = traj;
-      i++; 
+      std::cout << "round " << i++ << std::endl; 
       last_pose = (*pose);
   } 
 
@@ -221,7 +249,7 @@ bool kinovaScoop(
   // concatenate all trajs
   for (int k=1; k<wayPoints.size(); k++) {
     trajnext = traj_vector[k]; 
-    concatenatedTraj = concatenate( 
+    concatenatedTraj = concatenate(
       *dynamic_cast<Interpolated*>(concatenatedTraj.get()), 
       *dynamic_cast<Interpolated*>(trajnext.get())
     );
@@ -229,17 +257,6 @@ bool kinovaScoop(
   ada->moveArmOnTrajectory(concatenatedTraj, collisionFree, ada::KUNZ, velocityLimits);
 
   // test twists---- it works! nice!
-
-  // Eigen::VectorXd twists(6);
-  // twists << 2.0, 0.0, 0.0, 0.0, 3, 0;
-  // bool testSuccess = ada->moveArmWithEndEffectorTwist(
-  //   twists,
-  //   5,
-  //   collisionFree,
-  //   planningTimeout,
-  //   endEffectorOffsetPositionTolerance,
-  //   endEffectorOffsetAngularTolerance,
-  //   velocityLimits);  
   return true;
 }
 
