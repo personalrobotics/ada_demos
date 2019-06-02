@@ -24,6 +24,7 @@ using namespace Eigen;
 using aikido::trajectory::concatenate;
 using aikido::trajectory::Interpolated;
 using aikido::trajectory::TrajectoryPtr;
+using State = aikido::statespace::dart::MetaSkeletonStateSpace::State;
 
 class Pose
 {
@@ -206,7 +207,7 @@ bool kinovaScoop(
       endEffectorOffsetAngularTolerance);
 
       auto _traj = dynamic_cast<Interpolated*>(traj.get());
-      startState = const_cast<State*>(_traj->getWaypoint(_traj->getNumWaypoints()-1));
+      // startState = dynamic_cast<State*>((_traj->getWaypoint(_traj->getNumWaypoints()-1)).get());
       
       ada->moveArmOnTrajectory(traj, collisionFree, ada::KUNZ, velocityLimits);
 
