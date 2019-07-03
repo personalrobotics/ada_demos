@@ -169,10 +169,12 @@ int main(int argc, char** argv)
   }
   else if (demoType == "kinova")
   {
+    ROS_INFO_STREAM("Start Kinova Scoop Demo.");
     kinovaScoopDemo(*feedingDemo, nodeHandle);
   }
   else if (demoType == "scoop")
   {
+    ROS_INFO_STREAM("Start Ryan Scoop Demo.");
     ScoopDemo(*feedingDemo, nodeHandle);
   }
   else 

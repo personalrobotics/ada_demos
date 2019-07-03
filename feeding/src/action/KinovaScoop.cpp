@@ -7,17 +7,22 @@
 #include "feeding/util.hpp"
 #include "feeding/AcquisitionAction.hpp"
 
+#include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include "aikido/trajectory/util.hpp"
 #include "aikido/robot/util.hpp"
 #include <aikido/trajectory/Interpolated.hpp>
 #include <libada/util.hpp>
 
-static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
+#include "magi/solution/PlanSolution.hpp"
 
 #include <iostream>
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include <vector>
 #include <math.h>
+
+using ada::util::waitForUser;
+
+static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 
 using namespace std;
 using namespace Eigen;
@@ -25,6 +30,10 @@ using aikido::trajectory::concatenate;
 using aikido::trajectory::Interpolated;
 using aikido::trajectory::TrajectoryPtr;
 using State = aikido::statespace::dart::MetaSkeletonStateSpace::State;
+using aikido::statespace::dart::MetaSkeletonStateSpace;
+
+using magi::solution::PlanSolution;
+using ada::util::createIsometry;
 
 class Pose
 {
@@ -48,10 +57,7 @@ class PolyTraj {
             Vector4d b;
             A << 1,0,0,0, 0,d,d*d,d*d*d, 0,1,2*d,3*d*d, 0,1,4*d,12*d*d;
             b << 0, h, 0, 0;
-            // cout << "Here is the matrix A:\n" << A << endl;
-            // cout << "Here is the vector b:\n" << b << endl;
             Vector4d x = A.colPivHouseholderQr().solve(b);
-            // cout << "The solution is:\n" << x << endl;
             for(int i=0; i<4; i++) {
                 a[i] = x[i];
             }
@@ -161,11 +167,30 @@ bool kinovaScoop(
     talk("Move above Place Success", true);
   }
 
+  int demotype = 3;
+  /* demotype: 0 kinovascoop
+               1 kinovascoop with twist
+               2 foward kinovascoop with twist 
+  */
+  
+  std::cout << "plate to ee translation = " << plateEndEffectorTransform.translation() << std::endl;
+  std::cout << "plate to ee rotation = " << plateEndEffectorTransform.linear() << std::endl;
 
   // start scoop trajectory
   std::cout << "height = " << height << std::endl;
-  height = 0.01;
-  double minima = 2*height;
+  double minima = height;
+  // Scoop with twist
+  if (demotype == 1) {
+    height = 0.08;
+    minima = 1.2*height;    
+  }
+  else if (demotype == 0)
+  {
+    // need to fix planWithEndEffectorOffset? some constrains are not correct?
+    height = 0.01;
+    minima = 0.6*height;
+  }
+  
   int num = 10;
   PolyTraj scoopTraj = PolyTraj(-height, minima);
   std::vector<Pose> wayPoints = scoopTraj.getWayPoints(num);
@@ -178,68 +203,195 @@ bool kinovaScoop(
   auto mArm = ada->getArm();
   auto mArmSpace = mArm->getStateSpace();
   auto metaSkeleton = mArm->getMetaSkeleton();
-  // auto startState = mArmSpace->createState();
-  State* startState;
-  mArmSpace->getState(metaSkeleton.get(), startState);
-  // auto startState = ada->getArm()->getMetaSkeleton().get()->getPositions()
-  
-  int i = 0;
-  for (auto pose = wayPoints.begin(); pose != wayPoints.end(); ++pose) {
-      delta_x = (*pose).z - last_pose.z;
-      delta_z = (*pose).y - last_pose.y;
-      delta_roll = (*pose).roll_angle - last_pose.roll_angle;
-      delta_l = sqrt(delta_x*delta_x + delta_z*delta_z); // length
-      delta_x = delta_x/delta_l;
-      delta_z = delta_z/delta_l;
-      // std::cout << "waypoint = [" << (*pose).z << ", " << (*pose).y <<", "<< (*pose).roll_angle << "]" << std::endl;
-      // std::cout << "direction = [" << delta_x << ", " << 0 <<", "<< delta_z << "]" << std::endl;
-      // std::cout << "length = " << delta_l << std::endl;
+  auto startState = mArmSpace->createState();
 
-      Eigen::Vector3d direction = Eigen::Vector3d(delta_x, 0.0, delta_z);
-      
-      auto traj = ada->planArmToEndEffectorOffset(
-      direction,
-      delta_l,
-      // startState,
+  // Eigen::VectorXd config(6);
+  // // is this the config of the point above the plate? change it to test.
+  // config << -2.15583, 3.0954,  1.61802,  -2.45501,  -2.04492, -4.73983 ;
+
+  // auto endEffector = ada->getHand()->getEndEffectorBodyNode();
+  // auto curPose = endEffector->getWorldTransform();
+  // double x = curPose.translation()[0];
+  // double y = curPose.translation()[1];
+  // double z = curPose.translation()[2];
+  // double roll = curPose.linear()[0];
+  // double pitch = curPose.linear()[1];
+  // double yaw = curPose.linear()[2];
+
+  // std::cout << "startPose translation :\n" << curPose.translation() << std::endl; 
+  // std::cout << "startPose rotation :\n" << curPose.linear() << std::endl; 
+
+  if (demotype == 0 || demotype == 1) {
+    std::cout<< demotype <<"kinovascoop" << std::endl;
+    Eigen::VectorXd twists(6);
+    twists << 0, 0.0, M_PI/2+M_PI/24, 0.0, 0.0, 0.0;
+    auto init_traj = ada->planWithEndEffectorTwist(
+      twists,
+      1,
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);
+      endEffectorOffsetAngularTolerance);  
+    ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
-      auto _traj = dynamic_cast<Interpolated*>(traj.get());
-      // startState = dynamic_cast<State*>((_traj->getWaypoint(_traj->getNumWaypoints()-1)).get());
-      
-      ada->moveArmOnTrajectory(traj, collisionFree, ada::KUNZ, velocityLimits);
-
-      traj_vector[i] = traj;
-      i++; 
-      last_pose = (*pose);
-  } 
-
-  TrajectoryPtr trajnext, concatenatedTraj = traj_vector[0];
-
-  // concatenate all trajs
-  for (int k=1; k<wayPoints.size(); k++) {
-    trajnext = traj_vector[k]; 
-    concatenatedTraj = concatenate( 
-      *dynamic_cast<Interpolated*>(concatenatedTraj.get()), 
-      *dynamic_cast<Interpolated*>(trajnext.get())
-    );
+    Eigen::VectorXd twists2(6);
+    twists2 << -M_PI/3, 0, 0.0, -0.03, 0.0, 0.06;
+    init_traj = ada->planWithEndEffectorTwist(
+      twists2,
+      1,
+      collisionFree,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance);  
+    ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
   }
-  ada->moveArmOnTrajectory(concatenatedTraj, collisionFree, ada::KUNZ, velocityLimits);
+  // else if (demotype==1) {
+  //   std::cout<< "1 kinovascoop with twist" << std::endl; 
+  // }
+  else if (demotype==2) {
+    std::cout<< "2 foward kinovascoop with twist" << std::endl;
+  }
+  else
+    std::cout<< "no demo" << std::endl;
 
+  waitForUser("next step?", ada);
+  mArmSpace->getState(metaSkeleton.get(), startState);
+  int i = 0;
+  TrajectoryPtr traj;
+  if (demotype == 0 || demotype == 1) {
+    for (auto pose = wayPoints.begin(); pose != wayPoints.end(); ++pose) {
+        delta_x = (*pose).z - last_pose.z;
+        delta_z = (*pose).y - last_pose.y;
+        delta_roll = (*pose).roll_angle - last_pose.roll_angle;
+        delta_l = sqrt(delta_x*delta_x + delta_z*delta_z); // length
+
+        Eigen::Vector3d direction = Eigen::Vector3d(delta_x/delta_l, 0.0, delta_z/delta_l);
+        // Eigen::Isometry3d goalPose = createIsometry(x + (*pose).z, y,  z+(*pose).y,  0,  0, 0);
+        // goalPose.linear() = curPose.linear();
+        // if (i != 0)
+        //     goalPose = createIsometry((*pose).z + 1, 0.0, (*pose).y, 0.0, 0.0, 0.0);
+        if (demotype == 1) {
+          Eigen::VectorXd twists(6);
+          if (i==0)
+            twists << 0.0, (*pose).roll_angle, 0.0, delta_x, 0.0, delta_z;
+          else
+            twists << 0.0, delta_roll, 0.0, delta_x, 0.0, delta_z;
+
+          traj = ada->planWithEndEffectorTwist(
+            twists,
+            0.8,
+            collisionFree,
+            planningTimeout,
+            endEffectorOffsetPositionTolerance,
+            endEffectorOffsetAngularTolerance);  
+        }
+        // else if (demotype==2) {
+        //   Eigen::VectorXd twists(6);
+        //   if (i==0)
+        //     twists << 0.0, -(M_PI/2 - (*pose).roll_angle), 0.0, delta_x, 0.0, delta_z;
+        //   else if (i<5)
+        //     twists << 0.0, delta_roll, 0.0, delta_x, 0.0, delta_z;
+        //   else
+        //     twists << 0.0, 0, 0.0, delta_x, 0.0, delta_z;
+
+        //   auto traj = ada->planWithEndEffectorTwist(
+        //     twists,
+        //     0.8,
+        //     collisionFree,
+        //     planningTimeout,
+        //     endEffectorOffsetPositionTolerance,
+        //     endEffectorOffsetAngularTolerance);  
+        // }
+        else if (demotype == 0){
+          traj = ada->planArmToEndEffectorOffset(
+          direction,
+          delta_l,
+          startState,
+          collisionFree,
+          planningTimeout,
+          endEffectorOffsetPositionTolerance,
+          endEffectorOffsetAngularTolerance);
+        }
+        else
+          std::cout << "wrong" << std::endl;
+
+        auto _traj = dynamic_cast<Interpolated*>(traj.get());
+        _traj->evaluate(_traj->getEndTime(), startState);
+        if (demotype==1)
+          ada->moveArmOnTrajectory(traj, collisionFree, ada::KUNZ, velocityLimits);
+
+        traj_vector[i] = traj;
+        std::cout << "round " << i++ << std::endl; 
+        last_pose = (*pose);
+    } 
+
+    TrajectoryPtr trajnext, concatenatedTraj = traj_vector[0];
+
+    // concatenate all trajs
+    for (int k=1; k<wayPoints.size(); k++) {
+      trajnext = traj_vector[k]; 
+      concatenatedTraj = concatenate(
+        *dynamic_cast<Interpolated*>(concatenatedTraj.get()), 
+        *dynamic_cast<Interpolated*>(trajnext.get())
+      );
+    }
+
+
+    std::cout << "move concatenated traj "<< std::endl; 
+    ada->moveArmOnTrajectory(concatenatedTraj, collisionFree, ada::KUNZ, velocityLimits);
+  }
+  else {   
+    // twist1: [-0.0, -0.20, -0, 0.005, -0.00, -0.02]
+    // twist2: [-0.0, -0.60, -0, 0.04, -0.00, -0.005]
+    // twist3: [-0.0, -0.50, -0, 0.03, -0.00, 0.06]    
+    Eigen::VectorXd twists0(6);
+    twists0 << 0, 0.0, M_PI, 0.0, 0.0, 0.05;
+
+    auto init_traj = ada->planWithEndEffectorTwist(
+      twists0,
+      1,
+      collisionFree,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance);  
+    ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
+
+    Eigen::VectorXd twists1(6);
+    twists1 << -0.0, -0.20, -0, -0.005, -0.00, -0.02;
+
+    init_traj = ada->planWithEndEffectorTwist(
+      twists1,
+      1,
+      collisionFree,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance);  
+    ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
+
+    Eigen::VectorXd twists2(6);
+    twists2 << -0.0, -0.60, -0, -0.04, -0.00, -0.005;
+
+    init_traj = ada->planWithEndEffectorTwist(
+      twists2,
+      1,
+      collisionFree,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance);  
+    ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
+
+    Eigen::VectorXd twists3(6);
+    twists3 << -0.0, -0.50, -0, -0.03, -0.00, 0.06;
+    init_traj = ada->planWithEndEffectorTwist(
+      twists3,
+      1,
+      collisionFree,
+      planningTimeout,
+      endEffectorOffsetPositionTolerance,
+      endEffectorOffsetAngularTolerance);  
+    ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
+  }
   // test twists---- it works! nice!
-
-  // Eigen::VectorXd twists(6);
-  // twists << 2.0, 0.0, 0.0, 0.0, 3, 0;
-  // bool testSuccess = ada->moveArmWithEndEffectorTwist(
-  //   twists,
-  //   5,
-  //   collisionFree,
-  //   planningTimeout,
-  //   endEffectorOffsetPositionTolerance,
-  //   endEffectorOffsetAngularTolerance,
-  //   velocityLimits);  
   return true;
 }
 
