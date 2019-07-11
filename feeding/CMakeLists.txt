@@ -31,6 +31,8 @@ add_executable(feeding
 
   scripts/kinovaScoopDemo.cpp
   scripts/ScoopDemo.cpp
+  
+  scripts/pushingDemo.cpp
 
   # scripts/spanetDataCollection.cpp
   # scripts/acquisition.cpp
@@ -61,6 +63,8 @@ add_executable(feeding
 
   src/action/KinovaScoop.cpp
   src/action/Scoop.cpp
+
+  src/action/Pushing.cpp
 
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp

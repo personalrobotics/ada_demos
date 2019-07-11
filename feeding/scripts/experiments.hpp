@@ -39,6 +39,10 @@ void ScoopDemo(
     FeedingDemo& feedingDemo,
     ros::NodeHandle nodeHandle);
 
+void pushingDemo(
+    FeedingDemo& feedingDemo,
+    ros::NodeHandle nodeHandle);
+
 };
 
 #endif

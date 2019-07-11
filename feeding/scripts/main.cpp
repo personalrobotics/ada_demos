@@ -47,8 +47,9 @@ int main(int argc, char** argv)
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
-  std::string demoType{"nips"};
+  // std::string demoType{"nips"};
   // std::string demoType{"kinova"};
+  std::string demoType{"pushing"};
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
@@ -122,7 +123,7 @@ int main(int argc, char** argv)
 
   std::shared_ptr<TargetFoodRanker> ranker;
 
-  if (demoType == "nips" || demoType == "kinova" || demoType == "scoop")
+  if (demoType == "nips" || demoType == "kinova" || demoType == "scoop" || demoType == "pushing")
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
@@ -176,6 +177,11 @@ int main(int argc, char** argv)
   {
     ROS_INFO_STREAM("Start Ryan Scoop Demo.");
     ScoopDemo(*feedingDemo, nodeHandle);
+  }
+  else if (demoType == "pushing")
+  {
+    ROS_INFO_STREAM("Start Pushing Demo");
+    pushingDemo(*feedingDemo, nodeHandle);
   }
   else
   {

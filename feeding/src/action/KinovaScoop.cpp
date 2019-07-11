@@ -33,9 +33,6 @@ using aikido::statespace::dart::MetaSkeletonStateSpace;
 // using magi::solution::PlanSolution;
 using ada::util::createIsometry;
 
-
-// using magi::solution::PlanSolution;
-using ada::util::createIsometry;
 class Pose
 {
 public:
