@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     demoType, foodName, directionIndex, trialIndex, scenario, dataCollectorPath);
 
   bool useVisualServo = true;
-  bool allowRotationFree = true;
+  bool allowRotationFree = false;
 
   std::cout << "Demo type " << demoType << std::endl;
   bool collect = demoType.rfind("collect") != std::string::npos;
@@ -187,26 +187,6 @@ int main(int argc, char** argv)
   {
     ROS_WARN_STREAM("unknown demoType option");
   }
-  // {
-    // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
-    // DataCollector dataCollector(
-    //   feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
-
-    // if (StringToAction.find(demoType) == StringToAction.end())
-    // {
-    //   throw std::invalid_argument(demoType + "not recognized.");
-    // }
-
-    // if (StringToAction.at(demoType) == Action::IMAGE_ONLY)
-    // {
-    //   dataCollector.collect_images(foodName);
-    // }
-    // else
-    // {
-    //   dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
-    // }
-
-  // }
 
   return 0;
 }

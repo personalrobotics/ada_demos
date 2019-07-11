@@ -14,7 +14,7 @@ void pushingDemo(
     FeedingDemo& feedingDemo,
     ros::NodeHandle nodeHandle)
 {
-
+  // TODO: positioning the hand above the plate
   ROS_INFO_STREAM("========== Pushing DEMO ==========");
 
   auto ada = feedingDemo.getAda();
@@ -30,7 +30,18 @@ void pushingDemo(
 
     ROS_INFO_STREAM("Running Pushing demo");
 
-    action::pushing();
+    action::pushing(ada, 
+                    collisionFree, 
+                    plate,
+                    feedingDemo.getPlateEndEffectorTransform(),
+                    feedingDemo.mPlateTSRParameters["horizontalTolerance"],
+                    feedingDemo.mPlateTSRParameters["verticalTolerance"],
+                    feedingDemo.mPlateTSRParameters["rotationTolerance"],
+                    feedingDemo.mPlanningTimeout,
+                    feedingDemo.mMaxNumTrials,
+                    feedingDemo.mVelocityLimits);
+    
+    workspace.reset();
   }
 
   // ===== DONE =====

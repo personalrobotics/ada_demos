@@ -122,10 +122,43 @@ namespace feeding {
 namespace action {
 
 //==============================================================================
-bool pushing()
+bool pushing(
+    const std::shared_ptr<ada::Ada>& ada,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const Eigen::Isometry3d& plate,
+    const Eigen::Isometry3d& plateEndEffectorTransform,
+    double horizontalToleranceAbovePlate,
+    double verticalToleranceAbovePlate,
+    double rotationToleranceAbovePlate,
+    double planningTimeout,
+    int maxNumTrials,
+    std::vector<double> velocityLimits)
 {
-    std::cout << "No Implemenntation" << std::endl;
+  // move above plate
+  ROS_INFO_STREAM("Move above plate");
+  bool abovePlaceSuccess = moveAbovePlate(
+      ada,
+      collisionFree,
+      plate,
+      plateEndEffectorTransform,
+      horizontalToleranceAbovePlate,
+      verticalToleranceAbovePlate,
+      rotationToleranceAbovePlate,
+      planningTimeout,
+      maxNumTrials,
+      velocityLimits);
+
+  if (!abovePlaceSuccess)
+  {
+    talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
+    ROS_WARN_STREAM("Move above plate failed. Please restart");
     return false;
+  }
+  else
+  {
+    std::cout <<"Move above Place Success"<<std::endl;
+    talk("Move above Place Success", true);
+  }
 }
 
 } // namespace action
