@@ -2,7 +2,6 @@
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include "feeding/action/Grab.hpp"
-#include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
@@ -28,7 +27,6 @@ using aikido::trajectory::Interpolated;
 using aikido::trajectory::TrajectoryPtr;
 using State = aikido::statespace::dart::MetaSkeletonStateSpace::State;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
-// using magi::solution::PlanSolution;
 using ada::util::createIsometry;
 
 namespace feeding {
@@ -47,38 +45,7 @@ bool push(
     int maxNumTrials,
     std::vector<double> velocityLimits)
 {
-  // ===== MOVE ABOVE PLATE =====
-  ROS_INFO_STREAM("Move above plate");
-  bool abovePlaceSuccess = moveAbovePlate(
-      ada,
-      collisionFree,
-      plate,
-      plateEndEffectorTransform,
-      horizontalToleranceAbovePlate,
-      verticalToleranceAbovePlate,
-      rotationToleranceAbovePlate,
-      planningTimeout,
-      maxNumTrials,
-      velocityLimits);
-
-  if (!abovePlaceSuccess)
-  {
-    // talk("Sorry, I'm having a little trouble moving. Mind if I get a little
-    // help?");
-    ROS_WARN_STREAM("Move above plate failed. Please restart");
-    return false;
-  }
-  else
-  {
-    std::cout << "Move above Place Success" << std::endl;
-    // talk("Move above Place Success", true);
-  }
-
-  // ===== PUSH FOOD ====
-  // if (!waitForUser("Push food"))
-  // {
-  //   return 0;
-  // }
+  
 }
 
 } // namespace action
