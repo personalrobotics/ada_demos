@@ -64,7 +64,7 @@ add_executable(feeding
   src/action/KinovaScoop.cpp
   src/action/Scoop.cpp
 
-  src/action/Pushing.cpp
+  src/action/Push.cpp
 
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp

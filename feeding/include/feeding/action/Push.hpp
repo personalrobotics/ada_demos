@@ -10,7 +10,7 @@
 namespace feeding {
 namespace action {
 
-bool pushing(
+bool push(
     const std::shared_ptr<ada::Ada>& ada,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const Eigen::Isometry3d& plate,

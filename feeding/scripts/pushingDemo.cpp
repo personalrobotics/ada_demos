@@ -4,7 +4,7 @@
 
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/util.hpp"
-#include "feeding/action/Pushing.hpp"
+#include "feeding/action/Push.hpp"
 
 using ada::util::waitForUser;
 
@@ -30,16 +30,16 @@ void pushingDemo(
 
     ROS_INFO_STREAM("Running Pushing demo");
 
-    action::pushing(ada, 
-                    collisionFree, 
-                    plate,
-                    feedingDemo.getPlateEndEffectorTransform(),
-                    feedingDemo.mPlateTSRParameters["horizontalTolerance"],
-                    feedingDemo.mPlateTSRParameters["verticalTolerance"],
-                    feedingDemo.mPlateTSRParameters["rotationTolerance"],
-                    feedingDemo.mPlanningTimeout,
-                    feedingDemo.mMaxNumTrials,
-                    feedingDemo.mVelocityLimits);
+    action::push(ada, 
+                collisionFree, 
+                plate,
+                feedingDemo.getPlateEndEffectorTransform(),
+                feedingDemo.mPlateTSRParameters["horizontalTolerance"],
+                feedingDemo.mPlateTSRParameters["verticalTolerance"],
+                feedingDemo.mPlateTSRParameters["rotationTolerance"],
+                feedingDemo.mPlanningTimeout,
+                feedingDemo.mMaxNumTrials,
+                feedingDemo.mVelocityLimits);
     
     workspace.reset();
   }
