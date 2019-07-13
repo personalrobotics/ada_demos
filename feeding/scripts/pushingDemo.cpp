@@ -55,21 +55,33 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
       std::cout << "Move above Place Success" << std::endl;
       // talk("Move above Place Success", true);
     }
-
-    float angle = 0;
+    
+    float angle;
+    double pushDist;
+    nodeHandle.getParam("/feedingDemo/pushingAngle", angle);
+    nodeHandle.getParam("/feedingDemo/pushDist", pushDist);
 
     // ===== PUSH FOOD =====
-    action::push(
-        ada,
-        collisionFree,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mPlateTSRParameters["horizontalTolerance"],
-        feedingDemo.mPlateTSRParameters["verticalTolerance"],
-        feedingDemo.mPlateTSRParameters["rotationTolerance"],
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mVelocityLimits);
+    ROS_INFO_STREAM("Push");
+    bool pushSuccess = action::push(
+                            ada,
+                            collisionFree,
+                            feedingDemo.mPlanningTimeout,
+                            feedingDemo.mPlateTSRParameters["verticalTolerance"],
+                            feedingDemo.mPlateTSRParameters["rotationTolerance"],
+                            feedingDemo.mVelocityLimits,
+                            angle,
+                            pushDist);
+
+    if (!pushSuccess)
+    {
+      ROS_WARN_STREAM("Push failed. Please restart");
+      exit(EXIT_FAILURE);
+    }
+    else
+    {
+      std::cout << "Push Success" << std::endl;
+    }
 
     workspace.reset();
   }

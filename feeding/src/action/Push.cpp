@@ -36,16 +36,49 @@ namespace action {
 bool push(
     const std::shared_ptr<ada::Ada>& ada,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-    const Eigen::Isometry3d& plate,
-    const Eigen::Isometry3d& plateEndEffectorTransform,
-    double horizontalToleranceAbovePlate,
-    double verticalToleranceAbovePlate,
-    double rotationToleranceAbovePlate,
-    double planningTimeout,
-    int maxNumTrials,
-    std::vector<double> velocityLimits)
+    double timelimit,
+    double positionTolerance,
+    double angularTolerance,
+    std::vector<double> velocityLimits,
+    float angle, 
+    double pushDist)
 {
-  
+  float xOff = cos(0)*0.05; // angle - M_PI * 0.5) * 0.05;
+  float yOff = sin(0)*0.05; //angle - M_PI * 0.5) * 0.05;
+
+  if (pushDist < 0) {
+      xOff *= -1;
+      yOff *= -1;
+      pushDist *= -1;
+  }
+
+  bool rotate = true;
+  // Eigen::VectorXd twists(6);
+  // twists << 0.0, angle, 0.0, 0.0, 0.0, 0.0;
+
+  // ROS_INFO_STREAM("Rotate forque");
+  // bool rotate = ada->moveArmWithEndEffectorTwist(
+  //                 twists,
+  //                 0.1,
+  //                 collisionFree,
+  //                 timelimit,
+  //                 positionTolerance,
+  //                 angularTolerance,
+  //                 velocityLimits);
+  if (rotate) {
+    ROS_INFO_STREAM("Push forque");
+    return ada->moveArmToEndEffectorOffset(
+                                Eigen::Vector3d(-xOff, -yOff, 0),
+                                pushDist,
+                                collisionFree,
+                                timelimit,
+                                positionTolerance,
+                                angularTolerance,
+                                velocityLimits);
+  } else {
+    return false;
+  }
+
 }
 
 } // namespace action

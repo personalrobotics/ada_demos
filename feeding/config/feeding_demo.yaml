@@ -56,6 +56,9 @@ feedingDemo:
   waitMillisecsAtFood: 00     # short pause after skewering the food
   waitMillisecsAtPerson: 3000   # long pause so person can take a bite
   fixedFaceY: 0.27
+  
+  pushDist: 0.1
+  pushingAngle: 0
 
 # Planning parameters
 planning:
