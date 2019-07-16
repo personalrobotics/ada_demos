@@ -43,8 +43,8 @@ bool push(
     float angle, 
     double pushDist)
 {
-  float xOff = cos(0)*0.05; // angle - M_PI * 0.5) * 0.05;
-  float yOff = sin(0)*0.05; //angle - M_PI * 0.5) * 0.05;
+  float xOff = cos(angle); // angle - M_PI * 0.5) * 0.05;
+  float yOff = sin(angle); //angle - M_PI * 0.5) * 0.05;
 
   if (pushDist < 0) {
       xOff *= -1;
@@ -52,19 +52,19 @@ bool push(
       pushDist *= -1;
   }
 
-  bool rotate = true;
-  // Eigen::VectorXd twists(6);
-  // twists << 0.0, angle, 0.0, 0.0, 0.0, 0.0;
+  // bool rotate = true;
+  Eigen::VectorXd twists(6);
+  twists << 0.0, 0.0, angle, 0.0, 0.0, 0.0;
 
-  // ROS_INFO_STREAM("Rotate forque");
-  // bool rotate = ada->moveArmWithEndEffectorTwist(
-  //                 twists,
-  //                 0.1,
-  //                 collisionFree,
-  //                 timelimit,
-  //                 positionTolerance,
-  //                 angularTolerance,
-  //                 velocityLimits);
+  ROS_INFO_STREAM("Rotate forque");
+  bool rotate = ada->moveArmWithEndEffectorTwist(
+                  twists,
+                  1,
+                  collisionFree,
+                  timelimit,
+                  positionTolerance,
+                  angularTolerance,
+                  velocityLimits);
   if (rotate) {
     ROS_INFO_STREAM("Push forque");
     return ada->moveArmToEndEffectorOffset(

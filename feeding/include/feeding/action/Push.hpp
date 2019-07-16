@@ -20,7 +20,7 @@ bool push(
     float angle, 
     double pushDist
 );
-}
-}
+} // namespace action
+} // namespace feeding
 
 #endif
