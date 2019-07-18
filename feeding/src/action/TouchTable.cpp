@@ -31,7 +31,7 @@ bool touchTable(
   }
 
   Eigen::Vector3d direction(0, 0, -1);
-  double length = 0.1;
+  double length = 0.03;
 
   bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
       direction,
@@ -56,11 +56,10 @@ bool touchTable(
       ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
     }
   }
-  direction[2] = 1;
-  length = 0.05;
+  Eigen::Vector3d backDirection(0, 0, 1);
 
   return ada->moveArmToEndEffectorOffset(
-            direction,
+            backDirection,
             length,
             collisionFree,
             planningTimeout,

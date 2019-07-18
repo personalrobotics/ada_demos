@@ -9,6 +9,7 @@
 #include "feeding/action/Push.hpp"
 #include "feeding/util.hpp"
 #include "feeding/action/TouchTable.hpp"
+#include "feeding/FTThresholdHelper.hpp"
 
 using ada::util::waitForUser;
 
@@ -31,7 +32,7 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
 
   while (true)
   {
-    waitForUser("next step?", ada);
+    waitForUser("Start?", ada);
 
     // std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
@@ -71,37 +72,44 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     }
     
     // ===== DOWN TO PLATE =====
+    waitForUser("Going Down", ada);
+
     ROS_INFO_STREAM("Down to plate");
-    // ftThresholdHelper.setThresholds(1.0, 1.0); // For stopping traj when touch the table
-    // bool moveDownSuccess = action::touchTable(
-    //                         ada,
-    //                         collisionFree,
-    //                         feedingDemo.mPlanningTimeout,
-    //                         feedingDemo.mPlateTSRParameters["verticalTolerance"],
-    //                         feedingDemo.mPlateTSRParameters["rotationTolerance"],
-    //                         FTThresholdHelper);
-    // if (!moveDownSuccess)
-    // {
-    //   ROS_WARN_STREAM("Move down failed. Please restart");
-    //   exit(EXIT_FAILURE);
-    // }
-    // else
-    // {
-    //   std::cout << "Move down Success" << std::endl;
-    //   std::cout << "Taking Picture before pushing" << std::endl;
-      // std_msgs::String msg;
-      // ss.str(std::string());
-      // ss << "down_before";
-      // msg.data = ss.str();
-      // image_pub.publish(msg);
-    // }
+    FTThresholdHelper->setThresholds(0.1, 0.1); // For stopping traj when touch the table
+    // std::shared_ptr<FTThresholdHelper> FTThresholdHelper = nullptr;
+    waitForUser("Going Down", ada);
+    bool moveDownSuccess = action::touchTable(
+                            ada,
+                            collisionFree,
+                            feedingDemo.mPlanningTimeout,
+                            feedingDemo.mPlateTSRParameters["verticalTolerance"],
+                            feedingDemo.mPlateTSRParameters["rotationTolerance"],
+                            FTThresholdHelper);
+    if (!moveDownSuccess)
+    {
+      ROS_WARN_STREAM("Move down failed. Please restart");
+      exit(EXIT_FAILURE);
+    }
+    else
+    {
+      std::cout << "Move down Success" << std::endl;
+      std::cout << "Taking Picture before pushing" << std::endl;
+      std_msgs::String msg;
+      ss.str(std::string());
+      ss << "down_before";
+      msg.data = ss.str();
+      image_pub.publish(msg);
+    }
+
+    // ===== PUSH FOOD =====
+    waitForUser("Push?", ada);
 
     float angle;
     double pushDist;
     nodeHandle.getParam("/feedingDemo/pushingAngle", angle);
     nodeHandle.getParam("/feedingDemo/pushDist", pushDist);
 
-    // ===== PUSH FOOD =====
+    
     ROS_INFO_STREAM("Push");
     bool pushSuccess = action::push(
                             ada,
