@@ -40,7 +40,7 @@ bool push(
     double positionTolerance,
     double angularTolerance,
     std::vector<double> velocityLimits,
-    float angle, 
+    float angle,
     double pushDist)
 {
   float xOff = cos(angle); // angle - M_PI * 0.5) * 0.05;
@@ -52,33 +52,15 @@ bool push(
       pushDist *= -1;
   }
 
-  // bool rotate = true;
-  Eigen::VectorXd twists(6);
-  twists << 0.0, 0.0, angle, 0.0, 0.0, 0.0;
-
-  ROS_INFO_STREAM("Rotate forque");
-  bool rotate = ada->moveArmWithEndEffectorTwist(
-                  twists,
-                  1,
-                  collisionFree,
-                  timelimit,
-                  positionTolerance,
-                  angularTolerance,
-                  velocityLimits);
-  if (rotate) {
-    ROS_INFO_STREAM("Push forque");
-    return ada->moveArmToEndEffectorOffset(
-                                Eigen::Vector3d(-xOff, -yOff, 0),
-                                pushDist,
-                                collisionFree,
-                                timelimit,
-                                positionTolerance,
-                                angularTolerance,
-                                velocityLimits);
-  } else {
-    return false;
-  }
-
+  ROS_INFO_STREAM("Push forque");
+  return ada->moveArmToEndEffectorOffset(
+                              Eigen::Vector3d(-xOff, -yOff, 0),
+                              pushDist,
+                              collisionFree,
+                              timelimit,
+                              positionTolerance,
+                              angularTolerance,
+                              velocityLimits);
 }
 
 } // namespace action

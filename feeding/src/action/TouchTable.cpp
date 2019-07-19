@@ -13,7 +13,9 @@ bool touchTable(
     double planningTimeout,
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
-    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper)
+    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
+    std::vector<double> velocityLimits,
+    float angle)
 {
 
   ROS_INFO_STREAM("Move Down");
@@ -30,41 +32,60 @@ bool touchTable(
     }
   }
 
-  Eigen::Vector3d direction(0, 0, -1);
-  double length = 0.03;
+  // bool rotate = true;
+  Eigen::VectorXd twists(6);
+  twists << 0.0, 0.0, angle, 0.0, 0.0, 0.0;
 
-  bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
-      direction,
-      length,
-      collisionFree,
-      planningTimeout,
-      endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);
+  ROS_INFO_STREAM("Rotate forque");
+  bool rotate = ada->moveArmWithEndEffectorTwist(
+                  twists,
+                  1,
+                  collisionFree,
+                  planningTimeout,
+                  endEffectorOffsetPositionTolerance,
+                  endEffectorOffsetAngularTolerance,
+                  velocityLimits);
+  if (rotate) {
 
-  // trajectoryCompleted might be false because the forque hit the food
-  // along the way and the trajectory was aborted
-  if (ftThresholdHelper)
-  {
-    ROS_WARN_STREAM("Start FT, stop Traj Controller");
-    bool result = ada->switchControllers(ftTrajectoryController, trajectoryController);
-    if (!result)
+    Eigen::Vector3d direction(0, 0, -1);
+    double length = 0.03;
+
+    bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
+        direction,
+        length,
+        collisionFree,
+        planningTimeout,
+        endEffectorOffsetPositionTolerance,
+        endEffectorOffsetAngularTolerance);
+
+    // trajectoryCompleted might be false because the forque hit the food
+    // along the way and the trajectory was aborted
+    if (ftThresholdHelper)
     {
-      ROS_WARN_STREAM("Failed to switch; continue with traj controller");
+      ROS_WARN_STREAM("Start FT, stop Traj Controller");
+      bool result = ada->switchControllers(ftTrajectoryController, trajectoryController);
+      if (!result)
+      {
+        ROS_WARN_STREAM("Failed to switch; continue with traj controller");
+      }
+      else
+      {
+        ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
+      }
     }
-    else
-    {
-      ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
-    }
+    Eigen::Vector3d backDirection(0, 0, 1);
+
+    return ada->moveArmToEndEffectorOffset(
+              backDirection,
+              0.01,
+              collisionFree,
+              planningTimeout,
+              endEffectorOffsetPositionTolerance,
+              endEffectorOffsetAngularTolerance);
+  } else {
+    return false;
   }
-  Eigen::Vector3d backDirection(0, 0, 1);
-
-  return ada->moveArmToEndEffectorOffset(
-            backDirection,
-            length,
-            collisionFree,
-            planningTimeout,
-            endEffectorOffsetPositionTolerance,
-            endEffectorOffsetAngularTolerance);
+  return true;
 }
 
 } // namespace feeding

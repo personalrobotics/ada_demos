@@ -17,7 +17,7 @@ bool push(
     double positionTolerance,
     double angularTolerance,
     std::vector<double> velocityLimits,
-    float angle, 
+    float angle,
     double pushDist
 );
 } // namespace action

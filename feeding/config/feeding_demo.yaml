@@ -59,6 +59,7 @@ feedingDemo:
   
   pushDist: 0.1
   pushingAngle: 1.57
+  # downLength: 0.05
 
 # Planning parameters
 planning:

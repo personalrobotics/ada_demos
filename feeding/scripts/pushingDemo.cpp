@@ -77,6 +77,10 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     ROS_INFO_STREAM("Down to plate");
     FTThresholdHelper->setThresholds(0.1, 0.1); // For stopping traj when touch the table
     // std::shared_ptr<FTThresholdHelper> FTThresholdHelper = nullptr;
+    float angle;
+    nodeHandle.getParam("/feedingDemo/pushingAngle", angle);
+    // double length;
+    // nodeHandle.getParam("/feedingDemo/downLength", length);
     waitForUser("Going Down", ada);
     bool moveDownSuccess = action::touchTable(
                             ada,
@@ -84,7 +88,9 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
                             feedingDemo.mPlanningTimeout,
                             feedingDemo.mPlateTSRParameters["verticalTolerance"],
                             feedingDemo.mPlateTSRParameters["rotationTolerance"],
-                            FTThresholdHelper);
+                            FTThresholdHelper,
+                            feedingDemo.mVelocityLimits,
+                            angle);
     if (!moveDownSuccess)
     {
       ROS_WARN_STREAM("Move down failed. Please restart");
@@ -104,9 +110,8 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     // ===== PUSH FOOD =====
     waitForUser("Push?", ada);
 
-    float angle;
+    
     double pushDist;
-    nodeHandle.getParam("/feedingDemo/pushingAngle", angle);
     nodeHandle.getParam("/feedingDemo/pushDist", pushDist);
 
     
