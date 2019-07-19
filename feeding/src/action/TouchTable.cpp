@@ -15,7 +15,8 @@ bool touchTable(
     double endEffectorOffsetAngularTolerance,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
     std::vector<double> velocityLimits,
-    float angle)
+    float angle,
+    double length)
 {
 
   ROS_INFO_STREAM("Move Down");
@@ -32,23 +33,28 @@ bool touchTable(
     }
   }
 
-  // bool rotate = true;
-  Eigen::VectorXd twists(6);
-  twists << 0.0, 0.0, angle, 0.0, 0.0, 0.0;
+  bool rotate;
+  if (angle != 0.0) 
+  {
+    Eigen::VectorXd twists(6);
+    twists << 0.0, 0.0, angle, 0.0, 0.0, 0.0;
 
-  ROS_INFO_STREAM("Rotate forque");
-  bool rotate = ada->moveArmWithEndEffectorTwist(
-                  twists,
-                  1,
-                  collisionFree,
-                  planningTimeout,
-                  endEffectorOffsetPositionTolerance,
-                  endEffectorOffsetAngularTolerance,
-                  velocityLimits);
+    ROS_INFO_STREAM("Rotate forque");
+    rotate = ada->moveArmWithEndEffectorTwist(
+                    twists,
+                    1,
+                    collisionFree,
+                    planningTimeout,
+                    endEffectorOffsetPositionTolerance,
+                    endEffectorOffsetAngularTolerance,
+                    velocityLimits);
+  } else {
+    rotate = true;
+  }
   if (rotate) {
 
     Eigen::Vector3d direction(0, 0, -1);
-    double length = 0.03;
+    // double length = 0.03;
 
     bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
         direction,
@@ -73,19 +79,19 @@ bool touchTable(
         ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
       }
     }
-    Eigen::Vector3d backDirection(0, 0, 1);
+    // Eigen::Vector3d backDirection(0, 0, 1);
 
-    return ada->moveArmToEndEffectorOffset(
-              backDirection,
-              0.01,
-              collisionFree,
-              planningTimeout,
-              endEffectorOffsetPositionTolerance,
-              endEffectorOffsetAngularTolerance);
+    // return ada->moveArmToEndEffectorOffset(
+    //           backDirection,
+    //           0.01,
+    //           collisionFree,
+    //           planningTimeout,
+    //           endEffectorOffsetPositionTolerance,
+    //           endEffectorOffsetAngularTolerance);
+    return true;
   } else {
     return false;
   }
-  return true;
 }
 
 } // namespace feeding

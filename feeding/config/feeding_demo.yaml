@@ -57,9 +57,9 @@ feedingDemo:
   waitMillisecsAtPerson: 3000   # long pause so person can take a bite
   fixedFaceY: 0.27
   
-  pushDist: 0.1
+  pushDist: 0.05
   pushingAngle: 1.57
-  # downLength: 0.05
+  downLength: 0.008
 
 # Planning parameters
 planning:
