@@ -43,7 +43,7 @@ int main(int argc, char** argv)
   bool autoContinueDemo = false;
 
   // the FT sensing can stop trajectories if the forces are too big
-  bool useFTSensingToStopTrajectories = false;
+  bool useFTSensingToStopTrajectories = true;
 
   bool TERMINATE_AT_USER_PROMPT = true;
 

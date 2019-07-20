@@ -17,8 +17,7 @@ bool touchTable(
     double endEffectorOffsetAngularTolerance,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
     std::vector<double> velocityLimits,
-    float angle,
-    double length
+    float angle
 );
 
 } // namespace action

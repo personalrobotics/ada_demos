@@ -15,23 +15,10 @@ bool touchTable(
     double endEffectorOffsetAngularTolerance,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
     std::vector<double> velocityLimits,
-    float angle,
-    double length)
+    float angle)
 {
 
   ROS_INFO_STREAM("Move Down");
-
-  if (ftThresholdHelper)
-  {
-    ROS_WARN_STREAM("Stop FT, start Traj Controller");
-    ada->getTrajectoryExecutor()->cancel();
-    bool result = ada->switchControllers(trajectoryController, ftTrajectoryController);
-    if (!result)
-    {
-      ROS_WARN_STREAM("Failed to switch; continue with FT controller");
-      ftThresholdHelper->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
-    }
-  }
 
   bool rotate;
   if (angle != 0.0) 
@@ -51,18 +38,41 @@ bool touchTable(
   } else {
     rotate = true;
   }
+
   if (rotate) {
+    ftThresholdHelper->setThresholds(1, 1); // For stopping traj when touch the table
 
     Eigen::Vector3d direction(0, 0, -1);
-    // double length = 0.03;
+    double length = 0.04;
 
     bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
-        direction,
-        length,
-        collisionFree,
-        planningTimeout,
-        endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);
+                                  direction,
+                                  length,
+                                  collisionFree,
+                                  planningTimeout,
+                                  endEffectorOffsetPositionTolerance,
+                                  endEffectorOffsetAngularTolerance);
+    
+    if (ftThresholdHelper)
+    {
+      ROS_WARN_STREAM("Stop FT, start Traj Controller");
+      ada->getTrajectoryExecutor()->cancel();
+      bool result = ada->switchControllers(trajectoryController, ftTrajectoryController);
+      if (!result)
+      {
+        ROS_WARN_STREAM("Failed to switch; continue with FT controller");
+        ftThresholdHelper->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
+      }
+    }
+    Eigen::Vector3d backDirection(0, 0, 1);
+
+    trajectoryCompleted =  ada->moveArmToEndEffectorOffset(
+                              backDirection,
+                              0.008,
+                              collisionFree,
+                              planningTimeout,
+                              endEffectorOffsetPositionTolerance,
+                              endEffectorOffsetAngularTolerance);
 
     // trajectoryCompleted might be false because the forque hit the food
     // along the way and the trajectory was aborted
@@ -79,16 +89,7 @@ bool touchTable(
         ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
       }
     }
-    // Eigen::Vector3d backDirection(0, 0, 1);
-
-    // return ada->moveArmToEndEffectorOffset(
-    //           backDirection,
-    //           0.01,
-    //           collisionFree,
-    //           planningTimeout,
-    //           endEffectorOffsetPositionTolerance,
-    //           endEffectorOffsetAngularTolerance);
-    return true;
+    return trajectoryCompleted;
   } else {
     return false;
   }
