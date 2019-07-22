@@ -47,7 +47,7 @@ bool push(
   float xOff = cos(angle); // angle - M_PI * 0.5) * 0.05;
   float yOff = sin(angle); //angle - M_PI * 0.5) * 0.05;
   double pushDist = 0.1;
-  ftThresholdHelper->setThresholds(1, 1); // For stopping traj when touch the wall
+  ftThresholdHelper->setThresholds(2, 2); // For stopping traj when touch the wall
 
   ROS_INFO_STREAM("Push forque");
   bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
@@ -69,7 +69,23 @@ bool push(
     ftThresholdHelper->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
     }
   }
-  return trajectoryCompleted;
+
+//   // trajectoryCompleted might be false because the forque hit the food
+//   // along the way and the trajectory was aborted
+//   if (ftThresholdHelper)
+//   {
+//     ROS_WARN_STREAM("Start FT, stop Traj Controller");
+//     bool result = ada->switchControllers(ftTrajectoryController, trajectoryController);
+//     if (!result)
+//     {
+//       ROS_WARN_STREAM("Failed to switch; continue with traj controller");
+//     }
+//     else
+//     {
+//       ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
+//     }
+//   }
+  return true;
 }
 
 } // namespace action

@@ -27,7 +27,6 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
   
   std::shared_ptr<FTThresholdHelper> FTThresholdHelper = feedingDemo.getFTThresholdHelper();
-
   ros::Publisher image_pub = nodeHandle.advertise<std_msgs::String>("/save_image", 1, true);
   std::stringstream ss;
 
@@ -95,15 +94,6 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     }
     else
     {
-      bool liftUpSuccess = action::liftUp(
-                              ada,
-                              collisionFree,
-                              feedingDemo.mPlanningTimeout,
-                              feedingDemo.mPlateTSRParameters["verticalTolerance"],
-                              feedingDemo.mPlateTSRParameters["rotationTolerance"],
-                              FTThresholdHelper,
-                              0.008);
-
       std::cout << "Move down Success" << std::endl;
       std::cout << "Taking Picture before pushing" << std::endl;
       std_msgs::String msg;
@@ -147,16 +137,15 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
       msg.data = ss.str();
       image_pub.publish(msg);
     }
-
-    bool liftUpSuccess = action::liftUp(
-                            ada,
-                            collisionFree,
-                            feedingDemo.mPlanningTimeout,
-                            feedingDemo.mPlateTSRParameters["verticalTolerance"],
-                            feedingDemo.mPlateTSRParameters["rotationTolerance"],
-                            FTThresholdHelper,
-                            0.03);
-
+    
+    action::liftUp(
+                  ada,
+                  collisionFree,
+                  feedingDemo.mPlanningTimeout,
+                  feedingDemo.mPlateTSRParameters["verticalTolerance"],
+                  feedingDemo.mPlateTSRParameters["rotationTolerance"],
+                  FTThresholdHelper,
+                  0.03);
     std::cout << "Taking Picture above wall" << std::endl;
     std_msgs::String mg;
     ss.str(std::string());

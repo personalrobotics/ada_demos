@@ -21,13 +21,13 @@ bool liftUp(
 
   Eigen::Vector3d backDirection(0, 0, 1);
 
-  bool trajectoryCompleted =  ada->moveArmToEndEffectorOffset(
-                            backDirection,
-                            upDist,
-                            collisionFree,
-                            planningTimeout,
-                            endEffectorOffsetPositionTolerance,
-                            endEffectorOffsetAngularTolerance);
+  bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
+                          backDirection,
+                          upDist,
+                          collisionFree,
+                          planningTimeout,
+                          endEffectorOffsetPositionTolerance,
+                          endEffectorOffsetAngularTolerance);
 
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted

@@ -1,4 +1,5 @@
 #include "feeding/action/TouchTable.hpp"
+#include "feeding/action/LiftUp.hpp"
 #include <libada/util.hpp>
 #include "feeding/util.hpp"
 
@@ -64,7 +65,15 @@ bool touchTable(
         ftThresholdHelper->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
       }
     }
-    return trajectoryCompleted;
+
+    return action::liftUp(
+                      ada,
+                      collisionFree,
+                      planningTimeout,
+                      endEffectorOffsetPositionTolerance,
+                      endEffectorOffsetAngularTolerance,
+                      ftThresholdHelper,
+                      0.001);
   } else {
     return false;
   }
