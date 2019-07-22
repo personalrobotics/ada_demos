@@ -70,21 +70,6 @@ bool push(
     }
   }
 
-//   // trajectoryCompleted might be false because the forque hit the food
-//   // along the way and the trajectory was aborted
-//   if (ftThresholdHelper)
-//   {
-//     ROS_WARN_STREAM("Start FT, stop Traj Controller");
-//     bool result = ada->switchControllers(ftTrajectoryController, trajectoryController);
-//     if (!result)
-//     {
-//       ROS_WARN_STREAM("Failed to switch; continue with traj controller");
-//     }
-//     else
-//     {
-//       ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
-//     }
-//   }
   return true;
 }
 

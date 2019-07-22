@@ -58,6 +58,7 @@ feedingDemo:
   fixedFaceY: 0.27
   
   pushingAngle: 1.57
+  downLength: 0.04
 
 # Planning parameters
 planning:
