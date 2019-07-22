@@ -43,7 +43,7 @@ bool touchTable(
     ftThresholdHelper->setThresholds(1, 1); // For stopping traj when touch the table
 
     Eigen::Vector3d direction(0, 0, -1);
-    double length = 0.04;
+    double length = 0.04; // maximum go-down distance
 
     bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
                                   direction,
@@ -62,31 +62,6 @@ bool touchTable(
       {
         ROS_WARN_STREAM("Failed to switch; continue with FT controller");
         ftThresholdHelper->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
-      }
-    }
-    Eigen::Vector3d backDirection(0, 0, 1);
-
-    trajectoryCompleted =  ada->moveArmToEndEffectorOffset(
-                              backDirection,
-                              0.008,
-                              collisionFree,
-                              planningTimeout,
-                              endEffectorOffsetPositionTolerance,
-                              endEffectorOffsetAngularTolerance);
-
-    // trajectoryCompleted might be false because the forque hit the food
-    // along the way and the trajectory was aborted
-    if (ftThresholdHelper)
-    {
-      ROS_WARN_STREAM("Start FT, stop Traj Controller");
-      bool result = ada->switchControllers(ftTrajectoryController, trajectoryController);
-      if (!result)
-      {
-        ROS_WARN_STREAM("Failed to switch; continue with traj controller");
-      }
-      else
-      {
-        ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
       }
     }
     return trajectoryCompleted;

@@ -66,6 +66,7 @@ add_executable(feeding
 
   src/action/Push.cpp
   src/action/TouchTable.cpp
+  src/action/LiftUp.cpp
 
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp

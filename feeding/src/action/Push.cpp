@@ -18,7 +18,8 @@
 #include <math.h>
 
 using ada::util::waitForUser;
-static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
+const static std::vector<std::string> trajectoryController{"rewd_trajectory_controller"};
+const static std::vector<std::string> ftTrajectoryController{"move_until_touch_topic_controller"};
 
 using namespace std;
 using namespace Eigen;
@@ -39,29 +40,38 @@ bool push(
     double timelimit,
     double positionTolerance,
     double angularTolerance,
+    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
     std::vector<double> velocityLimits,
-    float angle,
-    double pushDist)
+    float angle)
 {
   float xOff = cos(angle); // angle - M_PI * 0.5) * 0.05;
   float yOff = sin(angle); //angle - M_PI * 0.5) * 0.05;
-
-  if (pushDist < 0) {
-      xOff *= -1;
-      yOff *= -1;
-      pushDist *= -1;
-  }
+  double pushDist = 0.1;
+  ftThresholdHelper->setThresholds(1, 1); // For stopping traj when touch the wall
 
   ROS_INFO_STREAM("Push forque");
-  return ada->moveArmToEndEffectorOffset(
-                              Eigen::Vector3d(-xOff, -yOff, 0),
-                              pushDist,
-                              collisionFree,
-                              timelimit,
-                              positionTolerance,
-                              angularTolerance,
-                              velocityLimits);
+  bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
+                                Eigen::Vector3d(-xOff, -yOff, 0),
+                                pushDist,
+                                collisionFree,
+                                timelimit,
+                                positionTolerance,
+                                angularTolerance,
+                                velocityLimits);
+  if (ftThresholdHelper)
+  {
+    ROS_WARN_STREAM("Stop FT, start Traj Controller");
+    ada->getTrajectoryExecutor()->cancel();
+    bool result = ada->switchControllers(trajectoryController, ftTrajectoryController);
+    if (!result)
+    {
+    ROS_WARN_STREAM("Failed to switch; continue with FT controller");
+    ftThresholdHelper->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
+    }
+  }
+  return trajectoryCompleted;
 }
 
 } // namespace action
 } // namespace action
+

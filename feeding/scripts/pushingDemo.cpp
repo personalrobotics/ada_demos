@@ -10,6 +10,7 @@
 #include "feeding/util.hpp"
 #include "feeding/action/TouchTable.hpp"
 #include "feeding/FTThresholdHelper.hpp"
+#include "feeding/action/LiftUp.hpp"
 
 using ada::util::waitForUser;
 
@@ -65,7 +66,7 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
       std::cout << "Taking Picture from above" << std::endl;
       std_msgs::String msg;
       ss.str(std::string());
-      ss << "up_before";
+      ss << "1_start";
       msg.data = ss.str();
       image_pub.publish(msg);
       // talk("Move above Place Success", true);
@@ -94,11 +95,20 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     }
     else
     {
+      bool liftUpSuccess = action::liftUp(
+                              ada,
+                              collisionFree,
+                              feedingDemo.mPlanningTimeout,
+                              feedingDemo.mPlateTSRParameters["verticalTolerance"],
+                              feedingDemo.mPlateTSRParameters["rotationTolerance"],
+                              FTThresholdHelper,
+                              0.008);
+
       std::cout << "Move down Success" << std::endl;
       std::cout << "Taking Picture before pushing" << std::endl;
       std_msgs::String msg;
       ss.str(std::string());
-      ss << "down_before";
+      ss << "2_before_pushing";
       msg.data = ss.str();
       image_pub.publish(msg);
     }
@@ -118,9 +128,9 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
                             feedingDemo.mPlanningTimeout,
                             feedingDemo.mPlateTSRParameters["verticalTolerance"],
                             feedingDemo.mPlateTSRParameters["rotationTolerance"],
+                            FTThresholdHelper,
                             feedingDemo.mVelocityLimits,
-                            angle,
-                            pushDist);
+                            angle);
 
     if (!pushSuccess)
     {
@@ -133,10 +143,26 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
       std::cout << "Taking Picture after pushing" << std::endl;
       std_msgs::String msg;
       ss.str(std::string());
-      ss << "down_after";
+      ss << "3_after_pushing";
       msg.data = ss.str();
       image_pub.publish(msg);
     }
+
+    bool liftUpSuccess = action::liftUp(
+                            ada,
+                            collisionFree,
+                            feedingDemo.mPlanningTimeout,
+                            feedingDemo.mPlateTSRParameters["verticalTolerance"],
+                            feedingDemo.mPlateTSRParameters["rotationTolerance"],
+                            FTThresholdHelper,
+                            0.03);
+
+    std::cout << "Taking Picture above wall" << std::endl;
+    std_msgs::String mg;
+    ss.str(std::string());
+    ss << "4_above_wall";
+    mg.data = ss.str();
+    image_pub.publish(mg);
 
     // ===== MOVE ABOVE PLATE =====
     ROS_INFO_STREAM("Move above plate, again");
@@ -163,7 +189,7 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
       std::cout << "Taking Picture after finishing" << std::endl;
       std_msgs::String msg;
       ss.str(std::string());
-      ss << "up_after";
+      ss << "5_finish";
       msg.data = ss.str();
       image_pub.publish(msg);
     }
