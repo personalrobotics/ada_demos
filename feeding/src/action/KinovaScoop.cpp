@@ -13,7 +13,7 @@
 #include <aikido/trajectory/Interpolated.hpp>
 #include <libada/util.hpp>
 
-#include "magi/solution/PlanSolution.hpp"
+//#include "magi/solution/PlanSolution.hpp"
 
 #include <iostream>
 #include <Eigen/Dense>
@@ -30,11 +30,11 @@ using aikido::trajectory::Interpolated;
 using aikido::trajectory::TrajectoryPtr;
 using State = aikido::statespace::dart::MetaSkeletonStateSpace::State;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
-using magi::solution::PlanSolution;
+//using magi::solution::PlanSolution;
 using ada::util::createIsometry;
 
 
-using magi::solution::PlanSolution;
+//using magi::solution::PlanSolution;
 using ada::util::createIsometry;
 class Pose
 {
@@ -171,9 +171,9 @@ bool kinovaScoop(
   int demotype = 3;
   /* demotype: 0 kinovascoop
                1 kinovascoop with twist
-               2 foward kinovascoop with twist 
+               2 foward kinovascoop with twist
   */
-  
+
   std::cout << "plate to ee translation = " << plateEndEffectorTransform.translation() << std::endl;
   std::cout << "plate to ee rotation = " << plateEndEffectorTransform.linear() << std::endl;
 
@@ -183,7 +183,7 @@ bool kinovaScoop(
   // Scoop with twist
   if (demotype == 1) {
     height = 0.08;
-    minima = 1.2*height;    
+    minima = 1.2*height;
   }
   else if (demotype == 0)
   {
@@ -191,7 +191,7 @@ bool kinovaScoop(
     height = 0.01;
     minima = 0.6*height;
   }
-  
+
   int num = 10;
   PolyTraj scoopTraj = PolyTraj(-height, minima);
   std::vector<Pose> wayPoints = scoopTraj.getWayPoints(num);
@@ -200,7 +200,7 @@ bool kinovaScoop(
   std::cout <<"begin scoop traj"<<std::endl;
   double delta_x, delta_z, delta_l, delta_roll;
   TrajectoryPtr *traj_vector = new TrajectoryPtr[wayPoints.size()];
-  
+
   auto mArm = ada->getArm();
   auto mArmSpace = mArm->getStateSpace();
   auto metaSkeleton = mArm->getMetaSkeleton();
@@ -219,8 +219,8 @@ bool kinovaScoop(
   // double pitch = curPose.linear()[1];
   // double yaw = curPose.linear()[2];
 
-  // std::cout << "startPose translation :\n" << curPose.translation() << std::endl; 
-  // std::cout << "startPose rotation :\n" << curPose.linear() << std::endl; 
+  // std::cout << "startPose translation :\n" << curPose.translation() << std::endl;
+  // std::cout << "startPose rotation :\n" << curPose.linear() << std::endl;
 
   if (demotype == 0 || demotype == 1) {
     std::cout<< demotype <<"kinovascoop" << std::endl;
@@ -232,7 +232,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
     Eigen::VectorXd twists2(6);
@@ -243,11 +243,11 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
   }
   // else if (demotype==1) {
-  //   std::cout<< "1 kinovascoop with twist" << std::endl; 
+  //   std::cout<< "1 kinovascoop with twist" << std::endl;
   // }
   else if (demotype==2) {
     std::cout<< "2 foward kinovascoop with twist" << std::endl;
@@ -284,7 +284,7 @@ bool kinovaScoop(
             collisionFree,
             planningTimeout,
             endEffectorOffsetPositionTolerance,
-            endEffectorOffsetAngularTolerance);  
+            endEffectorOffsetAngularTolerance);
         }
         // else if (demotype==2) {
         //   Eigen::VectorXd twists(6);
@@ -301,7 +301,7 @@ bool kinovaScoop(
         //     collisionFree,
         //     planningTimeout,
         //     endEffectorOffsetPositionTolerance,
-        //     endEffectorOffsetAngularTolerance);  
+        //     endEffectorOffsetAngularTolerance);
         // }
         else if (demotype == 0){
           traj = ada->planArmToEndEffectorOffset(
@@ -322,29 +322,29 @@ bool kinovaScoop(
           ada->moveArmOnTrajectory(traj, collisionFree, ada::KUNZ, velocityLimits);
 
         traj_vector[i] = traj;
-        std::cout << "round " << i++ << std::endl; 
+        std::cout << "round " << i++ << std::endl;
         last_pose = (*pose);
-    } 
+    }
 
     TrajectoryPtr trajnext, concatenatedTraj = traj_vector[0];
 
     // concatenate all trajs
     for (int k=1; k<wayPoints.size(); k++) {
-      trajnext = traj_vector[k]; 
+      trajnext = traj_vector[k];
       concatenatedTraj = concatenate(
-        *dynamic_cast<Interpolated*>(concatenatedTraj.get()), 
+        *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
         *dynamic_cast<Interpolated*>(trajnext.get())
       );
     }
 
 
-    std::cout << "move concatenated traj "<< std::endl; 
+    std::cout << "move concatenated traj "<< std::endl;
     ada->moveArmOnTrajectory(concatenatedTraj, collisionFree, ada::KUNZ, velocityLimits);
   }
-  else {   
+  else {
     // twist1: [-0.0, -0.20, -0, 0.005, -0.00, -0.02]
     // twist2: [-0.0, -0.60, -0, 0.04, -0.00, -0.005]
-    // twist3: [-0.0, -0.50, -0, 0.03, -0.00, 0.06]    
+    // twist3: [-0.0, -0.50, -0, 0.03, -0.00, 0.06]
     Eigen::VectorXd twists0(6);
     twists0 << 0, 0.0, M_PI, 0.0, 0.0, 0.05;
 
@@ -354,7 +354,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
     Eigen::VectorXd twists1(6);
@@ -366,7 +366,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
     Eigen::VectorXd twists2(6);
@@ -378,7 +378,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
     Eigen::VectorXd twists3(6);
@@ -389,16 +389,16 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
   }
   // auto startState = mArmSpace->createState();
 //   State* startState;
   // auto startState = ada->getArm()->getMetaSkeleton().get()->getPositions()
-  auto startState = mArmSpace->createState();
+ // auto startState = mArmSpace->createState();
   mArmSpace->getState(metaSkeleton.get(), startState);
 
-  int i = 0;
+ // int i = 0;
   for (auto pose = wayPoints.begin(); pose != wayPoints.end(); ++pose) {
       delta_x = (*pose).z - last_pose.z;
       delta_z = (*pose).y - last_pose.y;
@@ -433,11 +433,11 @@ bool kinovaScoop(
       //   collisionFree,
       //   planningTimeout,
       //   endEffectorOffsetPositionTolerance,
-      //   endEffectorOffsetAngularTolerance);  
+      //   endEffectorOffsetAngularTolerance);
 
       auto traj = ada->planToEndEffectorPose(
       goalPose,
-      1, //??? test it 
+      1, //??? test it
       // State* startState,
       collisionFree,
       planningTimeout,
@@ -448,17 +448,17 @@ bool kinovaScoop(
       ada->moveArmOnTrajectory(traj, collisionFree, ada::KUNZ, velocityLimits);
 
       traj_vector[i] = traj;
-      std::cout << "round " << i++ << std::endl; 
+      std::cout << "round " << i++ << std::endl;
       last_pose = (*pose);
-  } 
+  }
 
   TrajectoryPtr trajnext, concatenatedTraj = traj_vector[0];
 
   // concatenate all trajs
   for (int k=1; k<wayPoints.size(); k++) {
-    trajnext = traj_vector[k]; 
+    trajnext = traj_vector[k];
     concatenatedTraj = concatenate(
-      *dynamic_cast<Interpolated*>(concatenatedTraj.get()), 
+      *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
       *dynamic_cast<Interpolated*>(trajnext.get())
     );
   }

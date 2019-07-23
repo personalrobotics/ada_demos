@@ -13,7 +13,7 @@
 #include <aikido/trajectory/Interpolated.hpp>
 #include <libada/util.hpp>
 
-#include "magi/solution/PlanSolution.hpp"
+//#include "magi/solution/PlanSolution.hpp"
 
 #include <iostream>
 #include <Eigen/Dense>
@@ -32,7 +32,7 @@ using aikido::trajectory::TrajectoryPtr;
 using State = aikido::statespace::dart::MetaSkeletonStateSpace::State;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 
-using magi::solution::PlanSolution;
+//using magi::solution::PlanSolution;
 using ada::util::createIsometry;
 class Pose
 {
@@ -168,7 +168,7 @@ bool scoop(
     std::cout <<"Move above Place Success"<<std::endl;
     talk("Move above Place Success", true);
   }
-  
+
   std::cout << "plate to ee translation = " << plateEndEffectorTransform.translation() << std::endl;
   std::cout << "plate to ee rotation = " << plateEndEffectorTransform.linear() << std::endl;
 
@@ -184,7 +184,7 @@ bool scoop(
   std::cout <<"begin scoop traj"<<std::endl;
   double delta_x, delta_z, delta_l, delta_roll;
   TrajectoryPtr *traj_vector = new TrajectoryPtr[wayPoints.size()];
-  
+
   auto mArm = ada->getArm();
   auto mArmSpace = mArm->getStateSpace();
   auto metaSkeleton = mArm->getMetaSkeleton();
@@ -206,8 +206,8 @@ bool scoop(
   // double pitch = curPose.linear()[1];
   // double yaw = curPose.linear()[2];
 
-  std::cout << "startPose translation :\n" << curPose.translation() << std::endl; 
-  std::cout << "startPose rotation :\n" << curPose.linear() << std::endl; 
+  std::cout << "startPose translation :\n" << curPose.translation() << std::endl;
+  std::cout << "startPose rotation :\n" << curPose.linear() << std::endl;
 
   Eigen::VectorXd twists0(6);
   // twists << -0.0, -0.20, -0, -0.005, -0.00, -0.02;
@@ -219,7 +219,7 @@ bool scoop(
     collisionFree,
     planningTimeout,
     endEffectorOffsetPositionTolerance,
-    endEffectorOffsetAngularTolerance);  
+    endEffectorOffsetAngularTolerance);
   ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
   Eigen::VectorXd twists1(6);
@@ -232,7 +232,7 @@ bool scoop(
     collisionFree,
     planningTimeout,
     endEffectorOffsetPositionTolerance,
-    endEffectorOffsetAngularTolerance);  
+    endEffectorOffsetAngularTolerance);
   ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
   Eigen::VectorXd twists2(6);
@@ -245,7 +245,7 @@ bool scoop(
     collisionFree,
     planningTimeout,
     endEffectorOffsetPositionTolerance,
-    endEffectorOffsetAngularTolerance);  
+    endEffectorOffsetAngularTolerance);
   ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
   Eigen::VectorXd twists3(6);
@@ -253,16 +253,16 @@ bool scoop(
   // twists3 << 0, M_PI/2, 0, 0.0, 0.0, 0.0;
   init_traj = ada->planWithEndEffectorTwist(
     twists3,
-    1, 
+    1,
     collisionFree,
     planningTimeout,
     endEffectorOffsetPositionTolerance,
-    endEffectorOffsetAngularTolerance);  
+    endEffectorOffsetAngularTolerance);
 
   // Eigen::Isometry3d startPose = createIsometry(x, y, z, M_PI, 0, M_PI/2);
   // auto init_traj = ada->planToEndEffectorPose(
   // startPose,
-  // 0.5, //??? test it 
+  // 0.5, //??? test it
   // // State* startState,
   // collisionFree,
   // planningTimeout,
@@ -310,13 +310,13 @@ bool scoop(
         collisionFree,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);  
+        endEffectorOffsetAngularTolerance);
 
-      std::cout << "goalPose translation :\n" << goalPose.translation() << std::endl; 
-      std::cout << "goalPose rotation :\n" << goalPose.linear() << std::endl; 
+      std::cout << "goalPose translation :\n" << goalPose.translation() << std::endl;
+      std::cout << "goalPose rotation :\n" << goalPose.linear() << std::endl;
       // auto traj = ada->planToEndEffectorPose(
       // goalPose,
-      // 0.5, //??? test it 
+      // 0.5, //??? test it
       // // State* startState,
       // collisionFree,
       // planningTimeout,
@@ -328,21 +328,21 @@ bool scoop(
       // ada->moveArmOnTrajectory(traj, collisionFree, ada::KUNZ, velocityLimits);
 
       traj_vector[i] = traj;
-      std::cout << "round " << i++ << std::endl; 
+      std::cout << "round " << i++ << std::endl;
       last_pose = (*pose);
-  } 
+  }
 
   TrajectoryPtr trajnext, concatenatedTraj = traj_vector[0];
 
   // concatenate all trajs
   for (int k=1; k<wayPoints.size(); k++) {
-    trajnext = traj_vector[k]; 
+    trajnext = traj_vector[k];
     concatenatedTraj = concatenate(
-      *dynamic_cast<Interpolated*>(concatenatedTraj.get()), 
+      *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
       *dynamic_cast<Interpolated*>(trajnext.get())
     );
   }
-  std::cout << "move concatenated traj "<< std::endl; 
+  std::cout << "move concatenated traj "<< std::endl;
   ada->moveArmOnTrajectory(concatenatedTraj, collisionFree, ada::KUNZ, velocityLimits);
 
   // test twists---- it works! nice!

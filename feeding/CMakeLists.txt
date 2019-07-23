@@ -28,7 +28,7 @@ add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
   scripts/spanetDemo.cpp
-
+  scripts/resetDemo.cpp
   scripts/kinovaScoopDemo.cpp
   scripts/ScoopDemo.cpp
 
@@ -61,6 +61,8 @@ add_executable(feeding
 
   src/action/KinovaScoop.cpp
   src/action/Scoop.cpp
+
+  src/action/Reset.cpp
 
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp

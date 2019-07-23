@@ -55,8 +55,8 @@ include_directories(${aikido_INCLUDE_DIRS})
 find_package(libada REQUIRED)
 include_directories(${libada_INCLUDE_DIRS})
 
-find_package(magi REQUIRED)
-include_directories(${magi_INCLUDE_DIRS})
+#find_package(magi REQUIRED)
+#include_directories(${magi_INCLUDE_DIRS})
 
 find_package(rewd_controllers)
 IF (rewd_controllers_FOUND)

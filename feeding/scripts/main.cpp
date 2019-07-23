@@ -48,7 +48,8 @@ int main(int argc, char** argv)
   bool TERMINATE_AT_USER_PROMPT = true;
 
   // std::string demoType{"nips"};
-  std::string demoType{"kinova"};
+  // std::string demoType{"kinova"};
+  std::string demoType{"reset"};
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
@@ -122,7 +123,7 @@ int main(int argc, char** argv)
 
   std::shared_ptr<TargetFoodRanker> ranker;
 
-  if (demoType == "nips" || demoType == "kinova" || demoType == "scoop")
+  if (demoType == "nips" || demoType == "kinova" || demoType == "scoop" || demoType == "reset")
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
@@ -142,7 +143,7 @@ int main(int argc, char** argv)
   if (ftThresholdHelper)
     ftThresholdHelper->init();
 
-  feedingDemo->getAda()->closeHand(); 
+  feedingDemo->getAda()->closeHand();
 
   feedingDemo->setPerception(perception);
 
@@ -157,6 +158,10 @@ int main(int argc, char** argv)
   else if (demoType == "spanet")
   {
     spanetDemo(*feedingDemo, perception, nodeHandle);
+  }
+  else if (demoType == "reset")
+  {
+    resetDemo(*feedingDemo, nodeHandle);
   }
   else if (demoType == "collect_spanet")
   {
@@ -177,7 +182,7 @@ int main(int argc, char** argv)
     ROS_INFO_STREAM("Start Ryan Scoop Demo.");
     ScoopDemo(*feedingDemo, nodeHandle);
   }
-  else 
+  else
   {
     ROS_WARN_STREAM("unknown demoType option");
   }
