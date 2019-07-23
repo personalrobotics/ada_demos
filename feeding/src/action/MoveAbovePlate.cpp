@@ -17,18 +17,25 @@ bool moveAbovePlate(
     std::vector<double> velocityLimits)
 {
 
-  return moveAbove(
-      ada,
-      collisionFree,
-      plate,
-      plateEndEffectorTransform,
-      horizontalTolerance,
-      verticalTolerance,
-      M_PI,
-      0.03,
-      planningTimeout,
-      maxNumTrials,
-      velocityLimits);
+  // Hardcoded pose
+  Eigen::VectorXd homeConfig(6);
+  homeConfig << -2.11666, 3.34967, 2.04129, -2.30031, -2.34026, 2.9545;
+  bool success = ada->moveArmToConfiguration(homeConfig, collisionFree, 2.0);
+  if (!success)
+    return moveAbove(
+        ada,
+        collisionFree,
+        plate,
+        plateEndEffectorTransform,
+        horizontalTolerance,
+        verticalTolerance,
+        M_PI,
+        0.03,
+        planningTimeout,
+        maxNumTrials,
+        velocityLimits);
+  else
+    return success;
 }
 
 } // namespace action

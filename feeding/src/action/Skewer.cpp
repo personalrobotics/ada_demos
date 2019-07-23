@@ -82,7 +82,7 @@ bool skewer(
     for(std::size_t i = 0; i < 2; ++i)
     {
       if(i == 0) {
-        talk(std::string("Let me plan to the ") + foodName + std::string("'s position."), true);
+        talk(std::string("Planning to the ") + foodName, true);
       }
       if(i == 1) {
         talk("Adjusting, hold tight!", true);
@@ -104,7 +104,10 @@ bool skewer(
           feedingDemo);
 
       if (!item)
-        continue;
+      {
+        talk("Failed, let me start from the beginning");
+        return false;
+      }
 
       auto tiltStyle = item->getAction()->getTiltStyle();
       if (tiltStyle == TiltStyle::ANGLED)
@@ -117,7 +120,7 @@ bool skewer(
     }
 
     if (!detectAndMoveAboveFoodSuccess)
-      continue;
+      return false;
 
     ROS_INFO_STREAM(
           "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
@@ -141,7 +144,7 @@ bool skewer(
     {
       ROS_INFO_STREAM("Failed. Retry");
       talk("Sorry, I'm having a little trouble moving. Let me try again.");
-      continue;
+      return false;
     }
 
     std::this_thread::sleep_for(waitTimeForFood);

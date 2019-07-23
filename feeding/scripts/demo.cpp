@@ -33,9 +33,6 @@ void demo(
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
-  std::cout << "Current pose \n" <<
-    ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
-
   talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
 
   srand(time(NULL));

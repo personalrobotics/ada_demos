@@ -22,10 +22,10 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
   TiltStyle tiltStyle(TiltStyle::NONE);
 
   // TODO: have a map of item -> strategy
-  if (item.getName() == "strawberry")
-  {
-    tiltStyle = TiltStyle::VERTICAL;
-  }
+  // if (item.getName() == "strawberry")
+  // {
+  //   tiltStyle = TiltStyle::VERTICAL;
+  // }
   // if (item.getName() == "banana")
   // {
   //   tiltStyle = TiltStyle::ANGLED;

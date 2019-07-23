@@ -66,8 +66,8 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
             feedingDemo))
     {
       ROS_INFO_STREAM("Failed to move above " << item->getName());
-      talk("Sorry, I'm having a little trouble moving. Let me try again.");
-      continue;
+      talk("Sorry, I'm having a little trouble moving. Let's try again.");
+      return nullptr;
     }
     moveAboveSuccessful = true;
 

@@ -8,6 +8,7 @@ ELSE()
 message("rewd controllers not found!")
 ENDIF()
 
+
 #==============================================================================
 # Required Dependencies
 #
@@ -16,8 +17,10 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(OpenCV REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(rosbag REQUIRED)
+find_package(image_geometry REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
-find_package(DART 6.6.0 REQUIRED
+find_package(DART 6.6.2 REQUIRED
   COMPONENTS utils utils-urdf optimizer-nlopt
   CONFIG
 )
@@ -70,6 +73,8 @@ target_link_libraries(feeding
   ${cv_bridge_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${rosbag_LIBRARIES}
+  ${sensor_msgs_LIBRARIES}
+  ${image_geometry_LIBRARIES}
   libada)
 
 IF (rewd_controllers_FOUND)

@@ -65,9 +65,6 @@ void feedFoodToPerson(
       break;
   }
 
-  std::cout << "IFO Current pose \n" <<
-    ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
-
   if (moveIFOSuccess)
   {
     nodeHandle->setParam("/feeding/facePerceptionOn", true);
@@ -128,3 +125,4 @@ void feedFoodToPerson(
 }
 }
 }
+

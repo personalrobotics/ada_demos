@@ -129,6 +129,7 @@ int main(int argc, char** argv)
 
   auto perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
+      feedingDemo->getAda(),
       feedingDemo->getAda()->getMetaSkeleton(),
       &nodeHandle,
       ranker);

@@ -1,6 +1,10 @@
 #include "feeding/perception/Perception.hpp"
 #include "feeding/util.hpp"
 
+#include <Eigen/Eigenvalues>
+#include <opencv2/core/eigen.hpp>
+#include <ros/topic.h>
+
 #include <algorithm>
 #include <aikido/perception/AssetDatabase.hpp>
 #include <aikido/perception/DetectedObject.hpp>
@@ -17,12 +21,14 @@ namespace feeding {
 //==============================================================================
 Perception::Perception(
     aikido::planner::WorldPtr world,
+    std::shared_ptr<ada::Ada> ada,
     dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
-    const ros::NodeHandle* nodeHandle,
+    ros::NodeHandle* nodeHandle,
     std::shared_ptr<TargetFoodRanker> ranker,
     float faceZOffset,
     bool removeRotationForFood)
   : mWorld(world)
+  , mAda(ada)
   , mAdaMetaSkeleton(adaMetaSkeleton)
   , mNodeHandle(nodeHandle)
   , mTargetFoodRanker(ranker)
@@ -76,6 +82,23 @@ Perception::Perception(
 
   if (!mTargetFoodRanker)
     throw std::invalid_argument("TargetFoodRanker not set for perception.");
+
+
+  // mForkSubscriber = mNodeHandle->subscribe<geometry_msgs::Pose2D>(
+  //   "/fork_uv",
+  //   1,
+  //   boost::bind(&Perception::correctForkTip, this, _1)
+  //   );
+
+  mCameraInfoTopic = "/camera/color/camera_info";
+  mImageTopic = "/camera/color/image_raw";
+
+  auto joint = mAda->getMetaSkeleton()->getJoint("j2n6s200_joint_forque");
+  if (!joint)
+  {
+    throw std::runtime_error("Could not find joint");
+  }
+  mDefaultEETransform = Eigen::Isometry3d(joint->getTransformFromParentBodyNode());
 }
 
 //==============================================================================
@@ -104,6 +127,17 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
   std::cout << "Detected " << detectedObjects.size() << " " << foodName
             << std::endl;
   detectedFoodItems.reserve(detectedObjects.size());
+
+  // mCorrectForkTip = true;
+
+  // while(true)
+  // {
+  //   if (!mCorrectForkTip)
+  //     break;
+
+  //   std::cout << "Waiting for correctForkTip " << std::endl;
+  //   std::this_thread::sleep_for(std::chrono::seconds(1));
+  // }
 
   Eigen::Isometry3d forqueTF
       = mAdaMetaSkeleton->getBodyNode("j2n6s200_forque_end_effector")
@@ -222,6 +256,185 @@ void Perception::removeRotation(const FoodItem* item)
   // Fix the food height
   foodPose.translation()[2] = 0.22;
   freejtptr->setTransform(foodPose);
+}
+
+//==============================================================================
+void Perception::correctForkTip(const geometry_msgs::Pose2D::ConstPtr& msg)
+{
+  if (!mCorrectForkTip)
+    return;
+
+  std::cout << "correctForkTip " << std::endl;
+  receiveCameraInfo();
+
+  cv_bridge::CvImagePtr cv_ptr(new cv_bridge::CvImage);
+  receiveImageMessage(cv_ptr);
+  cv::Mat image = cv_ptr->image;
+
+  ROS_INFO("Received Command msg");
+  std::cout << msg->x << " " << msg->y << std::endl;
+
+  auto endEffector = mAda->getHand()->getEndEffectorBodyNode();
+  std::cout << "tip\n" << endEffector->getWorldTransform().translation().transpose() << std::endl;
+
+  tf::StampedTransform tfStampedTransform;
+  tf::TransformListener tfListener;
+
+  if (!mNodeHandle->ok())
+    throw std::runtime_error("Node not ok");
+
+  try {
+    tfListener.waitForTransform( "/camera_color_optical_frame", "/map", ros::Time(0), ros::Duration(10.0) );
+
+    tfListener.lookupTransform("/camera_color_optical_frame", "/map",
+                            ros::Time(0), tfStampedTransform);
+  }
+  catch (tf::TransformException ex){
+    throw std::runtime_error("Failed to get TF Transform: " + std::string(ex.what()));
+  }
+
+  Eigen::Isometry3d map2camera;
+  tf::transformTFToEigen(tfStampedTransform, map2camera);
+
+  cv::Mat rmat;
+  cv::Mat rvec;
+  cv::Mat tvec;
+
+  // get rvec
+  Eigen::MatrixXd rot = map2camera.linear();
+  cv::eigen2cv(rot, rmat);
+  cv::Rodrigues(rmat, rvec);
+
+  // get tvec
+  Eigen::Vector3d translation(map2camera.translation());
+  cv::eigen2cv(translation, tvec);
+
+  // correct fork tip
+  auto joint = mAda->getMetaSkeleton()->getJoint("j2n6s200_joint_forque");
+
+  double minDist(100.0);
+  double minXrotation, minYrotation;
+
+  for (double x = -M_PI * 0.5; x < M_PI * 0.5; x += 0.01)
+  {
+    for (double y = -M_PI * 0.5; y < M_PI * 0.5; y += 0.01)
+    {
+      // transform of forque
+      Eigen::Isometry3d eeTransform(mDefaultEETransform);
+      eeTransform.linear()
+      = eeTransform.linear()
+        * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitY())
+        * Eigen::AngleAxisd(x, Eigen::Vector3d::UnitX());
+
+      joint->setTransformFromParentBodyNode(eeTransform);
+
+      Eigen::Vector3d tip = endEffector->getWorldTransform().translation();
+      std::vector<cv::Point3f> tip_cv;
+      tip_cv.push_back(cv::Point3f(tip[0], tip[1], tip[2]));
+
+      std::vector<cv::Point2f> imagePoints;
+      cv::projectPoints(tip_cv, rvec, tvec,
+      mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
+
+      double xdist = msg->x - imagePoints[0].x;
+      double ydist = msg->y - imagePoints[0].y;
+
+      double dist = xdist * xdist + ydist * ydist;
+
+      if (dist < minDist)
+      {
+        minXrotation = x;
+        minYrotation = y;
+        minDist = dist;
+      }
+    }
+  }
+
+  // transform of forque
+  Eigen::Isometry3d eeTransform(mDefaultEETransform);
+  eeTransform.linear()
+  = eeTransform.linear()
+    * Eigen::AngleAxisd(minYrotation, Eigen::Vector3d::UnitY())
+    * Eigen::AngleAxisd(minXrotation, Eigen::Vector3d::UnitX());
+
+  std::cout << "Original Fork Transform" << std::endl;
+  std::cout << mDefaultEETransform.matrix() << std::endl;
+
+  std::cout << "Corrected " << std::endl;
+  std::cout << eeTransform.matrix() << std::endl;
+  joint->setTransformFromParentBodyNode(eeTransform);
+
+  Eigen::Vector3d tip = endEffector->getWorldTransform().translation();
+  std::vector<cv::Point3f> tip_cv;
+  tip_cv.push_back(cv::Point3f(tip[0], tip[1], tip[2]));
+
+  std::vector<cv::Point2f> imagePoints;
+  cv::projectPoints(tip_cv, rvec, tvec,
+  mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
+
+  // std::cout << "Projected" << std::endl;
+  cv::Mat img = image.clone();
+
+  for (auto point : imagePoints) {
+    // std::cout << point.x << " " << point.y << std::endl;
+    cv::circle(img, point, 7, cv::Scalar(255, 255, 255, 255), 5);
+  }
+
+  std::stringstream ss;
+  ss << "Projected_" << minXrotation << "_" << minYrotation << ".jpg";
+
+  cv::circle(img, cv::Point2f(msg->x, msg->y), 3, cv::Scalar(0, 0, 255, 255), 5);
+  cv::imwrite(ss.str(), img );
+  std::cout << "Save to " << ss.str() << std::endl;
+
+  mCorrectForkTip = false;
+}
+
+
+//=============================================================================
+void Perception::receiveCameraInfo()
+{
+  sensor_msgs::CameraInfoConstPtr info
+    = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(
+        mCameraInfoTopic, *mNodeHandle, ros::Duration(1));
+  if (info == nullptr)
+  {
+    ROS_ERROR("nullptr camera info");
+    return;
+  }
+
+  mCameraModel.fromCameraInfo(info);
+}
+
+//=============================================================================
+void Perception::receiveImageMessage(
+  cv_bridge::CvImagePtr& cv_ptr)
+{
+
+  sensor_msgs::ImageConstPtr msg
+    = ros::topic::waitForMessage<sensor_msgs::Image>(
+        mImageTopic, *mNodeHandle, ros::Duration(10));
+  if (msg == nullptr)
+  {
+    ROS_ERROR("nullptr image message");
+    return;
+  }
+
+  try
+  {
+    cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+  }
+  catch (cv_bridge::Exception &e)
+  {
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
+}
+
+//=============================================================================
+void Perception::setCorrectForkTip(bool val)
+{
+  mCorrectForkTip = val;
 }
 
 } // namespace feeding

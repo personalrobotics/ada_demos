@@ -14,6 +14,18 @@
 #include "feeding/ranker/ShortestDistanceRanker.hpp"
 #include "feeding/ranker/TargetFoodRanker.hpp"
 
+#include <cv_bridge/cv_bridge.h>
+#include <image_geometry/pinhole_camera_model.h>
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/image_encodings.h>
+
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
+
+#include <geometry_msgs/Pose2D.h>
+
 namespace feeding {
 
 /// The Perception class is responsible for everything that has to do with the
@@ -33,8 +45,9 @@ public:
   /// \param[in] ranker Ranker to rank detected items.
   Perception(
       aikido::planner::WorldPtr world,
+      std::shared_ptr<ada::Ada> ada,
       dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
-      const ros::NodeHandle* nodeHandle,
+      ros::NodeHandle* nodeHandle,
       std::shared_ptr<TargetFoodRanker> ranker
       = std::make_shared<ShortestDistanceRanker>(),
       float faceZOffset = 0.0,
@@ -61,6 +74,11 @@ public:
 
   void setFaceZOffset();
 
+  /// Change tilt, yaw of fork
+  void correctForkTip(const geometry_msgs::Pose2D::ConstPtr& msg);
+
+  void setCorrectForkTip(bool val);
+
 private:
 
   // Optionally used to remove rotation if mRemoveRotation is true..
@@ -69,7 +87,7 @@ private:
 
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
-  const ros::NodeHandle* mNodeHandle;
+  ros::NodeHandle* mNodeHandle;
   dart::dynamics::MetaSkeletonPtr mAdaMetaSkeleton;
 
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFoodDetector;
@@ -84,6 +102,24 @@ private:
   std::vector<std::string> mFoodNames;
 
   double mPerceptionTimeout;
+
+  ros::Subscriber mForkSubscriber;
+  image_geometry::PinholeCameraModel mCameraModel;
+  std::string mCameraInfoTopic;
+  std::string mImageTopic;
+
+  /// Updates camera info
+  void receiveCameraInfo();
+
+  /// Received image message and updates
+  /// \param[out] cv_ptr Updates image to cv_ptr.
+  void receiveImageMessage(cv_bridge::CvImagePtr& cv_ptr);
+  std::shared_ptr<ada::Ada> mAda;
+
+  Eigen::Isometry3d mDefaultEETransform;
+
+  bool mCorrectForkTip;
+
 };
 
 } // namespace feeding
