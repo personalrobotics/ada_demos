@@ -17,7 +17,7 @@ bool liftUp(
     double upDist)
 {
 
-  ROS_INFO_STREAM("List Up");
+  ROS_INFO_STREAM("Lift Up");
 
   Eigen::Vector3d backDirection(0, 0, 1);
 

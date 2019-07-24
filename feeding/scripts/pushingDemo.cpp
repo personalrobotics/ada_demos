@@ -62,7 +62,7 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     else
     {
       std::cout << "Move above Place Success" << std::endl;
-      std::cout << "Taking Picture from above" << std::endl;
+      waitForUser("Wait to take picture before start", ada);
       std_msgs::String msg;
       ss.str(std::string());
       ss << "1_start";
@@ -72,7 +72,6 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     }
     
     // ===== DOWN TO PLATE =====
-    waitForUser("Going Down", ada);
 
     ROS_INFO_STREAM("Down to plate");
     // std::shared_ptr<FTThresholdHelper> FTThresholdHelper = nullptr;
@@ -99,7 +98,7 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     else
     {
       std::cout << "Move down Success" << std::endl;
-      std::cout << "Taking Picture before pushing" << std::endl;
+      waitForUser("Wait to take picture before pushing", ada);
       std_msgs::String msg;
       ss.str(std::string());
       ss << "2_before_pushing";
@@ -134,7 +133,7 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     else
     {
       std::cout << "Push Success" << std::endl;
-      std::cout << "Taking Picture after pushing" << std::endl;
+      waitForUser("Wait to take picture", ada);
       std_msgs::String msg;
       ss.str(std::string());
       ss << "3_after_pushing";
@@ -151,7 +150,7 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
                   feedingDemo.mPlateTSRParameters["rotationTolerance"],
                   FTThresholdHelper,
                   0.03);
-    std::cout << "Taking Picture above wall" << std::endl;
+    waitForUser("Wait to take picture above wall", ada);
     std_msgs::String mg;
     ss.str(std::string());
     ss << "4_above_wall";
@@ -182,7 +181,7 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     else
     {
       std::cout << "Move back above Success" << std::endl;
-      std::cout << "Taking Picture after finishing" << std::endl;
+      waitForUser("Wait to take picture after finished", ada);
       std_msgs::String msg;
       ss.str(std::string());
       ss << "5_finish";
