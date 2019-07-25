@@ -47,7 +47,7 @@ bool touchTable(
     }
     Eigen::Vector3d direction(0, 0, -1);
     // double length = 0.1; // maximum go-down distance
-    length = 0.10;
+    length = 0.04;
 
     bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
                                   direction,

@@ -21,7 +21,7 @@ bool moveAbovePlate(
   // is this the config of the point above the plate? change it to test.
   // config << -2.15583, 3.0954,  1.61802,  -2.45501,  -2.04492, -4.73983 ;
   // config << -1.4900, 3.4424, 1.6099, -2.6151, -1.5390, -2.5974; // the config for arm on the table  
-  config << -1.4900, 3.4434, 1.610, -2.6134, -1.5165, -2.5449;
+  config << -1.4614, 3.0954,  1.61802,  -2.45501,  -2.04492, -2.3529;
   bool success = ada->moveArmToConfiguration(config, collisionFree, 2.0);
   // what's the difference between ada->moveArmToConfiguration and moveAbove
   if (!success) {

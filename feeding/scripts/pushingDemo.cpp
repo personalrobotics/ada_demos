@@ -107,8 +107,6 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     }
 
     // ===== PUSH FOOD =====
-    waitForUser("Push?", ada);
-
     
     double pushDist;
     nodeHandle.getParam("/feedingDemo/pushDist", pushDist);
@@ -141,7 +139,6 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
       image_pub.publish(msg);
     }
     
-    waitForUser("Lift Up", ada);
     action::liftUp(
                   ada,
                   collisionFree,
@@ -156,8 +153,6 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
     ss << "4_above_wall";
     mg.data = ss.str();
     image_pub.publish(mg);
-
-    waitForUser("Going Back", ada);
 
     // ===== MOVE ABOVE PLATE =====
     ROS_INFO_STREAM("Move above plate, again");
