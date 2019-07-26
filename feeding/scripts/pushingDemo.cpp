@@ -108,10 +108,6 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
 
     // ===== PUSH FOOD =====
     
-    double pushDist;
-    nodeHandle.getParam("/feedingDemo/pushDist", pushDist);
-
-    
     ROS_INFO_STREAM("Push");
     bool pushSuccess = action::push(
                             ada,
