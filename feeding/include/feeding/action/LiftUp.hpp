@@ -16,6 +16,7 @@ bool liftUp(
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
+    std::vector<double> velocityLimits,
     double upDist
 );
 

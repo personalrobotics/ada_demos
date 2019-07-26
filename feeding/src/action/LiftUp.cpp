@@ -14,20 +14,22 @@ bool liftUp(
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
+    std::vector<double> velocityLimits,
     double upDist)
 {
 
   ROS_INFO_STREAM("Lift Up");
+  Eigen::VectorXd twists(6);
+  twists << 0.0, 0.0, 0.0, 0.0, 0.0, upDist;
 
-  Eigen::Vector3d backDirection(0, 0, 1);
-
-  bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
-                          backDirection,
-                          upDist,
-                          collisionFree,
-                          planningTimeout,
-                          endEffectorOffsetPositionTolerance,
-                          endEffectorOffsetAngularTolerance);
+  bool trajectoryCompleted = ada->moveArmWithEndEffectorTwist(
+                            twists,
+                            1,
+                            collisionFree,
+                            planningTimeout,
+                            endEffectorOffsetPositionTolerance,
+                            endEffectorOffsetAngularTolerance,
+                            velocityLimits);
 
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted

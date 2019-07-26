@@ -43,19 +43,21 @@ bool touchTable(
 
   if (rotate) {
     if (ftThresholdHelper) {
-      ftThresholdHelper->setThresholds(1, 1); // For stopping traj when touch the table
+      ftThresholdHelper->setThresholds(2, 2); // For stopping traj when touch the table
     }
-    Eigen::Vector3d direction(0, 0, -1);
-    // double length = 0.1; // maximum go-down distance
-    // length = 0.04;
+    Eigen::VectorXd twists(6);
+    twists << 0.0, 0.0, 0.0, 0.0, 0.0, -length;
 
-    bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
-                                  direction,
-                                  length,
-                                  collisionFree,
-                                  planningTimeout,
-                                  endEffectorOffsetPositionTolerance,
-                                  endEffectorOffsetAngularTolerance);
+    ROS_INFO_STREAM("Going down");
+    bool trajectoryCompleted = ada->moveArmWithEndEffectorTwist(
+                              twists,
+                              1,
+                              collisionFree,
+                              planningTimeout,
+                              endEffectorOffsetPositionTolerance,
+                              endEffectorOffsetAngularTolerance,
+                              velocityLimits);
+
     if (!trajectoryCompleted) { // forque hit something
       if (ftThresholdHelper)
       {
@@ -76,7 +78,8 @@ bool touchTable(
                         endEffectorOffsetPositionTolerance,
                         endEffectorOffsetAngularTolerance,
                         ftThresholdHelper,
-                        0.001);
+                        velocityLimits,
+                        0.012);
       // return trajectoryCompleted; // for fixed down length
     } else {
       return true;

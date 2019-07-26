@@ -142,7 +142,8 @@ void pushingDemo(FeedingDemo& feedingDemo, ros::NodeHandle nodeHandle)
                   feedingDemo.mPlateTSRParameters["verticalTolerance"],
                   feedingDemo.mPlateTSRParameters["rotationTolerance"],
                   FTThresholdHelper,
-                  0.03);
+                  feedingDemo.mVelocityLimits,
+                  0.05);
     waitForUser("Wait to take picture above wall", ada);
     std_msgs::String mg;
     ss.str(std::string());

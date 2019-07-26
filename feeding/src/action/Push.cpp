@@ -48,7 +48,7 @@ bool push(
   float yOff = sin(angle + M_PI * 0.5); //angle - M_PI * 0.5) * 0.05;
   double pushDist = 0.1;
   if (ftThresholdHelper) {
-      ftThresholdHelper->setThresholds(1, 1); // For stopping traj when touch the table
+      ftThresholdHelper->setThresholds(2, 2); // For stopping traj when touch the table
   }
   ROS_INFO_STREAM("Push forque");
   bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
