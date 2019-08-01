@@ -33,7 +33,7 @@ std::unique_ptr<FoodItem> SuccessRateRanker::createFoodItem(
   AcquisitionAction action(tiltStyle, rotation, 0.0, Eigen::Vector3d(0, 0, -1));
 
   auto itemPose = item.getMetaSkeleton()->getBodyNode(0)->getWorldTransform();
-  return dart::common::make_unique<FoodItem>(
+  return std::make_unique<FoodItem>(
       item.getName(),
       item.getUid(),
       item.getMetaSkeleton(),
