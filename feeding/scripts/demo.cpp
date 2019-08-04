@@ -42,8 +42,8 @@ void demo(
     if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
-    talk("What food would you like?");
-    auto foodName = getUserInput(false, nodeHandle);
+    // Wait for user input
+    std::string foodName = getUserInputFromAlexa(nodeHandle);
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
@@ -52,33 +52,7 @@ void demo(
 
     ROS_INFO_STREAM("Running bite transfer study for " << foodName);
 
-    switch((rand() % 10)) {
-        case 0:
-        talk("Good choice!");
-        break;
-        case 1:
-        talk(std::string("Great! I love ") + foodName + std::string("'s!"));
-        break;
-        case 2:
-        talk("Sounds delicious. I wish I had taste buds.");
-        break;
-        case 4:
-        talk("Roger Roger.");
-        break;
-        case 5:
-        talk("Nothing beats fresh fruit.");
-        break;
-        case 6:
-        talk("Nothing escapes my fork!");
-        break;
-        case 7:
-        talk("Thanks Alexa!");
-        break;
-        default:
-        talk("Alright.");
-    }
-
-    talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
+    FoodSelectionResponse(foodName);
 
     // ===== FORQUE PICKUP =====
     if (foodName == "pickupfork")

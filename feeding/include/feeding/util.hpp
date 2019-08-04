@@ -64,10 +64,10 @@ void dumpSplinePhasePlot(
     const std::string& filename,
     double timeStep);
 
-/// Gets user selection of food and actions
-/// param[in] food_only If true, only food choices are valid
-/// param[in]] nodeHandle Ros Node to set food name for detection.
-std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle);
+// /// Gets user selection of food and actions
+// /// param[in] food_only If true, only food choices are valid
+// /// param[in]] nodeHandle Ros Node to set food name for detection.
+// std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle);
 
 int getUserInputWithOptions(
     const std::vector<std::string>& optionPrompts, const std::string& prompt);
@@ -114,6 +114,14 @@ aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
 std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle);
 
 void talk(const std::string&, bool background = false);
+
+// Returns true if the foodWord is valid for the demo
+// i.e. is supported by the demo
+// return false otherwise
+bool AlexaInputIsValid(std::string foodWord);
+
+// Randomly select a response to the user's food choice
+void FoodSelectionResponse(std::string foodName);
 
 } // feeding
 

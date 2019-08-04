@@ -138,64 +138,64 @@ std::string getCurrentTimeDate()
   return ss.str();
 }
 
-//==============================================================================
-std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
-{
+// //==============================================================================
+// std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
+// {
 
-  std::string foodName;
+//   std::string foodName;
 
-  foodName = getUserInputFromAlexa(nodeHandle);
-  if (foodName != "")
-  {
-    ROS_INFO_STREAM("Got " << foodName << " from Alexa.");
-    return foodName;
-  }
-
-
-  ROS_INFO_STREAM("Which food item do you want?");
-  for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
-  {
-    ROS_INFO_STREAM("(" << i + 1 << ") " << FOOD_NAMES[i] << std::endl);
-  }
-  if (!food_only)
-  {
-    for (std::size_t i = 0; i < ACTIONS.size(); ++i)
-    {
-      ROS_INFO_STREAM(
-          "(" << i + FOOD_NAMES.size() + 1 << ") [" << ACTIONS[i] << "]"
-              << std::endl);
-    }
-  }
+//   foodName = getUserInputFromAlexa(nodeHandle);
+//   if (foodName != "")
+//   {
+//     ROS_INFO_STREAM("Got " << foodName << " from Alexa.");
+//     return foodName;
+//   }
 
 
-  int max_id;
+//   ROS_INFO_STREAM("Which food item do you want?");
+//   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
+//   {
+//     ROS_INFO_STREAM("(" << i + 1 << ") " << FOOD_NAMES[i] << std::endl);
+//   }
+//   if (!food_only)
+//   {
+//     for (std::size_t i = 0; i < ACTIONS.size(); ++i)
+//     {
+//       ROS_INFO_STREAM(
+//           "(" << i + FOOD_NAMES.size() + 1 << ") [" << ACTIONS[i] << "]"
+//               << std::endl);
+//     }
+//   }
 
-  if (!food_only)
-    max_id = FOOD_NAMES.size() + ACTIONS.size();
-  else
-    max_id = FOOD_NAMES.size();
 
-  while (true)
-  {
-    std::cout << "> ";
-    int id;
-    std::cin >> id;
-    if (id < 1 || id > max_id)
-    {
-      ROS_WARN_STREAM("Invalid argument. Try again.");
-      continue;
-    }
-    if (id <= FOOD_NAMES.size())
-    {
-      foodName = FOOD_NAMES[id - 1];
-      nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
-      nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
-    }
-    else
-      foodName = ACTIONS[id - FOOD_NAMES.size()];
-    return foodName;
-  }
-}
+//   int max_id;
+
+//   if (!food_only)
+//     max_id = FOOD_NAMES.size() + ACTIONS.size();
+//   else
+//     max_id = FOOD_NAMES.size();
+
+//   while (true)
+//   {
+//     std::cout << "> ";
+//     int id;
+//     std::cin >> id;
+//     if (id < 1 || id > max_id)
+//     {
+//       ROS_WARN_STREAM("Invalid argument. Try again.");
+//       continue;
+//     }
+//     if (id <= FOOD_NAMES.size())
+//     {
+//       foodName = FOOD_NAMES[id - 1];
+//       nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
+//       nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
+//     }
+//     else
+//       foodName = ACTIONS[id - FOOD_NAMES.size()];
+//     return foodName;
+//   }
+// }
 
 
 //==============================================================================
@@ -203,37 +203,46 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
 {
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
-  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(20));
-  if (sharedPtr == nullptr)
-  {
-    ROS_INFO_STREAM("No message from alexa, please input manually");
-    return "";
-  }
+  int waitCount = 1;
+  // Continuousely to get user input (anything) from Alexa
+  do {
+    talk("What food would you like?");
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(15));
+    if (waitCount > 1) {
+      talk("Please say something, I'm going to ask you again");
+    }
+    waitCount++;
+  } while (sharedPtr == nullptr);
+
+  // Convert input to std::string
   rosFoodWord = *sharedPtr;
   std::string foodWord = rosFoodWord.data.c_str();
-  if (foodWord.compare("~~no_input~~") == 0)
-  {
-    std_msgs::String rosFoodWord;
-    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
-    rosFoodWord = *sharedPtr;
-    std::string foodWord = rosFoodWord.data.c_str();
+
+  // Check if the food item is supported
+  // Return the item if it's supported
+  // Follow up with the user otherwise
+  if (AlexaInputIsValid(foodWord)) {
+    ROS_INFO_STREAM("Alexa got food " << foodWord);
+    nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
+    nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
+    return foodWord;
+  } else {
+    talk("I do not know what that is, please specify a food I know.");
+    getUserInputFromAlexa(nodeHandle);
   }
-  ROS_INFO_STREAM("Alexa got food " << foodWord);
-  //ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs", 1, true);
-  std_msgs::StringPtr str(new std_msgs::String);
-  str->data = "~~no_input~~";
-  //pub.publish(str);
+}
+
+bool AlexaInputIsValid(std::string foodWord) {
   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
   {
     if (FOOD_NAMES[i].compare(foodWord) == 0)
     {
-      ROS_INFO_STREAM("Sucessfully returned");
-      nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
-      nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
-      return foodWord;
+      ROS_INFO_STREAM("valid item input");
+      return true;
     }
   }
-  return "";
+  ROS_INFO_STREAM("invalid item input");
+  return false;
 }
 
 //==============================================================================
@@ -391,6 +400,28 @@ void talk(const std::string& statement, bool background) {
     cmd = "aoss swift \"" + statement + "\"";
   }
   std::system(cmd.c_str());
+}
+
+void FoodSelectionResponse(std::string foodName) {
+  switch((rand() % 10)) {
+    case 0: talk("Good choice!");
+            break;
+    case 1: talk(std::string("Great! I love ") + foodName + std::string("'s!"));
+            break;
+    case 2: talk("Sounds delicious. I wish I had taste buds.");
+            break;
+    case 4: talk("Roger Roger.");
+            break;
+    case 5: talk("Nothing beats fresh fruit.");
+            break;
+    case 6: talk("Nothing escapes my fork!");
+            break;
+    case 7: talk("Thanks Alexa!");
+            break;
+    default:talk("Alright.");
+  }
+
+  talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
 }
 
 
