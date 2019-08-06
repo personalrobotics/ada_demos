@@ -1,5 +1,5 @@
-#ifndef FEEDING_ACTION_SCOOP_HPP_
-#define FEEDING_ACTION_SCOOP_HPP_
+#ifndef FEEDING_ACTION_KINOVSCOOP_HPP_
+#define FEEDING_ACTION_KINOVSCOOP_HPP_
 
 #include <libada/Ada.hpp>
 #include "feeding/FTThresholdHelper.hpp"
@@ -10,11 +10,14 @@
 namespace feeding {
 namespace action {
 
- void scoop(const std::shared_ptr<ada::Ada>& ada,
+bool DetectScoop(
+    const std::shared_ptr<ada::Ada>& ada,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
-    double height,
+    double hight,
+    double minima,
+    int demotype,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
     double rotationToleranceAbovePlate,

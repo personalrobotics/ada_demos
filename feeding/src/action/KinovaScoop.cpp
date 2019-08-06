@@ -13,7 +13,7 @@
 #include <aikido/trajectory/Interpolated.hpp>
 #include <libada/util.hpp>
 
-#include "magi/solution/PlanSolution.hpp"
+// #include "magi/solution/PlanSolution.hpp"
 
 #include <iostream>
 #include <Eigen/Dense>
@@ -21,6 +21,7 @@
 #include <math.h>
 
 using ada::util::waitForUser;
+using ada::util::waitForAnyKey;
 static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 
 using namespace std;
@@ -30,19 +31,8 @@ using aikido::trajectory::Interpolated;
 using aikido::trajectory::TrajectoryPtr;
 using State = aikido::statespace::dart::MetaSkeletonStateSpace::State;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
-using magi::solution::PlanSolution;
+// using magi::solution::PlanSolution;
 using ada::util::createIsometry;
-
-
-using magi::solution::PlanSolution;
-using ada::util::createIsometry;
-
-void waitForAnyKey() { 
-    std::cout << "Press any key to continue..."; 
-    char input;
-    std::cin.clear();
-    std::cin >> input;
-} 
 
 class Pose
 {
@@ -150,55 +140,60 @@ bool kinovaScoop(
     int maxNumTrials,
     std::vector<double> velocityLimits)
 {
-  // move above plate
-  ROS_INFO_STREAM("Move above plate");
-  bool abovePlaceSuccess = moveAbovePlate(
-      ada,
-      collisionFree,
-      plate,
-      plateEndEffectorTransform,
-      horizontalToleranceAbovePlate,
-      verticalToleranceAbovePlate,
-      rotationToleranceAbovePlate,
-      planningTimeout,
-      maxNumTrials,
-      velocityLimits);
+  // // move above plate
+  // ROS_INFO_STREAM("Move above plate");
+  // bool abovePlaceSuccess = moveAbovePlate(
+  //     ada,
+  //     collisionFree,
+  //     plate,
+  //     plateEndEffectorTransform,
+  //     horizontalToleranceAbovePlate,
+  //     verticalToleranceAbovePlate,
+  //     rotationToleranceAbovePlate,
+  //     planningTimeout,
+  //     maxNumTrials,
+  //     velocityLimits);
 
-  if (!abovePlaceSuccess)
-  {
-    talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
-    ROS_WARN_STREAM("Move above plate failed. Please restart");
-    return false;
-  }
-  else
-  {
-    std::cout <<"Move above Place Success"<<std::endl;
-    talk("Move above Place Success", true);
-  }
+  // if (!abovePlaceSuccess)
+  // {
+  //   talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
+  //   ROS_WARN_STREAM("Move above plate failed. Please restart");
+  //   return false;
+  // }
+  // else
+  // {
+  //   std::cout <<"Move above Place Success"<<std::endl;
+  //   talk("Move above Place Success", true);
+  // }
 
   double minima = height;
 
   int demotype;
+  std::cout << "input scooping type \n \
+                0 kinovascoop \n \
+                1 kinovascoop with twist \n \
+                2 foward kinovascoop with twist \n \
+                3 Ryan Scoop" << std::endl;
   std::cout << "> ";
   std::cin >> demotype;
   if (demotype > 3 || demotype < 0)
-    demotype = 0;
+    return false;
   // if (demotype = -1)
   //   return false;
   std::cout << "demotype = " << demotype << std::endl;
   /* demotype: 0 kinovascoop
                1 kinovascoop with twist
-               2 foward kinovascoop with twist 
+               2 foward kinovascoop with twist
                3 Ryan Scoop
   */
-  
+
   // std::cout << "plate to ee translation = " << plateEndEffectorTransform.translation() << std::endl;
   // std::cout << "plate to ee rotation = " << plateEndEffectorTransform.linear() << std::endl;
 
   // Scoop with twist
   if (demotype == 1) {
     height = 0.12;
-    minima = 0.8*height;    
+    minima = 0.8*height;
   }
   else if (demotype == 2) {
     height = 0.12;
@@ -210,7 +205,7 @@ bool kinovaScoop(
     height = 0.01;
     minima = 0.6*height;
   }
-  
+
   // start scoop trajectory
   std::cout << "height = " << height << std::endl;
 
@@ -222,7 +217,7 @@ bool kinovaScoop(
   std::cout <<"begin scoop traj"<<std::endl;
   double delta_x, delta_z, delta_l, delta_roll;
   TrajectoryPtr *traj_vector = new TrajectoryPtr[wayPoints.size()];
-  
+
   auto mArm = ada->getArm();
   auto mArmSpace = mArm->getStateSpace();
   auto metaSkeleton = mArm->getMetaSkeleton();
@@ -241,8 +236,8 @@ bool kinovaScoop(
   // double pitch = curPose.linear()[1];
   // double yaw = curPose.linear()[2];
 
-  // std::cout << "startPose translation :\n" << curPose.translation() << std::endl; 
-  // std::cout << "startPose rotation :\n" << curPose.linear() << std::endl; 
+  // std::cout << "startPose translation :\n" << curPose.translation() << std::endl;
+  // std::cout << "startPose rotation :\n" << curPose.linear() << std::endl;
 
   if (demotype == 0 || demotype == 1) {
     std::cout<< demotype <<"kinovascoop" << std::endl;
@@ -254,7 +249,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
     Eigen::VectorXd twists2(6);
@@ -265,11 +260,11 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
   }
   // else if (demotype==1) {
-  //   std::cout<< "1 kinovascoop with twist" << std::endl; 
+  //   std::cout<< "1 kinovascoop with twist" << std::endl;
   // }
   else if (demotype==2) {
     std::cout<< "sideway scoop" << std::endl;
@@ -283,7 +278,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
   }
   else if (demotype==3) {
@@ -298,7 +293,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
   }
   else
@@ -333,7 +328,7 @@ bool kinovaScoop(
             collisionFree,
             planningTimeout,
             endEffectorOffsetPositionTolerance,
-            endEffectorOffsetAngularTolerance);  
+            endEffectorOffsetAngularTolerance);
         }
         else if (demotype==2) {
           Eigen::VectorXd twists(6);
@@ -351,7 +346,7 @@ bool kinovaScoop(
             collisionFree,
             planningTimeout,
             endEffectorOffsetPositionTolerance,
-            endEffectorOffsetAngularTolerance);  
+            endEffectorOffsetAngularTolerance);
         }
         else if (demotype == 0){
           traj = ada->planArmToEndEffectorOffset(
@@ -374,9 +369,9 @@ bool kinovaScoop(
           std::cout << "success !!!!!!!" << std::endl;
 
         traj_vector[i] = traj;
-        std::cout << "round " << i++ << std::endl; 
+        std::cout << "round " << i++ << std::endl;
         last_pose = (*pose);
-    } 
+    }
 
     waitForUser("do concatenated trajectory", ada);
 
@@ -384,20 +379,22 @@ bool kinovaScoop(
 
     // concatenate all trajs
     for (int k=1; k<wayPoints.size(); k++) {
-      trajnext = traj_vector[k]; 
+      trajnext = traj_vector[k];
       concatenatedTraj = concatenate(
-        *dynamic_cast<Interpolated*>(concatenatedTraj.get()), 
+        *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
         *dynamic_cast<Interpolated*>(trajnext.get())
       );
     }
 
 
     std::cout << "move concatenated traj "<< std::endl;
-    char current; 
+    char current;
     while (true) {
-      cout<<"Press Enter to continue"<<endl;
+      std::cout<<"Press Enter to continue"<<endl;
       waitForAnyKey();
+      std::cout<<"Go to Initial Positio of Traj"<<endl;
       ada->moveArmOnTrajectory(traj_vector[0], collisionFree, ada::KUNZ, velocityLimits);
+      std::cout<<"input Y/y to continu "<<endl;
       std::cin >> current;
       if ( (current == 'Y') || (current == 'y'))
         ada->moveArmOnTrajectory(concatenatedTraj, collisionFree, ada::KUNZ, velocityLimits);
@@ -405,10 +402,10 @@ bool kinovaScoop(
         break;
     }
   }
-  else {   
+  else {
     // twist1: [-0.0, -0.20, -0, 0.005, -0.00, -0.02]
     // twist2: [-0.0, -0.60, -0, 0.04, -0.00, -0.005]
-    // twist3: [-0.0, -0.50, -0, 0.03, -0.00, 0.06]    
+    // twist3: [-0.0, -0.50, -0, 0.03, -0.00, 0.06]
 
     Eigen::VectorXd twists1(6);
     twists1 << -0.0, -0.20, -0, -0.005, -0.00, -0.02;
@@ -419,7 +416,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
     Eigen::VectorXd twists2(6);
@@ -431,7 +428,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
 
     Eigen::VectorXd twists3(6);
@@ -442,7 +439,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(init_traj, collisionFree, ada::KUNZ, velocityLimits);
   }
   // test twists---- it works! nice!
@@ -458,7 +455,7 @@ bool kinovaScoop(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);  
+      endEffectorOffsetAngularTolerance);
     ada->moveArmOnTrajectory(traj, collisionFree, ada::KUNZ, velocityLimits);
   }
   return true;

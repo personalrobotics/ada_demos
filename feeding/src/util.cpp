@@ -397,4 +397,10 @@ void talk(const std::string& statement, bool background) {
 }
 
 
+void PrintInfo(std::string s, Eigen::Isometry3d T)
+{
+    std::cout << s <<" rotation\n"<< T.linear() <<std::endl;
+    std::cout << s <<" translation\n"<< T.translation() <<std::endl;
+}
+
 } // namespace feeding

@@ -117,6 +117,8 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle);
 
 void talk(const std::string&, bool background = false);
 
+void PrintInfo(std::string s, Eigen::Isometry3d T);
+
 } // feeding
 
 #endif

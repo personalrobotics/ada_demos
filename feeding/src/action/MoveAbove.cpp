@@ -57,9 +57,9 @@ bool moveAbove(
         velocityLimits,
         ::ada::TrajectoryPostprocessType::KUNZ);
 
-    std::cout << "MoveAbove Current pose \n" <<
-      ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
-
+    // std::cout << "MoveAbove Current pose \n" <<
+    //   ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
+// 0.868729  2.88191  3.99873  1.22352 -2.75982  2.29489      1.6      1.6
     return trajectoryCompleted;
   }
   catch (...)

@@ -35,7 +35,7 @@ void kinovaScoopDemo(
     FeedingDemo& feedingDemo,
     ros::NodeHandle nodeHandle);
 
-void ScoopDemo(
+void DetectScoopDemo(
     FeedingDemo& feedingDemo,
     ros::NodeHandle nodeHandle);
 

@@ -273,14 +273,61 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
 {
   Eigen::Isometry3d eeTransform
       = mAda->getHand()->getEndEffectorTransform("plate").get();
-  std::cout << eeTransform.linear() << std::endl; // debug test
+  std::cout << "Plate debug test"<< eeTransform.linear() << std::endl; // debug test
   eeTransform.linear()
       = eeTransform.linear()
         * Eigen::Matrix3d(
-              Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+              Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   eeTransform.translation()
       = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
 
   return eeTransform;
+}
+
+Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform() const
+{
+    Eigen::Isometry3d eeTransform
+        = mAda->getHand()->getEndEffectorTransform("food").get();
+    // std::cout << "Plate debug test"<< eeTransform.linear() << std::endl; // debug test
+    eeTransform.linear() = eeTransform.linear() * 
+    Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitZ())) *
+    Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI/3, Eigen::Vector3d::UnitX()));
+    eeTransform.translation()
+        = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
+
+  return eeTransform;
+}
+
+Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int demotype, double height, double minima, double delta) const
+{
+    Eigen::Isometry3d eeTransform
+        = mAda->getHand()->getEndEffectorTransform("food").get();
+    // std::cout << "food debug test"<< eeTransform.linear() << std::endl; // debug test
+    
+    /* demotype: 0 Kinova Scoop
+                 1 Kinova Scoop with twist
+                 2 Foward Kinova Scoop with twist
+                 3 Ryan Forward Scoop
+    */
+    eeTransform.translation()
+        = Eigen::Vector3d(0, 0, height);
+    eeTransform.translation()[0] = - minima;
+
+    if (demotype == 0 || demotype == 1) 
+    {
+        eeTransform.linear() = eeTransform.linear() * 
+        Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitZ())) *
+        Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI/3, Eigen::Vector3d::UnitX()));
+    }
+    if (demotype == 2 || demotype == 3)
+    {
+        eeTransform.linear() = eeTransform.linear() * 
+        Eigen::Matrix3d(Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ()));
+        // Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitZ())) *
+        // Eigen::Matrix3d(Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ()));
+        eeTransform.translation()[2] += delta;
+    }
+
+    return eeTransform;
 }
 } // namespace feeding

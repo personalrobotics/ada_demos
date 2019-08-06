@@ -30,7 +30,7 @@ add_executable(feeding
   scripts/spanetDemo.cpp
 
   scripts/kinovaScoopDemo.cpp
-  scripts/ScoopDemo.cpp
+  scripts/DetectScoopDemo.cpp
 
   # scripts/spanetDataCollection.cpp
   # scripts/acquisition.cpp
@@ -60,7 +60,7 @@ add_executable(feeding
   src/action/Skewer.cpp
 
   src/action/KinovaScoop.cpp
-  src/action/Scoop.cpp
+  src/action/DetectScoop.cpp
 
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp

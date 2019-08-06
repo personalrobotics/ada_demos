@@ -13,8 +13,6 @@
 #include <aikido/trajectory/Interpolated.hpp>
 #include <libada/util.hpp>
 
-#include "magi/solution/PlanSolution.hpp"
-
 #include <iostream>
 #include <Eigen/Dense>
 #include <vector>
@@ -32,7 +30,6 @@ using aikido::trajectory::TrajectoryPtr;
 using State = aikido::statespace::dart::MetaSkeletonStateSpace::State;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 
-using magi::solution::PlanSolution;
 using ada::util::createIsometry;
 class Pose
 {
