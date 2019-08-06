@@ -138,66 +138,6 @@ std::string getCurrentTimeDate()
   return ss.str();
 }
 
-// //==============================================================================
-// std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
-// {
-
-//   std::string foodName;
-
-//   foodName = getUserInputFromAlexa(nodeHandle);
-//   if (foodName != "")
-//   {
-//     ROS_INFO_STREAM("Got " << foodName << " from Alexa.");
-//     return foodName;
-//   }
-
-
-//   ROS_INFO_STREAM("Which food item do you want?");
-//   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
-//   {
-//     ROS_INFO_STREAM("(" << i + 1 << ") " << FOOD_NAMES[i] << std::endl);
-//   }
-//   if (!food_only)
-//   {
-//     for (std::size_t i = 0; i < ACTIONS.size(); ++i)
-//     {
-//       ROS_INFO_STREAM(
-//           "(" << i + FOOD_NAMES.size() + 1 << ") [" << ACTIONS[i] << "]"
-//               << std::endl);
-//     }
-//   }
-
-
-//   int max_id;
-
-//   if (!food_only)
-//     max_id = FOOD_NAMES.size() + ACTIONS.size();
-//   else
-//     max_id = FOOD_NAMES.size();
-
-//   while (true)
-//   {
-//     std::cout << "> ";
-//     int id;
-//     std::cin >> id;
-//     if (id < 1 || id > max_id)
-//     {
-//       ROS_WARN_STREAM("Invalid argument. Try again.");
-//       continue;
-//     }
-//     if (id <= FOOD_NAMES.size())
-//     {
-//       foodName = FOOD_NAMES[id - 1];
-//       nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
-//       nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
-//     }
-//     else
-//       foodName = ACTIONS[id - FOOD_NAMES.size()];
-//     return foodName;
-//   }
-// }
-
-
 //==============================================================================
 std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
 {
@@ -426,3 +366,62 @@ void FoodSelectionResponse(std::string foodName) {
 
 
 } // namespace feeding
+
+// //==============================================================================
+// std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
+// {
+
+//   std::string foodName;
+
+//   foodName = getUserInputFromAlexa(nodeHandle);
+//   if (foodName != "")
+//   {
+//     ROS_INFO_STREAM("Got " << foodName << " from Alexa.");
+//     return foodName;
+//   }
+
+
+//   ROS_INFO_STREAM("Which food item do you want?");
+//   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
+//   {
+//     ROS_INFO_STREAM("(" << i + 1 << ") " << FOOD_NAMES[i] << std::endl);
+//   }
+//   if (!food_only)
+//   {
+//     for (std::size_t i = 0; i < ACTIONS.size(); ++i)
+//     {
+//       ROS_INFO_STREAM(
+//           "(" << i + FOOD_NAMES.size() + 1 << ") [" << ACTIONS[i] << "]"
+//               << std::endl);
+//     }
+//   }
+
+
+//   int max_id;
+
+//   if (!food_only)
+//     max_id = FOOD_NAMES.size() + ACTIONS.size();
+//   else
+//     max_id = FOOD_NAMES.size();
+
+//   while (true)
+//   {
+//     std::cout << "> ";
+//     int id;
+//     std::cin >> id;
+//     if (id < 1 || id > max_id)
+//     {
+//       ROS_WARN_STREAM("Invalid argument. Try again.");
+//       continue;
+//     }
+//     if (id <= FOOD_NAMES.size())
+//     {
+//       foodName = FOOD_NAMES[id - 1];
+//       nodeHandle.setParam("/deep_pose/forceFoodName", foodName);
+//       nodeHandle.setParam("/deep_pose/spnet_food_name", foodName);
+//     }
+//     else
+//       foodName = ACTIONS[id - FOOD_NAMES.size()];
+//     return foodName;
+//   }
+// }
