@@ -33,7 +33,8 @@ void demo(
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
-  talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
+  // talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
+  talk("Hello, my name is aid uh.");
 
   srand(time(NULL));
 

@@ -146,8 +146,8 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
   int waitCount = 1;
   // Continuousely to get user input (anything) from Alexa
   do {
-    talk("What food would you like?");
-    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(15));
+    // talk("What food would you like?");
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(60));
     if (waitCount > 1) {
       talk("Please say something, I'm going to ask you again");
     }
