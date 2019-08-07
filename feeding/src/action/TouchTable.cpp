@@ -79,7 +79,7 @@ bool touchTable(
                         endEffectorOffsetAngularTolerance,
                         ftThresholdHelper,
                         velocityLimits,
-                        0.012);
+                        0.01);
       // return trajectoryCompleted; // for fixed down length
     } else {
       return true;
