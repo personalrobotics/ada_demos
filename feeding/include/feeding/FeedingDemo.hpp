@@ -66,6 +66,9 @@ public:
   /// Gets Ada
   std::shared_ptr<ada::Ada> getAda();
 
+  /// Determines if Demo is Real or Sim
+  bool isAdaReal();
+
   /// Gets the transform of the default food object (defined in Workspace)
   /// Valid only for simulation mode
   Eigen::Isometry3d getDefaultFoodTransform();

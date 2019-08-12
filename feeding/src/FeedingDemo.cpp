@@ -218,6 +218,12 @@ std::shared_ptr<ada::Ada> FeedingDemo::getAda()
 }
 
 //==============================================================================
+bool FeedingDemo::isAdaReal()
+{
+  return mAdaReal;
+}
+
+//==============================================================================
 CollisionFreePtr FeedingDemo::getCollisionConstraint()
 {
   return mCollisionFreeConstraint;
