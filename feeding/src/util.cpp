@@ -182,8 +182,8 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
     std::cin >> id;
     if (id < 1 || id > max_id)
     {
-      ROS_WARN_STREAM("Invalid argument. Try again.");
-      continue;
+      ROS_WARN_STREAM("Invalid argument. Quitting...");
+      return "quit";
     }
     if (id <= FOOD_NAMES.size())
     {

@@ -44,6 +44,9 @@ void demo(
 
     talk("What food would you like?");
     auto foodName = getUserInput(false, nodeHandle);
+    if (foodName == std::string("quit")) {
+        break;
+    }
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
