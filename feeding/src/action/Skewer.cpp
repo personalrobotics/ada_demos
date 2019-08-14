@@ -13,8 +13,12 @@ static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 namespace feeding {
 namespace action {
 
+
 //==============================================================================
+// For Summer 2019 experiment
+// Control robot verbosity (last argument)
 bool skewer(
+    int verbosityLevel,
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
@@ -58,7 +62,11 @@ bool skewer(
 
   if (!abovePlaceSuccess)
   {
-    talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
+    if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
+      talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
+    } else if (verbosityLevel == HIGH_VERBOSITY) {
+      talk("Move above plate failed. Mind if I get a little help?");
+    }
     ROS_WARN_STREAM("Move above plate failed. Please restart");
     return false;
   }
@@ -79,16 +87,20 @@ bool skewer(
 
   for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
   {
+    // Why a for loop here?
     for(std::size_t i = 0; i < 2; ++i)
     {
-      if(i == 0) {
-        talk(std::string("Planning to the ") + foodName, true);
-      }
-      if(i == 1) {
-        talk("Adjusting, hold tight!", true);
+      if (verbosityLevel != BASIC_VERBOSITY) {
+        if(i == 0) {
+          talk(std::string("Planning to the ") + foodName, true);
+        }
+        if(i == 1) {
+          talk("Adjusting, hold tight!", true);
+        }
       }
       ROS_INFO_STREAM("Detect and Move above food");
       auto item = detectAndMoveAboveFood(
+          verbosityLevel,
           ada,
           collisionFree,
           perception,
@@ -105,7 +117,11 @@ bool skewer(
 
       if (!item)
       {
-        talk("Failed, let me start from the beginning");
+        if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
+          talk("Failed, let me start from the beginning");
+        } else if (verbosityLevel == HIGH_VERBOSITY) {
+          talk("Failed to detect food");
+        }
         return false;
       }
 
@@ -127,7 +143,9 @@ bool skewer(
                      << "N with angle mode ");
 
     // ===== INTO FOOD =====
-    talk("Here we go!", true);
+    if (verbosityLevel != BASIC_VERBOSITY) {
+      talk("Here we go!", true);
+    }
     auto moveIntoSuccess = moveInto(
         ada,
         perception,
@@ -143,7 +161,11 @@ bool skewer(
     if (!moveIntoSuccess)
     {
       ROS_INFO_STREAM("Failed. Retry");
-      talk("Sorry, I'm having a little trouble moving. Let me try again.");
+      if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
+        talk("Sorry, I'm having a little trouble moving. Let me try again.");
+      } else if (verbosityLevel == HIGH_VERBOSITY) {
+        talk("Move into food failed. Let me try again");
+      }
       return false;
     }
 
@@ -169,7 +191,12 @@ bool skewer(
     }
 
     ROS_INFO_STREAM("Failed.");
-    talk("Oops, let me try again.");
+    if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
+      talk("Oops, let me try again.");
+    } else if (verbosityLevel == HIGH_VERBOSITY) {
+      talk("Move out of food failed");
+    }
+    
   }
   return false;
 }

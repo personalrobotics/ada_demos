@@ -147,11 +147,11 @@ int main(int argc, char** argv)
 
   if (demoType == "nips")
   {
-    demo(*feedingDemo, perception, nodeHandle);
+    demo(*feedingDemo, perception, nodeHandle, BASIC_VERBOSITY);
   }
   else if (demoType == "spanet")
   {
-    spanetDemo(*feedingDemo, perception, nodeHandle);
+    // spanetDemo(*feedingDemo, perception, nodeHandle);
   }
   else
   {

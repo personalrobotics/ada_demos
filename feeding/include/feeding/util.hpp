@@ -17,6 +17,10 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 
+#define BASIC_VERBOSITY        1
+#define INTERMEDIATE_VERBOSITY 2
+#define HIGH_VERBOSITY         3
+
 namespace feeding {
 
 static const std::vector<std::string> FOOD_NAMES
@@ -111,7 +115,14 @@ Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener);
 aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
     const std::shared_ptr<::ada::Ada>& ada);
 
-std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle);
+// Prompt user to to speak food item
+// Input will be processed through Alexa
+//
+// Parameter verbosity level is used for Summer 2019 demo
+// to control different robot verbosity level
+//
+// Returns food item in std::strinf
+std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle, int verbosityLevel);
 
 void talk(const std::string&, bool background = false);
 

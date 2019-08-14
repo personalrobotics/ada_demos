@@ -9,6 +9,7 @@ namespace feeding {
 namespace action {
 
 std::unique_ptr<FoodItem> detectAndMoveAboveFood(
+    int verbosityLevel,
     const std::shared_ptr<ada::Ada>& ada,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const std::shared_ptr<Perception>& perception,
@@ -31,7 +32,11 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     candidateItems = perception->perceiveFood(foodName);
 
     if (candidateItems.size() == 0) {
-      talk("I can't find that food. Try putting it on the plate.");
+      if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
+        talk("I can't find that food. Try putting it on the plate.");
+      } else if (verbosityLevel == HIGH_VERBOSITY) {
+        talk("Food Perception failed");
+      }
       ROS_WARN_STREAM("Failed to detect any food. Please place food on the plate.");
     }
     else
@@ -66,7 +71,12 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
             feedingDemo))
     {
       ROS_INFO_STREAM("Failed to move above " << item->getName());
-      talk("Sorry, I'm having a little trouble moving. Let's try again.");
+      if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
+        talk("Sorry, I'm having a little trouble moving. Let's try again.");
+      } else if (verbosityLevel == HIGH_VERBOSITY) {
+        talk("Move above food failed. Let's try again.");
+      }
+      
       return nullptr;
     }
     moveAboveSuccessful = true;
@@ -78,7 +88,11 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   if (!moveAboveSuccessful)
   {
     ROS_ERROR("Failed to move above any food.");
-    talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
+    if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
+        talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
+      } else if (verbosityLevel == HIGH_VERBOSITY) {
+        talk("Move above food failed.");
+      }
     return nullptr;
   }
 }

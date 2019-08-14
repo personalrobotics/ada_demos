@@ -139,19 +139,19 @@ std::string getCurrentTimeDate()
 }
 
 //==============================================================================
-std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
+std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle, int verbosityLevel)
 {
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
-  int waitCount = 1;
+  bool first_iteration = true;
   // Continuousely to get user input (anything) from Alexa
   do {
-    // talk("What food would you like?");
-    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(60));
-    if (waitCount > 1) {
+    // wait user input for 10 sec
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(10));
+    if (!first_iteration) {
       talk("Please say something, I'm going to ask you again");
     }
-    waitCount++;
+    first_iteration = false;
   } while (sharedPtr == nullptr);
 
   // Convert input to std::string
@@ -159,8 +159,7 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
   std::string foodWord = rosFoodWord.data.c_str();
 
   // Check if the food item is supported
-  // Return the item if it's supported
-  // Follow up with the user otherwise
+  // Follow up with the user upon invalid input
   if (AlexaInputIsValid(foodWord)) {
     ROS_INFO_STREAM("Alexa got food " << foodWord);
     nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
@@ -168,10 +167,14 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
     return foodWord;
   } else {
     talk("I do not know what that is, please specify a food I know.");
-    getUserInputFromAlexa(nodeHandle);
+    getUserInputFromAlexa(nodeHandle, verbosityLevel);
   }
 }
 
+// Helper function to detect whether user input is valid food item
+// Returns true if food item requested is valid, false otherwise
+//
+// Prints the validity result to the ROS console
 bool AlexaInputIsValid(std::string foodWord) {
   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
   {

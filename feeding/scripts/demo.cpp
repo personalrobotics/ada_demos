@@ -23,7 +23,8 @@ namespace feeding {
 void demo(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
-    ros::NodeHandle nodeHandle)
+    ros::NodeHandle nodeHandle,
+    int verbosityLevel)
 {
 
   ROS_INFO_STREAM("==========  DEMO ==========");
@@ -33,8 +34,7 @@ void demo(
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
-  // talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
-  talk("Hello, my name is aid uh.");
+  talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
 
   srand(time(NULL));
 
@@ -44,7 +44,8 @@ void demo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     // Wait for user input
-    std::string foodName = getUserInputFromAlexa(nodeHandle);
+    // Prompt user for food item input
+    std::string foodName = getUserInputFromAlexa(nodeHandle, verbosityLevel);
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
@@ -53,7 +54,10 @@ void demo(
 
     ROS_INFO_STREAM("Running bite transfer study for " << foodName);
 
-    FoodSelectionResponse(foodName);
+    // provide more spoken food choice response in higher verbosity levels
+    if (verbosityLevel != BASIC_VERBOSITY) {
+      FoodSelectionResponse(foodName);
+    }
 
     // ===== FORQUE PICKUP =====
     if (foodName == "pickupfork")
@@ -99,6 +103,7 @@ void demo(
     else
     {
       bool skewer = action::skewer(
+        verbosityLevel,
         ada,
         workspace,
         collisionFree,

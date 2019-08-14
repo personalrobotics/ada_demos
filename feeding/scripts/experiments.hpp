@@ -21,15 +21,18 @@ void bite_location_detector(
     bool autoContinueDemo,
     bool adaReal);
 
-void demo(
-    FeedingDemo& feedingDemo,
-    std::shared_ptr<Perception>& perception,
-    ros::NodeHandle nodeHandle);
-
 void spanetDemo(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle);
+
+// For Summer 2019 experiment
+// Control robot verbosity (last argument)
+void demo(
+    FeedingDemo& feedingDemo,
+    std::shared_ptr<Perception>& perception,
+    ros::NodeHandle nodeHandle,
+    int verbosityLevel);
 };
 
 #endif

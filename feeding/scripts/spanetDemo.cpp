@@ -25,42 +25,43 @@ void spanetDemo(
 
   while (true)
   {
-    waitForUser("next step?", ada);
+    ROS_INFO_STREAM("Disabled for Summer 2019 Demo");
+  //   waitForUser("next step?", ada);
 
-    nodeHandle.setParam("/deep_pose/forceFood", false);
-    nodeHandle.setParam("/deep_pose/publish_spanet", (true));
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  //   nodeHandle.setParam("/deep_pose/forceFood", false);
+  //   nodeHandle.setParam("/deep_pose/publish_spanet", (true));
+  //   std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    ROS_INFO_STREAM("Running spanet demo");
+  //   ROS_INFO_STREAM("Running spanet demo");
 
-    action::skewer(
-    ada,
-    workspace,
-    collisionFree,
-    perception,
-    &nodeHandle,
-    "",
-    plate,
-    feedingDemo.getPlateEndEffectorTransform(),
-    feedingDemo.mFoodSkeweringForces,
-    feedingDemo.mPlateTSRParameters["horizontalTolerance"],
-    feedingDemo.mPlateTSRParameters["verticalTolerance"],
-    feedingDemo.mPlateTSRParameters["rotationTolerance"],
-    feedingDemo.mFoodTSRParameters["height"],
-    feedingDemo.mFoodTSRParameters["horizontalTolerance"],
-    feedingDemo.mFoodTSRParameters["verticalTolerance"],
-    feedingDemo.mFoodTSRParameters["rotationTolerance"],
-    feedingDemo.mFoodTSRParameters["tiltTolerance"],
-    feedingDemo.mMoveOufOfFoodLength,
-    feedingDemo.mEndEffectorOffsetPositionTolerance,
-    feedingDemo.mEndEffectorOffsetAngularTolerance,
-    feedingDemo.mWaitTimeForFood,
-    feedingDemo.mPlanningTimeout,
-    feedingDemo.mMaxNumTrials,
-    feedingDemo.mVelocityLimits,
-    feedingDemo.getFTThresholdHelper());
+  //   action::skewer(
+  //   ada,
+  //   workspace,
+  //   collisionFree,
+  //   perception,
+  //   &nodeHandle,
+  //   "",
+  //   plate,
+  //   feedingDemo.getPlateEndEffectorTransform(),
+  //   feedingDemo.mFoodSkeweringForces,
+  //   feedingDemo.mPlateTSRParameters["horizontalTolerance"],
+  //   feedingDemo.mPlateTSRParameters["verticalTolerance"],
+  //   feedingDemo.mPlateTSRParameters["rotationTolerance"],
+  //   feedingDemo.mFoodTSRParameters["height"],
+  //   feedingDemo.mFoodTSRParameters["horizontalTolerance"],
+  //   feedingDemo.mFoodTSRParameters["verticalTolerance"],
+  //   feedingDemo.mFoodTSRParameters["rotationTolerance"],
+  //   feedingDemo.mFoodTSRParameters["tiltTolerance"],
+  //   feedingDemo.mMoveOufOfFoodLength,
+  //   feedingDemo.mEndEffectorOffsetPositionTolerance,
+  //   feedingDemo.mEndEffectorOffsetAngularTolerance,
+  //   feedingDemo.mWaitTimeForFood,
+  //   feedingDemo.mPlanningTimeout,
+  //   feedingDemo.mMaxNumTrials,
+  //   feedingDemo.mVelocityLimits,
+  //   feedingDemo.getFTThresholdHelper());
 
-    workspace.reset();
+  //   workspace.reset();
   }
 
   // ===== DONE =====

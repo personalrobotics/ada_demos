@@ -11,7 +11,10 @@
 namespace feeding {
 namespace action {
 
+// For Summer 2019 experiment
+// Control robot verbosity (last argument)
 std::unique_ptr<FoodItem> detectAndMoveAboveFood(
+    int verbosityLevel,
     const std::shared_ptr<ada::Ada>& ada,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const std::shared_ptr<Perception>& perception,
@@ -25,6 +28,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     int maxNumTrials,
     std::vector<double> velocityLimits,
     FeedingDemo* feedingDemo=nullptr);
+
 }
 }
 

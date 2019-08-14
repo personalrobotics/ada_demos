@@ -10,7 +10,10 @@
 namespace feeding {
 namespace action {
 
+// For Summer 2019 experiment
+// Control robot verbosity (last argument)
 bool skewer(
+    int verbosityLevel,
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
@@ -38,6 +41,7 @@ bool skewer(
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
     std::vector<std::string> rotationFreeFoodNames = std::vector<std::string>(),
     FeedingDemo* feedingDemo=nullptr);
+
 }
 }
 
