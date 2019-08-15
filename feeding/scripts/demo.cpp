@@ -102,6 +102,9 @@ void demo(
     }
     else
     {
+      if (verbosityLevel != BASIC_VERBOSITY) {
+        talk("Planning on skewering food");
+      }
       bool skewer = action::skewer(
         verbosityLevel,
         ada,
@@ -135,6 +138,13 @@ void demo(
       if (!skewer)
       {
         ROS_WARN_STREAM("Restart from the beginning");
+        if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
+          talk(ERROR_STATUS_MSG);
+        }
+        if (verbosityLevel == HIGH_VERBOSITY) {
+          talk(ERROR_STATUS_MSG);
+          talk("I am having difficulty skewering the foood. Let me try again");
+        }
         continue;
       }
 
@@ -144,6 +154,7 @@ void demo(
       bool tilted = (foodName != "celery");
 
       action::feedFoodToPerson(
+        verbosityLevel,
         ada,
         workspace,
         collisionFree,

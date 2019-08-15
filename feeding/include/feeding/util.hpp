@@ -21,6 +21,8 @@
 #define INTERMEDIATE_VERBOSITY 2
 #define HIGH_VERBOSITY         3
 
+#define ERROR_STATUS_MSG       "Oops, looks like I messed up."
+
 namespace feeding {
 
 static const std::vector<std::string> FOOD_NAMES
@@ -123,6 +125,15 @@ aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
 //
 // Returns food item in std::strinf
 std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle, int verbosityLevel);
+
+// Listen to the rostopic and returns the verbosity level
+// from the webpage
+//
+// Verbosity level is used for Summer 2019 demo
+// to control different robot verbosity level
+//
+// Returns the verbosity level
+int getVerbosityLevelFromWebPage();
 
 void talk(const std::string&, bool background = false);
 

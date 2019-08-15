@@ -63,8 +63,10 @@ bool skewer(
   if (!abovePlaceSuccess)
   {
     if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
-      talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
-    } else if (verbosityLevel == HIGH_VERBOSITY) {
+      talk(ERROR_STATUS_MSG);
+    }
+    if (verbosityLevel == HIGH_VERBOSITY) {
+      talk(ERROR_STATUS_MSG);
       talk("Move above plate failed. Mind if I get a little help?");
     }
     ROS_WARN_STREAM("Move above plate failed. Please restart");
@@ -115,11 +117,16 @@ bool skewer(
           velocityLimits,
           feedingDemo);
 
+      // returns nullptr if unsuccessful
+      // TODO: test this out
+      // maybe redundant: detectAndMoveAboveFood already handles error
       if (!item)
       {
         if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
-          talk("Failed, let me start from the beginning");
-        } else if (verbosityLevel == HIGH_VERBOSITY) {
+          talk(ERROR_STATUS_MSG);
+        }
+        if (verbosityLevel == HIGH_VERBOSITY) {
+          talk(ERROR_STATUS_MSG);
           talk("Failed to detect food");
         }
         return false;
@@ -162,8 +169,10 @@ bool skewer(
     {
       ROS_INFO_STREAM("Failed. Retry");
       if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
-        talk("Sorry, I'm having a little trouble moving. Let me try again.");
-      } else if (verbosityLevel == HIGH_VERBOSITY) {
+        talk(ERROR_STATUS_MSG);
+      }
+      if (verbosityLevel == HIGH_VERBOSITY) {
+        talk(ERROR_STATUS_MSG);
         talk("Move into food failed. Let me try again");
       }
       return false;
@@ -192,9 +201,14 @@ bool skewer(
 
     ROS_INFO_STREAM("Failed.");
     if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
-      talk("Oops, let me try again.");
+      talk(ERROR_STATUS_MSG);
+    }
+    if (verbosityLevel == HIGH_VERBOSITY && trialCount == 2) {
+      talk(ERROR_STATUS_MSG);
+      talk("Move out of food failed.");
     } else if (verbosityLevel == HIGH_VERBOSITY) {
-      talk("Move out of food failed");
+      talk(ERROR_STATUS_MSG);
+      talk("Move out of food failed. Let me try again.");
     }
     
   }

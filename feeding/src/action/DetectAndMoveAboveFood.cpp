@@ -33,9 +33,11 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
 
     if (candidateItems.size() == 0) {
       if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
-        talk("I can't find that food. Try putting it on the plate.");
-      } else if (verbosityLevel == HIGH_VERBOSITY) {
-        talk("Food Perception failed");
+        talk(ERROR_STATUS_MSG);
+      }
+      if (verbosityLevel == HIGH_VERBOSITY) {
+        talk(ERROR_STATUS_MSG);
+        talk("I can not find food on the plate. Please place food on the plate.");
       }
       ROS_WARN_STREAM("Failed to detect any food. Please place food on the plate.");
     }
@@ -72,8 +74,10 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     {
       ROS_INFO_STREAM("Failed to move above " << item->getName());
       if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
-        talk("Sorry, I'm having a little trouble moving. Let's try again.");
-      } else if (verbosityLevel == HIGH_VERBOSITY) {
+        talk(ERROR_STATUS_MSG);
+      }
+      if (verbosityLevel == HIGH_VERBOSITY) {
+        talk(ERROR_STATUS_MSG);
         talk("Move above food failed. Let's try again.");
       }
       
@@ -89,10 +93,12 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   {
     ROS_ERROR("Failed to move above any food.");
     if (verbosityLevel == INTERMEDIATE_VERBOSITY) {
-        talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
-      } else if (verbosityLevel == HIGH_VERBOSITY) {
-        talk("Move above food failed.");
-      }
+      talk(ERROR_STATUS_MSG);
+    }
+    if (verbosityLevel == HIGH_VERBOSITY) {
+      talk(ERROR_STATUS_MSG);
+      talk("Sorry, I'm having a little trouble moving above plate. Mind if I get a little help?");
+    }
     return nullptr;
   }
 }

@@ -147,7 +147,13 @@ int main(int argc, char** argv)
 
   if (demoType == "nips")
   {
-    demo(*feedingDemo, perception, nodeHandle, BASIC_VERBOSITY);
+    // Wait for webpage verbosity level input
+    ROS_INFO_STREAM("Waiting for web verbosity level input");
+    // controlled variable for summer 2019 demo
+    int verbosityLevel = getVerbosityLevelFromWebPage();
+
+    // changes in verbosity level here will be applied to the entire demo
+    demo(*feedingDemo, perception, nodeHandle, verbosityLevel);
   }
   else if (demoType == "spanet")
   {

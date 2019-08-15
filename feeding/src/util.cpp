@@ -13,6 +13,7 @@
 #include <libada/util.hpp>
 #include <cstdlib>
 #include "std_msgs/String.h"
+#include "std_msgs/Int32.h"
 
 static const std::vector<double> weights = {1, 1, 0.01, 0.01, 0.01, 0.01};
 
@@ -147,7 +148,7 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle, int verbosityLeve
   // Continuousely to get user input (anything) from Alexa
   do {
     // wait user input for 10 sec
-    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(10));
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(30));
     if (!first_iteration) {
       talk("Please say something, I'm going to ask you again");
     }
@@ -161,6 +162,9 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle, int verbosityLeve
   // Check if the food item is supported
   // Follow up with the user upon invalid input
   if (AlexaInputIsValid(foodWord)) {
+    if (verbosityLevel != BASIC_VERBOSITY) {
+      FoodSelectionResponse(foodWord);
+    }
     ROS_INFO_STREAM("Alexa got food " << foodWord);
     nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
     nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
@@ -186,6 +190,15 @@ bool AlexaInputIsValid(std::string foodWord) {
   }
   ROS_INFO_STREAM("invalid item input");
   return false;
+}
+
+//==============================================================================
+int getVerbosityLevelFromWebPage() {
+  boost::shared_ptr<std_msgs::Int32 const> sharedPtr;
+  sharedPtr = ros::topic::waitForMessage<std_msgs::Int32>("/verbosity_msg");
+  std_msgs::Int32 verbosityLevel = *sharedPtr;
+
+  return verbosityLevel.data;
 }
 
 //==============================================================================

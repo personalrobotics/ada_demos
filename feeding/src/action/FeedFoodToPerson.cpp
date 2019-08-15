@@ -12,6 +12,7 @@ namespace action {
 
 //==============================================================================
 void feedFoodToPerson(
+    int verbosityLevel,
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
@@ -36,7 +37,10 @@ void feedFoodToPerson(
     std::vector<double> velocityLimits,
     const Eigen::Vector3d* tiltOffset)
 {
-  talk("Great! Bringing the food to you!", true);
+  if (verbosityLevel != BASIC_VERBOSITY) {
+    talk("Great! Bringing the food to you!", true);
+  }
+  
   auto moveIFOPerson = [&] {
     return moveInFrontOfPerson(
         ada,
