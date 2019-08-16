@@ -117,13 +117,21 @@ Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener);
 aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
     const std::shared_ptr<::ada::Ada>& ada);
 
+// Wait for food item input from webpage
+//
+// Parameter verbosity level is used for Summer 2019 demo
+// to control different robot verbosity level
+//
+// Returns food item in std::string
+std::string getUserInputFromWebPage(ros::NodeHandle& nodeHandle, int verbosityLevel);
+
 // Prompt user to to speak food item
 // Input will be processed through Alexa
 //
 // Parameter verbosity level is used for Summer 2019 demo
 // to control different robot verbosity level
 //
-// Returns food item in std::strinf
+// Returns food item in std::string
 std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle, int verbosityLevel);
 
 // Listen to the rostopic and returns the verbosity level
@@ -140,7 +148,7 @@ void talk(const std::string&, bool background = false);
 // Returns true if the foodWord is valid for the demo
 // i.e. is supported by the demo
 // return false otherwise
-bool AlexaInputIsValid(std::string foodWord);
+bool foodInputIsValid(std::string foodWord);
 
 // Randomly select a response to the user's food choice
 void FoodSelectionResponse(std::string foodName);

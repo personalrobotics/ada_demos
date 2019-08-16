@@ -140,8 +140,30 @@ std::string getCurrentTimeDate()
 }
 
 //==============================================================================
+std::string getUserInputFromWebPage(ros::NodeHandle& nodeHandle, int verbosityLevel) {
+  boost::shared_ptr<std_msgs::String const> sharedPtr;
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/foodItem_msg");
+  std_msgs::String foodItem = *sharedPtr;
+
+  std::string foodWord = foodItem.data.c_str();
+
+  // Check if the food item is supported
+  // Follow up with the user upon invalid input
+  if (foodInputIsValid(foodWord)) {
+    if (verbosityLevel != BASIC_VERBOSITY) {
+      FoodSelectionResponse(foodWord);
+    }
+    ROS_INFO_STREAM("Webpage got food " << foodWord);
+    nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
+    nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
+    return foodWord;
+  }
+}
+
+//==============================================================================
 std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle, int verbosityLevel)
 {
+  talk("What do you want to eat?");
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
   bool first_iteration = true;
@@ -161,7 +183,7 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle, int verbosityLeve
 
   // Check if the food item is supported
   // Follow up with the user upon invalid input
-  if (AlexaInputIsValid(foodWord)) {
+  if (foodInputIsValid(foodWord)) {
     if (verbosityLevel != BASIC_VERBOSITY) {
       FoodSelectionResponse(foodWord);
     }
@@ -179,7 +201,7 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle, int verbosityLeve
 // Returns true if food item requested is valid, false otherwise
 //
 // Prints the validity result to the ROS console
-bool AlexaInputIsValid(std::string foodWord) {
+bool foodInputIsValid(std::string foodWord) {
   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
   {
     if (FOOD_NAMES[i].compare(foodWord) == 0)

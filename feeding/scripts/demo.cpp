@@ -45,7 +45,10 @@ void demo(
 
     // Wait for user input
     // Prompt user for food item input
-    std::string foodName = getUserInputFromAlexa(nodeHandle, verbosityLevel);
+    // std::string foodName = getUserInputFromAlexa(nodeHandle, verbosityLevel);
+
+    std::string foodName = getUserInputFromWebPage(nodeHandle, verbosityLevel);
+    // std::string foodName = "cantaloupe";
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
