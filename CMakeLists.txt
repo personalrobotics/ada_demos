@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(ada_demos)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
+
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(catkin REQUIRED
@@ -70,12 +74,12 @@ include_directories(${Boost_INCLUDE_DIR})
 # Demos
 #
 
-add_subdirectory(soda_grasp)
+# add_subdirectory(soda_grasp)
 add_subdirectory(simple_trajectories)
-add_subdirectory(simple_perception)
-add_subdirectory(hand_control)
-add_subdirectory(feeding)
-add_subdirectory(cameraCalibration)
+# add_subdirectory(simple_perception)
+# add_subdirectory(hand_control)
+#add_subdirectory(feeding)
+# add_subdirectory(cameraCalibration)
 
 # ===============================================================================
 # Formatting
