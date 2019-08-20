@@ -35,7 +35,7 @@ void demo(
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
   talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
-x
+
   srand(time(NULL));
 
   while (true)
