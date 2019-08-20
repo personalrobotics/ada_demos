@@ -35,7 +35,7 @@ void demo(
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
   talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
-
+x
   srand(time(NULL));
 
   while (true)
@@ -45,10 +45,10 @@ void demo(
 
     // Wait for user input
     // Prompt user for food item input
-    // std::string foodName = getUserInputFromAlexa(nodeHandle, verbosityLevel);
+    std::string foodName = getUserInputFromAlexa(nodeHandle, verbosityLevel);
 
     // std::string foodName = getUserInputFromWebPage(nodeHandle, verbosityLevel);
-    std::string foodName = "cantaloupe";
+    // std::string foodName = "cantaloupe";
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));

@@ -150,10 +150,10 @@ int main(int argc, char** argv)
     // Wait for webpage verbosity level input
     ROS_INFO_STREAM("Waiting for web verbosity level input");
     // controlled variable for summer 2019 demo
-    int verbosityLevel = getVerbosityLevelFromWebPage();
+    // int verbosityLevel = getVerbosityLevelFromWebPage();
 
     // changes in verbosity level here will be applied to the entire demo
-    demo(*feedingDemo, perception, nodeHandle, verbosityLevel);
+    demo(*feedingDemo, perception, nodeHandle, 1);
   }
   else if (demoType == "spanet")
   {
