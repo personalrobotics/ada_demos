@@ -156,6 +156,7 @@ std::string getUserInputFromWebPage(ros::NodeHandle& nodeHandle, int verbosityLe
     ROS_INFO_STREAM("Webpage got food " << foodWord);
     nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
     nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
+
     return foodWord;
   }
 }

@@ -74,7 +74,9 @@ void feedFoodToPerson(
     nodeHandle->setParam("/feeding/facePerceptionOn", true);
 
     ROS_INFO_STREAM("Move towards person");
-    talk("Ready? Make sure I can see your face.");
+    if (verbosityLevel != BASIC_VERBOSITY) {
+      talk("Ready? Make sure I can see your face.");
+    }
     moveSuccess = moveTowardsPerson(
         ada,
         collisionFreeWithWallFurtherBack,
