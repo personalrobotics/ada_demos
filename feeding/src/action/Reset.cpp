@@ -31,7 +31,7 @@ bool reset(
   {
     if (ftThresholdHelper)
     {
-      ftThresholdHelper->setThresholds(1, 1);
+      ftThresholdHelper->setThresholds(2, 2);
     }
 
     ROS_INFO_STREAM("Move above plate");
@@ -69,60 +69,85 @@ bool reset(
     }
 
     ROS_INFO_STREAM("Move to the bar");
-    bool moveXSuccess = ada->moveArmToEndEffectorOffset(
-        Eigen::Vector3d(1, 0, 0),
-        0.1,
+    Eigen::VectorXd moveD(6);
+    moveD << 0, 0, 0, 0, 0, -0.05;
+    bool moveDSuccess = ada->moveArmWithEndEffectorTwist(
+        moveD,
+        0.5,
         collisionFree,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);
-    if (!moveXSuccess)
+        endEffectorOffsetAngularTolerance,
+        velocityLimits);
+    Eigen::VectorXd moveX(6);
+    moveX << 0, 0, 0, -0.5, 0, 0;
+    bool moveXSuccess = ada->moveArmWithEndEffectorTwist(
+        moveX,
+        0.5,
+        collisionFree,
+        planningTimeout,
+        endEffectorOffsetPositionTolerance,
+        endEffectorOffsetAngularTolerance,
+        velocityLimits);
+//    if (!moveXSuccess)
+  //  {
+    if (ftThresholdHelper)
     {
-      if (ftThresholdHelper)
+      ROS_WARN_STREAM("Stop FT, start Traj Controller");
+      ada->getTrajectoryExecutor()->cancel();
+      bool result = ada->switchControllers(trajectoryController, ftTrajectoryController);
+      if (!result)
       {
-        ROS_WARN_STREAM("Stop FT, start Traj Controller");
-        ada->getTrajectoryExecutor()->cancel();
-        bool result = ada->switchControllers(trajectoryController, ftTrajectoryController);
-        if (!result)
-        {
-          ROS_WARN_STREAM("Failed to switch; continue with FT controller");
-          ftThresholdHelper->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
-        }
+        ROS_WARN_STREAM("Failed to switch; continue with FT controller");
+        ftThresholdHelper->setThresholds(AFTER_GRAB_FOOD_FT_THRESHOLD);
       }
-      bool moveBack = ada->moveArmToEndEffectorOffset(
-          Eigen::Vector3d(-1, 0, 0),
-          0.001,
+      ROS_INFO_STREAM("Move Back");
+      Eigen::VectorXd moveB(6);
+      if (i == 0) {
+        moveB << 0, 0, 0, 0.03, 0, 0;
+      } else {
+        moveB << 0, 0, 0, 0.01, 0, 0;
+      }
+      bool moveBack = ada->moveArmWithEndEffectorTwist(
+          moveB,
+          0.5,
           collisionFree,
           planningTimeout,
           endEffectorOffsetPositionTolerance,
-          endEffectorOffsetAngularTolerance);
+          endEffectorOffsetAngularTolerance,
+          velocityLimits);
       if (!moveBack)
       {
         talk("Sorry, I'm having a little trouble moving");
         ROS_WARN_STREAM("Move to the bar failed");
         return false;
       }
-      if (ftThresholdHelper)
+    }
+    if (ftThresholdHelper)
+    {
+      ROS_WARN_STREAM("Start FT, stop Traj Controller");
+      bool result = ada->switchControllers(ftTrajectoryController, trajectoryController);
+      if (!result)
       {
-        ROS_WARN_STREAM("Start FT, stop Traj Controller");
-        bool result = ada->switchControllers(ftTrajectoryController, trajectoryController);
-        if (!result)
-        {
-          ROS_WARN_STREAM("Failed to switch; continue with traj controller");
-        }
-        else
-        {
-          ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
-        }
+        ROS_WARN_STREAM("Failed to switch; continue with traj controller");
+      }
+      else
+      {
+        ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
       }
     }
-    bool moveZSuccess = ada->moveArmToEndEffectorOffset(
-        Eigen::Vector3d(0, 0, 1),
-        0.03,
+  //  }
+    ROS_INFO_STREAM("Lift Up");
+    Eigen::VectorXd moveZ(6);
+    moveZ << 0, 0, 0, 0, 0, 0.15;
+    bool moveZSuccess = ada->moveArmWithEndEffectorTwist(
+        moveZ,
+        0.5,
         collisionFree,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);
+        endEffectorOffsetAngularTolerance,
+        velocityLimits);
     if (!moveZSuccess)
     {
       talk("Sorry, I'm having a little trouble moving");
