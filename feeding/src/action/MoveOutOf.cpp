@@ -9,8 +9,10 @@
 namespace feeding {
 namespace action {
 
-const static std::vector<std::string> trajectoryController{"rewd_trajectory_controller"};
-const static std::vector<std::string> ftTrajectoryController{"move_until_touch_topic_controller"};
+const static std::vector<std::string> trajectoryController{
+    "rewd_trajectory_controller"};
+const static std::vector<std::string> ftTrajectoryController{
+    "move_until_touch_topic_controller"};
 void moveOutOf(
     const std::shared_ptr<::ada::Ada>& ada,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
@@ -29,7 +31,8 @@ void moveOutOf(
   {
     ROS_WARN_STREAM("Stop FT, start Traj Controller");
     ada->getTrajectoryExecutor()->cancel();
-    bool result = ada->switchControllers(trajectoryController, ftTrajectoryController);
+    bool result
+        = ada->switchControllers(trajectoryController, ftTrajectoryController);
     if (!result)
     {
       ROS_WARN_STREAM("Failed to switch; continue with FT controller");
@@ -50,7 +53,8 @@ void moveOutOf(
   if (ftThresholdHelper)
   {
     ROS_WARN_STREAM("Start FT, stop Traj Controller");
-    bool result = ada->switchControllers(ftTrajectoryController, trajectoryController);
+    bool result
+        = ada->switchControllers(ftTrajectoryController, trajectoryController);
     if (!result)
     {
       ROS_WARN_STREAM("Failed to switch; continue with traj controller");

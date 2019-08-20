@@ -80,7 +80,6 @@ FeedingDemo::FeedingDemo(
   mCollisionFreeConstraint->addPairwiseCheck(
       armCollisionGroup, envCollisionGroup);
 
-
   dart::collision::CollisionDetectorPtr relaxedCollisionDetector
       = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<dart::collision::CollisionGroup> relaxedArmCollisionGroup
@@ -95,10 +94,11 @@ FeedingDemo::FeedingDemo(
 
   mCollisionFreeConstraintWithWallFurtherBack
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
-          mArmSpace, mAda->getArm()->getMetaSkeleton(), relaxedCollisionDetector);
+          mArmSpace,
+          mAda->getArm()->getMetaSkeleton(),
+          relaxedCollisionDetector);
   mCollisionFreeConstraintWithWallFurtherBack->addPairwiseCheck(
       relaxedArmCollisionGroup, relaxedEnvCollisionGroup);
-
 
   // visualization
   mViewer = std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
@@ -229,13 +229,11 @@ CollisionFreePtr FeedingDemo::getCollisionConstraint()
   return mCollisionFreeConstraint;
 }
 
-
 //==============================================================================
 CollisionFreePtr FeedingDemo::getCollisionConstraintWithWallFurtherBack()
 {
   return mCollisionFreeConstraintWithWallFurtherBack;
 }
-
 
 //==============================================================================
 Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
@@ -269,9 +267,8 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
   Eigen::Isometry3d eeTransform
       = mAda->getHand()->getEndEffectorTransform("plate").get();
   eeTransform.linear()
-      = eeTransform.linear()
-        * Eigen::Matrix3d(
-              Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+      = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(
+                                   M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   eeTransform.translation()
       = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
 

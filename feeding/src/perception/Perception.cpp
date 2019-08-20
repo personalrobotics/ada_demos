@@ -83,7 +83,6 @@ Perception::Perception(
   if (!mTargetFoodRanker)
     throw std::invalid_argument("TargetFoodRanker not set for perception.");
 
-
   // mForkSubscriber = mNodeHandle->subscribe<geometry_msgs::Pose2D>(
   //   "/fork_uv",
   //   1,
@@ -98,7 +97,8 @@ Perception::Perception(
   {
     throw std::runtime_error("Could not find joint");
   }
-  mDefaultEETransform = Eigen::Isometry3d(joint->getTransformFromParentBodyNode());
+  mDefaultEETransform
+      = Eigen::Isometry3d(joint->getTransformFromParentBodyNode());
 }
 
 //==============================================================================
@@ -188,7 +188,7 @@ Eigen::Isometry3d Perception::perceiveFace()
     {
       auto faceTransform = perceivedFace->getBodyNode(0)->getWorldTransform();
 
-      //fixed distance:
+      // fixed distance:
       double fixedFaceY
           = getRosParam<double>("/feedingDemo/fixedFaceY", *mNodeHandle);
       if (fixedFaceY > 0)
@@ -244,7 +244,8 @@ void Perception::removeRotation(const FoodItem* item)
 
   // Downcast Joint to FreeJoint
   dart::dynamics::FreeJoint* freejtptr
-      = dynamic_cast<dart::dynamics::FreeJoint*>(item->getMetaSkeleton()->getJoint(0));
+      = dynamic_cast<dart::dynamics::FreeJoint*>(
+          item->getMetaSkeleton()->getJoint(0));
 
   if (freejtptr == nullptr)
   {
@@ -275,7 +276,9 @@ void Perception::correctForkTip(const geometry_msgs::Pose2D::ConstPtr& msg)
   std::cout << msg->x << " " << msg->y << std::endl;
 
   auto endEffector = mAda->getHand()->getEndEffectorBodyNode();
-  std::cout << "tip\n" << endEffector->getWorldTransform().translation().transpose() << std::endl;
+  std::cout << "tip\n"
+            << endEffector->getWorldTransform().translation().transpose()
+            << std::endl;
 
   tf::StampedTransform tfStampedTransform;
   tf::TransformListener tfListener;
@@ -283,14 +286,24 @@ void Perception::correctForkTip(const geometry_msgs::Pose2D::ConstPtr& msg)
   if (!mNodeHandle->ok())
     throw std::runtime_error("Node not ok");
 
-  try {
-    tfListener.waitForTransform( "/camera_color_optical_frame", "/map", ros::Time(0), ros::Duration(10.0) );
+  try
+  {
+    tfListener.waitForTransform(
+        "/camera_color_optical_frame",
+        "/map",
+        ros::Time(0),
+        ros::Duration(10.0));
 
-    tfListener.lookupTransform("/camera_color_optical_frame", "/map",
-                            ros::Time(0), tfStampedTransform);
+    tfListener.lookupTransform(
+        "/camera_color_optical_frame",
+        "/map",
+        ros::Time(0),
+        tfStampedTransform);
   }
-  catch (tf::TransformException ex){
-    throw std::runtime_error("Failed to get TF Transform: " + std::string(ex.what()));
+  catch (tf::TransformException ex)
+  {
+    throw std::runtime_error(
+        "Failed to get TF Transform: " + std::string(ex.what()));
   }
 
   Eigen::Isometry3d map2camera;
@@ -321,10 +334,9 @@ void Perception::correctForkTip(const geometry_msgs::Pose2D::ConstPtr& msg)
     {
       // transform of forque
       Eigen::Isometry3d eeTransform(mDefaultEETransform);
-      eeTransform.linear()
-      = eeTransform.linear()
-        * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitY())
-        * Eigen::AngleAxisd(x, Eigen::Vector3d::UnitX());
+      eeTransform.linear() = eeTransform.linear()
+                             * Eigen::AngleAxisd(y, Eigen::Vector3d::UnitY())
+                             * Eigen::AngleAxisd(x, Eigen::Vector3d::UnitX());
 
       joint->setTransformFromParentBodyNode(eeTransform);
 
@@ -333,8 +345,13 @@ void Perception::correctForkTip(const geometry_msgs::Pose2D::ConstPtr& msg)
       tip_cv.push_back(cv::Point3f(tip[0], tip[1], tip[2]));
 
       std::vector<cv::Point2f> imagePoints;
-      cv::projectPoints(tip_cv, rvec, tvec,
-      mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
+      cv::projectPoints(
+          tip_cv,
+          rvec,
+          tvec,
+          mCameraModel.intrinsicMatrix(),
+          mCameraModel.distortionCoeffs(),
+          imagePoints);
 
       double xdist = msg->x - imagePoints[0].x;
       double ydist = msg->y - imagePoints[0].y;
@@ -353,9 +370,9 @@ void Perception::correctForkTip(const geometry_msgs::Pose2D::ConstPtr& msg)
   // transform of forque
   Eigen::Isometry3d eeTransform(mDefaultEETransform);
   eeTransform.linear()
-  = eeTransform.linear()
-    * Eigen::AngleAxisd(minYrotation, Eigen::Vector3d::UnitY())
-    * Eigen::AngleAxisd(minXrotation, Eigen::Vector3d::UnitX());
+      = eeTransform.linear()
+        * Eigen::AngleAxisd(minYrotation, Eigen::Vector3d::UnitY())
+        * Eigen::AngleAxisd(minXrotation, Eigen::Vector3d::UnitX());
 
   std::cout << "Original Fork Transform" << std::endl;
   std::cout << mDefaultEETransform.matrix() << std::endl;
@@ -369,13 +386,19 @@ void Perception::correctForkTip(const geometry_msgs::Pose2D::ConstPtr& msg)
   tip_cv.push_back(cv::Point3f(tip[0], tip[1], tip[2]));
 
   std::vector<cv::Point2f> imagePoints;
-  cv::projectPoints(tip_cv, rvec, tvec,
-  mCameraModel.intrinsicMatrix(), mCameraModel.distortionCoeffs(), imagePoints);
+  cv::projectPoints(
+      tip_cv,
+      rvec,
+      tvec,
+      mCameraModel.intrinsicMatrix(),
+      mCameraModel.distortionCoeffs(),
+      imagePoints);
 
   // std::cout << "Projected" << std::endl;
   cv::Mat img = image.clone();
 
-  for (auto point : imagePoints) {
+  for (auto point : imagePoints)
+  {
     // std::cout << point.x << " " << point.y << std::endl;
     cv::circle(img, point, 7, cv::Scalar(255, 255, 255, 255), 5);
   }
@@ -383,20 +406,20 @@ void Perception::correctForkTip(const geometry_msgs::Pose2D::ConstPtr& msg)
   std::stringstream ss;
   ss << "Projected_" << minXrotation << "_" << minYrotation << ".jpg";
 
-  cv::circle(img, cv::Point2f(msg->x, msg->y), 3, cv::Scalar(0, 0, 255, 255), 5);
-  cv::imwrite(ss.str(), img );
+  cv::circle(
+      img, cv::Point2f(msg->x, msg->y), 3, cv::Scalar(0, 0, 255, 255), 5);
+  cv::imwrite(ss.str(), img);
   std::cout << "Save to " << ss.str() << std::endl;
 
   mCorrectForkTip = false;
 }
 
-
 //=============================================================================
 void Perception::receiveCameraInfo()
 {
   sensor_msgs::CameraInfoConstPtr info
-    = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(
-        mCameraInfoTopic, *mNodeHandle, ros::Duration(1));
+      = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(
+          mCameraInfoTopic, *mNodeHandle, ros::Duration(1));
   if (info == nullptr)
   {
     ROS_ERROR("nullptr camera info");
@@ -407,13 +430,12 @@ void Perception::receiveCameraInfo()
 }
 
 //=============================================================================
-void Perception::receiveImageMessage(
-  cv_bridge::CvImagePtr& cv_ptr)
+void Perception::receiveImageMessage(cv_bridge::CvImagePtr& cv_ptr)
 {
 
   sensor_msgs::ImageConstPtr msg
-    = ros::topic::waitForMessage<sensor_msgs::Image>(
-        mImageTopic, *mNodeHandle, ros::Duration(10));
+      = ros::topic::waitForMessage<sensor_msgs::Image>(
+          mImageTopic, *mNodeHandle, ros::Duration(10));
   if (msg == nullptr)
   {
     ROS_ERROR("nullptr image message");
@@ -424,7 +446,7 @@ void Perception::receiveImageMessage(
   {
     cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
   }
-  catch (cv_bridge::Exception &e)
+  catch (cv_bridge::Exception& e)
   {
     ROS_ERROR("cv_bridge exception: %s", e.what());
     return;

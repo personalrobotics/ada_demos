@@ -11,7 +11,6 @@ namespace feeding {
 
 namespace action {
 
-
 bool moveAbove(
     const std::shared_ptr<::ada::Ada>& ada,
     const CollisionFreePtr& collisionFree,
@@ -57,8 +56,9 @@ bool moveAbove(
         velocityLimits,
         ::ada::TrajectoryPostprocessType::KUNZ);
 
-    std::cout << "MoveAbove Current pose \n" <<
-      ada->getMetaSkeleton()->getPositions().transpose() << std::endl;
+    std::cout << "MoveAbove Current pose \n"
+              << ada->getMetaSkeleton()->getPositions().transpose()
+              << std::endl;
 
     return trajectoryCompleted;
   }

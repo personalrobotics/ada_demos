@@ -18,7 +18,7 @@ bool moveDirectlyToPerson(
     int maxNumTrials,
     std::vector<double> velocityLimits,
     const Eigen::Vector3d* tiltOffset,
-    FeedingDemo* feedingDemo=nullptr);
+    FeedingDemo* feedingDemo = nullptr);
 
 } // namespace action
 } // namespace feeding

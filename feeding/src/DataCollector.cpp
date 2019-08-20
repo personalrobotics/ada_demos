@@ -499,12 +499,11 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
   if (tiltStyle == TiltStyle::ANGLED)
   {
     Eigen::Vector3d food(mFeedingDemo->getDefaultFoodTransform().translation());
-    Eigen::Vector3d hand(
-        mFeedingDemo->getAda()
-            ->getHand()
-            ->getEndEffectorBodyNode()
-            ->getTransform()
-            .translation());
+    Eigen::Vector3d hand(mFeedingDemo->getAda()
+                             ->getHand()
+                             ->getEndEffectorBodyNode()
+                             ->getTransform()
+                             .translation());
     direction = food - hand;
     direction.normalize();
   }

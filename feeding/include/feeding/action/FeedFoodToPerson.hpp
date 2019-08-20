@@ -13,7 +13,8 @@ void feedFoodToPerson(
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-    const aikido::constraint::dart::CollisionFreePtr& collisionFreeWithWallFurtherBack,
+    const aikido::constraint::dart::CollisionFreePtr&
+        collisionFreeWithWallFurtherBack,
     const std::shared_ptr<Perception>& perception,
     const ros::NodeHandle* nodeHandle,
     const Eigen::Isometry3d& plate,

@@ -16,13 +16,13 @@
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_geometry/pinhole_camera_model.h>
-#include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/Image.h>
 #include <sensor_msgs/image_encodings.h>
 
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include <geometry_msgs/Pose2D.h>
 
@@ -80,7 +80,6 @@ public:
   void setCorrectForkTip(bool val);
 
 private:
-
   // Optionally used to remove rotation if mRemoveRotation is true..
   void removeRotation(const FoodItem* foodItem);
   bool mRemoveRotationForFood;
@@ -119,7 +118,6 @@ private:
   Eigen::Isometry3d mDefaultEETransform;
 
   bool mCorrectForkTip;
-
 };
 
 } // namespace feeding

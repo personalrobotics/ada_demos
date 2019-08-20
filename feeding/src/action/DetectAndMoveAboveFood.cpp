@@ -30,9 +30,11 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     // Multiple candidates are preferrable since planning may fail.
     candidateItems = perception->perceiveFood(foodName);
 
-    if (candidateItems.size() == 0) {
+    if (candidateItems.size() == 0)
+    {
       talk("I can't find that food. Try putting it on the plate.");
-      ROS_WARN_STREAM("Failed to detect any food. Please place food on the plate.");
+      ROS_WARN_STREAM(
+          "Failed to detect any food. Please place food on the plate.");
     }
     else
       break;
@@ -78,7 +80,9 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   if (!moveAboveSuccessful)
   {
     ROS_ERROR("Failed to move above any food.");
-    talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
+    talk(
+        "Sorry, I'm having a little trouble moving. Mind if I get a little "
+        "help?");
     return nullptr;
   }
 }

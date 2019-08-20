@@ -2,10 +2,10 @@
 #define FEEDING_ACTION_DETECTANDMOVEABOVEFOOD_HPP_
 
 #include <libada/Ada.hpp>
+#include "feeding/FeedingDemo.hpp"
 #include "feeding/FoodItem.hpp"
 #include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
-#include "feeding/FeedingDemo.hpp"
 
 // Contains motions which are mainly TSR actions
 namespace feeding {
@@ -24,7 +24,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    FeedingDemo* feedingDemo=nullptr);
+    FeedingDemo* feedingDemo = nullptr);
 }
 }
 

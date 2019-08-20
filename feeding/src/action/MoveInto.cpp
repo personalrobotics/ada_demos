@@ -68,7 +68,8 @@ bool moveInto(
   // }
   // else
 
-  std::cout << "endEffectorDirection " << endEffectorDirection.transpose() << std::endl;
+  std::cout << "endEffectorDirection " << endEffectorDirection.transpose()
+            << std::endl;
   {
     double length = 0.05;
     int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();

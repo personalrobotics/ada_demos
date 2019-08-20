@@ -5,6 +5,7 @@
 #include <iostream>
 #include <utility>
 #include <Eigen/Dense>
+#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <aikido/statespace/StateSpace.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
 #include <aikido/trajectory/Spline.hpp>
@@ -12,7 +13,6 @@
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
 #include <libada/Ada.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 
 #include <ros/ros.h>
 #include <tf/transform_listener.h>

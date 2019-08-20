@@ -79,7 +79,8 @@ public:
 
   aikido::constraint::dart::CollisionFreePtr getCollisionConstraint();
 
-  aikido::constraint::dart::CollisionFreePtr getCollisionConstraintWithWallFurtherBack();
+  aikido::constraint::dart::CollisionFreePtr
+  getCollisionConstraintWithWallFurtherBack();
 
   /// Resets the environmnet.
   void reset();
@@ -138,7 +139,8 @@ private:
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
   std::shared_ptr<Workspace> mWorkspace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
-  aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraintWithWallFurtherBack;
+  aikido::constraint::dart::CollisionFreePtr
+      mCollisionFreeConstraintWithWallFurtherBack;
 
   std::unique_ptr<PerceptionServoClient> mServoClient;
 

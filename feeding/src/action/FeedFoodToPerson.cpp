@@ -15,7 +15,8 @@ void feedFoodToPerson(
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-    const aikido::constraint::dart::CollisionFreePtr& collisionFreeWithWallFurtherBack,
+    const aikido::constraint::dart::CollisionFreePtr&
+        collisionFreeWithWallFurtherBack,
     const std::shared_ptr<Perception>& perception,
     const ros::NodeHandle* nodeHandle,
     const Eigen::Isometry3d& plate,
@@ -95,12 +96,12 @@ void feedFoodToPerson(
     talk("Let me get out of your way.", true);
     Eigen::Vector3d goalDirection(0, -1, 0);
     bool success = ada->moveArmToEndEffectorOffset(
-      goalDirection.normalized(),
-      0.1,
-      nullptr,// collisionFreeWithWallFurtherBack,
-      planningTimeout,
-      endEffectorOffsetPositionTolerenace * 2,
-      endEffectorOffsetAngularTolerance * 2);
+        goalDirection.normalized(),
+        0.1,
+        nullptr, // collisionFreeWithWallFurtherBack,
+        planningTimeout,
+        endEffectorOffsetPositionTolerenace * 2,
+        endEffectorOffsetAngularTolerance * 2);
 
     ROS_INFO_STREAM("Backward " << success << std::endl);
   }
@@ -125,4 +126,3 @@ void feedFoodToPerson(
 }
 }
 }
-

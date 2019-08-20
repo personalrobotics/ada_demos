@@ -58,33 +58,38 @@ bool skewer(
 
   if (!abovePlaceSuccess)
   {
-    talk("Sorry, I'm having a little trouble moving. Mind if I get a little help?");
+    talk(
+        "Sorry, I'm having a little trouble moving. Mind if I get a little "
+        "help?");
     ROS_WARN_STREAM("Move above plate failed. Please restart");
     return false;
   }
 
-  if (std::find(rotationFreeFoodNames.begin(),
-      rotationFreeFoodNames.end(), foodName) !=
-      rotationFreeFoodNames.end())
+  if (std::find(
+          rotationFreeFoodNames.begin(), rotationFreeFoodNames.end(), foodName)
+      != rotationFreeFoodNames.end())
   {
     rotationToleranceForFood = M_PI;
   }
 
   double torqueThreshold = 2;
   if (ftThresholdHelper)
-    ftThresholdHelper->setThresholds(foodSkeweringForces.at(foodName), torqueThreshold);
+    ftThresholdHelper->setThresholds(
+        foodSkeweringForces.at(foodName), torqueThreshold);
 
   bool detectAndMoveAboveFoodSuccess = true;
   Eigen::Vector3d endEffectorDirection(0, 0, -1);
 
   for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
   {
-    for(std::size_t i = 0; i < 2; ++i)
+    for (std::size_t i = 0; i < 2; ++i)
     {
-      if(i == 0) {
+      if (i == 0)
+      {
         talk(std::string("Planning to the ") + foodName, true);
       }
-      if(i == 1) {
+      if (i == 1)
+      {
         talk("Adjusting, hold tight!", true);
       }
       ROS_INFO_STREAM("Detect and Move above food");
@@ -123,8 +128,8 @@ bool skewer(
       return false;
 
     ROS_INFO_STREAM(
-          "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
-                     << "N with angle mode ");
+        "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
+                   << "N with angle mode ");
 
     // ===== INTO FOOD =====
     talk("Here we go!", true);

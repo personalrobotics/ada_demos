@@ -64,8 +64,9 @@ protected:
   aikido::trajectory::TrajectoryPtr planEndEffectorOffset(
       const Eigen::Vector3d& goalDirection);
 
-  aikido::trajectory::UniqueSplinePtr createPartialTimedTrajectoryFromCurrentConfig(
-  const aikido::trajectory::Spline* trajectory);
+  aikido::trajectory::UniqueSplinePtr
+  createPartialTimedTrajectoryFromCurrentConfig(
+      const aikido::trajectory::Spline* trajectory);
 
   ::ros::NodeHandle mNodeHandle;
   boost::function<Eigen::Isometry3d(void)> mGetTransform;

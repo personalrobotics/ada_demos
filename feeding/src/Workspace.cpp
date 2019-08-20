@@ -19,7 +19,10 @@ Workspace::Workspace(
   addToWorld(mPlate, "plate", robotPose);
   addToWorld(mTable, "table", robotPose);
   addToWorld(mWorkspaceEnvironment, "workspaceEnvironment", robotPose);
-  addToWorld(mWorkspaceEnvironmentWithWallFurtherBack, "workspaceEnvironmentWithWallFurtherBack", robotPose);
+  addToWorld(
+      mWorkspaceEnvironmentWithWallFurtherBack,
+      "workspaceEnvironmentWithWallFurtherBack",
+      robotPose);
   addToWorld(mWheelchair, "wheelchair", Eigen::Isometry3d::Identity());
   addToWorld(mPerson, "person", robotPose);
   mPersonPose = mPerson->getRootBodyNode()->getWorldTransform();
@@ -46,9 +49,8 @@ void Workspace::addToWorld(
     const Eigen::Isometry3d& robotPose)
 {
   Eigen::Isometry3d pose
-      = robotPose.inverse() * createIsometry(
-                                  getRosParam<std::vector<double>>(
-                                      "/" + name + "/pose", mNodeHandle));
+      = robotPose.inverse() * createIsometry(getRosParam<std::vector<double>>(
+                                  "/" + name + "/pose", mNodeHandle));
   addToWorldAtPose(skeleton, name, pose);
 }
 
@@ -103,11 +105,11 @@ dart::dynamics::ConstSkeletonPtr Workspace::getWorkspaceEnvironment() const
 }
 
 //==============================================================================
-dart::dynamics::ConstSkeletonPtr Workspace::getWorkspaceEnvironmentWithWallFurtherBack() const
+dart::dynamics::ConstSkeletonPtr
+Workspace::getWorkspaceEnvironmentWithWallFurtherBack() const
 {
   return mWorkspaceEnvironmentWithWallFurtherBack;
 }
-
 
 //==============================================================================
 dart::dynamics::SkeletonPtr Workspace::getDefaultFoodItem() const

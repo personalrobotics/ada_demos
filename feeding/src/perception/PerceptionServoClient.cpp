@@ -105,7 +105,6 @@ PerceptionServoClient::PerceptionServoClient(
   mVelocityLimits = Eigen::VectorXd(velocityLimits.size());
   for (std::size_t i = 0; i < velocityLimits.size(); ++i)
     mVelocityLimits[i] = velocityLimits[i];
-
 }
 
 //==============================================================================
@@ -165,7 +164,8 @@ bool PerceptionServoClient::wait(double timelimit)
   }
   stop();
   if (elapsedTime >= timelimit)
-    ROS_INFO_STREAM("Timeout " << timelimit << " reached for PerceptionServoClient");
+    ROS_INFO_STREAM(
+        "Timeout " << timelimit << " reached for PerceptionServoClient");
 
   return mNotFailed;
 }
@@ -205,9 +205,9 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     mOriginalPose = mBodyNode->getTransform();
     mOriginalConfig = mMetaSkeleton->getPositions();
 
-    if (mIsRunning && mExec.valid() &&
-        (mExec.wait_for(std::chrono::duration<int, std::milli>(0))
-        != std::future_status::ready))
+    if (mIsRunning && mExec.valid()
+        && (mExec.wait_for(std::chrono::duration<int, std::milli>(0))
+            != std::future_status::ready))
     {
       ROS_INFO_STREAM("Cancel the current trajectory");
       mTrajectoryExecutor->cancel();
@@ -277,9 +277,10 @@ SplinePtr PerceptionServoClient::planToGoalPose(
 {
   // auto oldLimits = setPositionLimits(mMetaSkeleton);
   Eigen::Isometry3d currentPose = mBodyNode->getTransform();
-  std::cout << "current Position " << currentPose.translation().transpose() << std::endl;
+  std::cout << "current Position " << currentPose.translation().transpose()
+            << std::endl;
   Eigen::Vector3d goalDirection
-    = goalPose.translation() - currentPose.translation();
+      = goalPose.translation() - currentPose.translation();
   std::cout << "Distance " << goalDirection.norm() << std::endl;
 
   if (goalDirection.norm() < mGoalPrecision)
@@ -291,7 +292,8 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   }
   if (goalDirection[2] > 0 && mServoFood)
   {
-    ROS_WARN("Visual servoing is finished because goal is above the current pose");
+    ROS_WARN(
+        "Visual servoing is finished because goal is above the current pose");
     mExecutionDone = true;
     mNotFailed = true;
     return nullptr;
@@ -312,10 +314,11 @@ SplinePtr PerceptionServoClient::planToGoalPose(
       mOriginalConfig, originalState);
 
   Eigen::Vector3d directionFromOldToNew(
-    mBodyNode->getTransform().translation() - mOriginalPose.translation());
+      mBodyNode->getTransform().translation() - mOriginalPose.translation());
 
   UniqueInterpolatedPtr trajFromOldToNew = nullptr;
-  std::cout << "Distance from old to new " << directionFromOldToNew.norm() << std::endl;
+  std::cout << "Distance from old to new " << directionFromOldToNew.norm()
+            << std::endl;
 
   if (directionFromOldToNew.norm() > 0.001)
   {
@@ -350,9 +353,12 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   // }
   // else
   // {
-    timedTraj = computeKunzTiming(
-        *dynamic_cast<Interpolated*>(trajToGoal.get()),
-        mVelocityLimits, mMaxAcceleration, 1e-2, 3e-3);
+  timedTraj = computeKunzTiming(
+      *dynamic_cast<Interpolated*>(trajToGoal.get()),
+      mVelocityLimits,
+      mMaxAcceleration,
+      1e-2,
+      3e-3);
   // }
 
   if (!timedTraj)
@@ -369,7 +375,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
 
 //==============================================================================
 TrajectoryPtr PerceptionServoClient::planEndEffectorOffset(
-  const Eigen::Vector3d& goalDirection)
+    const Eigen::Vector3d& goalDirection)
 {
   if (goalDirection.norm() < 1e-3)
     return nullptr;
@@ -384,8 +390,9 @@ TrajectoryPtr PerceptionServoClient::planEndEffectorOffset(
 }
 
 //==============================================================================
-UniqueSplinePtr PerceptionServoClient::createPartialTimedTrajectoryFromCurrentConfig(
-  const Spline* trajectory)
+UniqueSplinePtr
+PerceptionServoClient::createPartialTimedTrajectoryFromCurrentConfig(
+    const Spline* trajectory)
 {
   double distance;
   auto state = mMetaSkeletonStateSpace->createState();
@@ -393,11 +400,7 @@ UniqueSplinePtr PerceptionServoClient::createPartialTimedTrajectoryFromCurrentCo
       mMetaSkeleton->getPositions(), state);
 
   double refTime = findTimeOfClosestStateOnTrajectory(
-        *trajectory,
-        mMetaSkeleton,
-        state,
-        distance,
-        0.01);
+      *trajectory, mMetaSkeleton, state, distance, 0.01);
 
   if (distance > 1.0)
   {
@@ -405,7 +408,8 @@ UniqueSplinePtr PerceptionServoClient::createPartialTimedTrajectoryFromCurrentCo
     return nullptr;
   }
 
-  std::cout << "Shorted distance " << distance << " at " << refTime << std::endl;
+  std::cout << "Shorted distance " << distance << " at " << refTime
+            << std::endl;
   // Start 0.3 sec forward since the robort has been moving.
   auto traj = createPartialTrajectory(*trajectory, refTime + 0.3);
   if (!traj || traj->getDuration() < 1e-5)

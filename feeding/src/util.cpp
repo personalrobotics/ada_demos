@@ -1,5 +1,6 @@
 #include "feeding/util.hpp"
 #include <algorithm>
+#include <cstdlib>
 #include <aikido/common/Spline.hpp>
 #include <aikido/common/StepSequence.hpp>
 #include <aikido/distance/NominalConfigurationRanker.hpp>
@@ -11,7 +12,6 @@
 #include <dart/common/StlHelpers.hpp>
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
-#include <cstdlib>
 #include "std_msgs/String.h"
 
 static const std::vector<double> weights = {1, 1, 0.01, 0.01, 0.01, 0.01};
@@ -151,7 +151,6 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
     return foodName;
   }
 
-
   ROS_INFO_STREAM("Which food item do you want?");
   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
   {
@@ -166,7 +165,6 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
               << std::endl);
     }
   }
-
 
   int max_id;
 
@@ -197,13 +195,13 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
   }
 }
 
-
 //==============================================================================
 std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
 {
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
-  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs", ros::Duration(20));
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>(
+      "/alexa_msgs", ros::Duration(20));
   if (sharedPtr == nullptr)
   {
     ROS_INFO_STREAM("No message from alexa, please input manually");
@@ -219,10 +217,11 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
     std::string foodWord = rosFoodWord.data.c_str();
   }
   ROS_INFO_STREAM("Alexa got food " << foodWord);
-  //ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs", 1, true);
+  // ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs",
+  // 1, true);
   std_msgs::StringPtr str(new std_msgs::String);
   str->data = "~~no_input~~";
-  //pub.publish(str);
+  // pub.publish(str);
   for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
   {
     if (FOOD_NAMES[i].compare(foodWord) == 0)
@@ -383,15 +382,18 @@ aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
 }
 
 //==============================================================================
-void talk(const std::string& statement, bool background) {
+void talk(const std::string& statement, bool background)
+{
   std::string cmd;
-  if(background) {
+  if (background)
+  {
     cmd = "aoss swift \"" + statement + "\"" + " &";
-  } else {
+  }
+  else
+  {
     cmd = "aoss swift \"" + statement + "\"";
   }
   std::system(cmd.c_str());
 }
-
 
 } // namespace feeding
