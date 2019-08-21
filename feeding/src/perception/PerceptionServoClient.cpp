@@ -400,7 +400,7 @@ PerceptionServoClient::createPartialTimedTrajectoryFromCurrentConfig(
       mMetaSkeleton->getPositions(), state);
 
   double refTime = findTimeOfClosestStateOnTrajectory(
-      *trajectory, mMetaSkeleton, state, distance, 0.01);
+      *trajectory, state, distance, 0.01);
 
   if (distance > 1.0)
   {
