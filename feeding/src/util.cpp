@@ -221,6 +221,8 @@ int getVerbosityLevelFromWebPage() {
   sharedPtr = ros::topic::waitForMessage<std_msgs::Int32>("/verbosity_msg");
   std_msgs::Int32 verbosityLevel = *sharedPtr;
 
+  ROS_INFO_STREAM(verbosityLevel);
+
   return verbosityLevel.data;
 }
 
