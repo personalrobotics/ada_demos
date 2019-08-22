@@ -18,6 +18,6 @@ bool moveTowardsPerson(
     double endEffectorOffsetPositionTolerenace,
     double endEffectorOffsetAngularTolerance);
 }
-}
+} // namespace feeding
 
 #endif

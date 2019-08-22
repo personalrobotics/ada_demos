@@ -38,5 +38,5 @@ void moveAboveForque(
     throw std::runtime_error("Trajectory execution failed");
 }
 
-} // namespace feeding
 } // namespace action
+} // namespace feeding

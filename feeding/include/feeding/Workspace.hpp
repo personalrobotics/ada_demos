@@ -94,6 +94,6 @@ private:
       const std::string& name,
       const Eigen::Isometry3d& pose);
 };
-}
+} // namespace feeding
 
 #endif

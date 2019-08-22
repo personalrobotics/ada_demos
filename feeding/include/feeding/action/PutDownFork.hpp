@@ -25,6 +25,6 @@ void putDownFork(
     std::vector<double> velocityLimits,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper);
 }
-}
+} // namespace feeding
 
 #endif

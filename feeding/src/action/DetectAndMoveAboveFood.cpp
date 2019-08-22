@@ -86,5 +86,5 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     return nullptr;
   }
 }
-}
-}
+} // namespace action
+} // namespace feeding

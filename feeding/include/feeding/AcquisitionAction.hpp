@@ -42,6 +42,6 @@ private:
   double mTiltAngle;
   Eigen::Vector3d mMoveIntoDirection;
 };
-}
+} // namespace feeding
 
 #endif

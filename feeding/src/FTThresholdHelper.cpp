@@ -170,4 +170,4 @@ std::pair<double, double> FTThresholdHelper::getThresholdValues(
   }
   return std::pair<double, double>(forceThreshold, torqueThreshold);
 }
-}
+} // namespace feeding

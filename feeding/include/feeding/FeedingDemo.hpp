@@ -150,6 +150,6 @@ private:
   aikido::rviz::FrameMarkerPtr frameMarker;
   aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
 };
-}
+} // namespace feeding
 
 #endif

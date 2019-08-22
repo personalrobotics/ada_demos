@@ -66,5 +66,5 @@ void moveOutOf(
   }
 }
 
-} // namespace feeding
 } // namespace action
+} // namespace feeding

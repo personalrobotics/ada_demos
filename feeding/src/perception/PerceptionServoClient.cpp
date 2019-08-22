@@ -13,22 +13,22 @@
 
 #define THRESHOLD 5.0 // s to wait for good frame
 
+using ada::util::getRosParam;
 using aikido::constraint::Satisfied;
-using aikido::planner::vectorfield::planToEndEffectorOffset;
 using aikido::planner::ConfigurationToConfiguration;
 using aikido::planner::SnapConfigurationToConfigurationPlanner;
 using aikido::planner::kunzretimer::computeKunzTiming;
+using aikido::planner::vectorfield::planToEndEffectorOffset;
 using aikido::statespace::dart::MetaSkeletonStateSaver;
+using aikido::trajectory::concatenate;
 using aikido::trajectory::createPartialTrajectory;
 using aikido::trajectory::findTimeOfClosestStateOnTrajectory;
-using aikido::trajectory::concatenate;
 using aikido::trajectory::Interpolated;
 using aikido::trajectory::Spline;
 using aikido::trajectory::SplinePtr;
 using aikido::trajectory::TrajectoryPtr;
-using aikido::trajectory::UniqueSplinePtr;
 using aikido::trajectory::UniqueInterpolatedPtr;
-using ada::util::getRosParam;
+using aikido::trajectory::UniqueSplinePtr;
 
 namespace feeding {
 
@@ -399,8 +399,8 @@ PerceptionServoClient::createPartialTimedTrajectoryFromCurrentConfig(
   mMetaSkeletonStateSpace->convertPositionsToState(
       mMetaSkeleton->getPositions(), state);
 
-  double refTime = findTimeOfClosestStateOnTrajectory(
-      *trajectory, state, distance, 0.01);
+  double refTime
+      = findTimeOfClosestStateOnTrajectory(*trajectory, state, distance, 0.01);
 
   if (distance > 1.0)
   {

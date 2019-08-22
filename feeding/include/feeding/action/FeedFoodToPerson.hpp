@@ -35,6 +35,6 @@ void feedFoodToPerson(
     std::vector<double> velocityLimits,
     const Eigen::Vector3d* tiltOffset);
 }
-}
+} // namespace feeding
 
 #endif

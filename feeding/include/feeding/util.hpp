@@ -115,6 +115,6 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle);
 
 void talk(const std::string&, bool background = false);
 
-} // feeding
+} // namespace feeding
 
 #endif

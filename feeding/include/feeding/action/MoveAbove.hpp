@@ -23,6 +23,6 @@ bool moveAbove(
     const std::vector<double>& velocityLimits,
     FeedingDemo* feedingDemo = nullptr);
 }
-}
+} // namespace feeding
 
 #endif

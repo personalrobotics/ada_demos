@@ -78,5 +78,5 @@ bool moveAboveFood(
       feedingDemo);
 }
 
-} // namespace feeding
 } // namespace action
+} // namespace feeding

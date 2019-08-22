@@ -20,6 +20,6 @@ void moveOutOf(
     double endEffectorOffsetAngularTolerance,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper);
 }
-}
+} // namespace feeding
 
 #endif

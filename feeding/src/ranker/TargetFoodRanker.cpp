@@ -33,4 +33,4 @@ void TargetFoodRanker::sort(
   for (auto& item : items)
     std::cout << item->getName() << " " << item->getScore() << std::endl;
 }
-}
+} // namespace feeding

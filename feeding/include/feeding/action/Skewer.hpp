@@ -39,6 +39,6 @@ bool skewer(
     std::vector<std::string> rotationFreeFoodNames = std::vector<std::string>(),
     FeedingDemo* feedingDemo = nullptr);
 }
-}
+} // namespace feeding
 
 #endif

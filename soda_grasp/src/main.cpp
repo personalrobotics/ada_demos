@@ -13,12 +13,12 @@
 
 namespace po = boost::program_options;
 
-using dart::dynamics::SkeletonPtr;
 using dart::dynamics::MetaSkeletonPtr;
+using dart::dynamics::SkeletonPtr;
 
+using aikido::constraint::dart::TSR;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
-using aikido::constraint::dart::TSR;
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
@@ -115,8 +115,7 @@ int main(int argc, char** argv)
   // Start the RViz viewer.
   ROS_INFO_STREAM(
       "Starting viewer. Please subscribe to the '"
-      << execTopicName
-      << "' InteractiveMarker topic in RViz.");
+      << execTopicName << "' InteractiveMarker topic in RViz.");
   aikido::rviz::WorldInteractiveMarkerViewer viewer(
       env, execTopicName, baseFrameName);
 

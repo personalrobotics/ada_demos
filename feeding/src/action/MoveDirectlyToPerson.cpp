@@ -2,8 +2,8 @@
 #include <libada/util.hpp>
 #include "feeding/util.hpp"
 
-using aikido::constraint::dart::TSR;
 using ada::util::createBwMatrixForTSR;
+using aikido::constraint::dart::TSR;
 
 // Contains motions which are mainly TSR actions
 namespace feeding {
@@ -86,5 +86,5 @@ bool moveDirectlyToPerson(
   }
   return true;
 }
-}
-}
+} // namespace action
+} // namespace feeding

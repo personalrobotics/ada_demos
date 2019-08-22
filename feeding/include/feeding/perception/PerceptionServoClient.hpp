@@ -3,10 +3,8 @@
 
 #include <mutex>
 #include <aikido/control/ros/RosTrajectoryExecutor.hpp>
-#include <aikido/control/ros/RosTrajectoryExecutor.hpp>
 #include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
-#include <aikido/trajectory/Spline.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <boost/optional.hpp>
 #include <dart/dynamics/BodyNode.hpp>
@@ -125,6 +123,6 @@ protected:
   bool mRemoveRotation;
   Eigen::VectorXd mVelocityLimits;
 };
-}
+} // namespace feeding
 
 #endif // FEEDING_PERCEPTIONSERVOCLIENT_HPP_

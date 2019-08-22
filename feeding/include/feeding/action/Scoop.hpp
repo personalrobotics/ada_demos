@@ -9,6 +9,6 @@ namespace action {
 
 void scoop(const std::shared_ptr<ada::Ada>& ada);
 }
-}
+} // namespace feeding
 
 #endif

@@ -124,5 +124,5 @@ void feedFoodToPerson(
       maxNumTrials,
       velocityLimits);
 }
-}
-}
+} // namespace action
+} // namespace feeding

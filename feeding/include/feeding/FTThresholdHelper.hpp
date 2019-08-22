@@ -76,6 +76,6 @@ private:
    */
   void forceTorqueDataCallback(const geometry_msgs::WrenchStamped& msg);
 };
-}
+} // namespace feeding
 
 #endif

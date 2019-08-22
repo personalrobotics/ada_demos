@@ -88,5 +88,5 @@ bool moveInto(
   return true;
 }
 
-} // namespace feeding
 } // namespace action
+} // namespace feeding

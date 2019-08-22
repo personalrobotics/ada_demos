@@ -21,6 +21,6 @@ bool moveInFrontOfPerson(
     std::vector<double> velocityLimits,
     FeedingDemo* feedingDemo = nullptr);
 }
-}
+} // namespace feeding
 
 #endif

@@ -11,8 +11,8 @@
 #include "feeding/FoodItem.hpp"
 #include "feeding/util.hpp"
 
-using ada::util::getRosParam;
 using ada::util::createIsometry;
+using ada::util::getRosParam;
 using aikido::constraint::dart::CollisionFreePtr;
 
 const bool TERMINATE_AT_USER_PROMPT = true;
@@ -266,9 +266,9 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
 {
   Eigen::Isometry3d eeTransform
       = mAda->getHand()->getEndEffectorTransform("plate").get();
-  eeTransform.linear()
-      = eeTransform.linear() * Eigen::Matrix3d(Eigen::AngleAxisd(
-                                   M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+  eeTransform.linear() = eeTransform.linear()
+                         * Eigen::Matrix3d(Eigen::AngleAxisd(
+                               M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   eeTransform.translation()
       = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
 

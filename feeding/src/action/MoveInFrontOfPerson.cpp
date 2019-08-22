@@ -2,8 +2,8 @@
 #include <libada/util.hpp>
 #include "feeding/util.hpp"
 
-using aikido::constraint::dart::TSR;
 using ada::util::createBwMatrixForTSR;
+using aikido::constraint::dart::TSR;
 
 using aikido::constraint::dart::TSR;
 
@@ -59,5 +59,5 @@ bool moveInFrontOfPerson(
       getConfigurationRanker(ada),
       velocityLimits);
 }
-}
-}
+} // namespace action
+} // namespace feeding

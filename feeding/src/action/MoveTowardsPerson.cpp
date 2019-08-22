@@ -40,5 +40,5 @@ bool moveTowardsPerson(
   servoClient.start();
   return servoClient.wait(10);
 }
-}
-}
+} // namespace action
+} // namespace feeding
