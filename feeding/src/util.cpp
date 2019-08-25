@@ -13,6 +13,7 @@
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
 #include "std_msgs/String.h"
+#include "std_msgs/Int32.h"
 
 static const std::vector<double> weights = {1, 1, 0.01, 0.01, 0.01, 0.01};
 
@@ -24,6 +25,12 @@ inline int sgn(double x)
 {
   return (x < 0) ? -1 : (x > 0);
 }
+
+// Helper function to detect whether user input is valid food item
+//
+// Returns true if food item requested is valid, false otherwise
+// Prints the validity result to the ROS console
+static bool foodInputIsValid(std::string foodWord);
 
 //==============================================================================
 void handleArguments(
@@ -394,6 +401,119 @@ void talk(const std::string& statement, bool background)
     cmd = "aoss swift \"" + statement + "\"";
   }
   std::system(cmd.c_str());
+}
+
+//==============================================================================
+std::string getFoodInputFromWebPage(ros::NodeHandle& nodeHandle) {
+  boost::shared_ptr<std_msgs::String const> sharedPtr;
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/foodItem_msg");
+  std_msgs::String foodItem = *sharedPtr;
+
+  std::string foodWord = foodItem.data.c_str();
+
+  // Check if the food item is supported
+  // Follow up with the user upon invalid input
+  if (foodInputIsValid(foodWord)) {
+    ROS_INFO_STREAM("Webpage got food " << foodWord);
+    nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
+    nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
+
+    return foodWord;
+  } else {
+    ROS_INFO_STREAM("Invalid food item");
+    ROS_INFO_STREAM("GLITCH in webpage. This should NEVER happen");
+    exit(EXIT_FAILURE);
+  }
+}
+
+//==============================================================================
+std::string getFoodInputFromAlexa(ros::NodeHandle& nodeHandle)
+{
+  talk("What do you want to eat?");
+  boost::shared_ptr<std_msgs::String const> sharedPtr;
+  std_msgs::String rosFoodWord;
+  // wait user input
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+
+  // Convert input to std::string
+  rosFoodWord = *sharedPtr;
+  std::string foodWord = rosFoodWord.data.c_str();
+
+  // Check if the food item is supported
+  // Follow up with the user upon invalid input
+  if (foodInputIsValid(foodWord)) {
+    ROS_INFO_STREAM("Alexa got food " << foodWord);
+    nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
+    nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
+    return foodWord;
+  } else {
+    talk("I do not know what that is, please specify a food I know.");
+    getUserInputFromAlexa(nodeHandle);
+  }
+}
+
+// TODO:
+//==============================================================================
+std::string getActionInputFromAlexa(ros::NodeHandle& nodeHandle)
+{
+  talk("What do you want to eat?");
+  boost::shared_ptr<std_msgs::String const> sharedPtr;
+  std_msgs::String rosFoodWord;
+  // wait user input
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+
+  // Convert input to std::string
+  rosFoodWord = *sharedPtr;
+  std::string foodWord = rosFoodWord.data.c_str();
+
+  // Check if the food item is supported
+  // Follow up with the user upon invalid input
+  if (foodInputIsValid(foodWord)) {
+    nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
+    nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
+    return foodWord;
+  } else {
+    getUserInputFromAlexa(nodeHandle);
+  }
+}
+
+//==============================================================================
+void getTimingFromAlexa() {
+  talk("Robot will approach when you are ready.");
+}
+
+//==============================================================================
+void getTransferFromAlexa() {
+  talk("Robot will bring you the food when you are ready.");
+}
+
+//==============================================================================
+std::string getFeedAngleFromAlexa() {
+  talk("How do you want me to feed you?");
+}
+
+//==============================================================================
+// Helper function to detect whether user input is valid food item
+// Returns true if food item requested is valid, false otherwise
+//
+// Prints the validity result to the ROS console
+static bool foodInputIsValid(std::string foodWord) {
+  for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
+  {
+    if (FOOD_NAMES[i].compare(foodWord) == 0)
+    {
+      ROS_INFO_STREAM("valid item input");
+      return true;
+    }
+  }
+  ROS_INFO_STREAM("invalid item input");
+  return false;
+}
+
+int getTrailTypeFromWebPage() {
+  boost::shared_ptr<std_msgs::Int32 const> sharedPtr;
+  sharedPtr = ros::topic::waitForMessage<std_msgs::Int32>("/trial_type");
+  return sharedPtr->data;
 }
 
 } // namespace feeding

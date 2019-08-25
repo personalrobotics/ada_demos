@@ -12,6 +12,7 @@
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/action/MoveInFrontOfPerson.hpp"
 #include "feeding/action/MoveDirectlyToPerson.hpp"
+#include "std_msgs/String.h"
 #include <cstdlib>
 #include <ctime>
 
@@ -42,11 +43,20 @@ void demo(
     if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
-    talk("What food would you like?");
-    auto foodName = getUserInput(false, nodeHandle);
-    if (foodName == std::string("quit")) {
-        break;
+    // ===== Beginning of Web/Speech Interface =====
+
+    // get Trail Type (input by test staff)
+    int trailType = getTrailTypeFromWebPage();
+    std::string foodName = getFoodInputFromWebPage(nodeHandle);
+
+    if (false) {
+      talk("Please pick a food.");
+      std::string foodName = getFoodInputFromAlexa(nodeHandle);
     }
+
+    // TODO:
+    // talk("Please choose an action to pick up the food.");
+    // std::string action = getActionInputFromAlexa(nodeHandle);
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
@@ -54,34 +64,6 @@ void demo(
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     ROS_INFO_STREAM("Running bite transfer study for " << foodName);
-
-    switch((rand() % 10)) {
-        case 0:
-        talk("Good choice!");
-        break;
-        case 1:
-        talk(std::string("Great! I love ") + foodName + std::string("'s!"));
-        break;
-        case 2:
-        talk("Sounds delicious. I wish I had taste buds.");
-        break;
-        case 4:
-        talk("Roger Roger.");
-        break;
-        case 5:
-        talk("Nothing beats fresh fruit.");
-        break;
-        case 6:
-        talk("Nothing escapes my fork!");
-        break;
-        case 7:
-        talk("Thanks Alexa!");
-        break;
-        default:
-        talk("Alright.");
-    }
-
-    talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
 
     // ===== FORQUE PICKUP =====
     if (foodName == "pickupfork")
@@ -161,10 +143,22 @@ void demo(
         continue;
       }
 
+      // Send message to web interface to indicate skweweing finished
+      // ros::init(nullptr, nullptr, "actionDoneHandle");
+      ros::NodeHandle actionHandle;
+      ros::Publisher actionPub = actionHandle.advertise<std_msgs::String>("/action_done", 1, true);
+      std_msgs::String msg;
+      std::stringstream ss;
+      ss << "action done";
+      msg.data = ss.str();
+      actionPub.publish(msg);
+
       // ===== IN FRONT OF PERSON =====
       ROS_INFO_STREAM("Move forque in front of person");
 
       bool tilted = (foodName != "celery");
+
+      getTimingFromAlexa();
 
       action::feedFoodToPerson(
         ada,

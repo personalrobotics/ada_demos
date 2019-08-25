@@ -87,9 +87,12 @@ void feedFoodToPerson(
   if (moveIFOSuccess)
   {
     // ===== EATING =====
+    // TODO:
     ROS_WARN("Human is eating");
-    talk("Ready to eat!");
+    talk("Let me know when you are ready to eat!");
     std::this_thread::sleep_for(waitAtPerson);
+    getTransferFromAlexa();
+    getFeedAngleFromAlexa();
 
     // Backward
     ada::util::waitForUser("Move backward", ada);

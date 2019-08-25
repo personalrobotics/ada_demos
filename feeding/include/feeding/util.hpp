@@ -17,6 +17,12 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 
+#define NON_AUTO 0
+#define AUTO     1
+#define AC_AUTO  2
+#define TI_AUTO  3
+#define TR_AUTO  4
+
 namespace feeding {
 
 static const std::vector<std::string> FOOD_NAMES
@@ -114,6 +120,38 @@ aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
 std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle);
 
 void talk(const std::string&, bool background = false);
+
+// Wait for food item input from webpage
+//
+// Returns food item in std::string
+std::string getFoodInputFromWebPage(ros::NodeHandle& nodeHandle);
+
+// Prompt user to to speak food item
+// Input will be processed through Alexa
+//
+// Returns food item in std::string
+std::string getFoodInputFromAlexa(ros::NodeHandle& nodeHandle);
+
+// TODO:
+// Prompt user to to speak food acquisition action
+// Input will be processed through Alexa
+//
+// Returns action type in
+std::string getActionInputFromAlexa(ros::NodeHandle& nodeHandle);
+
+// Randomly select a response to the user's food choice
+void FoodSelectionResponse(std::string foodName);
+
+// Get the trail input information from the feeding webpage
+//
+// Returns the trail type
+int getTrailTypeFromWebPage();
+
+void getTimingFromAlexa();
+
+void getTransferFromAlexa();
+
+std::string getFeedAngleFromAlexa();
 
 } // namespace feeding
 

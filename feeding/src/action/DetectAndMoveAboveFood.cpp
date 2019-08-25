@@ -49,6 +49,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   {
     auto action = item->getAction();
 
+    // choose action to pickup food item
     std::cout << "Tilt style " << action->getTiltStyle() << std::endl;
     if (!moveAboveFood(
             ada,
