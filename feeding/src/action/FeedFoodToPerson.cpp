@@ -6,6 +6,7 @@
 #include "feeding/action/MoveInFrontOfPerson.hpp"
 #include "feeding/action/MoveTowardsPerson.hpp"
 #include "feeding/util.hpp"
+#include "std_msgs/String.h"
 
 namespace feeding {
 namespace action {
@@ -88,6 +89,14 @@ void feedFoodToPerson(
   {
     // ===== EATING =====
     // TODO:
+
+    // Send message to web interface to indicate skweweing finished
+    ros::NodeHandle timingHandle;
+    ros::Publisher timingPub = timingHandle.advertise<std_msgs::String>("/timing_done", 1, true);
+    std_msgs::String msg;
+    msg.data = "timing done";
+    timingPub.publish(msg);
+
     ROS_WARN("Human is eating");
     talk("Let me know when you are ready to eat!");
     std::this_thread::sleep_for(waitAtPerson);

@@ -46,8 +46,12 @@ void demo(
     // ===== Beginning of Web/Speech Interface =====
 
     // get Trail Type (input by test staff)
-    int trailType = getTrailTypeFromWebPage();
-    std::string foodName = getFoodInputFromWebPage(nodeHandle);
+    ROS_INFO_STREAM("Select Trail Type on Web Page");
+    // int trailType = getTrailTypeFromWebPage();
+    int trailType = 0;
+    ROS_INFO_STREAM("Select Food Item from Web Page");
+    // std::string foodName = getFoodInputFromWebPage(nodeHandle);
+    std::string foodName = "cantaloupe";
 
     if (false) {
       talk("Please pick a food.");
@@ -144,13 +148,10 @@ void demo(
       }
 
       // Send message to web interface to indicate skweweing finished
-      // ros::init(nullptr, nullptr, "actionDoneHandle");
       ros::NodeHandle actionHandle;
       ros::Publisher actionPub = actionHandle.advertise<std_msgs::String>("/action_done", 1, true);
       std_msgs::String msg;
-      std::stringstream ss;
-      ss << "action done";
-      msg.data = ss.str();
+      msg.data = "action done";
       actionPub.publish(msg);
 
       // ===== IN FRONT OF PERSON =====
