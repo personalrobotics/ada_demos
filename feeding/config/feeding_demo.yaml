@@ -111,6 +111,11 @@ foodItems:
   forces: [15,3,3,7,22,15,7]
   pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
 
+humanStudy:
+  autoAcquisition: true
+  autoTiming: true
+  autoTransfer: true
+
 rotationFree:
   names: ["cantaloupe", "banana", "melon", "strawberry"]
 

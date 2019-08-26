@@ -47,6 +47,9 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   bool moveAboveSuccessful = false;
   for (auto& item : candidateItems)
   {
+    // if autoAcquisition False
+    // Listen on Topic from Web Interface
+    // use item->setAction (which you need to define in FoodItem.cpp/hpp)
     auto action = item->getAction();
 
     // choose action to pickup food item

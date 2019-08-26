@@ -80,6 +80,11 @@ void feedFoodToPerson(
     // Send message to web interface to indicate skweweing finished
     publishTimingDoneToWeb();
 
+    // If not autoTransfer param
+    // get binary value from feedAngle
+    // tiltOffsetUse = feedAngleTilted ? &feedingDemo.mTiltOffset : nullptr
+    // else if autoTransfer param
+    // tiltOffsetUse = tiltOffset
     std::string feedAngle;
     if (trialType != AUTO && trialType != TR_AUTO) {
       if (interface) {
