@@ -88,20 +88,20 @@ void feedFoodToPerson(
   if (moveIFOSuccess)
   {
     // ===== EATING =====
-    // TODO:
+    // TODO: Cannot affect timing
 
     // Send message to web interface to indicate skweweing finished
-    ros::NodeHandle timingHandle;
-    ros::Publisher timingPub = timingHandle.advertise<std_msgs::String>("/timing_done", 1, true);
-    std_msgs::String msg;
-    msg.data = "timing done";
-    timingPub.publish(msg);
+    // ros::NodeHandle timingHandle;
+    // ros::Publisher timingPub = timingHandle.advertise<std_msgs::String>("/timing_done", 1, true);
+    // std_msgs::String msg;
+    // msg.data = "timing done";
+    // timingPub.publish(msg);
 
     ROS_WARN("Human is eating");
-    talk("Let me know when you are ready to eat!");
+    // talk("Let me know when you are ready to eat! ");
     std::this_thread::sleep_for(waitAtPerson);
-    getTransferFromAlexa();
-    getFeedAngleFromAlexa();
+    // getTransferFromAlexa();
+    // getFeedAngleFromAlexa();
 
     // Backward
     ada::util::waitForUser("Move backward", ada);
