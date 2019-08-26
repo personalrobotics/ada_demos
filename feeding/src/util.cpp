@@ -488,8 +488,8 @@ void getTransferFromAlexa() {
 std::string getFeedAngleFromAlexa() {
   talk("At what angle do you want me to feed you?");
   boost::shared_ptr<std_msgs::String const> sharedPtr;
-  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_food_angle_msgs");
-  return sharedPtr->data;
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_feed_angle_msgs");
+  return sharedPtr->data.c_str();
 }
 
 //==============================================================================
@@ -510,7 +510,7 @@ static bool foodInputIsValid(std::string foodWord) {
   return false;
 }
 
-int getTrailTypeFromWebPage() {
+int gettrialTypeFromWebPage() {
   boost::shared_ptr<std_msgs::Int32 const> sharedPtr;
   sharedPtr = ros::topic::waitForMessage<std_msgs::Int32>("/trial_type");
   return sharedPtr->data;

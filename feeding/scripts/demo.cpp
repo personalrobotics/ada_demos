@@ -44,13 +44,14 @@ void demo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     // ===== Beginning of Web/Speech Interface =====
+    // TODO: change it to passed in param
     int interface = 1;    // 0 - web
                           // 1 - alexa
 
-    // get Trail Type (input by test staff)
-    ROS_INFO_STREAM("Select Trail Type on Web Page");
-    int trailType = getTrailTypeFromWebPage();
-    ROS_INFO_STREAM("Selected Trail Type: " << trailType);
+    // get trial Type (input by test staff)
+    ROS_INFO_STREAM("Select trial Type on Web Page");
+    int trialType = gettrialTypeFromWebPage();
+    ROS_INFO_STREAM("Selected trial Type: " << trialType);
 
     // get food name
     std::string foodName;
@@ -66,7 +67,7 @@ void demo(
 
     // TODO:
     std::string action;
-    if (trailType != AUTO && trailType != AC_AUTO) {
+    if (trialType != AUTO && trialType != AC_AUTO) {
       ROS_INFO_STREAM("Get action from Alexa");
       talk("Please choose an action to pick up the food.");
       action = getActionInputFromAlexa(nodeHandle);
@@ -172,11 +173,12 @@ void demo(
 
       // wait for user to let robot bring food
       // blocking function
-      if (trailType != AUTO && trailType != TI_AUTO) {
+      if (trialType != AUTO && trialType != TI_AUTO) {
         getTimingFromAlexa();
       }
 
       action::feedFoodToPerson(
+        trialType,
         ada,
         workspace,
         collisionFree,

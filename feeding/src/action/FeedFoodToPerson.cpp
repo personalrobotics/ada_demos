@@ -13,6 +13,7 @@ namespace action {
 
 //==============================================================================
 void feedFoodToPerson(
+    int trialType,
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
@@ -73,6 +74,20 @@ void feedFoodToPerson(
 
     ROS_INFO_STREAM("Move towards person");
     talk("Ready? Make sure I can see your face.");
+
+    // TODO: Consult Ethan to Fix Wrong partial start time issue
+    // Send message to web interface to indicate skweweing finished
+    ros::NodeHandle timingHandle;
+    ros::Publisher timingPub = timingHandle.advertise<std_msgs::String>("/timing_done", 1, true);
+    std_msgs::String msg;
+    msg.data = "timing done";
+    timingPub.publish(msg);
+
+    if (trialType != AUTO && trialType != TR_AUTO) {
+      talk("Let me know when you are ready to eat! ");
+      std::string feedAngle = getFeedAngleFromAlexa();
+    }
+
     moveSuccess = moveTowardsPerson(
         ada,
         collisionFreeWithWallFurtherBack,
@@ -88,20 +103,9 @@ void feedFoodToPerson(
   if (moveIFOSuccess)
   {
     // ===== EATING =====
-    // TODO: Cannot affect timing
-
-    // Send message to web interface to indicate skweweing finished
-    // ros::NodeHandle timingHandle;
-    // ros::Publisher timingPub = timingHandle.advertise<std_msgs::String>("/timing_done", 1, true);
-    // std_msgs::String msg;
-    // msg.data = "timing done";
-    // timingPub.publish(msg);
-
     ROS_WARN("Human is eating");
-    // talk("Let me know when you are ready to eat! ");
     std::this_thread::sleep_for(waitAtPerson);
-    // getTransferFromAlexa();
-    // getFeedAngleFromAlexa();
+    
 
     // Backward
     ada::util::waitForUser("Move backward", ada);

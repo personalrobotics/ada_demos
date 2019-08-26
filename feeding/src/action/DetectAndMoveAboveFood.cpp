@@ -32,7 +32,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
 
     if (candidateItems.size() == 0)
     {
-      talk("I can't find that food. Try putting it on the plate.");
+      talk("I can not find that food. Try putting it on the plate.");
       ROS_WARN_STREAM(
           "Failed to detect any food. Please place food on the plate.");
     }

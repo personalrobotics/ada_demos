@@ -142,10 +142,10 @@ std::string getActionInputFromAlexa(ros::NodeHandle& nodeHandle);
 // Randomly select a response to the user's food choice
 void FoodSelectionResponse(std::string foodName);
 
-// Get the trail input information from the feeding webpage
+// Get the trial input information from the feeding webpage
 //
-// Returns the trail type
-int getTrailTypeFromWebPage();
+// Returns the trial type
+int gettrialTypeFromWebPage();
 
 void getTimingFromAlexa();
 
