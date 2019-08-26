@@ -45,7 +45,7 @@ void demo(
 
     // ===== Beginning of Web/Speech Interface =====
     // TODO: change it to passed in param
-    int interface = 0;    // 0 - web
+    int interface = 1;    // 0 - web
                           // 1 - alexa
 
     // get trial Type (input by test staff)

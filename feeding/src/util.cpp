@@ -526,12 +526,13 @@ int getTrialTypeFromWebPage() {
   return sharedPtr->data;
 }
 
-void publishActionDone() {
+void publishActionDoneToWeb() {
   ros::NodeHandle actionHandle;
   ros::Publisher actionPub = actionHandle.advertise<std_msgs::String>("/action_done", 1, true);
   std_msgs::String msg;
   msg.data = "action done";
   actionPub.publish(msg);
+  ROS_INFO_STREAM("action done published to web page");
 }
 
 void publishTimingDoneToWeb() {
@@ -540,6 +541,16 @@ void publishTimingDoneToWeb() {
   std_msgs::String msg;
   msg.data = "timing done";
   timingPub.publish(msg);
+  ROS_INFO_STREAM("timing done published to web page");
+}
+
+void publishTransferDoneToWeb() {
+  ros::NodeHandle timingHandle;
+  ros::Publisher timingPub = timingHandle.advertise<std_msgs::String>("/transfer_done", 1, true);
+  std_msgs::String msg;
+  msg.data = "transfer done";
+  timingPub.publish(msg);
+  ROS_INFO_STREAM("transfer done published to web page");
 }
 
 //==============================================================================

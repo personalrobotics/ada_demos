@@ -168,6 +168,11 @@ void publishActionDoneToWeb();
 void publishTimingDoneToWeb();
 
 //==============================================================================
+// Publish msg to the web interface to indicate food transfer in front of person
+// is done
+void publishTransferDoneToWeb();
+
+//==============================================================================
 // TODO: Consult Ethan on Action::Goal to finish webpage integration
 // of the following webpage functions
 std::string getActionInputFromWebPage(ros::NodeHandle& nodeHandle);
