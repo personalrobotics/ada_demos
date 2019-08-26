@@ -8,6 +8,9 @@
 #include "feeding/util.hpp"
 #include "std_msgs/String.h"
 
+using ada::util::createBwMatrixForTSR;
+using aikido::constraint::dart::TSR;
+
 namespace feeding {
 namespace action {
 
@@ -105,6 +108,41 @@ void feedFoodToPerson(
         endEffectorOffsetPositionTolerenace,
         endEffectorOffsetAngularTolerance);
     nodeHandle->setParam("/feeding/facePerceptionOn", false);
+  }
+
+  if (tiltOffset)
+  {
+  Eigen::Isometry3d person = Eigen::Isometry3d::Identity();
+  person.translation() += *tiltOffset;
+
+  TSR personTSR;
+  personTSR.mT0_w = person;
+
+  personTSR.mBw = createBwMatrixForTSR(
+          horizontalToleranceForPerson,
+          horizontalToleranceForPerson,
+          verticalToleranceForPerson,
+          0,
+          M_PI / 4,
+          -M_PI / 4);
+      Eigen::Isometry3d eeTransform = Eigen::Isometry3d::Identity();
+      eeTransform.linear()
+        = eeTransform.linear() 
+            *Eigen::Matrix3d(
+                Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
+                * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
+      personTSR.mTw_e.matrix() *= eeTransform.matrix();
+
+  // Actually execute movement
+  ada->moveArmToTSR(
+        personTSR,
+        collisionFree,
+        planningTimeout,
+        maxNumTrials,
+        getConfigurationRanker(ada),
+        velocityLimits);
+
+  // Use return bool to determine success
   }
 
   if (moveIFOSuccess)

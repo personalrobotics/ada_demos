@@ -181,6 +181,8 @@ void demo(
           getTimingFromWebPage();
         }
       }
+      // change:
+      // if not autoTiming parameter
 
       action::feedFoodToPerson(
         trialType,
