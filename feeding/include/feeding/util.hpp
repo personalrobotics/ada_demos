@@ -132,12 +132,23 @@ std::string getFoodInputFromWebPage(ros::NodeHandle& nodeHandle);
 // Returns food item in std::string
 std::string getFoodInputFromAlexa(ros::NodeHandle& nodeHandle);
 
-// TODO:
-// Prompt user to to speak food acquisition action
+// Prompt user to speak food acquisition action
 // Input will be processed through Alexa
 //
-// Returns action type in
+// Returns action type
 std::string getActionInputFromAlexa(ros::NodeHandle& nodeHandle);
+
+// Prompt user to speak when to bring in food in front of person
+// Input will be processed through Alexa
+//
+// Blocking function
+void getTimingFromAlexa();
+
+// Prompt user to speak feeding angle
+// Input will be processed through Alexa
+//
+// Returns feeding angle
+std::string getFeedAngleFromAlexa();
 
 // Randomly select a response to the user's food choice
 void FoodSelectionResponse(std::string foodName);
@@ -145,13 +156,25 @@ void FoodSelectionResponse(std::string foodName);
 // Get the trial input information from the feeding webpage
 //
 // Returns the trial type
-int gettrialTypeFromWebPage();
+int getTrialTypeFromWebPage();
 
-void getTimingFromAlexa();
+//==============================================================================
+// Publish msg to the web interface to indicate food acquisition is done
+void publishActionDoneToWeb();
 
-void getTransferFromAlexa();
+//==============================================================================
+// Publish msg to the web interface to indicate food transfer in front of person
+// is done
+void publishTimingDoneToWeb();
 
-std::string getFeedAngleFromAlexa();
+//==============================================================================
+// TODO: Consult Ethan on Action::Goal to finish webpage integration
+// of the following webpage functions
+std::string getActionInputFromWebPage(ros::NodeHandle& nodeHandle);
+
+void getTimingFromWebPage();
+
+std::string getFeedAngleFromWebPage();
 
 } // namespace feeding
 

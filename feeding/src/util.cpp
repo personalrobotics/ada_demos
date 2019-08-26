@@ -450,7 +450,6 @@ std::string getFoodInputFromAlexa(ros::NodeHandle& nodeHandle)
   }
 }
 
-// TODO:
 //==============================================================================
 std::string getActionInputFromAlexa(ros::NodeHandle& nodeHandle)
 {
@@ -480,16 +479,67 @@ void getTimingFromAlexa() {
 }
 
 //==============================================================================
-void getTransferFromAlexa() {
-  talk("Robot will bring you the food when you are ready.");
-}
-
-//==============================================================================
 std::string getFeedAngleFromAlexa() {
   talk("At what angle do you want me to feed you?");
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_feed_angle_msgs");
   return sharedPtr->data.c_str();
+}
+
+//==============================================================================
+std::string getActionInputFromWebPage(ros::NodeHandle& nodeHandle)
+{
+  // boost::shared_ptr<std_msgs::String const> sharedPtr;
+  // std_msgs::String rosAction;
+  // // wait user input
+  // sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/");
+
+  // // Convert input to std::string
+  // rosAction = *sharedPtr;
+  // std::string action = rosAction.data.c_str();
+
+  // return action;
+  return "";
+}
+
+//==============================================================================
+void getTimingFromWebPage() {
+  // boost::shared_ptr<std_msgs::String const> sharedPtr;
+  // // wait user input
+  // sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/");
+  // if (sharedPtr->data == "ok") {
+  //   ROS_INFO_STREAM("User typed to bring food");
+  // }
+}
+
+//==============================================================================
+std::string getFeedAngleFromWebPage() {
+  // boost::shared_ptr<std_msgs::String const> sharedPtr;
+  // sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/");
+  // return sharedPtr->data.c_str();
+  return "";
+}
+
+int getTrialTypeFromWebPage() {
+  boost::shared_ptr<std_msgs::Int32 const> sharedPtr;
+  sharedPtr = ros::topic::waitForMessage<std_msgs::Int32>("/trial_type");
+  return sharedPtr->data;
+}
+
+void publishActionDone() {
+  ros::NodeHandle actionHandle;
+  ros::Publisher actionPub = actionHandle.advertise<std_msgs::String>("/action_done", 1, true);
+  std_msgs::String msg;
+  msg.data = "action done";
+  actionPub.publish(msg);
+}
+
+void publishTimingDoneToWeb() {
+  ros::NodeHandle timingHandle;
+  ros::Publisher timingPub = timingHandle.advertise<std_msgs::String>("/timing_done", 1, true);
+  std_msgs::String msg;
+  msg.data = "timing done";
+  timingPub.publish(msg);
 }
 
 //==============================================================================
@@ -508,12 +558,6 @@ static bool foodInputIsValid(std::string foodWord) {
   }
   ROS_INFO_STREAM("invalid item input");
   return false;
-}
-
-int gettrialTypeFromWebPage() {
-  boost::shared_ptr<std_msgs::Int32 const> sharedPtr;
-  sharedPtr = ros::topic::waitForMessage<std_msgs::Int32>("/trial_type");
-  return sharedPtr->data;
 }
 
 } // namespace feeding

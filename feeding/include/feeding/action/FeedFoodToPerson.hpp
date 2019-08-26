@@ -11,6 +11,7 @@ namespace action {
 
 void feedFoodToPerson(
     int trialType,
+    int interface,
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,

@@ -45,18 +45,18 @@ void demo(
 
     // ===== Beginning of Web/Speech Interface =====
     // TODO: change it to passed in param
-    int interface = 1;    // 0 - web
+    int interface = 0;    // 0 - web
                           // 1 - alexa
 
     // get trial Type (input by test staff)
     ROS_INFO_STREAM("Select trial Type on Web Page");
-    int trialType = gettrialTypeFromWebPage();
+    int trialType = getTrialTypeFromWebPage();
     ROS_INFO_STREAM("Selected trial Type: " << trialType);
 
     // get food name
     std::string foodName;
-    talk("What do you want to eat?");
     if (interface) {
+      talk("What do you want to eat?");
       ROS_INFO_STREAM("Get food item from Alexa");
       foodName = getFoodInputFromAlexa(nodeHandle);
     } else {
@@ -65,12 +65,17 @@ void demo(
     }
     ROS_INFO_STREAM("Selected Food: " << foodName);
 
-    // TODO:
+    // TODO: needs Ethan to advise Action::Goal for web interface
     std::string action;
     if (trialType != AUTO && trialType != AC_AUTO) {
-      ROS_INFO_STREAM("Get action from Alexa");
-      talk("Please choose an action to pick up the food.");
-      action = getActionInputFromAlexa(nodeHandle);
+      if (interface) {
+        ROS_INFO_STREAM("Get action from Alexa");
+        talk("Please choose an action to pick up the food.");
+        action = getActionInputFromAlexa(nodeHandle);
+      } else {
+        ROS_INFO_STREAM("Get action from Web Page");
+        action = getActionInputFromWebPage(nodeHandle);
+      }
       ROS_INFO_STREAM("Selected action: " << action);
     }
 
@@ -160,11 +165,7 @@ void demo(
       }
 
       // Send message to web interface to indicate skweweing finished
-      ros::NodeHandle actionHandle;
-      ros::Publisher actionPub = actionHandle.advertise<std_msgs::String>("/action_done", 1, true);
-      std_msgs::String msg;
-      msg.data = "action done";
-      actionPub.publish(msg);
+      publishActionDoneToWeb();
 
       // ===== IN FRONT OF PERSON =====
       ROS_INFO_STREAM("Move forque in front of person");
@@ -174,11 +175,16 @@ void demo(
       // wait for user to let robot bring food
       // blocking function
       if (trialType != AUTO && trialType != TI_AUTO) {
-        getTimingFromAlexa();
+        if (interface) {
+          getTimingFromAlexa();
+        } else {
+          getTimingFromWebPage();
+        }
       }
 
       action::feedFoodToPerson(
         trialType,
+        interface,
         ada,
         workspace,
         collisionFree,

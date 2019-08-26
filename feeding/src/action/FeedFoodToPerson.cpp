@@ -14,6 +14,7 @@ namespace action {
 //==============================================================================
 void feedFoodToPerson(
     int trialType,
+    int interface,
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
@@ -77,15 +78,16 @@ void feedFoodToPerson(
 
     // TODO: Consult Ethan to Fix Wrong partial start time issue
     // Send message to web interface to indicate skweweing finished
-    ros::NodeHandle timingHandle;
-    ros::Publisher timingPub = timingHandle.advertise<std_msgs::String>("/timing_done", 1, true);
-    std_msgs::String msg;
-    msg.data = "timing done";
-    timingPub.publish(msg);
+    publishTimingDoneToWeb();
 
+    std::string feedAngle;
     if (trialType != AUTO && trialType != TR_AUTO) {
-      talk("Let me know when you are ready to eat! ");
-      std::string feedAngle = getFeedAngleFromAlexa();
+      if (interface) {
+        talk("Let me know when you are ready to eat!");
+        feedAngle = getFeedAngleFromAlexa();
+      } else {
+        feedAngle = getFeedAngleFromWebPage();
+      }
     }
 
     moveSuccess = moveTowardsPerson(
@@ -106,7 +108,6 @@ void feedFoodToPerson(
     ROS_WARN("Human is eating");
     std::this_thread::sleep_for(waitAtPerson);
     
-
     // Backward
     ada::util::waitForUser("Move backward", ada);
     talk("Let me get out of your way.", true);
