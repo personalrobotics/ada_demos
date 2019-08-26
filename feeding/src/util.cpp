@@ -429,7 +429,6 @@ std::string getFoodInputFromWebPage(ros::NodeHandle& nodeHandle) {
 //==============================================================================
 std::string getFoodInputFromAlexa(ros::NodeHandle& nodeHandle)
 {
-  talk("What do you want to eat?");
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
   // wait user input
@@ -442,7 +441,6 @@ std::string getFoodInputFromAlexa(ros::NodeHandle& nodeHandle)
   // Check if the food item is supported
   // Follow up with the user upon invalid input
   if (foodInputIsValid(foodWord)) {
-    ROS_INFO_STREAM("Alexa got food " << foodWord);
     nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
     nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
     return foodWord;
@@ -456,30 +454,29 @@ std::string getFoodInputFromAlexa(ros::NodeHandle& nodeHandle)
 //==============================================================================
 std::string getActionInputFromAlexa(ros::NodeHandle& nodeHandle)
 {
-  talk("What do you want to eat?");
   boost::shared_ptr<std_msgs::String const> sharedPtr;
-  std_msgs::String rosFoodWord;
+  std_msgs::String rosAction;
   // wait user input
-  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_action_msgs");
 
   // Convert input to std::string
-  rosFoodWord = *sharedPtr;
-  std::string foodWord = rosFoodWord.data.c_str();
+  rosAction = *sharedPtr;
+  std::string action = rosAction.data.c_str();
 
-  // Check if the food item is supported
-  // Follow up with the user upon invalid input
-  if (foodInputIsValid(foodWord)) {
-    nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
-    nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
-    return foodWord;
-  } else {
-    getUserInputFromAlexa(nodeHandle);
-  }
+  return action;
 }
 
 //==============================================================================
 void getTimingFromAlexa() {
   talk("Robot will approach when you are ready.");
+  talk("Just let me know");
+
+  boost::shared_ptr<std_msgs::String const> sharedPtr;
+  // wait user input
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_bring_food_msgs");
+  if (sharedPtr->data == "ok") {
+    ROS_INFO_STREAM("User said to bring food");
+  }
 }
 
 //==============================================================================
@@ -489,7 +486,10 @@ void getTransferFromAlexa() {
 
 //==============================================================================
 std::string getFeedAngleFromAlexa() {
-  talk("How do you want me to feed you?");
+  talk("At what angle do you want me to feed you?");
+  boost::shared_ptr<std_msgs::String const> sharedPtr;
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_food_angle_msgs");
+  return sharedPtr->data;
 }
 
 //==============================================================================

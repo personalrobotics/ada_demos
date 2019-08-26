@@ -44,28 +44,34 @@ void demo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     // ===== Beginning of Web/Speech Interface =====
+    int interface = 1;    // 0 - web
+                          // 1 - alexa
 
     // get Trail Type (input by test staff)
     ROS_INFO_STREAM("Select Trail Type on Web Page");
     int trailType = getTrailTypeFromWebPage();
     ROS_INFO_STREAM("Selected Trail Type: " << trailType);
-    ROS_INFO_STREAM("Select Food Item from Web Page");
 
     // get food name
-    // std::string foodName = getFoodInputFromWebPage(nodeHandle);
-    ROS_INFO_STREAM("Get food item from Alexa");
-    std::string foodName = getFoodInputFromAlexa(nodeHandle);
-    ROS_INFO_STREAM("Selected Food: " << foodName);
-    // std::string foodName = "cantaloupe";
-
-    if (false) {
-      talk("Please pick a food.");
-      std::string foodName = getFoodInputFromAlexa(nodeHandle);
+    std::string foodName;
+    talk("What do you want to eat?");
+    if (interface) {
+      ROS_INFO_STREAM("Get food item from Alexa");
+      foodName = getFoodInputFromAlexa(nodeHandle);
+    } else {
+      ROS_INFO_STREAM("Select Food Item from Web Page");
+      foodName = getFoodInputFromWebPage(nodeHandle);
     }
+    ROS_INFO_STREAM("Selected Food: " << foodName);
 
     // TODO:
-    // talk("Please choose an action to pick up the food.");
-    // std::string action = getActionInputFromAlexa(nodeHandle);
+    std::string action;
+    if (trailType != AUTO && trailType != AC_AUTO) {
+      ROS_INFO_STREAM("Get action from Alexa");
+      talk("Please choose an action to pick up the food.");
+      action = getActionInputFromAlexa(nodeHandle);
+      ROS_INFO_STREAM("Selected action: " << action);
+    }
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
@@ -164,7 +170,11 @@ void demo(
 
       bool tilted = (foodName != "celery");
 
-      getTimingFromAlexa();
+      // wait for user to let robot bring food
+      // blocking function
+      if (trailType != AUTO && trailType != TI_AUTO) {
+        getTimingFromAlexa();
+      }
 
       action::feedFoodToPerson(
         ada,

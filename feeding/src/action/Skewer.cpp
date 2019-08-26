@@ -84,14 +84,14 @@ bool skewer(
   {
     for (std::size_t i = 0; i < 2; ++i)
     {
-      if (i == 0)
-      {
-        talk(std::string("Planning to the ") + foodName, true);
-      }
-      if (i == 1)
-      {
-        talk("Adjusting, hold tight!", true);
-      }
+      // if (i == 0)
+      // {
+      //   talk(std::string("Planning to the ") + foodName, true);
+      // }
+      // if (i == 1)
+      // {
+      //   talk("Adjusting, hold tight!", true);
+      // }
       ROS_INFO_STREAM("Detect and Move above food");
       auto item = detectAndMoveAboveFood(
           ada,
