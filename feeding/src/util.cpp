@@ -433,7 +433,7 @@ std::string getFoodInputFromAlexa(ros::NodeHandle& nodeHandle)
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
   // wait user input
-  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+  sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_food_msgs");
 
   // Convert input to std::string
   rosFoodWord = *sharedPtr;

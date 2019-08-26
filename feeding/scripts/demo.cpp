@@ -47,11 +47,16 @@ void demo(
 
     // get Trail Type (input by test staff)
     ROS_INFO_STREAM("Select Trail Type on Web Page");
-    // int trailType = getTrailTypeFromWebPage();
-    int trailType = 0;
+    int trailType = getTrailTypeFromWebPage();
+    ROS_INFO_STREAM("Selected Trail Type: " << trailType);
     ROS_INFO_STREAM("Select Food Item from Web Page");
+
+    // get food name
     // std::string foodName = getFoodInputFromWebPage(nodeHandle);
-    std::string foodName = "cantaloupe";
+    ROS_INFO_STREAM("Get food item from Alexa");
+    std::string foodName = getFoodInputFromAlexa(nodeHandle);
+    ROS_INFO_STREAM("Selected Food: " << foodName);
+    // std::string foodName = "cantaloupe";
 
     if (false) {
       talk("Please pick a food.");
