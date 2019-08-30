@@ -91,7 +91,7 @@ public:
 
   Eigen::Isometry3d getFoodEndEffectorTransform() const;
 
-  Eigen::Isometry3d getFoodEndEffectorTransform(int demotype, double height, double minima, double delta=0.0) const;
+  Eigen::Isometry3d getFoodEndEffectorTransform(int demotype, double height, double minima, double theta=0.0, double delta=0.0) const;
 
   // bool moveWithEndEffectorTwist(
   //   const Eigen::Vector6d& twists,

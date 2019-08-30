@@ -16,6 +16,7 @@ bool DetectScoop(
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
     double hight,
+    double theta,
     double minima,
     int demotype,
     double horizontalToleranceAbovePlate,

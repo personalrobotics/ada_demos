@@ -11,6 +11,8 @@
 #include "feeding/FoodItem.hpp"
 #include "feeding/util.hpp"
 
+#include <math.h>
+
 using ada::util::getRosParam;
 using ada::util::createIsometry;
 using aikido::constraint::dart::CollisionFreePtr;
@@ -298,7 +300,7 @@ Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform() const
   return eeTransform;
 }
 
-Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int demotype, double height, double minima, double delta) const
+Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int demotype, double height, double minima, double theta, double delta) const
 {
     Eigen::Isometry3d eeTransform
         = mAda->getHand()->getEndEffectorTransform("food").get();
@@ -309,14 +311,19 @@ Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int demotype, double 
                  2 Foward Kinova Scoop with twist
                  3 Ryan Forward Scoop
     */
+    // eeTransform.translation()
+    //     = Eigen::Vector3d(0, 0, 0);
+
     eeTransform.translation()
         = Eigen::Vector3d(0, 0, height);
-    eeTransform.translation()[0] = - minima;
+    eeTransform.translation()[0] = - cos(theta) * minima;
+    eeTransform.translation()[1] = - sin(theta) * minima;
 
     if (demotype == 0 || demotype == 1) 
     {
         eeTransform.linear() = eeTransform.linear() * 
         Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitZ())) *
+        Eigen::Matrix3d(Eigen::AngleAxisd(-theta, Eigen::Vector3d::UnitZ())) *
         Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI/3, Eigen::Vector3d::UnitX()));
     }
     if (demotype == 2 || demotype == 3)

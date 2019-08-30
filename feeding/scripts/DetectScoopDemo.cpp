@@ -11,121 +11,20 @@
 #include "feeding/action/DetectScoop.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveAbove.hpp"
+#include "feeding/action/ScoopHelper.hpp"
+
 
 using ada::util::waitForUser;
 using ada::util::getRosParam;
 
 namespace feeding {
 
-class MarkersListener
-{
-private:    
-    // ros::Subscriber sub;
-
-    visualization_msgs::Marker marker;
-    Eigen::Isometry3d FoodTransform; // transformation from camera frame to food item frame
-    int seq;
-    double tx, ty, tz, rx, ry, rz, rw;
-
-public:
-
-    //MarkersListener(ros::NodeHandle n) 
-    MarkersListener() 
-    {
-        seq = 0;
-        std::cout << "Contruct a MarkerArray Listener" << std::endl;
-       // sub = n.subscribe("/food_detector/marker_array", 100, callback);
-    }
-
-    void callback(visualization_msgs::MarkerArray marker_array) 
-    {
-        // std::cout << "call back" << std::endl;
-        // if (sizeof(marker_array) == 0)
-        // return;
-        if (marker_array.markers.empty())
-        {   
-            return;
-        }
-
-        marker = marker_array.markers[0]; 
-        // std::cout <<"Marker is in "<< marker.header.frame_id.c_str() << std::endl;
-        tx = marker.pose.position.x; 
-        ty = marker.pose.position.y;
-        tz = marker.pose.position.z; 
-        rx = marker.pose.orientation.x;
-        ry = marker.pose.orientation.y;
-        rz = marker.pose.orientation.z;
-        rw = marker.pose.orientation.w; 
-
-        std::cout << "tx = " << tx << ", ty = " << ty << ", tz = " << tz << std::endl;
-
-        // quickly remove rotation.
-        rx = 0; 
-        ry = 0;
-        rz = 0;
-        rw = 1;
-
-        // if (seq == 0) 
-        // {
-        //     PrintInfo("food", FoodTransform)
-        // }
-
-        Eigen::Quaterniond q(rw, rx, ry, rz);
-        FoodTransform.translation() = Eigen::Vector3d(tx, ty, tz); 
-        FoodTransform.linear() = q.matrix();
-        Eigen::Matrix3d m;
-        m << 1, 0, 0,
-             0, 1, 0,
-             0, 0, 1;
-        // std::cout << m;
-        FoodTransform.linear() = m;
-
-        seq++;
-    }
-
-    Eigen::Isometry3d getTransform() 
-    {
-        return FoodTransform;
-    }
-
-    Eigen::Isometry3d getValidTransform()
-    {
-        while (!isValid())
-        {
-            std::cout << "no" << std::endl;
-        }
-
-        return FoodTransform;
-    }
-
-    bool isValid() 
-    {
-        // empirical range for food, food should be within the plate
-        std::cout << "tx = " << tx << ", ty = " << ty << ", tz = " << tz << std::endl;
-
-        if (tx > 0.3 || tx < 0.2)
-            return false;
-        if (ty > -0.24 || ty < -0.34)
-            return false;
-        if (tz > 0.27 || tz < 0.23)
-            return false;
-
-        std::cout << "Find Valid Pose" << std::endl;
-        return true;
-    }
-
-    visualization_msgs::Marker getMarker()
-    {
-        return marker;
-    }
-
-};
-
 bool IsValid(Eigen::Isometry3d T)
 {
     double tx = T.translation()[0];
     double ty = T.translation()[1];
     double tz = T.translation()[2];
+    std::cout << "tx = " << tx << ", ty = " << ty << ", tz = " << tz << std::endl;
     if (tx > 0.35 || tx < 0.18)
         return false;
     if (ty > -0.20 || ty < -0.38)
@@ -221,10 +120,18 @@ void DetectScoopDemo(
         double delta = 0.0;
         if (demotype == 2) 
         {
-            std::cout << "input delta adjustment < default delta = 0.0 >"<< std::endl;
+            std::cout << "input delta adjustment < default delta = 0.0 >" << std::endl;
             std::cout << "> ";
             std::cin >> delta;
         }
+
+        // determine from which direction to scoop
+        double theta;
+        std::cout << "input theta coefficient < default theta coefficient = 0.0 >"<< std::endl;
+        std::cout << "> ";
+        std::cin >> theta;
+        theta *= M_PI;
+        std::cout << "theta = " << theta << std::endl;
 
     //--------------------------------------------------------------------------------------------------------
     // Move to the initial position above the food for scooping
@@ -232,7 +139,7 @@ void DetectScoopDemo(
         waitForUser("next step?", ada);
 
         Eigen::Isometry3d eeTransform;
-        eeTransform = feedingDemo.getFoodEndEffectorTransform(demotype, height, minima, delta);
+        eeTransform = feedingDemo.getFoodEndEffectorTransform(demotype, height, minima, theta, delta);
 
         ROS_INFO_STREAM("Move to the initial position above the food for scooping");
 
@@ -279,6 +186,7 @@ void DetectScoopDemo(
         plate,
         feedingDemo.getPlateEndEffectorTransform(),
         height,
+        theta,
         minima,
         demotype,
         feedingDemo.mPlateTSRParameters["horizontalTolerance"],

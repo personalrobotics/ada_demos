@@ -1,4 +1,4 @@
-#include "feeding/action/KinovaScoop.hpp"
+#include "feeding/action/DetectScoop.hpp"
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include "feeding/action/Grab.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
@@ -42,7 +42,8 @@ bool DetectScoop(
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
     double height,
-    double minima,
+    double theta,
+    double minima, 
     int demotype,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
@@ -100,9 +101,9 @@ bool DetectScoop(
 
                 Eigen::VectorXd twists(6);
                 if (i<5)
-                    twists << 0.0, 0.0, 0.0, delta_x, 0.0, delta_z;
+                    twists << 0.0, 0.0, 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
                 else
-                    twists << 0.0, 0.0, 0.0, delta_x, 0.0, 3 * delta_z;
+                    twists << 0.0, 0.0, 0.0, delta_x * cos(theta), delta_x * sin(theta), 3 * delta_z;
 
                 traj = ada->planWithEndEffectorTwist(
                     twists,
@@ -119,11 +120,11 @@ bool DetectScoop(
 
                 Eigen::VectorXd twists(6);
                 if (i==0)
-                    twists << 0.0, (*pose).roll_angle, 0.0, delta_x, 0.0, delta_z;
+                    twists << - (*pose).roll_angle * sin(theta), (*pose).roll_angle * cos(theta) , 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
                 else if (i<5)
-                    twists << 0.0, delta_roll, 0.0, delta_x, 0.0, delta_z;
+                    twists << - delta_roll * sin(theta), delta_roll * cos(theta), 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
                 else
-                    twists << 0.0, delta_roll, 0.0, delta_x, 0.0, 3 * delta_z;
+                    twists << - delta_roll * sin(theta), delta_roll * cos(theta), 0.0, delta_x * cos(theta), delta_x * sin(theta), 3 * delta_z;
 
                 traj = ada->planWithEndEffectorTwist(
                     twists,
@@ -141,10 +142,18 @@ bool DetectScoop(
                 Eigen::VectorXd twists(6);
                 if (i==0)
                     twists << 0.0, -(M_PI/2 - (*pose).roll_angle), 0.0, delta_x, 0.0, delta_z;
-                else if (i<5)
-                    twists << 0.0, delta_roll, 0.0, delta_x, 0.0, 0.8 * delta_z;
-                else
+                else if (i<3)
+                    twists << 0.0, delta_roll, 0.0, delta_x, 0.0, delta_z;
+                else if (i>5)
                     twists << 0.0, 0, 0.0, delta_x, 0.0, 3*delta_z;
+                else
+                    twists << 0.0, 0, 0.0, delta_x, 0.0, delta_z;
+                // if (i==0)
+                //     twists << 0.0, -M_PI/3, 0.0, delta_x, 0.0, delta_z;
+                // else if (i>5)
+                //     twists << 0.0, 0, 0.0, delta_x, 0.0, 3*delta_z;
+                // else
+                //     twists << 0.0, 0, 0.0, delta_x, 0.0, delta_z;
 
                 traj = ada->planWithEndEffectorTwist(
                     twists,
