@@ -99,11 +99,13 @@ target_link_libraries(feeding-bin
   ${cv_bridge_LIBRARIES}
   ${OpenCV_LIBRARIES}
   ${rosbag_LIBRARIES}
+  ${gls_LIBRARIES}
   libada)
 
 target_link_libraries(feeding
   ${DART_LIBRARIES}
   ${aikido_LIBRARIES}
+  ${gls_LIBRARIES}
   ${Boost_LIBRARIES}
   ${tf_conversions_LIBRARIES}
   ${image_transport_LIBRARIES}

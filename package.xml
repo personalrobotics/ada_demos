@@ -11,6 +11,7 @@
   <depend>dartsim</depend>
   <depend>eigen</depend>
   <depend>aikido</depend>
+  <depend>gls</depend>
   <depend>libada</depend>
   <depend>tf_conversions</depend>
   <depend>rewd_controllers</depend>

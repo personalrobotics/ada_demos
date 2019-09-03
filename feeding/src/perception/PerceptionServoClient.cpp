@@ -399,6 +399,34 @@ UniqueSplinePtr PerceptionServoClient::createPartialTimedTrajectoryFromCurrentCo
     return nullptr;
   }
   return traj;
+
+  // double distance;
+  // auto state = mMetaSkeletonStateSpace->createState();
+  // mMetaSkeletonStateSpace->convertPositionsToState(
+  //     mMetaSkeleton->getPositions(), state);
+
+  // double refTime = findTimeOfClosestStateOnTrajectory(
+  //       *trajectory,
+  //       mMetaSkeleton,
+  //       state,
+  //       distance,
+  //       0.01);
+
+  // if (distance > 1.0)
+  // {
+  //   ROS_WARN_STREAM("Distance too far " << distance);
+  //   return nullptr;
+  // }
+
+  // std::cout << "Shorted distance " << distance << " at " << refTime << std::endl;
+  // // Start 0.3 sec forward since the robort has been moving.
+  // auto traj = createPartialTrajectory(*trajectory, refTime + 0.3);
+  // if (!traj || traj->getDuration() < 1e-5)
+  // {
+  //   ROS_WARN_STREAM("Trajectory duration too short.");
+  //   return nullptr;
+  // }
+  // return traj;
 }
 
 } // namespace feeding
