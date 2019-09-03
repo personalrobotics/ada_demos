@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <queue>
+#include <vector>
 #include <Eigen/Dense>
 
 // Boost libraries
@@ -195,6 +196,7 @@ int main(int argc, char *argv[])
       currentConfiguration = sourceConfiguration + (targetConfiguration - sourceConfiguration)*idx/maxNum;
       armSpace->convertPositionsToState(currentConfiguration, currentState);
       edgeTrajectory->addWaypoint(edgeTrajectory->getNumWaypoints(), currentState);
+      std::cout << "Current Position: " << armSkeleton->getPositions() << std::endl;
       auto marker = viewer.addTrajectoryMarker(edgeTrajectory,
                                               armSkeleton,
                                               *(robot->getHand()->getEndEffectorBodyNode()),

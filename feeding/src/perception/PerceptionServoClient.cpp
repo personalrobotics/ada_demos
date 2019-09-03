@@ -275,21 +275,21 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
 SplinePtr PerceptionServoClient::planToGoalPose(
     const Eigen::Isometry3d& goalPose)
 {
-  // auto oldLimits = setPositionLimits(mMetaSkeleton);
   Eigen::Isometry3d currentPose = mBodyNode->getTransform();
-  std::cout << "current Position " << currentPose.translation().transpose() << std::endl;
-  Eigen::Vector3d goalDirection
-    = goalPose.translation() - currentPose.translation();
-  std::cout << "Distance " << goalDirection.norm() << std::endl;
 
-  if (goalDirection.norm() < mGoalPrecision)
+  // Step 1: Plan from current pose to goal pose.
+  Eigen::Vector3d vectorToGoalPose
+    = goalPose.translation() - currentPose.translation();
+
+  if (vectorToGoalPose.norm() < mGoalPrecision)
   {
     ROS_WARN("Visual servoing is finished because goal was position reached.");
     mExecutionDone = true;
     mNotFailed = true;
     return nullptr;
   }
-  if (goalDirection[2] > 0 && mServoFood)
+
+  if (vectorToGoalPose[2] > 0 && mServoFood)
   {
     ROS_WARN("Visual servoing is finished because goal is above the current pose");
     mExecutionDone = true;
@@ -297,72 +297,71 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     return nullptr;
   }
 
-  std::cout << "Goal direction " << goalDirection.transpose() << std::endl;
-  // ============= Plan from current pose to goal  ==================//
-  auto trajToGoal = planEndEffectorOffset(goalDirection);
+  auto trajToGoal = planEndEffectorOffset(vectorToGoalPose);
   if (!trajToGoal)
   {
     ROS_WARN_STREAM("Plan failed");
     return nullptr;
   }
 
-  // ============= Plan from original pose to current pose ==================//
-  auto originalState = mMetaSkeletonStateSpace->createState();
-  mMetaSkeletonStateSpace->convertPositionsToState(
-      mOriginalConfig, originalState);
+  // Step 2: Plan from original pose to current pose.
+  Eigen::Vector3d vectorFromOriginalToCurrent(
+    currentPose.translation() - mOriginalPose.translation());
 
-  Eigen::Vector3d directionFromOldToNew(
-    mBodyNode->getTransform().translation() - mOriginalPose.translation());
-
-  UniqueInterpolatedPtr trajFromOldToNew = nullptr;
-  std::cout << "Distance from old to new " << directionFromOldToNew.norm() << std::endl;
-
-  if (directionFromOldToNew.norm() > 0.001)
-  {
-    trajFromOldToNew = planToEndEffectorOffset(
-        mMetaSkeletonStateSpace,
-        *originalState,
-        mMetaSkeleton,
-        mBodyNode,
-        std::make_shared<Satisfied>(mMetaSkeletonStateSpace),
-        directionFromOldToNew.normalized(),
-        0.0,
-        directionFromOldToNew.norm(),
-        0.08,
-        0.32,
-        0.001,
-        1e-3,
-        1e-2,
-        std::chrono::duration<double>(5));
-  }
-
-  // ============= Concatenate the two trajectories ==================//
+  UniqueInterpolatedPtr trajOriginalToCurrent = nullptr;
   UniqueSplinePtr timedTraj;
-  // if (trajFromOldToNew)
-  // {
-  //   ROS_INFO_STREAM("Concatenate two trajectories");
-  //   auto concatenatedTraj = concatenate(
-  //     *dynamic_cast<Interpolated*>(trajFromOldToNew.get()),
-  //     *dynamic_cast<Interpolated*>(trajToGoal.get()));
-  //   timedTraj = computeKunzTiming(
-  //       *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
-  //       mVelocityLimits, mMaxAcceleration, 1e-2, 3e-3);
-  // }
-  // else
-  // {
+  if (vectorFromOriginalToCurrent.norm() < 0.001)
+  {
     timedTraj = computeKunzTiming(
         *dynamic_cast<Interpolated*>(trajToGoal.get()),
         mVelocityLimits, mMaxAcceleration, 1e-2, 3e-3);
-  // }
+
+    if (!timedTraj)
+      ROS_WARN_STREAM("Concatenation &/ timing failed");
+
+    return timedTraj;
+  }
+  else
+  {
+    auto originalState = mMetaSkeletonStateSpace->createState();
+    mMetaSkeletonStateSpace->convertPositionsToState(
+        mOriginalConfig, originalState);
+
+    trajOriginalToCurrent = planToEndEffectorOffset(
+    mMetaSkeletonStateSpace,
+    *originalState,
+    mMetaSkeleton,
+    mBodyNode,
+    std::make_shared<Satisfied>(mMetaSkeletonStateSpace),
+    vectorFromOriginalToCurrent.normalized(),
+    0.0,
+    vectorFromOriginalToCurrent.norm(),
+    0.08,
+    0.32,
+    0.001,
+    1e-3,
+    1e-2,
+    std::chrono::duration<double>(5));
+
+    if (!trajOriginalToCurrent)
+      throw std::runtime_error("Failed to generate first half of trajectory");
+
+    // Step 3: Concatenate the two trajectories.
+    auto concatenatedTraj = concatenate(
+      *dynamic_cast<Interpolated*>(trajOriginalToCurrent.get()),
+      *dynamic_cast<Interpolated*>(trajToGoal.get()));
+    timedTraj = computeKunzTiming(
+      *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
+      mVelocityLimits, mMaxAcceleration, 1e-2, 3e-3);
+  }
 
   if (!timedTraj)
   {
     ROS_WARN_STREAM("Concatenation &/ timing failed");
     return nullptr;
   }
-  // setPositionLimits(mMetaSkeleton, oldLimits.first, oldLimits.second);
 
-  //  Start from the closest point on the trajectory
+  // Start from the closest point on the trajectory.
   timedTraj = createPartialTimedTrajectoryFromCurrentConfig(timedTraj.get());
   return timedTraj;
 }
@@ -387,27 +386,13 @@ TrajectoryPtr PerceptionServoClient::planEndEffectorOffset(
 UniqueSplinePtr PerceptionServoClient::createPartialTimedTrajectoryFromCurrentConfig(
   const Spline* trajectory)
 {
-  double distance;
-  auto state = mMetaSkeletonStateSpace->createState();
-  mMetaSkeletonStateSpace->convertPositionsToState(
-      mMetaSkeleton->getPositions(), state);
-
   double refTime = findTimeOfClosestStateOnTrajectory(
         *trajectory,
-        mMetaSkeleton,
-        state,
-        distance,
+        mMetaSkeleton->getPositions(),
         0.01);
 
-  if (distance > 1.0)
-  {
-    ROS_WARN_STREAM("Distance too far " << distance);
-    return nullptr;
-  }
-
-  std::cout << "Shorted distance " << distance << " at " << refTime << std::endl;
   // Start 0.3 sec forward since the robort has been moving.
-  auto traj = createPartialTrajectory(*trajectory, refTime + 0.3);
+  auto traj = createPartialTrajectory(*trajectory, refTime);
   if (!traj || traj->getDuration() < 1e-5)
   {
     ROS_WARN_STREAM("Trajectory duration too short.");

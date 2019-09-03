@@ -37,7 +37,7 @@ void demo(
   home[1] = 3.64;
   home[2] = 3.14;
 
-  ada->moveArmToConfiguration(home, collisionFree, 1.0);
+  // ada->moveArmToConfiguration(home, collisionFree, 1.0);
   // std::cin.ignore();
 
   std::cout << "Current pose \n" <<
