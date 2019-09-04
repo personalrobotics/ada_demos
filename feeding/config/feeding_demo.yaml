@@ -138,3 +138,7 @@ study:
   # 0.73
   personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
   tiltOffset: [-0.04, 0, -0.04]
+
+# SPANet parameters
+spanet:
+  includeFeatures: false
