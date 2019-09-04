@@ -411,7 +411,12 @@ PerceptionServoClient::createPartialTimedTrajectoryFromCurrentConfig(
   std::cout << "Shorted distance " << distance << " at " << refTime
             << std::endl;
   // Start 0.3 sec forward since the robort has been moving.
-  auto traj = createPartialTrajectory(*trajectory, refTime + 0.3);
+  refTime += 0.3;
+  if(refTime > trajectory->getEndTime()) {
+    ROS_WARN_STREAM("Robot already reached end of trajectory.");
+    return nullptr;
+  }
+  auto traj = createPartialTrajectory(*trajectory, refTime);
   if (!traj || traj->getDuration() < 1e-5)
   {
     ROS_WARN_STREAM("Trajectory duration too short.");
