@@ -107,9 +107,12 @@ perception:
 foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
-  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "melon"]
-  forces: [15,3,3,7,22,15,7]
-  pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
+  #names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "melon"]
+  #forces: [15,3,3,7,22,15,7]
+  #pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
+  names: ["apple", "banana", "bell_pepper", "broccoli", "cantaloupe", "carrot", "cauliflower", "celery", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry", "lettuce", "spinach", "kale"]
+  forces: [3, 3, 3, 3, 15, 15, 3, 22, 3, 3, 7, 3, 3, 3, 3, 3]
+  pickUpAngleModes: [1, 5, 1, 2, 1, 1, 0, 1, 1, 3, 3, 3, 0, 1, 2, 0]
 
 rotationFree:
   names: ["cantaloupe", "banana", "melon", "strawberry"]
