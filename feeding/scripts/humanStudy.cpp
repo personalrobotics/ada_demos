@@ -16,11 +16,10 @@
 #include <ctime>
 
 using ada::util::getRosParam;
-using ada::util::waitForUser;
 
 namespace feeding {
 
-void demo(
+void humanStudyDemo(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle)
@@ -35,97 +34,24 @@ void demo(
 
   talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
 
-  srand(time(NULL));
-
   while (true)
   {
     if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     talk("What food would you like?");
-    auto foodName = getUserFoodInput(false, nodeHandle);
+    auto foodName = getUserFoodInput(true, nodeHandle);
     if (foodName == std::string("quit")) {
         break;
     }
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
-    nodeHandle.setParam("/deep_pose/publish_spnet", (true));
-    nodeHandle.setParam("/deep_pose/invertSPNetDirection", false);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-    ROS_INFO_STREAM("Running bite transfer study for " << foodName);
-
-    switch((rand() % 10)) {
-        case 0:
-        talk("Good choice!");
-        break;
-        case 1:
-        talk(std::string("Great! I love ") + foodName + std::string("'s!"));
-        break;
-        case 2:
-        talk("Sounds delicious. I wish I had taste buds.");
-        break;
-        case 4:
-        talk("Roger Roger.");
-        break;
-        case 5:
-        talk("Nothing beats fresh fruit.");
-        break;
-        case 6:
-        talk("Nothing escapes my fork!");
-        break;
-        case 7:
-        talk("Thanks Alexa!");
-        break;
-        default:
-        talk("Alright.");
-    }
+    ROS_INFO_STREAM("Running human study for " << foodName);
 
     talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
-
-    // ===== FORQUE PICKUP =====
-    if (foodName == "pickupfork")
-    {
-      action::pickUpFork(
-        ada,
-        collisionFree,
-        feedingDemo.mForkHolderAngle,
-        feedingDemo.mForkHolderTranslation,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mPlateTSRParameters.at("height"),
-        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mVelocityLimits,
-        feedingDemo.getFTThresholdHelper());
-    }
-    else if (foodName == "putdownfork")
-    {
-      action::putDownFork(
-        ada,
-        collisionFree,
-        feedingDemo.mForkHolderAngle,
-        feedingDemo.mForkHolderTranslation,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mPlateTSRParameters.at("height"),
-        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mVelocityLimits,
-        feedingDemo.getFTThresholdHelper());
-    }
-    else
-    {
+    
       bool skewer = action::skewer(
         ada,
         workspace,
@@ -161,10 +87,25 @@ void demo(
         continue;
       }
 
+      // Send message to web interface to indicate skewer finished
+      publishActionDoneToWeb();
+
       // ===== IN FRONT OF PERSON =====
       ROS_INFO_STREAM("Move forque in front of person");
 
-      bool tilted = (foodName != "celery");
+      // TODO: Set tilted explcitly for long food items:
+      bool tilted = (foodName == "celery" || foodName == "carrot" || foodName == "bell_pepper" || foodName == "apple");
+
+      // Check autoTiming, and if false, wait for topic
+      if (!getRosParam<bool>("/humanStudy/autoTiming", feedingDemo.getNodeHandle())) {
+        talk("Let me know when you are ready.", false);
+        std::string done = "";
+        while (done != "continue") {
+            std::string actionTopic;
+            nodeHandle.param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
+            done = getInputFromTopic(actionTopic, nodeHandle, true, -1);
+        }
+      }
 
       action::feedFoodToPerson(
         ada,
@@ -191,7 +132,7 @@ void demo(
         feedingDemo.mVelocityLimits,
         tilted ? &feedingDemo.mTiltOffset : nullptr
         );
-    }
+
   }
 
   // ===== DONE =====

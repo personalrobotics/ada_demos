@@ -118,13 +118,13 @@ int main(int argc, char** argv)
 
   std::shared_ptr<TargetFoodRanker> ranker;
 
-  if (demoType == "nips")
-  {
-    ranker = std::make_shared<ShortestDistanceRanker>();
-  }
-  else if (demoType == "spanet")
+  if (demoType == "spanet")
   {
     ranker = std::make_shared<SuccessRateRanker>();
+  } 
+  else
+  {
+    ranker = std::make_shared<ShortestDistanceRanker>();
   }
 
   auto perception = std::make_shared<Perception>(
@@ -152,6 +152,10 @@ int main(int argc, char** argv)
   else if (demoType == "spanet")
   {
     spanetDemo(*feedingDemo, perception, nodeHandle);
+  }
+  else if (demoType == "humanStudy")
+  {
+    humanStudyDemo(*feedingDemo, perception, nodeHandle);
   }
   else
   {

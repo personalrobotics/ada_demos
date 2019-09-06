@@ -200,6 +200,12 @@ void FeedingDemo::setPerception(std::shared_ptr<Perception> perception)
 }
 
 //==============================================================================
+ros::NodeHandle FeedingDemo::getNodeHandle()
+{
+  return mNodeHandle;
+}
+
+//==============================================================================
 aikido::planner::WorldPtr FeedingDemo::getWorld()
 {
   return mWorld;

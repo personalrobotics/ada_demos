@@ -2,8 +2,11 @@
 #include <chrono>
 #include <thread>
 #include "feeding/util.hpp"
+#include <libada/util.hpp>
 
 #include "feeding/action/MoveAboveFood.hpp"
+
+using ada::util::getRosParam;
 
 namespace feeding {
 namespace action {
@@ -45,8 +48,40 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   ROS_INFO_STREAM("Detected " << candidateItems.size() << " " << foodName);
 
   bool moveAboveSuccessful = false;
+  int actionOverride = 0;
+  if (!getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()))
+  {
+      // Read Action from Topic
+      talk("How should I pick up the food?", false);
+      std::string actionName;
+      std::string actionTopic;
+      feedingDemo->getNodeHandle().param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
+      actionName = getInputFromTopic(actionTopic, feedingDemo->getNodeHandle(), true, -1);
+      talk("Alright, let me use " + actionName, true);
+
+      if (actionName == "cross_skewer") {
+        actionOverride = 1;
+      } else if (actionName == "tilt") {
+        actionOverride = 2;
+      } else if (actionName == "cross_tilt") {
+        actionOverride = 3;
+      } else if (actionName == "angle") {
+        actionOverride = 4;
+      } else if (actionName == "cross_angle"){
+        actionOverride = 5;
+      } else {
+        actionOverride = 0;
+      }
+  }
   for (auto& item : candidateItems)
   {
+
+    if (!getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()))
+    {
+      // Overwrite action in item
+      item->setAction(actionOverride);
+    }
+
     auto action = item->getAction();
 
     std::cout << "Tilt style " << action->getTiltStyle() << std::endl;

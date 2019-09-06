@@ -30,6 +30,7 @@ include_directories(include)
 add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
+  scripts/humanStudy.cpp
   scripts/spanetDemo.cpp
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp

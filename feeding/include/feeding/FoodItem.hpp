@@ -29,6 +29,7 @@ public:
   dart::dynamics::MetaSkeletonPtr getMetaSkeleton() const;
 
   AcquisitionAction const* getAction() const;
+  bool setAction(int actionNum);
 
   double getScore() const;
 

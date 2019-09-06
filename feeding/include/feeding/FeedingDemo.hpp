@@ -57,6 +57,9 @@ public:
 
   void setPerception(std::shared_ptr<Perception> perception);
 
+  /// Gets the Node Handle
+  ros::NodeHandle getNodeHandle();
+
   /// Gets the aikido world
   aikido::planner::WorldPtr getWorld();
 

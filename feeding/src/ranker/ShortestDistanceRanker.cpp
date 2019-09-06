@@ -1,6 +1,7 @@
 #include "feeding/ranker/ShortestDistanceRanker.hpp"
 
 #include <dart/common/StlHelpers.hpp>
+#include <iterator>
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/util.hpp"
 
@@ -21,15 +22,22 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
 {
   TiltStyle tiltStyle(TiltStyle::NONE);
 
-  // TODO: have a map of item -> strategy
-  // if (item.getName() == "strawberry")
-  // {
-  //   tiltStyle = TiltStyle::VERTICAL;
-  // }
-  // if (item.getName() == "banana")
-  // {
-  //   tiltStyle = TiltStyle::ANGLED;
-  // }
+  // Get Ideal Action Per Food Item
+  auto it = std::find(FOOD_NAMES.begin(), FOOD_NAMES.end(), item.getName());
+  if (it != FOOD_NAMES.end())
+  {
+    int actionNum = BEST_ACTIONS[std::distance(FOOD_NAMES.begin(), it)];
+    switch (actionNum / 2) {
+      case 1:
+      tiltStyle = TiltStyle::VERTICAL;
+      break;
+      case 2:
+      tiltStyle = TiltStyle::ANGLED;
+      break;
+      default:
+      tiltStyle = TiltStyle::NONE;
+    }
+  }
 
   // TODO: check if rotation and tilt angle should change
   AcquisitionAction action(tiltStyle, 0.0, 0.0, Eigen::Vector3d(0, 0, -1));

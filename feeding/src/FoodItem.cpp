@@ -50,6 +50,27 @@ AcquisitionAction const* FoodItem::getAction() const
 }
 
 //==============================================================================
+bool FoodItem::setAction(int actionNum)
+{
+  TiltStyle tiltStyle(TiltStyle::NONE);
+  // Create New Acquisition Action
+  switch (actionNum / 2) {
+      case 1:
+      tiltStyle = TiltStyle::VERTICAL;
+      break;
+      case 2:
+      tiltStyle = TiltStyle::ANGLED;
+      break;
+      default:
+      tiltStyle = TiltStyle::NONE;
+  }
+
+  // TODO: check if rotation and tilt angle should change
+  AcquisitionAction action(tiltStyle, 0.0, 0.0, Eigen::Vector3d(0, 0, -1));
+  mAction = action;
+}
+
+//==============================================================================
 double FoodItem::getScore() const
 {
   return mScore;
