@@ -43,7 +43,7 @@ void onlineDemo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     talk("What food would you like?");
-    auto foodName = getUserInput(true, nodeHandle);
+    auto foodName = getUserFoodInput(true, nodeHandle);
     if (foodName == std::string("quit")) {
         break;
     }
