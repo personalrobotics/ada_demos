@@ -5,6 +5,7 @@
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
+#include "feeding/FeedingDemo.hpp"
 
 #include <libada/util.hpp>
 
@@ -72,11 +73,6 @@ bool skewer(
     rotationToleranceForFood = M_PI;
   }
 
-  double torqueThreshold = 2;
-  if (ftThresholdHelper)
-    ftThresholdHelper->setThresholds(
-        foodSkeweringForces.at(foodName), torqueThreshold);
-
   bool detectAndMoveAboveFoodSuccess = true;
   Eigen::Vector3d endEffectorDirection(0, 0, -1);
 
@@ -90,7 +86,12 @@ bool skewer(
       }
       if (i == 1)
       {
-        talk("Adjusting, hold tight!", true);
+        if (getUserInputWithOptions(optionPrompts, "Did I succeed in moving over the food?") == 1)
+        {
+          break;
+        }
+          talk("Adjusting, hold tight!", true);
+          std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       }
       ROS_INFO_STREAM("Detect and Move above food");
       auto item = detectAndMoveAboveFood(
@@ -130,6 +131,11 @@ bool skewer(
     ROS_INFO_STREAM(
         "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
                    << "N with angle mode ");
+
+    double torqueThreshold = 2;
+    if (ftThresholdHelper)
+      ftThresholdHelper->setThresholds(
+          foodSkeweringForces.at(foodName), torqueThreshold);
 
     // ===== INTO FOOD =====
     talk("Here we go!", true);

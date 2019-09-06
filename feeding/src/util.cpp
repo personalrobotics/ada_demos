@@ -206,6 +206,7 @@ std::string getInputFromTopic(std::string topic, const ros::NodeHandle& nodeHand
 {
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
+  
   if (timeout > 0)
   {
     sharedPtr = ros::topic::waitForMessage<std_msgs::String>(
@@ -214,6 +215,7 @@ std::string getInputFromTopic(std::string topic, const ros::NodeHandle& nodeHand
   {
     sharedPtr = ros::topic::waitForMessage<std_msgs::String>(topic);
   }
+
   if (sharedPtr == nullptr)
   {
     ROS_INFO_STREAM("No message from topic, please input manually");

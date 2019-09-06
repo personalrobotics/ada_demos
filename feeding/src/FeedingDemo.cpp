@@ -19,7 +19,6 @@ const bool TERMINATE_AT_USER_PROMPT = true;
 
 static const std::size_t MAX_NUM_TRIALS = 3;
 static const double inf = std::numeric_limits<double>::infinity();
-static const std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
 
 namespace feeding {
 
@@ -179,7 +178,7 @@ FeedingDemo::FeedingDemo(
   mTiltOffset = Eigen::Vector3d(
       tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
 
-  mVelocityLimits = std::vector<double>{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+  mVelocityLimits = getRosParam<std::vector<double>>("/study/velocityLimits", mNodeHandle);
 }
 
 //==============================================================================
