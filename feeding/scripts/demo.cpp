@@ -43,7 +43,7 @@ void demo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     talk("What food would you like?");
-    auto foodName = getUserInput(false, nodeHandle);
+    auto foodName = getUserInput(true, nodeHandle);
     if (foodName == std::string("quit")) {
         break;
     }
@@ -55,6 +55,7 @@ void demo(
 
     ROS_INFO_STREAM("Running bite transfer study for " << foodName);
 
+/*
     switch((rand() % 10)) {
         case 0:
         talk("Good choice!");
@@ -80,6 +81,7 @@ void demo(
         default:
         talk("Alright.");
     }
+*/
 
     talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
 
@@ -154,6 +156,9 @@ void demo(
         feedingDemo.getFTThresholdHelper(),
         feedingDemo.mRotationFreeFoodNames,
         &feedingDemo);
+
+      if (feedingDemo.getFTThresholdHelper())
+        feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
       if (!skewer)
       {

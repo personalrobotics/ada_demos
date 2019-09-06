@@ -20,7 +20,7 @@
 namespace feeding {
 
 static const std::vector<std::string> FOOD_NAMES
-    = {"strawberry", "cantaloupe", "celery", "carrot"};
+    = {"apple", "banana", "broccoli", "bell_pepper", "cauliflower", "cantaloupe", "celery", "carrot", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry", "lettuce", "spinach", "kale"};
 
 static const std::vector<std::string> ACTIONS
     = {"calibrate", "pickupfork", "putdownfork"};
