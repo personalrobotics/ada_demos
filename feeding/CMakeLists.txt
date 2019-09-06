@@ -31,6 +31,7 @@ add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
   scripts/humanStudy.cpp
+  scripts/onlineDemo.cpp
   scripts/spanetDemo.cpp
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
