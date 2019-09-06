@@ -130,10 +130,6 @@ study:
   # 2 banana-style
   pickupAngleMode: 0
 
-
-
-
-
   # x: from operator
   # y: towards user 0.24
   # z: up
@@ -141,3 +137,5 @@ study:
   # 0.73
   personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
   tiltOffset: [-0.04, 0, -0.04]
+
+  velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1]
