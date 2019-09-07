@@ -3,8 +3,11 @@
 #include <thread>
 #include "feeding/util.hpp"
 #include <libada/util.hpp>
+#include <yaml-cpp/exceptions.h>
 
 #include "feeding/action/MoveAboveFood.hpp"
+
+#include "conban_spanet/GetAction.h"
 
 using ada::util::getRosParam;
 
@@ -49,6 +52,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
 
   bool moveAboveSuccessful = false;
   int actionOverride = 0;
+
   if (!getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()))
   {
       // Read Action from Topic
@@ -73,6 +77,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
         actionOverride = 0;
       }
   }
+
   for (auto& item : candidateItems)
   {
 
@@ -80,6 +85,29 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     {
       // Overwrite action in item
       item->setAction(actionOverride);
+    } else if (feedingDemo->mIsOnlineDemo) {
+      // Get features from item
+      YAML::Node node = item->getExtraInfo();
+      if(node["features"].IsSequence()) {
+        std::vector<double> features = node["features"].as<std::vector<double>>();
+
+        // Send features to ROS Service
+        ros::ServiceClient client = feedingDemo->getNodeHandle().serviceClient<conban_spanet::GetAction>("/conban_spanet_server/GetAction");
+        conban_spanet::GetAction srv;
+        srv.request.features.insert(std::end(srv.request.features), std::begin(features), std::end(features));
+        if (client.call(srv))
+        {
+          // Set mAnnotation and overwrite action.
+          item->mAnnotation = srv.response.p_t;
+          item->setAction(srv.response.a_t);
+        }
+        else
+        {
+          ROS_ERROR("Failed to call service get_action");
+        }
+      } else {
+        ROS_WARN_STREAM("Warning: no feature vector, using default action!");
+      }
     }
 
     auto action = item->getAction();

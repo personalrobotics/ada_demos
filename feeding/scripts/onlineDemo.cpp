@@ -8,7 +8,7 @@
 #include "feeding/action/PickUpFork.hpp"
 #include "feeding/action/PutDownFork.hpp"
 #include "feeding/action/FeedFoodToPerson.hpp"
-#include "feeding/action/Skewer.hpp"
+#include "feeding/action/SkewerOnline.hpp"
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/action/MoveInFrontOfPerson.hpp"
 #include "feeding/action/MoveDirectlyToPerson.hpp"
@@ -53,80 +53,9 @@ void onlineDemo(
 
     ROS_INFO_STREAM("Running bite transfer study for " << foodName);
 
-/*
-    switch((rand() % 10)) {
-        case 0:
-        talk("Good choice!");
-        break;
-        case 1:
-        talk(std::string("Great! I love ") + foodName + std::string("'s!"));
-        break;
-        case 2:
-        talk("Sounds delicious. I wish I had taste buds.");
-        break;
-        case 4:
-        talk("Roger Roger.");
-        break;
-        case 5:
-        talk("Nothing beats fresh fruit.");
-        break;
-        case 6:
-        talk("Nothing escapes my fork!");
-        break;
-        case 7:
-        talk("Thanks Alexa!");
-        break;
-        default:
-        talk("Alright.");
-    }
-*/
-
     talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
 
-    // ===== FORQUE PICKUP =====
-    if (foodName == "pickupfork")
-    {
-      action::pickUpFork(
-        ada,
-        collisionFree,
-        feedingDemo.mForkHolderAngle,
-        feedingDemo.mForkHolderTranslation,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mPlateTSRParameters.at("height"),
-        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mVelocityLimits,
-        feedingDemo.getFTThresholdHelper());
-    }
-    else if (foodName == "putdownfork")
-    {
-      action::putDownFork(
-        ada,
-        collisionFree,
-        feedingDemo.mForkHolderAngle,
-        feedingDemo.mForkHolderTranslation,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mPlateTSRParameters.at("height"),
-        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mVelocityLimits,
-        feedingDemo.getFTThresholdHelper());
-    }
-    else
-    {
-      bool skewer = action::skewer(
+      bool skewer = action::skewerOnline(
         ada,
         workspace,
         collisionFree,
@@ -160,41 +89,9 @@ void onlineDemo(
 
       if (!skewer)
       {
-        ROS_WARN_STREAM("Restart from the beginning");
+        ROS_WARN_STREAM("Action failed! Algorithm should not be updated.");
         continue;
       }
-
-      // ===== IN FRONT OF PERSON =====
-      ROS_INFO_STREAM("Move forque in front of person");
-
-      bool tilted = (foodName != "celery");
-
-      action::feedFoodToPerson(
-        ada,
-        workspace,
-        collisionFree,
-        feedingDemo.getCollisionConstraintWithWallFurtherBack(),
-        perception,
-        &nodeHandle,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        workspace->getPersonPose(),
-        feedingDemo.mWaitTimeForPerson,
-        feedingDemo.mPlateTSRParameters.at("height"),
-        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mPersonTSRParameters.at("distance"),
-        feedingDemo.mPersonTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPersonTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mVelocityLimits,
-        tilted ? &feedingDemo.mTiltOffset : nullptr
-        );
-    }
   }
 
   // ===== DONE =====

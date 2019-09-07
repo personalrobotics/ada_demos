@@ -179,6 +179,7 @@ FeedingDemo::FeedingDemo(
       tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
 
   mVelocityLimits = getRosParam<std::vector<double>>("/study/velocityLimits", mNodeHandle);
+  mIsOnlineDemo = getRosParam<bool>("/onlineStudy", mNodeHandle);
 }
 
 //==============================================================================

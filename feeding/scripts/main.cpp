@@ -157,6 +157,10 @@ int main(int argc, char** argv)
   {
     humanStudyDemo(*feedingDemo, perception, nodeHandle);
   }
+  else if (demoType == "online")
+  {
+    onlineDemo(*feedingDemo, perception, nodeHandle);
+  }
   else
   {
     // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);

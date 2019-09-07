@@ -121,8 +121,11 @@ humanStudy:
   foodTopic: /study_food_msgs
   actionTopic: /study_action_msgs
 
+onlineStudy: true
+spanetIncludeFeatures: true
+
 rotationFree:
-  names: ["cantaloupe", "banana", "melon", "strawberry"]
+  names: []
 
 transferStudy:
   skipSkewering: false

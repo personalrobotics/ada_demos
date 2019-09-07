@@ -120,6 +120,8 @@ public:
   std::vector<double> mForkHolderTranslation;
   Eigen::Vector3d mTiltOffset;
 
+  bool mIsOnlineDemo;
+
 private:
   /// Attach food to forque
   void grabFoodWithForque();

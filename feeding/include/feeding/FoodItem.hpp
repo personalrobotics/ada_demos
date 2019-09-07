@@ -4,6 +4,7 @@
 #include <aikido/common/pointers.hpp>
 #include <aikido/perception/DetectedObject.hpp>
 #include <dart/dart.hpp>
+#include <yaml-cpp/exceptions.h>
 #include "feeding/AcquisitionAction.hpp"
 
 namespace feeding {
@@ -20,6 +21,14 @@ public:
       AcquisitionAction action,
       double score);
 
+  FoodItem(
+      std::string name,
+      std::string uid,
+      dart::dynamics::MetaSkeletonPtr metaSkeleton,
+      AcquisitionAction action,
+      double score,
+      const YAML::Node info);
+
   Eigen::Isometry3d getPose() const;
 
   std::string getName() const;
@@ -33,6 +42,11 @@ public:
 
   double getScore() const;
 
+  YAML::Node getExtraInfo() const;
+
+  // TODO: Get rid of this hack from Online Learning Study
+  std::vector<double> mAnnotation;
+
 private:
   const std::string mName;
 
@@ -43,6 +57,8 @@ private:
   AcquisitionAction mAction;
 
   double mScore;
+
+  const YAML::Node mExtraInfo;
 };
 
 } // namespace feeding
