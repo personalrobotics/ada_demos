@@ -33,7 +33,7 @@ void demo(
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
-  talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
+  // talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
 
   srand(time(NULL));
 
@@ -42,7 +42,7 @@ void demo(
     if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
-    talk("What food would you like?");
+    // talk("What food would you like?");
     auto foodName = getUserInput(true, nodeHandle);
     if (foodName == std::string("quit")) {
         break;
@@ -83,7 +83,7 @@ void demo(
     }
 */
 
-    talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
+    // talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
 
     // ===== FORQUE PICKUP =====
     if (foodName == "pickupfork")
@@ -128,43 +128,43 @@ void demo(
     }
     else
     {
-      bool skewer = action::skewer(
-        ada,
-        workspace,
-        collisionFree,
-        perception,
-        &nodeHandle,
-        foodName,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mFoodSkeweringForces,
-        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mFoodTSRParameters.at("height"),
-        feedingDemo.mFoodTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mFoodTSRParameters.at("verticalTolerance"),
-        feedingDemo.mFoodTSRParameters.at("rotationTolerance"),
-        feedingDemo.mFoodTSRParameters.at("tiltTolerance"),
-        feedingDemo.mMoveOufOfFoodLength,
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mWaitTimeForFood,
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mVelocityLimits,
-        feedingDemo.getFTThresholdHelper(),
-        feedingDemo.mRotationFreeFoodNames,
-        &feedingDemo);
+      // bool skewer = action::skewer(
+      //   ada,
+      //   workspace,
+      //   collisionFree,
+      //   perception,
+      //   &nodeHandle,
+      //   foodName,
+      //   plate,
+      //   feedingDemo.getPlateEndEffectorTransform(),
+      //   feedingDemo.mFoodSkeweringForces,
+      //   feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
+      //   feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
+      //   feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
+      //   feedingDemo.mFoodTSRParameters.at("height"),
+      //   feedingDemo.mFoodTSRParameters.at("horizontalTolerance"),
+      //   feedingDemo.mFoodTSRParameters.at("verticalTolerance"),
+      //   feedingDemo.mFoodTSRParameters.at("rotationTolerance"),
+      //   feedingDemo.mFoodTSRParameters.at("tiltTolerance"),
+      //   feedingDemo.mMoveOufOfFoodLength,
+      //   feedingDemo.mEndEffectorOffsetPositionTolerance,
+      //   feedingDemo.mEndEffectorOffsetAngularTolerance,
+      //   feedingDemo.mWaitTimeForFood,
+      //   feedingDemo.mPlanningTimeout,
+      //   feedingDemo.mMaxNumTrials,
+      //   feedingDemo.mVelocityLimits,
+      //   feedingDemo.getFTThresholdHelper(),
+      //   feedingDemo.mRotationFreeFoodNames,
+      //   &feedingDemo);
 
-      if (feedingDemo.getFTThresholdHelper())
-        feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
+      // if (feedingDemo.getFTThresholdHelper())
+      //   feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
-      if (!skewer)
-      {
-        ROS_WARN_STREAM("Restart from the beginning");
-        continue;
-      }
+      // if (!skewer)
+      // {
+      //   ROS_WARN_STREAM("Restart from the beginning");
+      //   continue;
+      // }
 
       // ===== IN FRONT OF PERSON =====
       ROS_INFO_STREAM("Move forque in front of person");
@@ -201,6 +201,6 @@ void demo(
 
   // ===== DONE =====
   ROS_INFO("Demo finished.");
-  talk("Thank you, I hope I was helpful!");
+  // talk("Thank you, I hope I was helpful!");
 }
 };

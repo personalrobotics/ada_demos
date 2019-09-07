@@ -37,7 +37,7 @@ void feedFoodToPerson(
     std::vector<double> velocityLimits,
     const Eigen::Vector3d* tiltOffset)
 {
-  talk("Great! Bringing the food to you!", true);
+  // talk("Great! Bringing the food to you!", true);
   auto moveIFOPerson = [&] {
     return moveInFrontOfPerson(
         ada,
@@ -71,7 +71,7 @@ void feedFoodToPerson(
     nodeHandle->setParam("/feeding/facePerceptionOn", true);
 
     ROS_INFO_STREAM("Move towards person");
-    talk("Ready? Make sure I can see your face.");
+    // talk("Ready? Make sure I can see your face.");
     moveSuccess = moveTowardsPerson(
         ada,
         collisionFreeWithWallFurtherBack,
@@ -88,12 +88,12 @@ void feedFoodToPerson(
   {
     // ===== EATING =====
     ROS_WARN("Human is eating");
-    talk("Ready to eat!");
+    // talk("Ready to eat!");
     std::this_thread::sleep_for(waitAtPerson);
 
     // Backward
     ada::util::waitForUser("Move backward", ada);
-    talk("Let me get out of your way.", true);
+    // talk("Let me get out of your way.", true);
     Eigen::Vector3d goalDirection(0, -1, 0);
     bool success = ada->moveArmToEndEffectorOffset(
         goalDirection.normalized(),
@@ -111,7 +111,7 @@ void feedFoodToPerson(
 
   // TODO: add a back-out motion and then do move above plate with
   // collisionFree.
-  talk("And now back to the plate.", true);
+  // talk("And now back to the plate.", true);
   moveAbovePlate(
       ada,
       collisionFree,
