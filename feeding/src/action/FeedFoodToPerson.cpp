@@ -81,6 +81,9 @@ namespace feeding {
       } else {
         talk("Open your mouth when ready.", false);
         // TODO: Add mouth-open detection.
+        while(!perception->isMouthOpen()) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
 
         if(getRosParam<bool>("/humanStudy/createError", *nodeHandle)) {
           // Wait an extra 5 seconds

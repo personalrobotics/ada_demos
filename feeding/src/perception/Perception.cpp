@@ -11,6 +11,8 @@
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
 
+#include <yaml-cpp/exceptions.h>
+
 #include "feeding/FoodItem.hpp"
 
 using ada::util::getRosParam;
@@ -206,8 +208,40 @@ Eigen::Isometry3d Perception::perceiveFace()
 bool Perception::isMouthOpen()
 {
   // return mAssetDatabase->mObjData["faceStatus"].as<bool>();
-  ROS_WARN("Always returning true for isMouthOpen");
-  return true;
+  //ROS_WARN("Always returning true for isMouthOpen");
+  //return true;
+
+  // (1) Detect Face
+  std::vector<DetectedObject> detectedObjects;
+
+  if (!mFaceDetector->detectObjects(
+          mWorld,
+          ros::Duration(mPerceptionTimeout),
+          ros::Time(0),
+          &detectedObjects))
+  {
+    ROS_WARN("face perception failed");
+    return false;
+  }
+
+  // (2) Check if mouth open
+  for(auto face : detectedObjects) {
+    try
+    {
+      auto yamlNode = face.getYamlNode();
+      if(yamlNode["mouth-status"].as<std::string>() == "open") {
+        return true;
+      }
+    }
+    catch (const YAML::Exception& e)
+    {
+      ROS_WARN_STREAM("[Perception::isMouthOpen] YAML String Exception: " << e.what()
+         << std::endl);
+      return false;
+    }
+  }
+
+  return false;
 }
 
 //==============================================================================
