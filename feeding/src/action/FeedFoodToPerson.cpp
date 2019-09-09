@@ -38,7 +38,8 @@ namespace feeding {
       double endEffectorOffsetPositionTolerenace,
       double endEffectorOffsetAngularTolerance,
       std::vector<double> velocityLimits,
-      const Eigen::Vector3d* tiltOffset)
+      const Eigen::Vector3d* tiltOffset,
+      FeedingDemo* feedingDemo)
     {
       auto moveIFOPerson = [&] {
         return moveInFrontOfPerson(
@@ -68,9 +69,51 @@ namespace feeding {
           break;
       }
 
+      // Check autoTiming, and if false, wait for topic
+      if (!getRosParam<bool>("/humanStudy/autoTiming", *nodeHandle)) {
+        talk("Let me know when you are ready.", false);
+        std::string done = "";
+        while (done != "continue") {
+            std::string actionTopic;
+            nodeHandle->param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
+            done = getInputFromTopic(actionTopic, *nodeHandle, true, -1);
+        }
+      } else {
+        talk("Open your mouth when ready.", false);
+        // TODO: Add mouth-open detection.
+
+        if(getRosParam<bool>("/humanStudy/createError", *nodeHandle)) {
+          // Wait an extra 5 seconds
+          talk("Calculating...");
+          std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+        }
+      }
+
       if (moveIFOSuccess)
       {
         publishTimingDoneToWeb();
+
+        if(getRosParam<bool>("/humanStudy/autoTransfer", *nodeHandle) &&
+          getRosParam<bool>("/humanStudy/createError", *nodeHandle)) {
+          // Erroneous Transfer
+          moveDirectlyToPerson(
+            ada,
+            collisionFree,
+            personPose,
+            distanceToPerson,
+            horizontalToleranceForPerson,
+            verticalToleranceForPerson,
+            planningTimeout,
+            maxNumTrials,
+            velocityLimits,
+            tiltOffset,
+            feedingDemo
+            );
+          std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+          talk("Oops, let me try that again.", true);
+          moveIFOSuccess = moveIFOPerson();
+        }
+
         nodeHandle->setParam("/feeding/facePerceptionOn", true);
 
         ROS_INFO_STREAM("Move towards person");

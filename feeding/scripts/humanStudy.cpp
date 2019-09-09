@@ -96,17 +96,6 @@ void humanStudyDemo(
       // TODO: Set tilted explcitly for long food items:
       bool tilted = (foodName == "celery" || foodName == "carrot" || foodName == "bell_pepper" || foodName == "apple");
 
-      // Check autoTiming, and if false, wait for topic
-      if (!getRosParam<bool>("/humanStudy/autoTiming", feedingDemo.getNodeHandle())) {
-        talk("Let me know when you are ready.", false);
-        std::string done = "";
-        while (done != "continue") {
-            std::string actionTopic;
-            nodeHandle.param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
-            done = getInputFromTopic(actionTopic, nodeHandle, true, -1);
-        }
-      }
-
       action::feedFoodToPerson(
         ada,
         workspace,
@@ -130,7 +119,8 @@ void humanStudyDemo(
         feedingDemo.mEndEffectorOffsetPositionTolerance,
         feedingDemo.mEndEffectorOffsetAngularTolerance,
         feedingDemo.mVelocityLimits,
-        tilted ? &feedingDemo.mTiltOffset : nullptr
+        tilted ? &feedingDemo.mTiltOffset : nullptr,
+        &feedingDemo
         );
 
   }

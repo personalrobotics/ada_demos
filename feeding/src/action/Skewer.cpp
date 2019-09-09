@@ -9,6 +9,8 @@
 
 #include <libada/util.hpp>
 
+using ada::util::getRosParam;
+
 static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 
 namespace feeding {
@@ -121,8 +123,18 @@ bool skewer(
         endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
         endEffectorDirection.normalize();
       }
-      if (!item)
+      if (!item) {
         detectAndMoveAboveFoodSuccess = false;
+      }
+
+      // Add error if autonomous
+      if(getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()) && // autonomous
+        getRosParam<bool>("/humanStudy/createError", feedingDemo->getNodeHandle()) && // add error
+        trialCount == 0) // First Trial
+      { 
+        endEffectorDirection(1) += 0.1;
+        endEffectorDirection.normalize();
+      }
     }
 
     if (!detectAndMoveAboveFoodSuccess)

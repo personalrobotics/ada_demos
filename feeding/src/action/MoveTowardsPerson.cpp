@@ -19,7 +19,7 @@ bool moveTowardsPerson(
   ROS_INFO_STREAM("Move towards person");
 
   int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
-  std::vector<double> velocityLimits(numDofs, 0.2);
+  std::vector<double> velocityLimits(numDofs, 0.4);
 
   PerceptionServoClient servoClient(
       nodeHandle,
