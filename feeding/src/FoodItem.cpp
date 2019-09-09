@@ -83,7 +83,7 @@ bool FoodItem::setAction(int actionNum)
       default:
       tiltStyle = TiltStyle::NONE;
   }
-  auto rotation = (actionNum % 2 == 0) ? 0.0 : 90.0;
+  auto rotation = (actionNum % 2 == 0) ? 90.0 : 0.0;
 
   // TODO: check if rotation and tilt angle should change
   AcquisitionAction action(tiltStyle, rotation, 0.0, Eigen::Vector3d(0, 0, -1));

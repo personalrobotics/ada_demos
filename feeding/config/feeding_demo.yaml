@@ -127,7 +127,7 @@ spanetIncludeFeatures: true
 rotationFree:
   names: []
 
-transferStudy:
+study:
   skipSkewering: false
   doForkPickup: false
   # y positive is closer to wheelchair

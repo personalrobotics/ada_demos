@@ -215,7 +215,7 @@ bool skewerOnline(
       default:
       actionNum = 0;
     }
-    if (action->getRotationAngle() > 0.01) {
+    if (action->getRotationAngle() < 0.01) {
       // Assume 90-degree action
       actionNum++;
     }
@@ -223,14 +223,14 @@ bool skewerOnline(
     std::vector<double> p_t = item->mAnnotation;
 
     // Actually call service
-    ros::ServiceClient client = feedingDemo->getNodeHandle().serviceClient<conban_spanet::PublishLoss>("/conban_spanet_server/PublishLoss");
+    //ros::ServiceClient client = feedingDemo->getNodeHandle().serviceClient<conban_spanet::PublishLoss>("PublishLoss");
     conban_spanet::PublishLoss srv;
     srv.request.features.insert(std::end(srv.request.features), std::begin(features), std::end(features));
     srv.request.p_t.insert(std::end(srv.request.p_t), std::begin(p_t), std::end(p_t));
     srv.request.a_t = actionNum;
     srv.request.loss = loss;
 
-    if (client.call(srv))
+    if (ros::service::call("PublishLoss", srv))
     {
       ROS_INFO("Success! Error Message: %d", (int)srv.response.success);
     }

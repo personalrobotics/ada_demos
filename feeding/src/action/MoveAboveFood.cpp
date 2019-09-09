@@ -44,7 +44,7 @@ bool moveAboveFood(
   {
     target = removeRotation(foodTransform);
     eeTransform.linear()
-        = eeTransform.linear()
+        = eeTransform.linear() * rotation
           * Eigen::AngleAxisd(-M_PI * 0.5, Eigen::Vector3d::UnitZ())
           * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX())
           * Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitX());
