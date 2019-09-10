@@ -104,7 +104,7 @@ PerceptionServoClient::PerceptionServoClient(
 
   mVelocityLimits = Eigen::VectorXd(velocityLimits.size());
   for (std::size_t i = 0; i < velocityLimits.size(); ++i)
-    mVelocityLimits[i] = 0.8*velocityLimits[i];
+    mVelocityLimits[i] = velocityLimits[i];
 }
 
 //==============================================================================
@@ -179,17 +179,20 @@ bool PerceptionServoClient::isRunning()
 //==============================================================================
 void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 {
+  std::cout << "Entering " << __LINE__ << std::endl;
   if (mExecutionDone || !mTimerMutex.try_lock())
     return;
 
   Eigen::Isometry3d goalPose;
   if (updatePerception(goalPose))
   {
+    std::cout << "Entering " << __LINE__ << std::endl;
     mLastSuccess = std::chrono::system_clock::now();
     // Generate a new reference trajectory to the goal pose
     mCurrentTrajectory = planToGoalPose(goalPose);
     if (mExecutionDone)
     {
+      std::cout << "Entering " << __LINE__ << std::endl;
       ROS_WARN_STREAM("Completed");
       mTimerMutex.unlock();
       return;
@@ -197,6 +200,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
 
     if (!mCurrentTrajectory)
     {
+      std::cout << "Entering " << __LINE__ << std::endl;
       ROS_WARN_STREAM("Failed to get trajectory");
       mTimerMutex.unlock();
       return;
@@ -209,12 +213,14 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
         && (mExec.wait_for(std::chrono::duration<int, std::milli>(0))
             != std::future_status::ready))
     {
+      std::cout << "Entering " << __LINE__ << std::endl;
       ROS_INFO_STREAM("Cancel the current trajectory");
       mTrajectoryExecutor->cancel();
       mExec.wait();
     }
 
     // Execute the new reference trajectory
+    ROS_INFO_STREAM("Sending a new trajectory");
     mExec = mTrajectoryExecutor->execute(mCurrentTrajectory);
     mIsRunning = true;
   }
@@ -226,12 +232,14 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
               .count();
     if (sinceLast > THRESHOLD)
     {
+      std::cout << "Entering " << __LINE__ << std::endl;
       ROS_WARN("Lost perception for too long. Reporting failure...");
       mExecutionDone = true;
       mNotFailed = false;
     }
     else
     {
+      std::cout << "Entering " << __LINE__ << std::endl;
       ROS_WARN_STREAM("Perception Failed. Since Last: " << sinceLast);
     }
   }
@@ -262,7 +270,7 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   }
 
   goalPose = pose * endEffectorTransform;
-  std::cout << "Goal Pose " << goalPose.translation().z() << std::endl;
+  std::cout << "Goal Pose " << goalPose.translation() << std::endl;
   if (goalPose.translation().z() < -0.1)
   {
     ROS_WARN_STREAM("Food is way too low, z " << goalPose.translation()[2]);
@@ -438,75 +446,13 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   //   return std::move(timedTraj);
   // } 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   Eigen::Isometry3d currentPose = mBodyNode->getTransform();
 
   // Step 1: Plan from current pose to goal pose.
   Eigen::Vector3d vectorToGoalPose
     = goalPose.translation() - currentPose.translation();
+
+  std::cout << "GOAL POSE DISTANCE " << vectorToGoalPose.norm() << std::endl;
 
   if (vectorToGoalPose.norm() < mGoalPrecision)
   {
@@ -591,6 +537,9 @@ SplinePtr PerceptionServoClient::planToGoalPose(
 
   // Start from the closest point on the trajectory.
   timedTraj = createPartialTimedTrajectoryFromCurrentConfig(timedTraj.get());
+  // Eigen::VectorXd segStartVel(mVelocityLimits.size());
+  // timedTraj->evaluateDerivative(timedTraj->getStartTime(), 1, segStartVel);
+  // std::cout << "The start velocity of the next trajectory " << segStartVel.transpose() << std::endl;
   return timedTraj;
 }
 
@@ -603,6 +552,7 @@ TrajectoryPtr PerceptionServoClient::planEndEffectorOffset(
 
   return mAda->planArmToEndEffectorOffset(
       goalDirection.normalized(),
+      // 0.2,
       std::min(goalDirection.norm(), threshold),
       mCollisionFreeConstraint,
       mPlanningTimeout,
@@ -632,8 +582,8 @@ PerceptionServoClient::createPartialTimedTrajectoryFromCurrentConfig(
   std::cout << "Shorted distance " << distance << " at " << refTime
             << std::endl;
 
-  // Start 0.3 sec forward since the robort has been moving.
-  refTime += 0.2;
+  // Start 0.3 sec forward since the robot has been moving.
+  refTime += 0.1;
   if (refTime > trajectory->getEndTime()) 
   {
     ROS_WARN_STREAM("Robot already reached end of trajectory.");
