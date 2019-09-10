@@ -29,7 +29,7 @@ bool moveInFrontOfPerson(
   Eigen::VectorXd moveIFOPose(6);
   moveIFOPose << -2.30252, 4.23221, 3.84109, -4.65546, 3.94225, 4.26543;
 
-  bool success = ada->moveArmToConfiguration(moveIFOPose, collisionFree, 2.0);
+  bool success = ada->moveArmToConfiguration(moveIFOPose, collisionFree, 2.0, velocityLimits);
   if (success)
     return true;
 

@@ -122,9 +122,9 @@ humanStudy:
   actionTopic: /study_action_msgs
 
 rotationFree:
-  names: ["cantaloupe", "banana", "melon", "strawberry"]
+  names: ["apple", "banana", "bell_pepper", "broccoli", "cantaloupe", "carrot", "cauliflower", "celery", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry", "lettuce", "spinach", "kale"]
 
-transferStudy:
+study:
   skipSkewering: false
   doForkPickup: false
   # y positive is closer to wheelchair
@@ -145,7 +145,10 @@ transferStudy:
   # TRUE:
   # personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
   # ERRONEOUS:
-  personPose: [0.295, 0.24, 0.83, 0, 0, 3.1415]
+  personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
   tiltOffset: [-0.04, 0, -0.04]
 
-  velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1]
+  # FAST:
+  velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1.0]
+  # SLOW:
+  #velocityLimits: [0.4, 0.4, 0.4, 0.4, 0.4, 0.8]

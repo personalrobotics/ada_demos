@@ -309,6 +309,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   }
 
   // ============= Plan from original pose to current pose ==================//
+  /*
   auto originalState = mMetaSkeletonStateSpace->createState();
   mMetaSkeletonStateSpace->convertPositionsToState(
       mOriginalConfig, originalState);
@@ -338,6 +339,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
         1e-2,
         std::chrono::duration<double>(5));
   }
+  */
 
   // ============= Concatenate the two trajectories ==================//
   UniqueSplinePtr timedTraj;
