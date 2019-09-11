@@ -38,7 +38,8 @@ namespace feeding {
       double endEffectorOffsetPositionTolerenace,
       double endEffectorOffsetAngularTolerance,
       std::vector<double> velocityLimits,
-      const Eigen::Vector3d* tiltOffset)
+      const Eigen::Vector3d* tiltOffset,
+      FeedingDemo* feedingDemo)
     {
       auto moveIFOPerson = [&] {
         return moveInFrontOfPerson(
@@ -68,15 +69,73 @@ namespace feeding {
           break;
       }
 
+      // Check autoTiming, and if false, wait for topic
+      if (!getRosParam<bool>("/humanStudy/autoTiming", *nodeHandle)) {
+        talk("Let me know when you are ready.", false);
+        std::string done = "";
+        while (done != "continue") {
+            std::string actionTopic;
+            nodeHandle->param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
+            done = getInputFromTopic(actionTopic, *nodeHandle, false, -1);
+        }
+      } else {
+        nodeHandle->setParam("/feeding/facePerceptionOn", true);
+        talk("Open your mouth when ready.", false);
+        // TODO: Add mouth-open detection.
+        while(!perception->isMouthOpen()) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        nodeHandle->setParam("/feeding/facePerceptionOn", false);
+
+        if(getRosParam<bool>("/humanStudy/createError", *nodeHandle)) {
+          // Wait an extra 5 seconds
+          ROS_WARN_STREAM("Error Requested for Timing!");
+          talk("Calculating...");
+          std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+        }
+      }
+
       if (moveIFOSuccess)
       {
         publishTimingDoneToWeb();
+
+        if(getRosParam<bool>("/humanStudy/autoTransfer", *nodeHandle) &&
+          getRosParam<bool>("/humanStudy/createError", *nodeHandle)) {
+          ROS_WARN_STREAM("Error Requested for Transfer!");
+          // Erroneous Transfer
+          moveDirectlyToPerson(
+            ada,
+            collisionFreeWithWallFurtherBack,
+            personPose,
+            distanceToPerson,
+            horizontalToleranceForPerson,
+            verticalToleranceForPerson,
+            planningTimeout,
+            maxNumTrials,
+            velocityLimits,
+            nullptr,
+            feedingDemo
+            );
+          std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+          talk("Oops, let me try that again.", true);
+          moveIFOSuccess = moveInFrontOfPerson(
+            ada,
+            collisionFreeWithWallFurtherBack,
+            personPose,
+            distanceToPerson,
+            horizontalToleranceForPerson,
+            verticalToleranceForPerson,
+            planningTimeout,
+            maxNumTrials,
+            velocityLimits);
+        }
+
         nodeHandle->setParam("/feeding/facePerceptionOn", true);
 
         ROS_INFO_STREAM("Move towards person");
         moveSuccess = moveTowardsPerson(
           ada,
-          collisionFreeWithWallFurtherBack,
+          nullptr,
           perception,
           nodeHandle,
           distanceToPerson,
@@ -94,9 +153,9 @@ namespace feeding {
         std::string done = "";
         std::string actionTopic;
         nodeHandle->param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
-        done = getInputFromTopic(actionTopic, *nodeHandle, true, -1);
+        done = getInputFromTopic(actionTopic, *nodeHandle, false, -1);
 
-        if (done == "tilt_the_food") {
+        if (done == "tilt_the_food" || done == "tilt") {
           std::vector<double> tiltOffsetVector
           = getRosParam<std::vector<double>>("/study/tiltOffset", *nodeHandle);
           auto tiltOffsetEigen = Eigen::Vector3d(
@@ -109,7 +168,7 @@ namespace feeding {
 
   // Execute Tilt
       if (overrideTiltOffset != nullptr) {
-        Eigen::Isometry3d person = Eigen::Isometry3d::Identity();
+        Eigen::Isometry3d person = ada->getHand()->getEndEffectorBodyNode()->getTransform();
         person.translation() += *overrideTiltOffset;
 
         TSR personTSR;
@@ -121,7 +180,7 @@ namespace feeding {
           verticalToleranceForPerson,
           0,
           M_PI / 4,
-          -M_PI / 4);
+          M_PI / 4);
         Eigen::Isometry3d eeTransform = Eigen::Isometry3d::Identity();
         eeTransform.linear()
         = eeTransform.linear() 
@@ -131,13 +190,26 @@ namespace feeding {
         personTSR.mTw_e.matrix() *= eeTransform.matrix();
 
     // Actually execute movement
+        // if (feedingDemo && feedingDemo->getViewer())
+        // {
+        //   feedingDemo->getViewer()->addTSRMarker(personTSR);
+        //   std::cout << "Check TSR" << std::endl;
+        //   int n;
+        //   std::cin >> n;
+        // }
+        std::vector<double> slowerVelocity;
+        double slowFactor = (velocityLimits[0] > 0.5) ? 2.0 : 1.0;
+        for (int i=0; i<velocityLimits.size(); i++) {
+          slowerVelocity.push_back(velocityLimits[i] / slowFactor);
+        }
+        talk("Tilting, hold tight.", true);
         ada->moveArmToTSR(
           personTSR,
-          collisionFree,
+          nullptr, //collisionFreeWithWallFurtherBack,
           planningTimeout,
           maxNumTrials,
           getConfigurationRanker(ada),
-          velocityLimits);
+          slowerVelocity);
       }
 
       if (moveIFOSuccess)

@@ -9,6 +9,8 @@
 
 #include <libada/util.hpp>
 
+using ada::util::getRosParam;
+
 static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
 
 namespace feeding {
@@ -57,6 +59,12 @@ bool skewer(
       maxNumTrials,
       velocityLimits);
 
+  // Pause a bit so camera can catch up
+  if(velocityLimits[0] > 0.5) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
   if (!abovePlaceSuccess)
   {
     talk(
@@ -74,10 +82,12 @@ bool skewer(
   }
 
   bool detectAndMoveAboveFoodSuccess = true;
-  Eigen::Vector3d endEffectorDirection(0, 0, -1);
+
+  int actionOverride = -1;
 
   for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
   {
+    Eigen::Vector3d endEffectorDirection(0, 0, -1);
     for (std::size_t i = 0; i < 2; ++i)
     {
       if (i == 0)
@@ -94,6 +104,32 @@ bool skewer(
           std::this_thread::sleep_for(std::chrono::milliseconds(1000));
       }
       ROS_INFO_STREAM("Detect and Move above food");
+
+      if (!getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()) && i == 0)
+      {
+          // Read Action from Topic
+          talk("How should I pick up the food?", false);
+          std::string actionName;
+          std::string actionTopic;
+          feedingDemo->getNodeHandle().param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
+          actionName = getInputFromTopic(actionTopic, feedingDemo->getNodeHandle(), false, -1);
+          talk("Alright, let me use " + actionName, true);
+
+          if (actionName == "cross_skewer") {
+            actionOverride = 1;
+          } else if (actionName == "tilt") {
+            actionOverride = 2;
+          } else if (actionName == "cross_tilt") {
+            actionOverride = 3;
+          } else if (actionName == "angle") {
+            actionOverride = 4;
+          } else if (actionName == "cross_angle"){
+            actionOverride = 5;
+          } else {
+            actionOverride = 0;
+          }
+      }
+
       auto item = detectAndMoveAboveFood(
           ada,
           collisionFree,
@@ -107,7 +143,8 @@ bool skewer(
           planningTimeout,
           maxNumTrials,
           velocityLimits,
-          feedingDemo);
+          feedingDemo,
+          actionOverride);
 
       if (!item)
       {
@@ -121,8 +158,19 @@ bool skewer(
         endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
         endEffectorDirection.normalize();
       }
-      if (!item)
+      if (!item) {
         detectAndMoveAboveFoodSuccess = false;
+      }
+
+      // Add error if autonomous
+      if(getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()) && // autonomous
+        getRosParam<bool>("/humanStudy/createError", feedingDemo->getNodeHandle()) && // add error
+        trialCount == 0) // First Trial
+      { 
+        ROS_WARN_STREAM("Error Requested for Acquisition!");
+        endEffectorDirection(1) += 1.0;
+        endEffectorDirection.normalize();
+      }
     }
 
     if (!detectAndMoveAboveFoodSuccess)

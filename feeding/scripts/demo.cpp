@@ -195,7 +195,8 @@ void demo(
         feedingDemo.mEndEffectorOffsetPositionTolerance,
         feedingDemo.mEndEffectorOffsetAngularTolerance,
         feedingDemo.mVelocityLimits,
-        tilted ? &feedingDemo.mTiltOffset : nullptr
+        tilted ? &feedingDemo.mTiltOffset : nullptr,
+        &feedingDemo
         );
     }
   }

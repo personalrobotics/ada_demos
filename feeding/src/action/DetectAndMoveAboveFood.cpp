@@ -27,7 +27,8 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    FeedingDemo* feedingDemo)
+    FeedingDemo* feedingDemo,
+    int actionOverride)
 {
   std::vector<std::unique_ptr<FoodItem>> candidateItems;
   while (true)
@@ -51,6 +52,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   ROS_INFO_STREAM("Detected " << candidateItems.size() << " " << foodName);
 
   bool moveAboveSuccessful = false;
+<<<<<<< HEAD
   int actionOverride = 0;
 
   if (!getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()))
@@ -78,10 +80,13 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
       }
   }
 
+=======
+  
+>>>>>>> demo/humanStudy
   for (auto& item : candidateItems)
   {
 
-    if (!getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()))
+    if (actionOverride >= 0)
     {
       // Overwrite action in item
       item->setAction(actionOverride);
