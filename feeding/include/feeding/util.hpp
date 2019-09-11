@@ -70,7 +70,7 @@ void dumpSplinePhasePlot(
 /// Gets user selection of food and actions
 /// param[in] food_only If true, only food choices are valid
 /// param[in]] nodeHandle Ros Node to set food name for detection.
-std::string getUserFoodInput(bool food_only, ros::NodeHandle& nodeHandle);
+std::string getUserFoodInput(bool food_only, ros::NodeHandle& nodeHandle, bool useAlexa = true, double timeout = 5);
 
 int getUserInputWithOptions(
     const std::vector<std::string>& optionPrompts, const std::string& prompt);
@@ -114,7 +114,7 @@ Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener);
 aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
     const std::shared_ptr<::ada::Ada>& ada);
 
-std::string getInputFromTopic(std::string topic, const ros::NodeHandle& nodeHandle, bool validateAsFood, int timeout = 20);
+std::string getInputFromTopic(std::string topic, const ros::NodeHandle& nodeHandle, bool validateAsFood, double timeout = 20);
 
 void talk(const std::string&, bool background = false);
 

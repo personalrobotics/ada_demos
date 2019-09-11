@@ -140,13 +140,13 @@ std::string getCurrentTimeDate()
 }
 
 //==============================================================================
-std::string getUserFoodInput(bool food_only, ros::NodeHandle& nodeHandle)
+std::string getUserFoodInput(bool food_only, ros::NodeHandle& nodeHandle, bool useAlexa, double timeout)
 {
 
   std::string foodName;
   std::string foodTopic;
   nodeHandle.param<std::string>("/humanStudy/foodTopic", foodTopic, "/study_food_msgs");
-  foodName = getInputFromTopic(foodTopic, nodeHandle, true, 5);
+  foodName = useAlexa ? getInputFromTopic(foodTopic, nodeHandle, true, timeout) : "";
   if (foodName != "")
   {
     ROS_INFO_STREAM("Got " << foodName << " from Alexa.");
@@ -202,7 +202,7 @@ std::string getUserFoodInput(bool food_only, ros::NodeHandle& nodeHandle)
 }
 
 //==============================================================================
-std::string getInputFromTopic(std::string topic, const ros::NodeHandle& nodeHandle, bool validateAsFood, int timeout)
+std::string getInputFromTopic(std::string topic, const ros::NodeHandle& nodeHandle, bool validateAsFood, double timeout)
 {
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
