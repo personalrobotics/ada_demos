@@ -125,7 +125,7 @@ onlineStudy: true
 spanetIncludeFeatures: true
 
 rotationFree:
-  names: []
+  names: ["banana"]
 
 study:
   skipSkewering: false

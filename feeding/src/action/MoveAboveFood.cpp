@@ -33,10 +33,14 @@ bool moveAboveFood(
       = *ada->getHand()->getEndEffectorTransform("food");
   Eigen::AngleAxisd rotation
       = Eigen::AngleAxisd(-rotateAngle, Eigen::Vector3d::UnitZ());
+  // TODO: Add proper base rotation for food
+  Eigen::AngleAxisd baseRotation
+      = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ());
 
   if (tiltStyle == TiltStyle::NONE)
   {
-    target = foodTransform;
+    target = removeRotation(foodTransform);
+    target.linear() = target.linear() * baseRotation;
     eeTransform.linear() = eeTransform.linear() * rotation;
     eeTransform.translation()[2] = heightAboveFood;
   }

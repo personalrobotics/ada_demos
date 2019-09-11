@@ -70,6 +70,12 @@ bool skewerOnline(
     return false;
   }
 
+  // Pause a bit so camera can catch up
+  if(velocityLimits[0] > 0.5) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
   if (std::find(
           rotationFreeFoodNames.begin(), rotationFreeFoodNames.end(), foodName)
       != rotationFreeFoodNames.end())

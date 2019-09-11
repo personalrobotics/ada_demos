@@ -126,13 +126,28 @@ int main(int argc, char** argv)
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
-
-  auto perception = std::make_shared<Perception>(
+  std::shared_ptr<Perception> perception;
+  if (demoType == "spanet") {
+    perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
       feedingDemo->getAda(),
       feedingDemo->getAda()->getMetaSkeleton(),
       &nodeHandle,
-      ranker);
+      ranker,
+      0.0,
+      false);
+  }
+  else
+  {
+    perception = std::make_shared<Perception>(
+        feedingDemo->getWorld(),
+        feedingDemo->getAda(),
+        feedingDemo->getAda()->getMetaSkeleton(),
+        &nodeHandle,
+        ranker,
+        0.0,
+        false);
+  }
 
   if (ftThresholdHelper)
     ftThresholdHelper->init();
