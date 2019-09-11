@@ -52,8 +52,6 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   ROS_INFO_STREAM("Detected " << candidateItems.size() << " " << foodName);
 
   bool moveAboveSuccessful = false;
-<<<<<<< HEAD
-  int actionOverride = 0;
 
   if (!getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()))
   {
@@ -80,9 +78,6 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
       }
   }
 
-=======
-  
->>>>>>> demo/humanStudy
   for (auto& item : candidateItems)
   {
 
