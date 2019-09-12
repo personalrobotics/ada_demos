@@ -4,6 +4,7 @@
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/util.hpp"
+#include <math.h>
 
 using aikido::constraint::dart::TSR;
 
@@ -26,50 +27,58 @@ bool moveAboveFood(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    FeedingDemo* feedingDemo)
+    FeedingDemo* feedingDemo,
+    double* angleGuess)
 {
   Eigen::Isometry3d target;
   Eigen::Isometry3d eeTransform
       = *ada->getHand()->getEndEffectorTransform("food");
   Eigen::AngleAxisd rotation
       = Eigen::AngleAxisd(-rotateAngle, Eigen::Vector3d::UnitZ());
-  // TODO: Add proper base rotation for food
+  ROS_WARN_STREAM("Rotate Angle: " << rotateAngle);
+  
+  // Apply base rotation to food
+  Eigen::Vector3d foodVec = foodTransform.rotation() * Eigen::Vector3d::UnitX();
+  double baseRotateAngle = atan2(foodVec[1], foodVec[0]);
+  if(angleGuess) {
+    while(abs(baseRotateAngle - *angleGuess) > (M_PI / 2.0)) {
+      baseRotateAngle += (*angleGuess > baseRotateAngle) ? M_PI : (-M_PI);
+    }
+  }
+  ROS_WARN_STREAM("Food Rotate Angle: " << baseRotateAngle);
   Eigen::AngleAxisd baseRotation
-      = Eigen::AngleAxisd(0, Eigen::Vector3d::UnitZ());
+      = Eigen::AngleAxisd(baseRotateAngle, Eigen::Vector3d::UnitZ());
+  target = removeRotation(foodTransform);
+  target.linear() = target.linear() * baseRotation;
 
   if (tiltStyle == TiltStyle::NONE)
   {
-    target = removeRotation(foodTransform);
-    target.linear() = target.linear() * baseRotation;
+    
     eeTransform.linear() = eeTransform.linear() * rotation;
     eeTransform.translation()[2] = heightAboveFood;
   }
   else if (tiltStyle == TiltStyle::VERTICAL)
   {
-    target = removeRotation(foodTransform);
     eeTransform.linear()
         = eeTransform.linear() * rotation
-          * Eigen::AngleAxisd(-M_PI * 0.5, Eigen::Vector3d::UnitZ())
-          * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX())
-          * Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitX());
+          * Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitX());
     eeTransform.translation()[2] = heightAboveFood;
   }
   else // angled
   {
-    target = removeRotation(foodTransform);
     eeTransform.linear()
         = eeTransform.linear() * rotation
-          * Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ())
-          * Eigen::AngleAxisd(M_PI * 5.0 / 6.0, Eigen::Vector3d::UnitX());
+           * Eigen::AngleAxisd(-M_PI / 6.0, Eigen::Vector3d::UnitX());
     eeTransform.translation()
-        = Eigen::Vector3d{-sin(M_PI * 0.25) * heightAboveFood * 0.5,
-                          0,
+        = Eigen::AngleAxisd(rotateAngle, Eigen::Vector3d::UnitZ()) // Take into account action rotation
+          * Eigen::Vector3d{0,
+                          -sin(M_PI * 0.25) * heightAboveFood * 0.5,
                           cos(M_PI * 0.25) * heightAboveFood * 0.5};
   }
 
   return moveAbove(
       ada,
-      collisionFree,
+      nullptr,
       target,
       eeTransform,
       horizontalTolerance,

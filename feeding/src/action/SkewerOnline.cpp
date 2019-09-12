@@ -48,6 +48,7 @@ bool skewerOnline(
     std::vector<std::string> rotationFreeFoodNames,
     FeedingDemo* feedingDemo)
 {
+  double torqueThreshold = 2;
   ROS_INFO_STREAM("Move above plate");
   bool abovePlaceSuccess = moveAbovePlate(
       ada,
@@ -69,6 +70,14 @@ bool skewerOnline(
     ROS_WARN_STREAM("Move above plate failed. Please restart");
     return false;
   }
+
+  // Re-tare force-torque sensor
+  if (ftThresholdHelper) {
+      ftThresholdHelper->setThresholds(
+          -2, torqueThreshold);
+      ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
+    }
+
 
   // Pause a bit so camera can catch up
   if(velocityLimits[0] > 0.5) {
@@ -95,12 +104,56 @@ bool skewerOnline(
       }
       if (i == 1)
       {
-        if (getUserInputWithOptions(optionPrompts, "Did I succeed in moving over the food?") == 1)
-        {
-          break;
-        }
           talk("Adjusting, hold tight!", true);
-          std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+          std::this_thread::sleep_for(std::chrono::milliseconds(4000));
+
+          // Set Action Override
+          auto action = item->getAction();
+          int actionNum = 0;
+          switch(action->getTiltStyle()) {
+            case TiltStyle::ANGLED:
+            actionNum = 4;
+            break;
+            case TiltStyle::VERTICAL:
+            actionNum = 2;
+            break;
+            default:
+            actionNum = 0;
+          }
+          if (action->getRotationAngle() > 0.01) {
+            // Assume 90-degree action
+            actionNum++;
+          }
+          // Call here so we don't overwrite features
+          Eigen::Vector3d foodVec = item->getPose().rotation() * Eigen::Vector3d::UnitX();
+          double baseRotateAngle = atan2(foodVec[1], foodVec[0]);
+          detectAndMoveAboveFood(
+            ada,
+            collisionFree,
+            perception,
+            foodName,
+            heightAboveFood,
+            horizontalToleranceForFood,
+            verticalToleranceForFood,
+            rotationToleranceForFood,
+            tiltToleranceForFood,
+            planningTimeout,
+            maxNumTrials,
+            velocityLimits,
+            feedingDemo,
+            &baseRotateAngle,
+            actionNum);
+          auto tiltStyle = item->getAction()->getTiltStyle();
+          if (tiltStyle == TiltStyle::ANGLED)
+          {
+            // Apply base rotation of food
+            Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
+            Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ(); 
+            newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.18 / 0.1);
+            endEffectorDirection = newEEDir;
+            endEffectorDirection.normalize();
+          }
+          break;
       }
       ROS_INFO_STREAM("Detect and Move above food");
       item = detectAndMoveAboveFood(
@@ -127,7 +180,11 @@ bool skewerOnline(
       auto tiltStyle = item->getAction()->getTiltStyle();
       if (tiltStyle == TiltStyle::ANGLED)
       {
-        endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
+        // Apply base rotation of food
+        Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
+        Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ(); 
+        newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.18 / 0.1);
+        endEffectorDirection = newEEDir;
         endEffectorDirection.normalize();
       }
       if (!item)
@@ -141,7 +198,6 @@ bool skewerOnline(
         "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
                    << "N with angle mode ");
 
-    double torqueThreshold = 2;
     if (ftThresholdHelper)
       ftThresholdHelper->setThresholds(
           foodSkeweringForces.at(foodName), torqueThreshold);
@@ -175,7 +231,7 @@ bool skewerOnline(
         ada,
         nullptr,
         TargetItem::FOOD,
-        moveOutofFoodLength * 2.0,
+        heightAboveFood,
         direction,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
@@ -221,7 +277,7 @@ bool skewerOnline(
       default:
       actionNum = 0;
     }
-    if (action->getRotationAngle() < 0.01) {
+    if (action->getRotationAngle() > 0.01) {
       // Assume 90-degree action
       actionNum++;
     }

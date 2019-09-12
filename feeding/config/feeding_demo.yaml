@@ -67,10 +67,10 @@ planning:
     rotationToleranceAbovePlate: 3.1416
     horizontalToleranceNearFood: 0.003
     verticalToleranceNearFood: 0.008
-    rotationToleranceNearFood: 0.005
+    rotationToleranceNearFood: 0.01
+    tiltToleranceNearFood: 0.00
     horizontalToleranceNearPerson: 0.03
     verticalToleranceNearPerson: 0.03
-    tiltToleranceNearFood: 0.0
   endEffectorOffset:
     positionTolerance: 0.00008
     angularTolerance: 0.004
@@ -110,7 +110,7 @@ foodItems:
   #forces: [15,3,3,7,22,15,7]
   #pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
   names: ["apple", "banana", "bell_pepper", "broccoli", "cantaloupe", "carrot", "cauliflower", "celery", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry", "lettuce", "spinach", "kale"]
-  forces: [7, 7, 7, 7, 15, 15, 3, 22, 7, 7, 7, 7, 7, 7, 7, 7]
+  forces: [7, 7, 7, 7, 15, 22, 7, 22, 7, 7, 7, 7, 7, 7, 7, 7]
   pickUpAngleModes: [1, 5, 1, 2, 1, 1, 0, 1, 1, 3, 3, 3, 0, 1, 2, 0]
 
 humanStudy:

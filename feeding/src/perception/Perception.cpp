@@ -453,7 +453,7 @@ void Perception::receiveCameraInfo()
 {
   sensor_msgs::CameraInfoConstPtr info
       = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(
-          mCameraInfoTopic, *mNodeHandle, ros::Duration(1));
+          mCameraInfoTopic, *mNodeHandle, ros::Duration(5));
   if (info == nullptr)
   {
     ROS_ERROR("nullptr camera info");
@@ -469,7 +469,7 @@ void Perception::receiveImageMessage(cv_bridge::CvImagePtr& cv_ptr)
 
   sensor_msgs::ImageConstPtr msg
       = ros::topic::waitForMessage<sensor_msgs::Image>(
-          mImageTopic, *mNodeHandle, ros::Duration(10));
+          mImageTopic, *mNodeHandle, ros::Duration(20));
   if (msg == nullptr)
   {
     ROS_ERROR("nullptr image message");

@@ -144,6 +144,7 @@ bool skewer(
           maxNumTrials,
           velocityLimits,
           feedingDemo,
+          nullptr,
           actionOverride);
 
       if (!item)

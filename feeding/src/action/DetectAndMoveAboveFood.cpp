@@ -28,6 +28,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     int maxNumTrials,
     std::vector<double> velocityLimits,
     FeedingDemo* feedingDemo,
+    double* angleGuess,
     int actionOverride)
 {
   std::vector<std::unique_ptr<FoodItem>> candidateItems;
@@ -52,31 +53,6 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
   ROS_INFO_STREAM("Detected " << candidateItems.size() << " " << foodName);
 
   bool moveAboveSuccessful = false;
-
-  if (!getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()))
-  {
-      // Read Action from Topic
-      talk("How should I pick up the food?", false);
-      std::string actionName;
-      std::string actionTopic;
-      feedingDemo->getNodeHandle().param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
-      actionName = getInputFromTopic(actionTopic, feedingDemo->getNodeHandle(), true, -1);
-      talk("Alright, let me use " + actionName, true);
-
-      if (actionName == "cross_skewer") {
-        actionOverride = 1;
-      } else if (actionName == "tilt") {
-        actionOverride = 2;
-      } else if (actionName == "cross_tilt") {
-        actionOverride = 3;
-      } else if (actionName == "angle") {
-        actionOverride = 4;
-      } else if (actionName == "cross_angle"){
-        actionOverride = 5;
-      } else {
-        actionOverride = 0;
-      }
-  }
 
   for (auto& item : candidateItems)
   {
@@ -129,7 +105,8 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
             planningTimeout,
             maxNumTrials,
             velocityLimits,
-            feedingDemo))
+            feedingDemo,
+            angleGuess))
     {
       ROS_INFO_STREAM("Failed to move above " << item->getName());
       talk("Sorry, I'm having a little trouble moving. Let's try again.");

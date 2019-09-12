@@ -25,7 +25,8 @@ bool moveAboveFood(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    FeedingDemo* feedingDemo = nullptr);
+    FeedingDemo* feedingDemo = nullptr,
+    double* angleGuess = nullptr);
 
 } // namespace action
 } // namespace feeding
