@@ -121,8 +121,8 @@ humanStudy:
   foodTopic: /study_food_msgs
   actionTopic: /study_action_msgs
 
-onlineStudy: false
-spanetIncludeFeatures: false
+onlineStudy: true
+spanetIncludeFeatures: true
 
 rotationFree:
   names: []
