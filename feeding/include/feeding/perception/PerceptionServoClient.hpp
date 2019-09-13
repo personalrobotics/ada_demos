@@ -94,6 +94,7 @@ protected:
   Eigen::VectorXd mCurrentPosition;
 
   Eigen::Isometry3d mOriginalPose;
+  Eigen::Isometry3d mPreviousGoalPose;
   Eigen::VectorXd mOriginalConfig;
 
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;

@@ -104,7 +104,7 @@ PerceptionServoClient::PerceptionServoClient(
 
   mVelocityLimits = Eigen::VectorXd(velocityLimits.size());
   for (std::size_t i = 0; i < velocityLimits.size(); ++i)
-    mVelocityLimits[i] = 0.6*velocityLimits[i];
+    mVelocityLimits[i] = 0.8*velocityLimits[i];
 }
 
 //==============================================================================
@@ -282,14 +282,16 @@ bool PerceptionServoClient::updatePerception(Eigen::Isometry3d& goalPose)
   Eigen::Isometry3d currentPose = mBodyNode->getTransform();
 
   // Step 1: Plan from current pose to goal pose.
-  // Eigen::Vector3d vectorToGoalPose
-    // = goalPose.translation() - currentPose.translation();
+  Eigen::Vector3d vectorToGoalPose
+    = goalPose.translation() - currentPose.translation();
 
   // if (vectorToGoalPose.norm() < 0.15)
   // {
-    // mExecutionDone = true;
+    // goalPose = mPreviousGoalPose;
     // return true; 
   // }
+
+  // mPreviousGoalPose = goalPose;
 
   std::cout << "Goal Pose " << goalPose.translation() << std::endl;
   if (goalPose.translation().z() < -0.1)
@@ -306,8 +308,8 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     const Eigen::Isometry3d& goalPose)
 {
 
-  for (std::size_t i = 0; i < mVelocityLimits.size(); ++i)
-    mVelocityLimits[i] = 0.9*mVelocityLimits[i];
+  // for (std::size_t i = 0; i < mVelocityLimits.size(); ++i)
+    // mVelocityLimits[i] = 0.9*mVelocityLimits[i];
 
 
   // using dart::dynamics::InverseKinematics;
@@ -473,6 +475,9 @@ SplinePtr PerceptionServoClient::planToGoalPose(
   //   return std::move(timedTraj);
   // } 
 
+
+  ROS_INFO_STREAM("1");
+
   Eigen::Isometry3d currentPose = mBodyNode->getTransform();
 
   // Step 1: Plan from current pose to goal pose.
@@ -497,6 +502,8 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     return nullptr;
   }
 
+ROS_INFO_STREAM("2");
+
   auto trajToGoal = planEndEffectorOffset(vectorToGoalPose);
   if (!trajToGoal)
   {
@@ -504,10 +511,14 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     return nullptr;
   }
 
+ROS_INFO_STREAM("3");
+
   // Step 2: Plan from original pose to current pose.
   Eigen::Vector3d vectorFromOriginalToCurrent(
     currentPose.translation() - mOriginalPose.translation());
 
+
+ // || (goalPose.translation() - mPreviousGoalPose.translation()).norm() < 0.01)
   UniqueSplinePtr timedTraj;
   if (vectorFromOriginalToCurrent.norm() < 0.001)
   {
@@ -521,12 +532,15 @@ SplinePtr PerceptionServoClient::planToGoalPose(
 
     return timedTraj;
   }
+
   else
   {
     ROS_WARN_STREAM("Computing the second part of the trrajectory");
     auto originalState = mMetaSkeletonStateSpace->createState();
     mMetaSkeletonStateSpace->convertPositionsToState(
         mOriginalConfig, originalState);
+
+ROS_INFO_STREAM("5");
 
     auto trajOriginalToCurrent = planToEndEffectorOffset(
       mMetaSkeletonStateSpace,
@@ -544,6 +558,8 @@ SplinePtr PerceptionServoClient::planToGoalPose(
       1e-2,
       std::chrono::duration<double>(5));
 
+ROS_INFO_STREAM("6");
+
     if (!trajOriginalToCurrent)
       throw std::runtime_error("Failed to generate first half of trajectory");
 
@@ -551,9 +567,16 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     auto concatenatedTraj = concatenate(
       *dynamic_cast<Interpolated*>(trajOriginalToCurrent.get()),
       *dynamic_cast<Interpolated*>(trajToGoal.get()));
+
+ROS_INFO_STREAM("7");
+
+
     timedTraj = computeKunzTiming(
       *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
       mVelocityLimits, mMaxAcceleration, 1e-2, 9e-3);
+
+ROS_INFO_STREAM("8");
+
   }
 
   if (!timedTraj)
@@ -562,11 +585,14 @@ SplinePtr PerceptionServoClient::planToGoalPose(
     return nullptr;
   }
 
+ROS_INFO_STREAM("9");
   // Start from the closest point on the trajectory.
   timedTraj = createPartialTimedTrajectoryFromCurrentConfig(timedTraj.get());
   // Eigen::VectorXd segStartVel(mVelocityLimits.size());
   // timedTraj->evaluateDerivative(timedTraj->getStartTime(), 1, segStartVel);
   // std::cout << "The start velocity of the next trajectory " << segStartVel.transpose() << std::endl;
+
+  ROS_INFO_STREAM("10");
   return timedTraj;
 }
 
@@ -579,8 +605,8 @@ TrajectoryPtr PerceptionServoClient::planEndEffectorOffset(
 
   return mAda->planArmToEndEffectorOffset(
       goalDirection.normalized(),
-      0.15,
-      // std::min(goalDirection.norm(), threshold),
+      // 0.15,
+      std::min(goalDirection.norm(), threshold),
       nullptr,
       mPlanningTimeout,
       mEndEffectorOffsetPositionTolerance,
@@ -610,7 +636,7 @@ PerceptionServoClient::createPartialTimedTrajectoryFromCurrentConfig(
             << std::endl;
 
   // Start 0.3 sec forward since the robot has been moving.
-  refTime += 0.2;
+  refTime += 0.3;
   if (refTime > trajectory->getEndTime()) 
   {
     ROS_WARN_STREAM("Robot already reached end of trajectory.");

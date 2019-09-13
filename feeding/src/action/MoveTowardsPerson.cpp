@@ -30,7 +30,7 @@ bool moveTowardsPerson(
       ada->getHand()->getEndEffectorBodyNode(),
       ada->getTrajectoryExecutor(),
       collisionFree,
-      0.6,
+      0.2,
       0.06,
       planningTimeout,
       endEffectorOffsetPositionTolerenace,
