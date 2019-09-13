@@ -149,12 +149,50 @@ bool skewerOnline(
             // Apply base rotation of food
             Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
             Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ(); 
-            newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.18 / 0.1);
+            newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.24 / 0.1);
             endEffectorDirection = newEEDir;
+            endEffectorDirection.normalize();
+
+            Eigen::Vector3d forkXAxis = eePose.rotation() * Eigen::Vector3d::UnitX();
+            forkXAxis[2] = 0.0;
+            forkXAxis.normalize();
+            endEffectorDirection *= heightAboveFood;
+            endEffectorDirection += (0.01 * forkXAxis);
+            endEffectorDirection.normalize();
+
+          }
+          else if (tiltStyle == TiltStyle::NONE)
+          {
+            // Apply base rotation of food
+            Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
+            Eigen::Vector3d forkYAxis = eePose.rotation() * Eigen::Vector3d::UnitY();
+            forkYAxis[2] = 0.0;
+            forkYAxis.normalize();
+            Eigen::Vector3d forkXAxis = eePose.rotation() * Eigen::Vector3d::UnitX();
+            forkXAxis[2] = 0.0;
+            forkXAxis.normalize(); 
+            endEffectorDirection *= heightAboveFood;
+            endEffectorDirection += ((-0.015 * forkYAxis) + (0.007 * forkXAxis));
+            endEffectorDirection.normalize();
+          }
+          else if (tiltStyle == TiltStyle::VERTICAL)
+          {
+            // Apply base rotation of food
+            Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
+            Eigen::Vector3d forkYAxis = eePose.rotation() * Eigen::Vector3d::UnitY();
+            Eigen::Vector3d forkXAxis = eePose.rotation() * Eigen::Vector3d::UnitX();
+            forkXAxis[2] = 0.0;
+            forkXAxis.normalize();
+            forkYAxis[2] = 0.0;
+            forkYAxis.normalize(); 
+            endEffectorDirection *= heightAboveFood;
+            endEffectorDirection += ((-0.01 * forkYAxis) + (0.005 * forkXAxis));
             endEffectorDirection.normalize();
           }
           break;
       }
+
+      
       ROS_INFO_STREAM("Detect and Move above food");
       item = detectAndMoveAboveFood(
           ada,
@@ -177,16 +215,6 @@ bool skewerOnline(
         return false;
       }
 
-      auto tiltStyle = item->getAction()->getTiltStyle();
-      if (tiltStyle == TiltStyle::ANGLED)
-      {
-        // Apply base rotation of food
-        Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
-        Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ(); 
-        newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.18 / 0.1);
-        endEffectorDirection = newEEDir;
-        endEffectorDirection.normalize();
-      }
       if (!item)
         detectAndMoveAboveFoodSuccess = false;
     }
@@ -238,7 +266,11 @@ bool skewerOnline(
         endEffectorOffsetAngularTolerance,
         ftThresholdHelper);
 
+    // Wait for 5s for falling off
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
     // ===== In Front of Person =====
+    /*
     talk("Testing move to person.", true);
     moveInFrontOfPerson(
           ada,
@@ -250,6 +282,7 @@ bool skewerOnline(
           planningTimeout,
           maxNumTrials,
           velocityLimits);
+    */
 
 
     int loss = 1;

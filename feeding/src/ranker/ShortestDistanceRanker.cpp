@@ -21,6 +21,7 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
     const Eigen::Isometry3d& forqueTransform) const
 {
   TiltStyle tiltStyle(TiltStyle::NONE);
+  double rotation = 0.0;
 
   // Get Ideal Action Per Food Item
   auto it = std::find(FOOD_NAMES.begin(), FOOD_NAMES.end(), item.getName());
@@ -37,10 +38,11 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
       default:
       tiltStyle = TiltStyle::NONE;
     }
+    rotation = (actionNum % 2 == 0) ? 0.0 : M_PI / 2.0;
   }
 
   // TODO: check if rotation and tilt angle should change
-  AcquisitionAction action(tiltStyle, 0.0, 0.0, Eigen::Vector3d(0, 0, -1));
+  AcquisitionAction action(tiltStyle, rotation, 0.0, Eigen::Vector3d(0, 0, -1));
 
   auto itemPose = item.getMetaSkeleton()->getBodyNode(0)->getWorldTransform();
   double distance = getDistance(itemPose, forqueTransform);

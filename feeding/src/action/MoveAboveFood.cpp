@@ -53,7 +53,6 @@ bool moveAboveFood(
 
   if (tiltStyle == TiltStyle::NONE)
   {
-    
     eeTransform.linear() = eeTransform.linear() * rotation;
     eeTransform.translation()[2] = heightAboveFood;
   }
@@ -72,7 +71,7 @@ bool moveAboveFood(
     eeTransform.translation()
         = Eigen::AngleAxisd(rotateAngle, Eigen::Vector3d::UnitZ()) // Take into account action rotation
           * Eigen::Vector3d{0,
-                          -sin(M_PI * 0.25) * heightAboveFood * 0.5,
+                          -sin(M_PI * 0.25) * heightAboveFood * 0.51,
                           cos(M_PI * 0.25) * heightAboveFood * 0.5};
   }
 
