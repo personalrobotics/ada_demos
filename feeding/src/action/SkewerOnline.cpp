@@ -146,10 +146,11 @@ bool skewerOnline(
           auto tiltStyle = item->getAction()->getTiltStyle();
           if (tiltStyle == TiltStyle::ANGLED)
           {
+            ROS_WARN_STREAM("WORKING");
             // Apply base rotation of food
             Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
             Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ(); 
-            newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.24 / 0.1);
+            newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.2 / 0.1);
             endEffectorDirection = newEEDir;
             endEffectorDirection.normalize();
 
@@ -172,7 +173,7 @@ bool skewerOnline(
             forkXAxis[2] = 0.0;
             forkXAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.015 * forkYAxis) + (0.007 * forkXAxis));
+            endEffectorDirection += ((-0.016 * forkYAxis) + (0.007 * forkXAxis));
             endEffectorDirection.normalize();
           }
           else if (tiltStyle == TiltStyle::VERTICAL)
@@ -186,7 +187,7 @@ bool skewerOnline(
             forkYAxis[2] = 0.0;
             forkYAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.01 * forkYAxis) + (0.005 * forkXAxis));
+            endEffectorDirection += ((-0.015 * forkYAxis) + (0.005 * forkXAxis));
             endEffectorDirection.normalize();
           }
           break;
@@ -286,7 +287,7 @@ bool skewerOnline(
 
 
     int loss = 1;
-
+    talk("Record success.", true);
     if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
     {
       ROS_INFO_STREAM("Successful");
@@ -295,46 +296,49 @@ bool skewerOnline(
       ROS_INFO_STREAM("Failed");
     }
 
-    // Publish Loss to algorithm
-    YAML::Node node = item->getExtraInfo();
-    std::vector<double> features = node["features"].as<std::vector<double>>();
-    auto action = item->getAction();
-    int actionNum = 0;
-    switch(action->getTiltStyle()) {
-      case TiltStyle::ANGLED:
-      actionNum = 4;
-      break;
-      case TiltStyle::VERTICAL:
-      actionNum = 2;
-      break;
-      default:
-      actionNum = 0;
-    }
-    if (action->getRotationAngle() > 0.01) {
-      // Assume 90-degree action
-      actionNum++;
-    }
+    if(feedingDemo->mIsOnlineDemo) {
+      // Publish Loss to algorithm
+      YAML::Node node = item->getExtraInfo();
+      std::vector<double> features = node["features"].as<std::vector<double>>();
+      auto action = item->getAction();
+      int actionNum = 0;
+      switch(action->getTiltStyle()) {
+        case TiltStyle::ANGLED:
+        actionNum = 4;
+        break;
+        case TiltStyle::VERTICAL:
+        actionNum = 2;
+        break;
+        default:
+        actionNum = 0;
+      }
+      if (action->getRotationAngle() > 0.01) {
+        // Assume 90-degree action
+        actionNum++;
+      }
 
-    std::vector<double> p_t = item->mAnnotation;
+      std::vector<double> p_t = item->mAnnotation;
 
-    // Actually call service
-    //ros::ServiceClient client = feedingDemo->getNodeHandle().serviceClient<conban_spanet::PublishLoss>("PublishLoss");
-    conban_spanet::PublishLoss srv;
-    srv.request.features.insert(std::end(srv.request.features), std::begin(features), std::end(features));
-    srv.request.p_t.insert(std::end(srv.request.p_t), std::begin(p_t), std::end(p_t));
-    srv.request.a_t = actionNum;
-    srv.request.loss = loss;
+      // Actually call service
+      //ros::ServiceClient client = feedingDemo->getNodeHandle().serviceClient<conban_spanet::PublishLoss>("PublishLoss");
+      conban_spanet::PublishLoss srv;
+      srv.request.features.insert(std::end(srv.request.features), std::begin(features), std::end(features));
+      srv.request.p_t.insert(std::end(srv.request.p_t), std::begin(p_t), std::end(p_t));
+      srv.request.a_t = actionNum;
+      srv.request.loss = loss;
 
-    if (ros::service::call("PublishLoss", srv))
-    {
-      ROS_INFO("Success! Error Message: %d", (int)srv.response.success);
+      if (ros::service::call("PublishLoss", srv))
+      {
+        ROS_INFO("Success! Error Message: %d", (int)srv.response.success);
+      }
+      else
+      {
+        ROS_ERROR("Failed to call service publish_loss");
+        return false;
+      }
+      return srv.response.success;
     }
-    else
-    {
-      ROS_ERROR("Failed to call service publish_loss");
-      return false;
-    }
-    return srv.response.success;
+    return (loss == 0);
 }
 
 } // namespace action

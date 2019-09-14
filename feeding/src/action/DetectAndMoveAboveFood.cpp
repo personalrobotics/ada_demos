@@ -56,6 +56,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
 
   for (auto& item : candidateItems)
   {
+    //actionOverride = 5;
 
     if (actionOverride >= 0)
     {

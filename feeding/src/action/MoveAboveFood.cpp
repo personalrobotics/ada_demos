@@ -67,12 +67,12 @@ bool moveAboveFood(
   {
     eeTransform.linear()
         = eeTransform.linear() * rotation
-           * Eigen::AngleAxisd(-M_PI / 6.0, Eigen::Vector3d::UnitX());
+           * Eigen::AngleAxisd(-M_PI / 8, Eigen::Vector3d::UnitX());
     eeTransform.translation()
         = Eigen::AngleAxisd(rotateAngle, Eigen::Vector3d::UnitZ()) // Take into account action rotation
           * Eigen::Vector3d{0,
-                          -sin(M_PI * 0.25) * heightAboveFood * 0.51,
-                          cos(M_PI * 0.25) * heightAboveFood * 0.5};
+                          -sin(M_PI * 0.25) * heightAboveFood * 0.7,
+                          cos(M_PI * 0.25) * heightAboveFood * 0.4};
   }
 
   return moveAbove(
