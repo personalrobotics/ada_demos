@@ -74,6 +74,39 @@ namespace feeding {
       // Send message to web interface to indicate skewer finished
       publishActionDoneToWeb((ros::NodeHandle*)nodeHandle);
 
+      // Ask for Tilt Override
+      auto overrideTiltOffset = tiltOffset;
+
+      if (!getRosParam<bool>("/humanStudy/autoTransfer", *nodeHandle)) {
+        talk("Should I tilt the food item?", false);
+        std::string done = "";
+        std::string actionTopic;
+        nodeHandle->param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
+        done = getInputFromTopic(actionTopic, *nodeHandle, false, -1);
+
+        if (done == "tilt_the_food" || done == "tilt") {
+          std::vector<double> tiltOffsetVector
+          = getRosParam<std::vector<double>>("/study/tiltOffset", *nodeHandle);
+          auto tiltOffsetEigen = Eigen::Vector3d(
+              tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
+          overrideTiltOffset = &tiltOffsetEigen;
+        } else if (done == "continue") {
+          overrideTiltOffset = nullptr;
+        } else {
+          if (getUserInputWithOptions(optionPrompts, "Not valid, should I tilt??") == 1) {
+            std::vector<double> tiltOffsetVector
+          = getRosParam<std::vector<double>>("/study/tiltOffset", *nodeHandle);
+          auto tiltOffsetEigen = Eigen::Vector3d(
+              tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
+          overrideTiltOffset = &tiltOffsetEigen;
+          } else {
+            overrideTiltOffset = nullptr;
+          }
+        }
+      }
+
+      publishTransferDoneToWeb((ros::NodeHandle*)nodeHandle);
+
       // Check autoTiming, and if false, wait for topic
       if (!getRosParam<bool>("/humanStudy/autoTiming", *nodeHandle)) {
         talk("Let me know when you are ready.", false);
@@ -153,39 +186,6 @@ namespace feeding {
           endEffectorOffsetPositionTolerenace,
           endEffectorOffsetAngularTolerance);
         nodeHandle->setParam("/feeding/facePerceptionOn", false);
-      }
-
-      publishTimingDoneToWeb((ros::NodeHandle*)nodeHandle);
-
-  // Ask for Tilt Override
-      auto overrideTiltOffset = tiltOffset;
-
-      if (!getRosParam<bool>("/humanStudy/autoTransfer", *nodeHandle)) {
-        talk("Should I tilt the food item?", false);
-        std::string done = "";
-        std::string actionTopic;
-        nodeHandle->param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
-        done = getInputFromTopic(actionTopic, *nodeHandle, false, -1);
-
-        if (done == "tilt_the_food" || done == "tilt") {
-          std::vector<double> tiltOffsetVector
-          = getRosParam<std::vector<double>>("/study/tiltOffset", *nodeHandle);
-          auto tiltOffsetEigen = Eigen::Vector3d(
-              tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
-          overrideTiltOffset = &tiltOffsetEigen;
-        } else if (done == "continue") {
-          overrideTiltOffset = nullptr;
-        } else {
-          if (getUserInputWithOptions(optionPrompts, "Not valid, should I tilt??") == 1) {
-            std::vector<double> tiltOffsetVector
-          = getRosParam<std::vector<double>>("/study/tiltOffset", *nodeHandle);
-          auto tiltOffsetEigen = Eigen::Vector3d(
-              tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
-          overrideTiltOffset = &tiltOffsetEigen;
-          } else {
-            overrideTiltOffset = nullptr;
-          }
-        }
       }
 
   // Execute Tilt
@@ -276,7 +276,7 @@ namespace feeding {
         maxNumTrials,
         velocityLimits);
 
-      publishTransferDoneToWeb((ros::NodeHandle*)nodeHandle);
+      publishTimingDoneToWeb((ros::NodeHandle*)nodeHandle);
 
     }
 

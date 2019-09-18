@@ -196,7 +196,7 @@ bool skewer(
             forkXAxis[2] = 0.0;
             forkXAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.022 * forkYAxis) + (-0.01 * forkXAxis));
+            endEffectorDirection += ((-0.012 * forkYAxis) + (-0.005 * forkXAxis));
             endEffectorDirection.normalize();
           }
           else if (tiltStyle == TiltStyle::VERTICAL)
@@ -210,7 +210,7 @@ bool skewer(
             forkYAxis[2] = 0.0;
             forkYAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.015 * forkYAxis) + (-0.01 * forkXAxis));
+            endEffectorDirection += ((-0.017 * forkYAxis) + (-0.01 * forkXAxis));
             endEffectorDirection.normalize();
           }
           break;

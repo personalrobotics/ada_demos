@@ -55,8 +55,8 @@ bool moveAbove(
           ::ada::TrajectoryPostprocessType::KUNZ);
 
       if (!trajectoryCompleted) {
-        if(rotationTolerance <= 1.0) {
-          rotationTolerance *= 2;
+        if(rotationTolerance <= 2.0) {
+          rotationTolerance *= 4;
           std::cout << "Trying again with rotation Tolerance:" << rotationTolerance << std::endl;
           target.mBw = createBwMatrixForTSR(
             horizontalTolerance,
@@ -71,7 +71,7 @@ bool moveAbove(
         break;
       }
 
-    } while(rotationTolerance <= 1.0);
+    } while(rotationTolerance <= 2.0);
     if(!trajectoryCompleted) {
       talk("No trajectory, check T.S.R.", true);
         if (feedingDemo && feedingDemo->getViewer())

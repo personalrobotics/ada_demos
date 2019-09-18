@@ -60,7 +60,7 @@ protected:
       const Eigen::Isometry3d& goalPose);
 
   aikido::trajectory::TrajectoryPtr planEndEffectorOffset(
-      const Eigen::Vector3d& goalDirection);
+      const Eigen::Vector3d& goalDirection, double threshold=0.1);
 
   aikido::trajectory::UniqueSplinePtr
   createPartialTimedTrajectoryFromCurrentConfig(
@@ -94,6 +94,7 @@ protected:
   Eigen::VectorXd mCurrentPosition;
 
   Eigen::Isometry3d mOriginalPose;
+  Eigen::Isometry3d mPreviousGoalPose;
   Eigen::VectorXd mOriginalConfig;
 
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
