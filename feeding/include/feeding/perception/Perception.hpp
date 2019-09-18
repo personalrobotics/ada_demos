@@ -47,7 +47,7 @@ public:
       aikido::planner::WorldPtr world,
       std::shared_ptr<ada::Ada> ada,
       dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
-      ros::NodeHandle* nodeHandle,
+      std::shared_ptr<ros::NodeHandle> nodeHandle,
       std::shared_ptr<TargetFoodRanker> ranker
       = std::make_shared<ShortestDistanceRanker>(),
       float faceZOffset = 0.0,
@@ -86,7 +86,7 @@ private:
 
   tf::TransformListener mTFListener;
   aikido::planner::WorldPtr mWorld;
-  ros::NodeHandle* mNodeHandle;
+  std::shared_ptr<ros::NodeHandle> mNodeHandle;
   dart::dynamics::MetaSkeletonPtr mAdaMetaSkeleton;
 
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFoodDetector;

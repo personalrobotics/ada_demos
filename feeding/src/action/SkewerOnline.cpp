@@ -320,7 +320,6 @@ bool skewerOnline(
       std::vector<double> p_t = item->mAnnotation;
 
       // Actually call service
-      //ros::ServiceClient client = feedingDemo->getNodeHandle().serviceClient<conban_spanet::PublishLoss>("PublishLoss");
       conban_spanet::PublishLoss srv;
       srv.request.features.insert(std::end(srv.request.features), std::begin(features), std::end(features));
       srv.request.p_t.insert(std::end(srv.request.p_t), std::begin(p_t), std::end(p_t));

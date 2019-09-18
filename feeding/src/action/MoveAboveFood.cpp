@@ -50,6 +50,8 @@ bool moveAboveFood(
       = Eigen::AngleAxisd(baseRotateAngle, Eigen::Vector3d::UnitZ());
   target = removeRotation(foodTransform);
   target.linear() = target.linear() * baseRotation;
+  target.translation()[2] = feedingDemo->mTableHeight;
+  ROS_WARN_STREAM("Food Height: " << target.translation()[2]);
 
   if (tiltStyle == TiltStyle::NONE)
   {
@@ -77,7 +79,7 @@ bool moveAboveFood(
 
   return moveAbove(
       ada,
-      nullptr,
+      collisionFree,
       target,
       eeTransform,
       horizontalTolerance,

@@ -394,6 +394,17 @@ aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
       space, metaSkeleton, std::move(nominalState), weights);
 }
 
+static ros::Publisher actionPub;
+static ros::Publisher timingPub;
+static ros::Publisher transferPub;
+static ros::Publisher talkPub;
+void initTopics(ros::NodeHandle* nodeHandle) {
+  actionPub = nodeHandle->advertise<std_msgs::String>("/action_done", 100);
+  timingPub = nodeHandle->advertise<std_msgs::String>("/timing_done", 100);
+  transferPub = nodeHandle->advertise<std_msgs::String>("/transfer_done", 100);
+  talkPub = nodeHandle->advertise<std_msgs::String>("/talk_pub", 100);
+}
+
 //==============================================================================
 void talk(const std::string& statement, bool background)
 {
@@ -407,31 +418,47 @@ void talk(const std::string& statement, bool background)
     cmd = "aoss swift \"" + statement + "\"";
   }
   std::system(cmd.c_str());
+  std_msgs::String msg;
+  msg.data = statement;
+  while (talkPub.getNumSubscribers() < 1) {
+    ROS_INFO_STREAM("Waiting for subscribers...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+  talkPub.publish(msg);
 }
 
-void publishActionDoneToWeb() {
-  ros::NodeHandle actionHandle;
-  ros::Publisher actionPub = actionHandle.advertise<std_msgs::String>("/action_done", 1, true);
+void publishActionDoneToWeb(ros::NodeHandle* nodeHandle) {
+  if (!actionPub) {
+    ROS_WARN_STREAM("EMPTY ACTION PUBLISHER");
+  }
   std_msgs::String msg;
   msg.data = "action done";
+  while (actionPub.getNumSubscribers() < 1) {
+    ROS_INFO_STREAM("Waiting for subscribers...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
   actionPub.publish(msg);
   ROS_INFO_STREAM("action done published to web page");
 }
 
-void publishTimingDoneToWeb() {
-  ros::NodeHandle timingHandle;
-  ros::Publisher timingPub = timingHandle.advertise<std_msgs::String>("/timing_done", 1, true);
+void publishTimingDoneToWeb(ros::NodeHandle* nodeHandle) {
   std_msgs::String msg;
   msg.data = "timing done";
+  while (timingPub.getNumSubscribers() < 1) {
+    ROS_INFO_STREAM("Waiting for subscribers...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
   timingPub.publish(msg);
   ROS_INFO_STREAM("timing done published to web page");
 }
 
-void publishTransferDoneToWeb() {
-  ros::NodeHandle transferHandle;
-  ros::Publisher transferPub = transferHandle.advertise<std_msgs::String>("/transfer_done", 1, true);
+void publishTransferDoneToWeb(ros::NodeHandle* nodeHandle) {
   std_msgs::String msg;
   msg.data = "transfer done";
+  while (transferPub.getNumSubscribers() < 1) {
+    ROS_INFO_STREAM("Waiting for subscribers...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
   transferPub.publish(msg);
   ROS_INFO_STREAM("transfer done published to web page");
 }

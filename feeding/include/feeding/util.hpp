@@ -118,19 +118,21 @@ std::string getInputFromTopic(std::string topic, const ros::NodeHandle& nodeHand
 
 void talk(const std::string&, bool background = false);
 
+void initTopics(ros::NodeHandle* nodeHandle);
+
 //==============================================================================
 // Publish msg to the web interface to indicate food acquisition is done
-void publishActionDoneToWeb();
+void publishActionDoneToWeb(ros::NodeHandle* nodeHandle);
 
 //==============================================================================
 // Publish msg to the web interface to indicate food transfer in front of person
 // is done
-void publishTimingDoneToWeb();
+void publishTimingDoneToWeb(ros::NodeHandle* nodeHandle);
 
 //==============================================================================
 // Publish msg to the web interface to indicate food transfer in front of person
 // is done
-void publishTransferDoneToWeb();
+void publishTransferDoneToWeb(ros::NodeHandle* nodeHandle);
 
 } // namespace feeding
 

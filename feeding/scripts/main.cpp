@@ -92,8 +92,8 @@ int main(int argc, char** argv)
 
   // start node
   ros::init(argc, argv, "feeding");
-  ros::NodeHandle nodeHandle("~");
-  nodeHandle.setParam("/feeding/facePerceptionOn", false);
+  std::shared_ptr<ros::NodeHandle> nodeHandle = std::make_shared<ros::NodeHandle>("~");
+  nodeHandle->setParam("/feeding/facePerceptionOn", false);
   ros::AsyncSpinner spinner(2); // 2 threads
   spinner.start();
 
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
   {
     std::cout << "Construct FTThresholdHelper" << std::endl;
     ftThresholdHelper = std::make_shared<FTThresholdHelper>(
-    adaReal && useFTSensingToStopTrajectories, nodeHandle);
+    adaReal && useFTSensingToStopTrajectories, *nodeHandle);
   }
 
   // start demo
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
       feedingDemo->getWorld(),
       feedingDemo->getAda(),
       feedingDemo->getAda()->getMetaSkeleton(),
-      &nodeHandle,
+      nodeHandle,
       ranker,
       0.0,
       false);
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
         feedingDemo->getWorld(),
         feedingDemo->getAda(),
         feedingDemo->getAda()->getMetaSkeleton(),
-        &nodeHandle,
+        nodeHandle,
         ranker,
         0.0,
         false);
@@ -162,11 +162,11 @@ int main(int argc, char** argv)
 
   if (demoType == "nips")
   {
-    demo(*feedingDemo, perception, nodeHandle);
+    demo(*feedingDemo, perception, *nodeHandle);
   }
   else if (demoType == "spanet")
   {
-    spanetDemo(*feedingDemo, perception, nodeHandle);
+    spanetDemo(*feedingDemo, perception, *nodeHandle);
   }
   else if (demoType == "humanStudy")
   {
@@ -174,7 +174,7 @@ int main(int argc, char** argv)
   }
   else if (demoType == "online")
   {
-    onlineDemo(*feedingDemo, perception, nodeHandle);
+    onlineDemo(*feedingDemo, perception, *nodeHandle);
   }
   else
   {

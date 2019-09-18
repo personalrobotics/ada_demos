@@ -25,7 +25,7 @@ Perception::Perception(
     aikido::planner::WorldPtr world,
     std::shared_ptr<ada::Ada> ada,
     dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
-    ros::NodeHandle* nodeHandle,
+    std::shared_ptr<ros::NodeHandle> nodeHandle,
     std::shared_ptr<TargetFoodRanker> ranker,
     float faceZOffset,
     bool removeRotationForFood)
@@ -165,6 +165,8 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
 }
 
 //==============================================================================
+static Eigen::Isometry3d oldFaceTransform;
+static bool saved = false;
 Eigen::Isometry3d Perception::perceiveFace()
 {
   std::vector<DetectedObject> detectedObjects;
@@ -197,8 +199,13 @@ Eigen::Isometry3d Perception::perceiveFace()
       {
         faceTransform.translation().y() = fixedFaceY;
       }
+      oldFaceTransform = faceTransform;
+      saved = true;
       return faceTransform;
     }
+  }
+  if (saved) {
+    return oldFaceTransform;
   }
   ROS_WARN("face perception failed");
   throw std::runtime_error("Face perception failed");

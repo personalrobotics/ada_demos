@@ -12,6 +12,7 @@
 using ada::util::getRosParam;
 
 static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
+static const std::vector<std::string> actionPrompts{"(1) skewer", "(3) tilt", "(5) angle"};
 
 namespace feeding {
 namespace action {
@@ -87,6 +88,36 @@ bool skewer(
 
   for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
   {
+    if (!getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())))
+      {
+          // Read Action from Topic
+          talk("How should I pick up the food?", false);
+          ROS_INFO_STREAM("Waiting for action...");
+          std::string actionName;
+          std::string actionTopic;
+          feedingDemo->getNodeHandle()->param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
+          actionName = getInputFromTopic(actionTopic, *(feedingDemo->getNodeHandle()), false, -1);
+          talk("Alright, let me use " + actionName, true);
+
+          if (actionName == "skewer") {
+            actionOverride = 1;
+          } else if (actionName == "cross_skewer") {
+            actionOverride = 1;
+          } else if (actionName == "tilt") {
+            actionOverride = 3;
+          } else if (actionName == "cross_tilt") {
+            actionOverride = 3;
+          } else if (actionName == "angle") {
+            actionOverride = 5;
+          } else if (actionName == "cross_angle"){
+            actionOverride = 5;
+          } else {
+            actionOverride = getUserInputWithOptions(actionPrompts, "Didn't get valid action. Choose manually:");
+            if (actionOverride > 5 || actionOverride < 0) {
+              actionOverride = 1;
+            }
+          }
+      }
     Eigen::Vector3d endEffectorDirection(0, 0, -1);
     std::unique_ptr<FoodItem> item;
     for (std::size_t i = 0; i < 2; ++i)
@@ -142,7 +173,7 @@ bool skewer(
             // Apply base rotation of food
             Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
             Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ(); 
-            newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.24 / 0.1);
+            newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.2 / 0.1);
             endEffectorDirection = newEEDir;
             endEffectorDirection.normalize();
 
@@ -165,7 +196,7 @@ bool skewer(
             forkXAxis[2] = 0.0;
             forkXAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.015 * forkYAxis) + (0.007 * forkXAxis));
+            endEffectorDirection += ((-0.022 * forkYAxis) + (-0.01 * forkXAxis));
             endEffectorDirection.normalize();
           }
           else if (tiltStyle == TiltStyle::VERTICAL)
@@ -179,35 +210,10 @@ bool skewer(
             forkYAxis[2] = 0.0;
             forkYAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.01 * forkYAxis) + (0.005 * forkXAxis));
+            endEffectorDirection += ((-0.015 * forkYAxis) + (-0.01 * forkXAxis));
             endEffectorDirection.normalize();
           }
           break;
-      }
-
-      if (!getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()) && i == 0)
-      {
-          // Read Action from Topic
-          talk("How should I pick up the food?", false);
-          std::string actionName;
-          std::string actionTopic;
-          feedingDemo->getNodeHandle().param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
-          actionName = getInputFromTopic(actionTopic, feedingDemo->getNodeHandle(), false, -1);
-          talk("Alright, let me use " + actionName, true);
-
-          if (actionName == "cross_skewer") {
-            actionOverride = 1;
-          } else if (actionName == "tilt") {
-            actionOverride = 2;
-          } else if (actionName == "cross_tilt") {
-            actionOverride = 3;
-          } else if (actionName == "angle") {
-            actionOverride = 4;
-          } else if (actionName == "cross_angle"){
-            actionOverride = 5;
-          } else {
-            actionOverride = 0;
-          }
       }
 
       ROS_INFO_STREAM("Detect and Move above food");
@@ -239,8 +245,8 @@ bool skewer(
       }
 
       // Add error if autonomous
-      if(getRosParam<bool>("/humanStudy/autoAcquisition", feedingDemo->getNodeHandle()) && // autonomous
-        getRosParam<bool>("/humanStudy/createError", feedingDemo->getNodeHandle()) && // add error
+      if(getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())) && // autonomous
+        getRosParam<bool>("/humanStudy/createError", *(feedingDemo->getNodeHandle())) && // add error
         trialCount == 0) // First Trial
       { 
         ROS_WARN_STREAM("Error Requested for Acquisition!");
@@ -300,11 +306,12 @@ bool skewer(
     if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
     {
       ROS_INFO_STREAM("Successful");
+      talk("Success.");
       return true;
     }
 
     ROS_INFO_STREAM("Failed.");
-    talk("Oops, let me try again.");
+    talk("Failed, let me try again.");
   }
   return false;
 }

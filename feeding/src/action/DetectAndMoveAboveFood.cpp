@@ -70,7 +70,6 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
         std::vector<double> features = node["features"].as<std::vector<double>>();
 
         // Send features to ROS Service
-        // ros::ServiceClient client = feedingDemo->getNodeHandle().serviceClient<conban_spanet::GetAction>("GetAction");
         conban_spanet::GetAction srv;
         srv.request.features.insert(std::end(srv.request.features), std::begin(features), std::end(features));
         if (ros::service::call("GetAction", srv))

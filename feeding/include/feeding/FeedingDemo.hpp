@@ -44,7 +44,7 @@ public:
   /// \param[in] nodeHandle Handle of the ros node.
   FeedingDemo(
       bool adaReal,
-      ros::NodeHandle nodeHandle,
+      std::shared_ptr<ros::NodeHandle> nodeHandle,
       bool useFTSensingToStopTrajectories,
       bool useVisualServo,
       bool allowFreeRotation,
@@ -58,7 +58,7 @@ public:
   void setPerception(std::shared_ptr<Perception> perception);
 
   /// Gets the Node Handle
-  ros::NodeHandle getNodeHandle();
+  std::shared_ptr<ros::NodeHandle> getNodeHandle();
 
   /// Gets the aikido world
   aikido::planner::WorldPtr getWorld();
@@ -121,6 +121,7 @@ public:
   Eigen::Vector3d mTiltOffset;
 
   bool mIsOnlineDemo;
+  double mTableHeight;
 
 private:
   /// Attach food to forque
@@ -134,7 +135,7 @@ private:
   bool mAutoContinueDemo;
   bool mVisualServo;
   bool mAllowRotationFree;
-  ros::NodeHandle mNodeHandle;
+  std::shared_ptr<ros::NodeHandle> mNodeHandle;
   std::shared_ptr<Perception> mPerception;
   std::shared_ptr<FTThresholdHelper> mFTThresholdHelper;
 

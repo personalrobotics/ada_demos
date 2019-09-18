@@ -22,7 +22,7 @@ namespace feeding {
 void humanStudyDemo(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
-    ros::NodeHandle nodeHandle)
+    std::shared_ptr<ros::NodeHandle> nodeHandle)
 {
 
   ROS_INFO_STREAM("==========  DEMO ==========");
@@ -33,6 +33,7 @@ void humanStudyDemo(
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
   //talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
+  initTopics(nodeHandle.get());
 
   while (true)
   {
@@ -40,12 +41,12 @@ void humanStudyDemo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     talk("What food would you like?");
-    auto foodName = getUserFoodInput(true, nodeHandle);
+    auto foodName = getUserFoodInput(true, *nodeHandle, true, 10);
     if (foodName == std::string("quit")) {
         break;
     }
 
-    nodeHandle.setParam("/deep_pose/forceFood", false);
+    nodeHandle->setParam("/deep_pose/forceFood", false);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     ROS_INFO_STREAM("Running human study for " << foodName);
@@ -57,7 +58,7 @@ void humanStudyDemo(
         workspace,
         collisionFree,
         perception,
-        &nodeHandle,
+        nodeHandle.get(),
         foodName,
         plate,
         feedingDemo.getPlateEndEffectorTransform(),
@@ -87,11 +88,10 @@ void humanStudyDemo(
         continue;
       }
 
-      // Send message to web interface to indicate skewer finished
-      publishActionDoneToWeb();
-
       // ===== IN FRONT OF PERSON =====
       ROS_INFO_STREAM("Move forque in front of person");
+      if (feedingDemo.getFTThresholdHelper())
+        feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
       // TODO: Set tilted explcitly for long food items:
       bool tilted = (foodName == "celery" || foodName == "carrot" || foodName == "bell_pepper" || foodName == "apple");
@@ -102,7 +102,7 @@ void humanStudyDemo(
         collisionFree,
         feedingDemo.getCollisionConstraintWithWallFurtherBack(),
         perception,
-        &nodeHandle,
+        nodeHandle.get(),
         plate,
         feedingDemo.getPlateEndEffectorTransform(),
         workspace->getPersonPose(),

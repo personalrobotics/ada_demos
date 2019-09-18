@@ -13,6 +13,8 @@ using aikido::constraint::dart::TSR;
 
 namespace feeding {
   namespace action {
+
+    static const std::vector<std::string> optionPrompts{"(1) tilt", "(2) no tilt"};
     //==============================================================================
     void feedFoodToPerson(
       const std::shared_ptr<ada::Ada>& ada,
@@ -69,6 +71,9 @@ namespace feeding {
           break;
       }
 
+      // Send message to web interface to indicate skewer finished
+      publishActionDoneToWeb((ros::NodeHandle*)nodeHandle);
+
       // Check autoTiming, and if false, wait for topic
       if (!getRosParam<bool>("/humanStudy/autoTiming", *nodeHandle)) {
         talk("Let me know when you are ready.", false);
@@ -82,8 +87,14 @@ namespace feeding {
         nodeHandle->setParam("/feeding/facePerceptionOn", true);
         talk("Open your mouth when ready.", false);
         // TODO: Add mouth-open detection.
-        while(!perception->isMouthOpen()) {
+        while(true) {
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
+          if(perception->isMouthOpen()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if(perception->isMouthOpen()) {
+              break;
+            }
+          }
         }
         nodeHandle->setParam("/feeding/facePerceptionOn", false);
 
@@ -97,7 +108,6 @@ namespace feeding {
 
       if (moveIFOSuccess)
       {
-        publishTimingDoneToWeb();
 
         if(getRosParam<bool>("/humanStudy/autoTransfer", *nodeHandle) &&
           getRosParam<bool>("/humanStudy/createError", *nodeHandle)) {
@@ -145,6 +155,8 @@ namespace feeding {
         nodeHandle->setParam("/feeding/facePerceptionOn", false);
       }
 
+      publishTimingDoneToWeb((ros::NodeHandle*)nodeHandle);
+
   // Ask for Tilt Override
       auto overrideTiltOffset = tiltOffset;
 
@@ -161,8 +173,18 @@ namespace feeding {
           auto tiltOffsetEigen = Eigen::Vector3d(
               tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
           overrideTiltOffset = &tiltOffsetEigen;
-        } else {
+        } else if (done == "continue") {
           overrideTiltOffset = nullptr;
+        } else {
+          if (getUserInputWithOptions(optionPrompts, "Not valid, should I tilt??") == 1) {
+            std::vector<double> tiltOffsetVector
+          = getRosParam<std::vector<double>>("/study/tiltOffset", *nodeHandle);
+          auto tiltOffsetEigen = Eigen::Vector3d(
+              tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
+          overrideTiltOffset = &tiltOffsetEigen;
+          } else {
+            overrideTiltOffset = nullptr;
+          }
         }
       }
 
@@ -221,17 +243,18 @@ namespace feeding {
 
     // Backward
         ada::util::waitForUser("Move backward", ada);
-        publishTransferDoneToWeb();
         talk("Let me get out of your way.", true);
         Eigen::Vector3d goalDirection(0, -1, 0);
-        bool success = ada->moveArmToEndEffectorOffset(
-          goalDirection.normalized(),
-          0.1,
-        nullptr, // collisionFreeWithWallFurtherBack,
-        planningTimeout,
-        endEffectorOffsetPositionTolerenace * 2,
-        endEffectorOffsetAngularTolerance * 2);
-
+        bool success = moveInFrontOfPerson(
+          ada,
+          nullptr,
+          personPose,
+          distanceToPerson,
+          horizontalToleranceForPerson * 2,
+          verticalToleranceForPerson * 2,
+          planningTimeout,
+          maxNumTrials,
+          velocityLimits);
         ROS_INFO_STREAM("Backward " << success << std::endl);
       }
 
@@ -252,6 +275,8 @@ namespace feeding {
         planningTimeout,
         maxNumTrials,
         velocityLimits);
+
+      publishTransferDoneToWeb((ros::NodeHandle*)nodeHandle);
 
     }
 
