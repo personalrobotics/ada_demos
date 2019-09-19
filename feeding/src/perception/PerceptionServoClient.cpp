@@ -642,7 +642,7 @@ PerceptionServoClient::createPartialTimedTrajectoryFromCurrentConfig(
             << std::endl;
 
   // Start 0.3 sec forward since the robot has been moving.
-  refTime += 0.3;
+  refTime += 0.8;
   if (refTime > trajectory->getEndTime()) 
   {
     ROS_WARN_STREAM("Robot already reached end of trajectory.");

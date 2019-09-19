@@ -25,25 +25,25 @@ ada:
 # Workspace parameters
 plate:
   urdfUri: package://pr_assets/data/objects/plate.urdf
-  pose: [.445, 0.19, -0.14, 0, 0, 0]
+  pose: [.445, 0.19, -0.06, 0, 0, 0]
 table:
   urdfUri: package://pr_assets/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.86, 0, 0, 0]
+  pose: [0.76, 0.38, -0.78, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_assets/data/objects/food_item.urdf
-  pose: [.445, 0.19, -0.1, 3.1415, 0, 0]
+  pose: [.445, 0.19, -0.02, 3.1415, 0, 0]
 person: # the mannequin
   urdfUri: package://pr_assets/data/objects/tom.urdf
-  pose: [0.425, -0.45, 0.402, 0, 0, 1.57]
+  pose: [0.425, -0.45, 0.482, 0, 0, 1.57]
 workspaceEnvironment:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
-  pose: [0, 0, -0.1, 0, 0, 0]
+  pose: [0, 0, -0.02, 0, 0, 0]
 workspaceEnvironmentWithWallFurtherBack:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_without_wall.urdf
-  pose: [0, 0, -0.1, 0, 0, 0]
+  pose: [0, 0, -0.02, 0, 0, 0]
 wheelchair:
   urdfUri: package://pr_assets/data/furniture/wheelchair.urdf
-  pose: [0.0, 0.0, -0.1, 0, 0, 0]
+  pose: [0.0, 0.0, -0.02, 0, 0, 0]
 
 # Feeding demo movement parameters
 feedingDemo:
@@ -55,7 +55,7 @@ feedingDemo:
   distanceFromPerson: 0.15
   waitMillisecsAtFood: 00     # short pause after skewering the food
   waitMillisecsAtPerson: 3000   # long pause so person can take a bite
-  fixedFaceY: 0.31
+  fixedFaceY: 0.22
 
 # Planning parameters
 planning:
@@ -114,9 +114,9 @@ foodItems:
   pickUpAngleModes: [1, 5, 1, 2, 1, 1, 0, 1, 1, 3, 3, 3, 0, 1, 2, 0]
 
 humanStudy:
-  autoAcquisition: false
-  autoTiming: false
-  autoTransfer: false
+  autoAcquisition: true
+  autoTiming: true
+  autoTransfer: true
   createError: false
   foodTopic: /study_food_msgs
   actionTopic: /study_action_msgs
@@ -131,7 +131,7 @@ study:
   skipSkewering: false
   doForkPickup: false
 
-  tableHeight: 0.13
+  tableHeight: 0.21
 
   # y positive is closer to wheelchair
   # z
@@ -152,7 +152,7 @@ study:
   # personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
   # ERRONEOUS:
   personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
-  tiltOffset: [-0.04, 0, -0.04]
+  tiltOffset: [-0.04, 0, -0.02]
 
   # FAST:
   velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1.0]

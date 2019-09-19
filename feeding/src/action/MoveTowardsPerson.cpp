@@ -31,7 +31,7 @@ bool moveTowardsPerson(
       ada->getTrajectoryExecutor(),
       collisionFree,
       0.2,
-      0.06,
+      0.015,
       planningTimeout,
       endEffectorOffsetPositionTolerenace,
       endEffectorOffsetAngularTolerance,
