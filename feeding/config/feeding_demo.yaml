@@ -55,7 +55,7 @@ feedingDemo:
   distanceFromPerson: 0.15
   waitMillisecsAtFood: 00     # short pause after skewering the food
   waitMillisecsAtPerson: 3000   # long pause so person can take a bite
-  fixedFaceY: 0.22
+  fixedFaceY: 0.23
 
 # Planning parameters
 planning:
@@ -69,10 +69,10 @@ planning:
     verticalToleranceNearFood: 0.008
     rotationToleranceNearFood: 0.01
     tiltToleranceNearFood: 0.00
-    horizontalToleranceNearPerson: 0.03
-    verticalToleranceNearPerson: 0.03
+    horizontalToleranceNearPerson: 0.01
+    verticalToleranceNearPerson: 0.01
   endEffectorOffset:
-    positionTolerance: 0.00008
+    positionTolerance: 0.004
     angularTolerance: 0.004
   endEffectorTwist:
     positionTolerance: 0.0002
@@ -117,7 +117,7 @@ humanStudy:
   autoAcquisition: true
   autoTiming: true
   autoTransfer: true
-  createError: false
+  createError: true
   foodTopic: /study_food_msgs
   actionTopic: /study_action_msgs
 
@@ -152,7 +152,7 @@ study:
   # personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
   # ERRONEOUS:
   personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
-  tiltOffset: [-0.04, 0, -0.02]
+  tiltOffset: [0.0, 0, -0.04]
 
   # FAST:
   velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1.0]

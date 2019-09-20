@@ -196,7 +196,7 @@ bool skewer(
             forkXAxis[2] = 0.0;
             forkXAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.012 * forkYAxis) + (-0.005 * forkXAxis));
+            endEffectorDirection += ((-0.03 * forkYAxis) + (-0.005 * forkXAxis));
             endEffectorDirection.normalize();
           }
           else if (tiltStyle == TiltStyle::VERTICAL)
@@ -210,7 +210,7 @@ bool skewer(
             forkYAxis[2] = 0.0;
             forkYAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.017 * forkYAxis) + (-0.01 * forkXAxis));
+            endEffectorDirection += ((-0.032 * forkYAxis) + (-0.01 * forkXAxis));
             endEffectorDirection.normalize();
           }
           break;
@@ -250,7 +250,7 @@ bool skewer(
         trialCount == 0) // First Trial
       { 
         ROS_WARN_STREAM("Error Requested for Acquisition!");
-        endEffectorDirection(1) += 1.0;
+        endEffectorDirection(1) -= 1.0;
         endEffectorDirection.normalize();
       }
     }

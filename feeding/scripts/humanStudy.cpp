@@ -94,7 +94,7 @@ void humanStudyDemo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
       // TODO: Set tilted explcitly for long food items:
-      bool tilted = (foodName == "celery" || foodName == "carrot" || foodName == "bell_pepper");
+      bool tilted = (foodName == "celery" || foodName == "carrot" || foodName == "bell_pepper" || foodName == "apple");
 
       action::feedFoodToPerson(
         ada,
