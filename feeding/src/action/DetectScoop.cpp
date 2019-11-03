@@ -17,7 +17,6 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <math.h>
-#include "feeding/action/ScoopHelper.hpp"
 
 using ada::util::waitForUser;
 using ada::util::waitForAnyKey;
@@ -43,7 +42,8 @@ bool DetectScoop(
     const Eigen::Isometry3d& plateEndEffectorTransform,
     double height,
     double theta,
-    double minima, 
+    double minima,
+    double direction, 
     int demotype,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
@@ -54,6 +54,11 @@ bool DetectScoop(
     int maxNumTrials,
     std::vector<double> velocityLimits)
 {
+    auto mArm = ada->getArm();
+    auto mArmSpace = mArm->getStateSpace();
+    auto metaSkeleton = mArm->getMetaSkeleton();
+    auto startState = mArmSpace->createState();
+    mArmSpace->getState(metaSkeleton.get(), startState);
 
     std::cout << "demotype = " << demotype << std::endl;
     std::cout << "height = " << height << std::endl;
@@ -66,176 +71,118 @@ bool DetectScoop(
     std::vector<Pose> wayPoints = scoopTraj.getWayPoints(num);
     Pose last_pose = scoopTraj.eval(0);
 
-    // std::cout <<"begin scoop traj"<<std::endl;
     double delta_x, delta_z, delta_l, delta_roll;
     TrajectoryPtr *traj_vector = new TrajectoryPtr[wayPoints.size()];
-
-    auto mArm = ada->getArm();
-    auto mArmSpace = mArm->getStateSpace();
-    auto metaSkeleton = mArm->getMetaSkeleton();
-    auto startState = mArmSpace->createState();
 
 // ----------------------------------------------------------------------------------------------------
 // Plan Scoop Traj
 
-    mArmSpace->getState(metaSkeleton.get(), startState);
     int i = 0;
     TrajectoryPtr traj;
     bool successConTraj;
     // ----------------------------------------------------------------------------------------------------
     // Kinova Traj and its variations
 
-    if (demotype == 0 || demotype == 1 || demotype == 2)
+
+    for (auto pose: wayPoints)
     {
-        for (auto pose = wayPoints.begin(); pose != wayPoints.end(); ++pose)
+        delta_x = (pose.z - last_pose.z) * direction;
+        delta_z = (pose.y - last_pose.y);
+        delta_roll = (pose.roll_angle - last_pose.roll_angle) * direction;
+        delta_l = sqrt(delta_x*delta_x + delta_z*delta_z); // length
+
+        Eigen::Vector3d unitDir = Eigen::Vector3d(delta_x/delta_l, 0.0, delta_z/delta_l);
+
+        if (demotype == 0)
         {
-            delta_x = (*pose).z - last_pose.z;
-            delta_z = (*pose).y - last_pose.y;
-            delta_roll = (*pose).roll_angle - last_pose.roll_angle;
-            delta_l = sqrt(delta_x*delta_x + delta_z*delta_z); // length
+            // 0 kinovascoop
 
-            Eigen::Vector3d direction = Eigen::Vector3d(delta_x/delta_l, 0.0, delta_z/delta_l);
-            if (demotype == 0)
-            {
-                // 0 kinovascoop
-
-                Eigen::VectorXd twists(6);
-                if (i<5)
-                    twists << 0.0, 0.0, 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
-                else
-                    twists << 0.0, 0.0, 0.0, delta_x * cos(theta), delta_x * sin(theta), 3 * delta_z;
-
-                traj = ada->planWithEndEffectorTwist(
-                    twists,
-                    1,
-                    startState,
-                    collisionFree,
-                    planningTimeout,
-                    endEffectorOffsetPositionTolerance,
-                    endEffectorOffsetAngularTolerance);
-            }
-            else if (demotype == 1)
-            {
-                // 1 kinovascoop with twist
-
-                Eigen::VectorXd twists(6);
-                if (i==0)
-                    twists << - (*pose).roll_angle * sin(theta), (*pose).roll_angle * cos(theta) , 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
-                else if (i<5)
-                    twists << - delta_roll * sin(theta), delta_roll * cos(theta), 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
-                else
-                    twists << - delta_roll * sin(theta), delta_roll * cos(theta), 0.0, delta_x * cos(theta), delta_x * sin(theta), 3 * delta_z;
-
-                traj = ada->planWithEndEffectorTwist(
-                    twists,
-                    1,
-                    startState,
-                    collisionFree,
-                    planningTimeout,
-                    endEffectorOffsetPositionTolerance,
-                    endEffectorOffsetAngularTolerance);
-            }
-            else if (demotype==2)
-            {
-                // 2 foward kinovascoop with twist
-
-                Eigen::VectorXd twists(6);
-                if (i==0)
-                    twists << 0.0, -(M_PI/2 - (*pose).roll_angle), 0.0, delta_x, 0.0, delta_z;
-                else if (i<3)
-                    twists << 0.0, delta_roll, 0.0, delta_x, 0.0, delta_z;
-                else if (i>5)
-                    twists << 0.0, 0, 0.0, delta_x, 0.0, 3*delta_z;
-                else
-                    twists << 0.0, 0, 0.0, delta_x, 0.0, delta_z;
-                // if (i==0)
-                //     twists << 0.0, -M_PI/3, 0.0, delta_x, 0.0, delta_z;
-                // else if (i>5)
-                //     twists << 0.0, 0, 0.0, delta_x, 0.0, 3*delta_z;
-                // else
-                //     twists << 0.0, 0, 0.0, delta_x, 0.0, delta_z;
-
-                traj = ada->planWithEndEffectorTwist(
-                    twists,
-                    1,
-                    startState,
-                    collisionFree,
-                    planningTimeout,
-                    endEffectorOffsetPositionTolerance,
-                    endEffectorOffsetAngularTolerance);
-            }
+            Eigen::VectorXd twists(6);
+            if (i<5)
+                twists << 0.0, 0.0, 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
             else
-                std::cout << "wrong demotype" << std::endl;
+                twists << 0.0, 0.0, 0.0, delta_x * cos(theta), delta_x * sin(theta), 3 * delta_z;
 
-            traj_vector[i] = traj;
-            std::cout << "round " << i++ << std::endl;
-            last_pose = (*pose);
-
-            // set the virtual state to next position.
-            auto _traj = dynamic_cast<Interpolated*>(traj.get());
-            _traj->evaluate(_traj->getEndTime(), startState);
+            traj = ada->planWithEndEffectorTwist(
+                twists,
+                1,
+                startState,
+                collisionFree,
+                planningTimeout,
+                endEffectorOffsetPositionTolerance,
+                endEffectorOffsetAngularTolerance);
         }
-
-        //------------------------------------------------------------------------------------
-        // Concatenate planned traj and excecute it.
-
-        TrajectoryPtr trajnext, concatenatedTraj = traj_vector[0];
-
-        // concatenate all trajs
-        for (int k=1; k<wayPoints.size(); k++)
+        if (demotype == 1)
         {
-            trajnext = traj_vector[k];
-            concatenatedTraj = concatenate(
-              *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
-              *dynamic_cast<Interpolated*>(trajnext.get()));
+            // 1 kinovascoop with twist
+
+            Eigen::VectorXd twists(6);
+            if (i==0)
+                twists << - pose.roll_angle * sin(theta) * direction, pose.roll_angle * cos(theta) * direction, 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
+            else if (i<5)
+                twists << - delta_roll * sin(theta), delta_roll * cos(theta), 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
+            else
+                twists << - delta_roll * sin(theta), delta_roll * cos(theta), 0.0, delta_x * cos(theta), delta_x * sin(theta), 3 * delta_z;
+
+            traj = ada->planWithEndEffectorTwist(
+                twists,
+                1,
+                startState,
+                collisionFree,
+                planningTimeout,
+                endEffectorOffsetPositionTolerance,
+                endEffectorOffsetAngularTolerance);
+        }
+        if (demotype==2)
+        {
+            // 2 foward kinovascoop with twist
+
+            Eigen::VectorXd twists(6);
+            if (i==0)
+                twists << 0.0, -(M_PI/2 - pose.roll_angle), 0.0, delta_x, 0.0, delta_z;
+            else if (i<3)
+                twists << 0.0, delta_roll, 0.0, delta_x, 0.0, delta_z;
+            else if (i>5)
+                twists << 0.0, 0, 0.0, delta_x, 0.0, 3*delta_z;
+            else
+                twists << 0.0, 0, 0.0, delta_x, 0.0, delta_z;
+
+            traj = ada->planWithEndEffectorTwist(
+                twists,
+                1,
+                startState,
+                collisionFree,
+                planningTimeout,
+                endEffectorOffsetPositionTolerance,
+                endEffectorOffsetAngularTolerance);
         }
 
-        successConTraj = ada->moveArmOnTrajectory(concatenatedTraj, collisionFree, ada::KUNZ, velocityLimits);
+        traj_vector[i] = traj;
+        std::cout << "round " << i++ << std::endl;
+        last_pose = pose;
 
+        // set the virtual state to next position.
+        auto _traj = dynamic_cast<Interpolated*>(traj.get());
+        _traj->evaluate(_traj->getEndTime(), startState);
     }
 
-    // ----------------------------------------------------------------------------------------------------
-    // // Ryan's Scoop.
+    //------------------------------------------------------------------------------------
+    // Concatenate planned traj and excecute it.
 
-    else
+    TrajectoryPtr trajnext, concatenatedTraj = traj_vector[0];
+
+    // concatenate all trajs
+    for (int k=1; k<wayPoints.size(); k++)
     {
-        // twist1: [-0.0, -0.20, -0, 0.005, -0.00, -0.02]
-        // twist2: [-0.0, -0.60, -0, 0.04, -0.00, -0.005]
-        // twist3: [-0.0, -0.50, -0, 0.03, -0.00, 0.06]
-
-        Eigen::VectorXd twists1(6);
-        twists1 << -0.0, -0.20, -0, -0.005, -0.00, -0.02;
-        ada->moveArmWithEndEffectorTwist(
-            twists1,
-            1,
-            collisionFree,
-            planningTimeout,
-            endEffectorOffsetPositionTolerance,
-            endEffectorOffsetAngularTolerance,
-            velocityLimits);
-
-        Eigen::VectorXd twists2(6);
-        twists2 << -0.0, -0.60, -0, -0.04, -0.00, -0.005;
-        ada->moveArmWithEndEffectorTwist(
-            twists2,
-            1,
-            collisionFree,
-            planningTimeout,
-            endEffectorOffsetPositionTolerance,
-            endEffectorOffsetAngularTolerance,
-            velocityLimits);
-
-        Eigen::VectorXd twists3(6);
-        twists3 << -0.0, -0.50, -0, -0.03, -0.00, 0.06;
-        ada->moveArmWithEndEffectorTwist(
-            twists3,
-            1,
-            collisionFree,
-            planningTimeout,
-            endEffectorOffsetPositionTolerance,
-            endEffectorOffsetAngularTolerance,
-            velocityLimits);
+        trajnext = traj_vector[k];
+        concatenatedTraj = concatenate(
+          *dynamic_cast<Interpolated*>(concatenatedTraj.get()),
+          *dynamic_cast<Interpolated*>(trajnext.get()));
     }
+
+    successConTraj = ada->moveArmOnTrajectory(concatenatedTraj, collisionFree, ada::KUNZ, velocityLimits);
+
+
 
 // -------------------------------------------------------------------------------------------------------
 // Lift the arm after every excecution
@@ -253,7 +200,7 @@ bool DetectScoop(
     if ( (lift == 'Y') || (lift == 'y'))
     {
         Eigen::VectorXd twists(6);
-        twists << 0, 0, 0.0, 0, 0.0, 0.15;
+        twists << 0, 0, 0.0, 0, 0.0, 0.075;
         ada->moveArmWithEndEffectorTwist(
             twists,
             1,

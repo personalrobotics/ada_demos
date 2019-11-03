@@ -6,6 +6,8 @@
 #include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
 #include "feeding/FeedingDemo.hpp"
+#include "feeding/action/ScoopHelper.hpp"
+#include "feeding/action/PolyTraj.hpp"
 
 namespace feeding {
 namespace action {
@@ -18,6 +20,7 @@ bool DetectScoop(
     double hight,
     double theta,
     double minima,
+    double direction, 
     int demotype,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,

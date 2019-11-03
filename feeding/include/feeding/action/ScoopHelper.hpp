@@ -4,10 +4,14 @@
 #include <vector>
 #include <math.h>
 
+#include <ros/ros.h>
+#include <libada/util.hpp>
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
 using namespace Eigen;
+using ada::util::getRosParam;
+using ada::util::createIsometry;
 
 // add max_size property and anato vector
 class myvec : public std::vector<double>
@@ -68,28 +72,28 @@ class MarkersListener
 private:    
     
     int seq;
-    int maxsize = 100;
+    int maxsize = 30;
     visualization_msgs::Marker marker;
     Eigen::Isometry3d FoodTransform; // transformation from camera frame to food item frame
     double tx, ty, tz, rx, ry, rz, rw;
     myvec buffX, buffY, buffZ;
-    // myvec buffX = new myvec(100);
-    // myvec buffY = new myvec(100);
-    // myvec buffZ = new myvec(100);
     double x, y, z;
     double sdx, sdy, sdz;
+    Eigen::Isometry3d  plateCenter; 
+    Eigen::Vector3d quadrantVec;
 
 public:
 
-    //MarkersListener(ros::NodeHandle n) 
-    MarkersListener() 
+    // MarkersListener(ros::NodeHandle n) 
+    MarkersListener(ros::NodeHandle mNodeHandle) 
     {
         seq = 0;
         std::cout << "Contruct a MarkerArray Listener" << std::endl;
         buffX.setMaxSize(maxsize);
         buffY.setMaxSize(maxsize);
         buffZ.setMaxSize(maxsize);
-       // sub = n.subscribe("/food_detector/marker_array", 100, callback);
+        plateCenter = createIsometry(getRosParam<std::vector<double>>("/plate/centerPose", mNodeHandle));
+        // sub = n.subscribe("/food_detector/marker_array", 100, callback);
     }
 
     void callback(visualization_msgs::MarkerArray marker_array) 
@@ -144,6 +148,8 @@ public:
         // std::cout << m;
         FoodTransform.linear() = m;
 
+        quadrantVec = FoodTransform.translation() - plateCenter.translation();
+
         seq++;
     }
 
@@ -162,120 +168,100 @@ public:
         return FoodTransform;
     }
 
-    bool isValid() 
-    {
-        // empirical range for food, food should be within the plate
-        std::cout << "tx = " << tx << ", ty = " << ty << ", tz = " << tz << std::endl;
 
-        if (tx > 0.35 || tx < 0.18)
+    int getQuadrant1()
+    {
+        // int quadrant;
+        double x, y;
+        x = quadrantVec[0];
+        y = quadrantVec[1];
+        if (x > 0 && y > 0)
+            return 1;
+        if (x < 0 && y > 0)
+            return 2;
+        if (x < 0 && y < 0)
+            return 3;
+        if (x > 0 && y < 0)
+            return 4;
+    }
+
+    // My own defined Quadrant.
+    int getQuadrant2()
+    {
+        std::cout << "dx = " << quadrantVec[0] << ", dy = " << quadrantVec[1] << std::endl;
+        double theta = atan2(quadrantVec[1], quadrantVec[0]);
+        std::cout << "atan2 , theta = " << theta << std::endl;
+
+        if (theta >= M_PI/4.0 && theta < M_PI*3/4.0)
+            return 1;
+        if (theta >= M_PI*3/4.0 || theta < -M_PI*3/4.0)
+            return 2;
+        if (theta >= -M_PI*3/4.0 && theta < -M_PI/4.0)
+            return 3;
+        if (theta >= -M_PI/4.0 && theta < M_PI/4.0)
+            return 4;
+    }
+
+    double getTheta1()
+    {
+        std::cout << "dx = " << quadrantVec[0] << ", dy = " << quadrantVec[1] << std::endl;
+        return atan2(quadrantVec[1], quadrantVec[0]);
+    }
+
+    double getTheta2()
+    {
+        int quadrant = getQuadrant2();
+        std::cout << "quadrant = " << quadrant << std::endl;
+        if (quadrant == 1)
+            return M_PI/2.0;
+        if (quadrant == 2)
+            return 0;
+        if (quadrant == 3)
+            return M_PI/2.0;
+        if (quadrant == 4)
+            return 0;
+    }
+
+    double getDirection2()
+    {
+        int quadrant = getQuadrant2();
+        if (quadrant == 1 || quadrant == 4)
+            return 1.0;
+        if (quadrant == 2 || quadrant == 3)
+            return -1.0;
+    }
+
+    Eigen::Vector3d getQuadrantVec()
+    {
+        return quadrantVec;
+    }
+
+    bool isValid()
+    {
+        // double tx = FoodTransform.translation()[0];
+        // double ty = FoodTransform.translation()[1];
+        // double tz = FoodTransform.translation()[2];
+        if (seq < maxsize)
+        {   
+            // std::cout << "seq" << seq << std::endl;
             return false;
-        if (ty > -0.20 || ty < -0.38)
+        }
+        // empirical range for food, food should be within the plate
+        std::cout << "tx = " << x << ", ty = " << y << ", z = " << tz << std::endl;
+        if (x > 0.35 || x < 0.18)
             return false;
-        if (tz > 0.3 || tz < 0.22)
+        if (y > -0.20 || y < -0.38)
+            return false;
+        if (z > 0.3 || z < 0.22)
             return false;
 
         std::cout << "Find Valid Pose" << std::endl;
         return true;
-    }
+    } 
 
     visualization_msgs::Marker getMarker()
     {
         return marker;
-    }
-
-};
-
-class Pose
-{
-public:
-
-    double z, y, roll_angle;
-
-    Pose(double z1, double y1, double roll_angle1) : z(z1), y(y1), roll_angle(roll_angle1) {};
-
-};
-
-class PolyTraj
-{
-private:
-
-    double h, d;
-    double a[4];
-
-    void solve()
-    {
-        Matrix4d A;
-        Vector4d b;
-        A << 1,0,0,0, 0,d,d*d,d*d*d, 0,1,2*d,3*d*d, 0,1,4*d,12*d*d;
-        b << 0, h, 0, 0;
-        Vector4d x = A.colPivHouseholderQr().solve(b);
-        for(int i=0; i<4; i++) {
-            a[i] = x[i];
-        }
-    }
-
-    double func(double z, int n =4)
-    {
-        double d = 0;
-        for (int i = 0; i < n; i++)
-            d += pow(z, i) * a[i];
-        return d;
-    }
-
-    double der1(double z, int n = 4)
-    {
-        double d = 0;
-        for (int i = 1; i < n; i++)
-            d += pow(z, i - 1) * i * a[i];
-        return d;
-    }
-
-    double roll_angle(double z) {
-        return atan(-der1(z));
-    }
-
-public:
-
-    PolyTraj(double h1, double d1)
-    {
-        h = h1;
-        d = d1;
-        solve();
-    }
-
-    void printCoefficient()
-    {
-        std::cout<< "h: " << h << " d: " << d << std::endl;
-        for(int i=0; i<(sizeof(a)/sizeof(*a)); i++)
-            std::cout << a[i] << std::endl;
-    }
-
-    Pose eval(double z)
-    {
-        // std::cout << "z:" << z << std::endl;
-        // std::cout << "y:" << func(z) << std::endl;
-        // std::cout << "roll_angle:" << roll_angle(z) << std::endl;
-        return Pose(z, func(z), roll_angle(z));
-    }
-
-    // simply discretize z axis, but discretize time might be a better idea. implement that later.
-    // num: num of waypoints
-    std::vector<Pose> getWayPoints(int num)
-    {
-        double step = 2*d / (double) num;
-        std::vector<Pose> wayPoints;
-        for (int i = 1; i <= num; i++)
-        {
-            wayPoints.push_back(eval(i*step));
-        }
-        return wayPoints;
-    }
-
-    void test()
-    {
-        std::cout << "result:" << func(0) << std::endl;
-        std::cout << "der1:" << der1(0) << std::endl;
-        std::cout << "roll_angle:" << roll_angle(0) << std::endl;
     }
 
 };

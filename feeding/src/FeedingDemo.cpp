@@ -300,7 +300,7 @@ Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform() const
   return eeTransform;
 }
 
-Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int demotype, double height, double minima, double theta, double delta) const
+Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int demotype, double height, double minima, double theta, double direction, double delta) const
 {
     Eigen::Isometry3d eeTransform
         = mAda->getHand()->getEndEffectorTransform("food").get();
@@ -316,8 +316,8 @@ Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int demotype, double 
 
     eeTransform.translation()
         = Eigen::Vector3d(0, 0, height);
-    eeTransform.translation()[0] = - cos(theta) * minima;
-    eeTransform.translation()[1] = - sin(theta) * minima;
+    eeTransform.translation()[0] = - cos(theta) * minima * direction;
+    eeTransform.translation()[1] = - sin(theta) * minima * direction;
 
     if (demotype == 0 || demotype == 1) 
     {
@@ -325,6 +325,7 @@ Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int demotype, double 
         Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitZ())) *
         Eigen::Matrix3d(Eigen::AngleAxisd(-theta, Eigen::Vector3d::UnitZ())) *
         Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI/3, Eigen::Vector3d::UnitX()));
+        eeTransform.translation()[2] += delta;
     }
     if (demotype == 2 || demotype == 3)
     {

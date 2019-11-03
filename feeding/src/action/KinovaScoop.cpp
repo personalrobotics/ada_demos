@@ -204,6 +204,8 @@ bool kinovaScoop(
     // need to fix planWithEndEffectorOffset? some constrains are not correct?
     height = 0.01;
     minima = 0.6*height;
+    height = 0.12;
+    minima = 0.8*height;
   }
 
   // start scoop trajectory
@@ -223,26 +225,12 @@ bool kinovaScoop(
   auto metaSkeleton = mArm->getMetaSkeleton();
   auto startState = mArmSpace->createState();
 
-  // Eigen::VectorXd config(6);
-  // // is this the config of the point above the plate? change it to test.
-  // config << -2.15583, 3.0954,  1.61802,  -2.45501,  -2.04492, -4.73983 ;
-
-  // auto endEffector = ada->getHand()->getEndEffectorBodyNode();
-  // auto curPose = endEffector->getWorldTransform();
-  // double x = curPose.translation()[0];
-  // double y = curPose.translation()[1];
-  // double z = curPose.translation()[2];
-  // double roll = curPose.linear()[0];
-  // double pitch = curPose.linear()[1];
-  // double yaw = curPose.linear()[2];
-
-  // std::cout << "startPose translation :\n" << curPose.translation() << std::endl;
-  // std::cout << "startPose rotation :\n" << curPose.linear() << std::endl;
 
   if (demotype == 0 || demotype == 1) {
     std::cout<< demotype <<"kinovascoop" << std::endl;
     Eigen::VectorXd twists(6);
-    twists << 0, 0.0, M_PI/2+M_PI/24, 0.0, 0.0, 0.0;
+    // twists << 0, 0.0, M_PI/2+M_PI/24, 0.0, 0.0, 0.0;
+    twists << 0, 0.0, 0, -0.05, 0.0, 0.0;
     auto init_traj = ada->planWithEndEffectorTwist(
       twists,
       1,

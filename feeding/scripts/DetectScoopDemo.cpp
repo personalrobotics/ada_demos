@@ -11,11 +11,11 @@
 #include "feeding/action/DetectScoop.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveAbove.hpp"
-#include "feeding/action/ScoopHelper.hpp"
 
 
 using ada::util::waitForUser;
 using ada::util::getRosParam;
+using ada::util::createIsometry;
 
 namespace feeding {
 
@@ -44,7 +44,7 @@ void DetectScoopDemo(
 //--------------------------------------------------------------------------------------------------------
 // Food Detector preparation.
 
-    MarkersListener ml = MarkersListener();
+    MarkersListener ml = MarkersListener(nodeHandle);
     std::string foodDetectorTopicName = getRosParam<std::string>(
         "/perception/foodDetectorTopicName", nodeHandle);
     std::cout << "food marker topic " << foodDetectorTopicName << std::endl;
@@ -61,7 +61,7 @@ void DetectScoopDemo(
 
     while (true) 
     {
-        waitForUser("Keep Demo?", ada); 
+        waitForUser("Keep On Demo?", ada); 
 
     //--------------------------------------------------------------------------------------------------------
     // move above plate
@@ -93,12 +93,11 @@ void DetectScoopDemo(
                       0: kinovascoop \n \
                       1: kinovascoop with twist \n \
                       2: foward kinovascoop with twist \n \
-                      3: Ryan Scoop \n \
                       else will triger 1"<< std::endl;
         std::cout << "> ";
         std::cin >> demotype;
 
-        if (demotype > 3 || demotype < 0)
+        if (demotype > 2 || demotype < 0)
             demotype = 1;
         /* demotype: 0 kinovascoop
                      1 kinovascoop with twist
@@ -118,33 +117,26 @@ void DetectScoopDemo(
         double minima = 0.8 * height;
 
         double delta = 0.0;
-        if (demotype == 2) 
+        if (demotype == 1 || demotype == 2) 
         {
             std::cout << "input delta adjustment < default delta = 0.0 >" << std::endl;
             std::cout << "> ";
             std::cin >> delta;
         }
 
-        // determine from which direction to scoop
+        // determine from which angle to scoop
         double theta;
         std::cout << "input theta coefficient < default theta coefficient = 0.0 >"<< std::endl;
         std::cout << "> ";
         std::cin >> theta;
         theta *= M_PI;
-        std::cout << "theta = " << theta << std::endl;
+        std::cout << "input theta = " << theta << std::endl;
 
     //--------------------------------------------------------------------------------------------------------
     // Move to the initial position above the food for scooping
-
-        waitForUser("next step?", ada);
-
-        Eigen::Isometry3d eeTransform;
-        eeTransform = feedingDemo.getFoodEndEffectorTransform(demotype, height, minima, theta, delta);
-
-        ROS_INFO_STREAM("Move to the initial position above the food for scooping");
-
         Eigen::Isometry3d target = ml.getTransform();
-        while (!IsValid(target))
+        // while (!IsValid(target))
+        while (!ml.isValid())
         {
             target = ml.getTransform();
         }
@@ -155,7 +147,23 @@ void DetectScoopDemo(
              0, 1, 0,
              0, 0, 1;
         target.linear() = m;
-        std::cout << "food transform debug \n " << target.linear() << "\n" << target.translation() << std::endl;
+
+        // std::cout << "food transform debug \n " << target.linear() << "\n" << target.translation() << std::endl;
+
+        theta = ml.getTheta2();
+        std::cout << "final theta = " << theta << std::endl;
+
+        double direction = ml.getDirection2();
+
+    //--------------------------------------------------------------------------------------------------------
+    // Move to the initial position above the food for scooping
+
+        waitForUser("next step?", ada);
+
+        Eigen::Isometry3d eeTransform;
+        eeTransform = feedingDemo.getFoodEndEffectorTransform(demotype, height, minima, theta, direction, delta);
+
+        ROS_INFO_STREAM("Move to the initial position above the food for scooping");
 
         bool aboveFoodSuccess = action::moveAbove(
             ada,
@@ -188,6 +196,7 @@ void DetectScoopDemo(
         height,
         theta,
         minima,
+        direction,
         demotype,
         feedingDemo.mPlateTSRParameters["horizontalTolerance"],
         feedingDemo.mPlateTSRParameters["verticalTolerance"],
