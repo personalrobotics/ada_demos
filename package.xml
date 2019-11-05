@@ -22,6 +22,9 @@
   <depend>pr_assets</depend>
   <depend>pr_tsr</depend>
 
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+
   <!-- This is required by REP-136. -->
   <exec_depend>catkin</exec_depend>
   <buildtool_depend>catkin</buildtool_depend>

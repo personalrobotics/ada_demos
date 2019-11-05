@@ -10,7 +10,16 @@ find_package(catkin REQUIRED
     tf
     tf_conversions
     image_transport
-    cv_bridge)
+    cv_bridge
+    message_generation)
+
+add_service_files(FILES
+  DetectAcquisition.srv)
+
+catkin_python_setup()
+
+generate_messages()
+
 catkin_package(
   INCLUDE_DIRS feeding/include
   LIBRARIES feeding
