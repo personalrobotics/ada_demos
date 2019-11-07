@@ -24,7 +24,9 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    FeedingDemo* feedingDemo = nullptr);
+    FeedingDemo* feedingDemo = nullptr,
+    double* angleGuess = nullptr,
+    int actionOverride = -1);
 }
 } // namespace feeding
 

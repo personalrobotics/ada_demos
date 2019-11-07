@@ -70,8 +70,10 @@ bool moveInto(
 
   std::cout << "endEffectorDirection " << endEffectorDirection.transpose()
             << std::endl;
+  //int n;
+  //std::cin >> n;
   {
-    double length = 0.05;
+    double length = 0.085;
     int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
     // Collision constraint is not set because f/t sensor stops execution.
 

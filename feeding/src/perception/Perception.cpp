@@ -11,6 +11,8 @@
 #include <tf_conversions/tf_eigen.h>
 #include <libada/util.hpp>
 
+#include <yaml-cpp/exceptions.h>
+
 #include "feeding/FoodItem.hpp"
 
 using ada::util::getRosParam;
@@ -23,7 +25,7 @@ Perception::Perception(
     aikido::planner::WorldPtr world,
     std::shared_ptr<ada::Ada> ada,
     dart::dynamics::MetaSkeletonPtr adaMetaSkeleton,
-    ros::NodeHandle* nodeHandle,
+    std::shared_ptr<ros::NodeHandle> nodeHandle,
     std::shared_ptr<TargetFoodRanker> ranker,
     float faceZOffset,
     bool removeRotationForFood)
@@ -163,6 +165,8 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
 }
 
 //==============================================================================
+static Eigen::Isometry3d oldFaceTransform;
+static bool saved = false;
 Eigen::Isometry3d Perception::perceiveFace()
 {
   std::vector<DetectedObject> detectedObjects;
@@ -194,9 +198,20 @@ Eigen::Isometry3d Perception::perceiveFace()
       if (fixedFaceY > 0)
       {
         faceTransform.translation().y() = fixedFaceY;
+        // Wheelchair
+        //faceTransform.translation().z() -= 0.02;
+        
+        // Tripod
+        faceTransform.translation().x() += 0.085;
+        faceTransform.translation().z() -= 0.03;
       }
+      oldFaceTransform = faceTransform;
+      saved = true;
       return faceTransform;
     }
+  }
+  if (saved) {
+    return oldFaceTransform;
   }
   ROS_WARN("face perception failed");
   throw std::runtime_error("Face perception failed");
@@ -206,8 +221,40 @@ Eigen::Isometry3d Perception::perceiveFace()
 bool Perception::isMouthOpen()
 {
   // return mAssetDatabase->mObjData["faceStatus"].as<bool>();
-  ROS_WARN("Always returning true for isMouthOpen");
-  return true;
+  //ROS_WARN("Always returning true for isMouthOpen");
+  //return true;
+
+  // (1) Detect Face
+  std::vector<DetectedObject> detectedObjects;
+
+  if (!mFaceDetector->detectObjects(
+          mWorld,
+          ros::Duration(mPerceptionTimeout),
+          ros::Time(0),
+          &detectedObjects))
+  {
+    ROS_WARN("face perception failed");
+    return false;
+  }
+
+  // (2) Check if mouth open
+  for(auto face : detectedObjects) {
+    try
+    {
+      auto yamlNode = face.getYamlNode();
+      if(yamlNode["mouth-status"].as<std::string>() == "open") {
+        return true;
+      }
+    }
+    catch (const YAML::Exception& e)
+    {
+      ROS_WARN_STREAM("[Perception::isMouthOpen] YAML String Exception: " << e.what()
+         << std::endl);
+      return false;
+    }
+  }
+
+  return false;
 }
 
 //==============================================================================
@@ -419,7 +466,7 @@ void Perception::receiveCameraInfo()
 {
   sensor_msgs::CameraInfoConstPtr info
       = ros::topic::waitForMessage<sensor_msgs::CameraInfo>(
-          mCameraInfoTopic, *mNodeHandle, ros::Duration(1));
+          mCameraInfoTopic, *mNodeHandle, ros::Duration(5));
   if (info == nullptr)
   {
     ROS_ERROR("nullptr camera info");
@@ -435,7 +482,7 @@ void Perception::receiveImageMessage(cv_bridge::CvImagePtr& cv_ptr)
 
   sensor_msgs::ImageConstPtr msg
       = ros::topic::waitForMessage<sensor_msgs::Image>(
-          mImageTopic, *mNodeHandle, ros::Duration(10));
+          mImageTopic, *mNodeHandle, ros::Duration(20));
   if (msg == nullptr)
   {
     ROS_ERROR("nullptr image message");

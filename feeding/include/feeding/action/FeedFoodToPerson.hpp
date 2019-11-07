@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_FEEDFOODTOPERSON_HPP_
 
 #include <libada/Ada.hpp>
+#include "feeding/FeedingDemo.hpp"
 #include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
 
@@ -33,7 +34,8 @@ void feedFoodToPerson(
     double endEffectorOffsetPositionTolerenace,
     double endEffectorOffsetAngularTolerance,
     std::vector<double> velocityLimits,
-    const Eigen::Vector3d* tiltOffset);
+    const Eigen::Vector3d* tiltOffset,
+    FeedingDemo* feedingDemo);
 }
 } // namespace feeding
 

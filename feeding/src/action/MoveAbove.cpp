@@ -24,6 +24,7 @@ bool moveAbove(
     const std::vector<double>& velocityLimits,
     FeedingDemo* feedingDemo)
 {
+  ROS_WARN_STREAM("CALLED MOVE ABOVE; Rotation: " << rotationTolerance);
   TSR target;
 
   target.mT0_w = targetTransform;
@@ -36,29 +37,51 @@ bool moveAbove(
       rotationTolerance);
 
   target.mTw_e.matrix() = endEffectorTransform.matrix();
-  // if (feedingDemo && feedingDemo->getViewer())
-  // {
-  //   feedingDemo->getViewer()->addTSRMarker(target);
-  //   std::cout << "Check TSR" << std::endl;
-  //   int n;
-  //   std::cin >> n;
-  // }
 
   try
   {
-    auto trajectoryCompleted = ada->moveArmToTSR(
-        target,
-        collisionFree,
-        planningTimeout,
-        maxNumTrials,
-        getConfigurationRanker(ada),
-        velocityLimits,
-        ::ada::TrajectoryPostprocessType::KUNZ);
+    bool trajectoryCompleted = false;
+    do {
+      std::cout << "MoveAbove Current pose \n"
+                << ada->getMetaSkeleton()->getPositions().transpose()
+                << std::endl;
+      trajectoryCompleted = ada->moveArmToTSR(
+          target,
+          collisionFree,
+          planningTimeout,
+          maxNumTrials,
+          getConfigurationRanker(ada),
+          velocityLimits,
+          ::ada::TrajectoryPostprocessType::KUNZ);
 
-    std::cout << "MoveAbove Current pose \n"
-              << ada->getMetaSkeleton()->getPositions().transpose()
-              << std::endl;
+      if (!trajectoryCompleted) {
+        if(rotationTolerance <= 2.0) {
+          rotationTolerance *= 4;
+          std::cout << "Trying again with rotation Tolerance:" << rotationTolerance << std::endl;
+          target.mBw = createBwMatrixForTSR(
+            horizontalTolerance,
+            horizontalTolerance,
+            verticalTolerance,
+            0,
+            tiltTolerance,
+            rotationTolerance);
+          continue;
+        }
+      } else {
+        break;
+      }
 
+    } while(rotationTolerance <= 2.0);
+    if(!trajectoryCompleted) {
+      //talk("No trajectory, check T.S.R.", true);
+        if (feedingDemo && feedingDemo->getViewer())
+        {
+           feedingDemo->getViewer()->addTSRMarker(target);
+           std::cout << "Check TSR" << std::endl;
+           int n;
+           std::cin >> n;
+        }
+    }
     return trajectoryCompleted;
   }
   catch (...)

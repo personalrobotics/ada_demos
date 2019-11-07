@@ -17,6 +17,7 @@
 static const std::vector<double> weights = {1, 1, 0.01, 0.01, 0.01, 0.01};
 
 using aikido::distance::NominalConfigurationRanker;
+using ada::util::getRosParam;
 
 namespace feeding {
 
@@ -139,12 +140,13 @@ std::string getCurrentTimeDate()
 }
 
 //==============================================================================
-std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
+std::string getUserFoodInput(bool food_only, ros::NodeHandle& nodeHandle, bool useAlexa, double timeout)
 {
 
   std::string foodName;
-
-  foodName = getUserInputFromAlexa(nodeHandle);
+  std::string foodTopic;
+  nodeHandle.param<std::string>("/humanStudy/foodTopic", foodTopic, "/study_food_msgs");
+  foodName = useAlexa ? getInputFromTopic(foodTopic, nodeHandle, true, timeout) : "";
   if (foodName != "")
   {
     ROS_INFO_STREAM("Got " << foodName << " from Alexa.");
@@ -169,9 +171,13 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
   int max_id;
 
   if (!food_only)
+  {
     max_id = FOOD_NAMES.size() + ACTIONS.size();
+  }
   else
+  {
     max_id = FOOD_NAMES.size();
+  }
 
   while (true)
   {
@@ -196,15 +202,23 @@ std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle)
 }
 
 //==============================================================================
-std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
+std::string getInputFromTopic(std::string topic, const ros::NodeHandle& nodeHandle, bool validateAsFood, double timeout)
 {
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
-  sharedPtr = ros::topic::waitForMessage<std_msgs::String>(
-      "/study_food_msgs", ros::Duration(20));
+  
+  if (timeout > 0)
+  {
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>(
+        topic, ros::Duration(timeout));
+  } else
+  {
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>(topic);
+  }
+
   if (sharedPtr == nullptr)
   {
-    ROS_INFO_STREAM("No message from alexa, please input manually");
+    ROS_INFO_STREAM("No message from topic, please input manually");
     return "";
   }
   rosFoodWord = *sharedPtr;
@@ -212,27 +226,26 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
   if (foodWord.compare("~~no_input~~") == 0)
   {
     std_msgs::String rosFoodWord;
-    sharedPtr = ros::topic::waitForMessage<std_msgs::String>("/alexa_msgs");
+    sharedPtr = ros::topic::waitForMessage<std_msgs::String>(topic);
     rosFoodWord = *sharedPtr;
     std::string foodWord = rosFoodWord.data.c_str();
   }
-  ROS_INFO_STREAM("Alexa got food " << foodWord);
-  // ros::Publisher pub = nodeHandle.advertise<std_msgs::String>("/alexa_msgs",
-  // 1, true);
-  std_msgs::StringPtr str(new std_msgs::String);
-  str->data = "~~no_input~~";
-  // pub.publish(str);
-  for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
+  ROS_INFO_STREAM("Got Input " << foodWord);
+  if (validateAsFood)
   {
-    if (FOOD_NAMES[i].compare(foodWord) == 0)
+    for (std::size_t i = 0; i < FOOD_NAMES.size(); ++i)
     {
-      ROS_INFO_STREAM("Sucessfully returned");
-      nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
-      nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
-      return foodWord;
+      if (FOOD_NAMES[i].compare(foodWord) == 0)
+      {
+        ROS_INFO_STREAM("Sucessfully returned");
+        nodeHandle.setParam("/deep_pose/forceFoodName", foodWord);
+        nodeHandle.setParam("/deep_pose/spnet_food_name", foodWord);
+        return foodWord;
+      }
     }
+    return "";
   }
-  return "";
+  return foodWord;
 }
 
 //==============================================================================
@@ -381,6 +394,17 @@ aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
       space, metaSkeleton, std::move(nominalState), weights);
 }
 
+static ros::Publisher actionPub;
+static ros::Publisher timingPub;
+static ros::Publisher transferPub;
+static ros::Publisher talkPub;
+void initTopics(ros::NodeHandle* nodeHandle) {
+  actionPub = nodeHandle->advertise<std_msgs::String>("/action_done", 100);
+  timingPub = nodeHandle->advertise<std_msgs::String>("/timing_done", 100);
+  transferPub = nodeHandle->advertise<std_msgs::String>("/transfer_done", 100);
+  talkPub = nodeHandle->advertise<std_msgs::String>("/talk_pub", 100);
+}
+
 //==============================================================================
 void talk(const std::string& statement, bool background)
 {
@@ -394,6 +418,49 @@ void talk(const std::string& statement, bool background)
     cmd = "aoss swift \"" + statement + "\"";
   }
   std::system(cmd.c_str());
+  std_msgs::String msg;
+  msg.data = statement;
+  while (talkPub.getNumSubscribers() < 1) {
+    ROS_INFO_STREAM("Waiting for subscribers...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+  talkPub.publish(msg);
+}
+
+void publishActionDoneToWeb(ros::NodeHandle* nodeHandle) {
+  if (!actionPub) {
+    ROS_WARN_STREAM("EMPTY ACTION PUBLISHER");
+  }
+  std_msgs::String msg;
+  msg.data = "action done";
+  while (actionPub.getNumSubscribers() < 1) {
+    ROS_INFO_STREAM("Waiting for subscribers...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+  actionPub.publish(msg);
+  ROS_INFO_STREAM("action done published to web page");
+}
+
+void publishTimingDoneToWeb(ros::NodeHandle* nodeHandle) {
+  std_msgs::String msg;
+  msg.data = "timing done";
+  while (timingPub.getNumSubscribers() < 1) {
+    ROS_INFO_STREAM("Waiting for subscribers...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+  timingPub.publish(msg);
+  ROS_INFO_STREAM("timing done published to web page");
+}
+
+void publishTransferDoneToWeb(ros::NodeHandle* nodeHandle) {
+  std_msgs::String msg;
+  msg.data = "transfer done";
+  while (transferPub.getNumSubscribers() < 1) {
+    ROS_INFO_STREAM("Waiting for subscribers...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  }
+  transferPub.publish(msg);
+  ROS_INFO_STREAM("transfer done published to web page");
 }
 
 } // namespace feeding

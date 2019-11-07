@@ -30,6 +30,8 @@ include_directories(include)
 add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
+  scripts/humanStudy.cpp
+  scripts/onlineDemo.cpp
   scripts/spanetDemo.cpp
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
@@ -55,6 +57,7 @@ add_executable(feeding
   src/action/PickUpFork.cpp
   src/action/PutDownFork.cpp
   src/action/Skewer.cpp
+  src/action/SkewerOnline.cpp
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp
   src/ranker/ShortestDistanceRanker.cpp

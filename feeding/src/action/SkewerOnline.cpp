@@ -1,4 +1,3 @@
-#include "ada_demos/DetectAcquisition.h"
 #include "feeding/action/Skewer.hpp"
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include "feeding/action/Grab.hpp"
@@ -7,19 +6,20 @@
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
 #include "feeding/FeedingDemo.hpp"
+#include "feeding/FoodItem.hpp"
+#include "feeding/action/MoveInFrontOfPerson.hpp"
+
+#include "conban_spanet/PublishLoss.h"
 
 #include <libada/util.hpp>
 
-using ada::util::getRosParam;
-
 static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
-static const std::vector<std::string> actionPrompts{"(1) skewer", "(3) tilt", "(5) angle"};
 
 namespace feeding {
 namespace action {
 
 //==============================================================================
-bool skewer(
+bool skewerOnline(
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
@@ -48,6 +48,7 @@ bool skewer(
     std::vector<std::string> rotationFreeFoodNames,
     FeedingDemo* feedingDemo)
 {
+  double torqueThreshold = 2;
   ROS_INFO_STREAM("Move above plate");
   bool abovePlaceSuccess = moveAbovePlate(
       ada,
@@ -70,66 +71,31 @@ bool skewer(
     return false;
   }
 
-  bool detectAndMoveAboveFoodSuccess = true;
+  // Re-tare force-torque sensor
+  if (ftThresholdHelper) {
+      ftThresholdHelper->setThresholds(
+          -2, torqueThreshold);
+      ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
+    }
 
-  int actionOverride = -1;
 
-  if (!getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())))
-      {
-          // Read Action from Topic
-          talk("How should I pick up the food?", true);
-          ROS_INFO_STREAM("Waiting for action...");
-          std::string actionName;
-          std::string actionTopic;
-          feedingDemo->getNodeHandle()->param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
-          actionName = getInputFromTopic(actionTopic, *(feedingDemo->getNodeHandle()), false, -1);
-          talk("Alright, let me use " + actionName, false);
+  // Pause a bit so camera can catch up
+  if(velocityLimits[0] > 0.5) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  }
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-          if (actionName == "skewer") {
-            actionOverride = 1;
-          } else if (actionName == "vertical") {
-            actionOverride = 1;
-          }else if (actionName == "cross_skewer") {
-            actionOverride = 1;
-          } else if (actionName == "tilt") {
-            actionOverride = 3;
-          } else if (actionName == "cross_tilt") {
-            actionOverride = 3;
-          } else if (actionName == "angle") {
-            actionOverride = 5;
-          } else if (actionName == "cross_angle"){
-            actionOverride = 5;
-          } else {
-            actionOverride = getUserInputWithOptions(actionPrompts, "Didn't get valid action. Choose manually:");
-            if (actionOverride > 5 || actionOverride < 0) {
-              actionOverride = 1;
-            }
-          }
-      }
-
-    if (std::find(
+  if (std::find(
           rotationFreeFoodNames.begin(), rotationFreeFoodNames.end(), foodName)
       != rotationFreeFoodNames.end())
   {
     rotationToleranceForFood = M_PI;
-    if (actionOverride == 1) {
-      actionOverride = 0;
-    }
   }
 
-    // Pause a bit so camera can catch up
-    /*
-    if(velocityLimits[0] > 0.5) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    }
-    */
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  bool detectAndMoveAboveFoodSuccess = true;
+  Eigen::Vector3d endEffectorDirection(0, 0, -1);
+  std::unique_ptr<FoodItem> item;
 
-  for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
-  {
-
-    Eigen::Vector3d endEffectorDirection(0, 0, -1);
-    std::unique_ptr<FoodItem> item;
     for (std::size_t i = 0; i < 2; ++i)
     {
       if (i == 0)
@@ -139,7 +105,7 @@ bool skewer(
       if (i == 1)
       {
           talk("Adjusting, hold tight!", true);
-          std::this_thread::sleep_for(std::chrono::milliseconds(500));
+          std::this_thread::sleep_for(std::chrono::milliseconds(4000));
 
           // Set Action Override
           auto action = item->getAction();
@@ -180,6 +146,7 @@ bool skewer(
           auto tiltStyle = item->getAction()->getTiltStyle();
           if (tiltStyle == TiltStyle::ANGLED)
           {
+            ROS_WARN_STREAM("WORKING");
             // Apply base rotation of food
             Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
             Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ(); 
@@ -206,7 +173,7 @@ bool skewer(
             forkXAxis[2] = 0.0;
             forkXAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.035 * forkYAxis) + (0.00 * forkXAxis));
+            endEffectorDirection += ((-0.016 * forkYAxis) + (0.007 * forkXAxis));
             endEffectorDirection.normalize();
           }
           else if (tiltStyle == TiltStyle::VERTICAL)
@@ -220,12 +187,13 @@ bool skewer(
             forkYAxis[2] = 0.0;
             forkYAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.03 * forkYAxis) + (-0.01 * forkXAxis));
+            endEffectorDirection += ((-0.015 * forkYAxis) + (0.005 * forkXAxis));
             endEffectorDirection.normalize();
           }
           break;
       }
 
+      
       ROS_INFO_STREAM("Detect and Move above food");
       item = detectAndMoveAboveFood(
           ada,
@@ -240,9 +208,7 @@ bool skewer(
           planningTimeout,
           maxNumTrials,
           velocityLimits,
-          feedingDemo,
-          nullptr,
-          actionOverride);
+          feedingDemo);
 
       if (!item)
       {
@@ -250,19 +216,8 @@ bool skewer(
         return false;
       }
 
-      if (!item) {
+      if (!item)
         detectAndMoveAboveFoodSuccess = false;
-      }
-
-      // Add error if autonomous
-      if(getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())) && // autonomous
-        getRosParam<bool>("/humanStudy/createError", *(feedingDemo->getNodeHandle())) && // add error
-        trialCount == 0) // First Trial
-      { 
-        ROS_WARN_STREAM("Error Requested for Acquisition!");
-        endEffectorDirection(1) -= 1.0;
-        endEffectorDirection.normalize();
-      }
     }
 
     if (!detectAndMoveAboveFoodSuccess)
@@ -272,7 +227,6 @@ bool skewer(
         "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
                    << "N with angle mode ");
 
-    double torqueThreshold = 2;
     if (ftThresholdHelper)
       ftThresholdHelper->setThresholds(
           foodSkeweringForces.at(foodName), torqueThreshold);
@@ -306,34 +260,84 @@ bool skewer(
         ada,
         nullptr,
         TargetItem::FOOD,
-        moveOutofFoodLength * 2.0,
+        heightAboveFood,
         direction,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
         ftThresholdHelper);
 
-    ada_demos::DetectAcquisition srv;
+    // Wait for 5s for falling off
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 
-    if (ros::service::call("acquisition_detection", srv))
-    {
-      if (srv.response.success)
-      {
-        ROS_INFO_STREAM("Successful");
-        return true;
-      }
-    }
-    else if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+    // ===== In Front of Person =====
+    /*
+    talk("Testing move to person.", true);
+    moveInFrontOfPerson(
+          ada,
+          collisionFree,
+          workspace->getPersonPose(),
+          feedingDemo->mPersonTSRParameters.at("distance"),
+          feedingDemo->mPersonTSRParameters.at("horizontalTolerance"),
+          feedingDemo->mPersonTSRParameters.at("verticalTolerance"),
+          planningTimeout,
+          maxNumTrials,
+          velocityLimits);
+    */
+
+
+    int loss = 1;
+    talk("Record success.", true);
+    if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
     {
       ROS_INFO_STREAM("Successful");
-      talk("Success.");
-      return true;
+      loss = 0;
+    } else {
+      ROS_INFO_STREAM("Failed");
     }
 
-    ROS_INFO_STREAM("Failed.");
-    talk("Failed, let me try again.");
-  }
-  return false;
+    if(feedingDemo->mIsOnlineDemo) {
+      // Publish Loss to algorithm
+      YAML::Node node = item->getExtraInfo();
+      std::vector<double> features = node["features"].as<std::vector<double>>();
+      auto action = item->getAction();
+      int actionNum = 0;
+      switch(action->getTiltStyle()) {
+        case TiltStyle::ANGLED:
+        actionNum = 4;
+        break;
+        case TiltStyle::VERTICAL:
+        actionNum = 2;
+        break;
+        default:
+        actionNum = 0;
+      }
+      if (action->getRotationAngle() > 0.01) {
+        // Assume 90-degree action
+        actionNum++;
+      }
+
+      std::vector<double> p_t = item->mAnnotation;
+
+      // Actually call service
+      conban_spanet::PublishLoss srv;
+      srv.request.features.insert(std::end(srv.request.features), std::begin(features), std::end(features));
+      srv.request.p_t.insert(std::end(srv.request.p_t), std::begin(p_t), std::end(p_t));
+      srv.request.a_t = actionNum;
+      srv.request.loss = loss;
+
+      if (ros::service::call("PublishLoss", srv))
+      {
+        ROS_INFO("Success! Error Message: %d", (int)srv.response.success);
+      }
+      else
+      {
+        ROS_ERROR("Failed to call service publish_loss");
+        return false;
+      }
+      return srv.response.success;
+    }
+    return (loss == 0);
 }
 
 } // namespace action
