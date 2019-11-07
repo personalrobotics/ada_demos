@@ -55,3 +55,6 @@ flycheck_*.el
 *.vscode
 .vscode/
 feeding/.vscode/
+
+# Model checkpoints
+feeding/bash_scripts/checkpoint

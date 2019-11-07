@@ -1,3 +1,4 @@
+#include "ada_demos/DetectAcquisition.h"
 #include "feeding/action/Skewer.hpp"
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include "feeding/action/Grab.hpp"
@@ -173,7 +174,17 @@ bool skewer(
         endEffectorOffsetAngularTolerance,
         ftThresholdHelper);
 
-    if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+    ada_demos::DetectAcquisition srv;
+
+    if (ros::service::call("acquisition_detection", srv))
+    {
+      if (srv.response.success)
+      {
+        ROS_INFO_STREAM("Successful");
+        return true;
+      }
+    }
+    else if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
     {
       ROS_INFO_STREAM("Successful");
       return true;
