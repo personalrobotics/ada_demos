@@ -73,7 +73,7 @@ bool moveAbove(
 
     } while(rotationTolerance <= 2.0);
     if(!trajectoryCompleted) {
-      talk("No trajectory, check T.S.R.", true);
+      //talk("No trajectory, check T.S.R.", true);
         if (feedingDemo && feedingDemo->getViewer())
         {
            feedingDemo->getViewer()->addTSRMarker(target);

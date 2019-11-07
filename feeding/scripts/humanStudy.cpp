@@ -41,7 +41,7 @@ void humanStudyDemo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     talk("What food would you like?");
-    auto foodName = getUserFoodInput(true, *nodeHandle, true, 10);
+    auto foodName = getUserFoodInput(true, *nodeHandle, true, 30);
     if (foodName == std::string("quit")) {
         break;
     }
@@ -52,6 +52,11 @@ void humanStudyDemo(
     ROS_INFO_STREAM("Running human study for " << foodName);
 
     talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
+    /*
+    if (foodName == std::string("grape")) {
+      foodName = std::string("strawberry");
+    }
+    */
     
       bool skewer = action::skewer(
         ada,
@@ -81,6 +86,8 @@ void humanStudyDemo(
         feedingDemo.getFTThresholdHelper(),
         feedingDemo.mRotationFreeFoodNames,
         &feedingDemo);
+
+
 
       if (!skewer)
       {

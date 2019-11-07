@@ -19,7 +19,11 @@ bool moveTowardsPerson(
   ROS_INFO_STREAM("Move towards person");
 
   int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
-  std::vector<double> velocityLimits(numDofs, 0.2);
+  // FAST
+  std::vector<double> velocityLimits(numDofs, 0.3);
+  // SLOW
+  //std::vector<double> velocityLimits(numDofs, 0.1);
+
 
   /*
 
@@ -44,26 +48,41 @@ bool moveTowardsPerson(
   */
 
   // Read Person Pose
-  auto personPose = perception->perceiveFace();
+  bool seePerson = false;
+  Eigen::Isometry3d personPose;
+  while(!seePerson) {
+    try {
+      personPose = perception->perceiveFace();
+      seePerson = true;
+    } catch (...) {
+      ROS_WARN_STREAM("No Face Detected!");
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      continue;
+    }
+  }
+  
   Eigen::Isometry3d currentPose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
 
   // Plan from current to goal pose
   Eigen::Vector3d vectorToGoalPose
     = personPose.translation() - currentPose.translation();
-
-  distanceToPerson = vectorToGoalPose.norm();
+  vectorToGoalPose.y() -= distanceToPerson;
+  auto length = vectorToGoalPose.norm();
   vectorToGoalPose.normalize();
 
   ROS_WARN_STREAM("Angular Tolerance: " << endEffectorOffsetAngularTolerance);
   ROS_WARN_STREAM("Pose Tolerance: " << endEffectorOffsetPositionTolerenace);
+  ROS_WARN_STREAM("Offset: " << distanceToPerson);
+  ROS_WARN_STREAM("Goal Pose: " << vectorToGoalPose);
 
   if (!ada->moveArmToEndEffectorOffset(
         vectorToGoalPose,
-        distanceToPerson,
+        length,
         nullptr,
         planningTimeout,
         endEffectorOffsetPositionTolerenace,
-        endEffectorOffsetAngularTolerance))
+        endEffectorOffsetAngularTolerance,
+        velocityLimits))
   {
     ROS_WARN_STREAM("Execution failed");
     return false;

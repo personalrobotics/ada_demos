@@ -60,12 +60,6 @@ bool skewer(
       maxNumTrials,
       velocityLimits);
 
-  // Pause a bit so camera can catch up
-  if(velocityLimits[0] > 0.5) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-  }
-  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
   if (!abovePlaceSuccess)
   {
     talk(
@@ -75,33 +69,26 @@ bool skewer(
     return false;
   }
 
-  if (std::find(
-          rotationFreeFoodNames.begin(), rotationFreeFoodNames.end(), foodName)
-      != rotationFreeFoodNames.end())
-  {
-    rotationToleranceForFood = M_PI;
-  }
-
   bool detectAndMoveAboveFoodSuccess = true;
 
   int actionOverride = -1;
 
-  for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
-  {
-    if (!getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())))
+  if (!getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())))
       {
           // Read Action from Topic
-          talk("How should I pick up the food?", false);
+          talk("How should I pick up the food?", true);
           ROS_INFO_STREAM("Waiting for action...");
           std::string actionName;
           std::string actionTopic;
           feedingDemo->getNodeHandle()->param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
           actionName = getInputFromTopic(actionTopic, *(feedingDemo->getNodeHandle()), false, -1);
-          talk("Alright, let me use " + actionName, true);
+          talk("Alright, let me use " + actionName, false);
 
           if (actionName == "skewer") {
             actionOverride = 1;
-          } else if (actionName == "cross_skewer") {
+          } else if (actionName == "vertical") {
+            actionOverride = 1;
+          }else if (actionName == "cross_skewer") {
             actionOverride = 1;
           } else if (actionName == "tilt") {
             actionOverride = 3;
@@ -118,6 +105,28 @@ bool skewer(
             }
           }
       }
+
+    if (std::find(
+          rotationFreeFoodNames.begin(), rotationFreeFoodNames.end(), foodName)
+      != rotationFreeFoodNames.end())
+  {
+    rotationToleranceForFood = M_PI;
+    if (actionOverride == 1) {
+      actionOverride = 0;
+    }
+  }
+
+    // Pause a bit so camera can catch up
+    /*
+    if(velocityLimits[0] > 0.5) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+    }
+    */
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+  for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
+  {
+
     Eigen::Vector3d endEffectorDirection(0, 0, -1);
     std::unique_ptr<FoodItem> item;
     for (std::size_t i = 0; i < 2; ++i)
@@ -129,7 +138,7 @@ bool skewer(
       if (i == 1)
       {
           talk("Adjusting, hold tight!", true);
-          std::this_thread::sleep_for(std::chrono::milliseconds(4000));
+          std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
           // Set Action Override
           auto action = item->getAction();
@@ -196,7 +205,7 @@ bool skewer(
             forkXAxis[2] = 0.0;
             forkXAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.03 * forkYAxis) + (-0.005 * forkXAxis));
+            endEffectorDirection += ((-0.035 * forkYAxis) + (0.00 * forkXAxis));
             endEffectorDirection.normalize();
           }
           else if (tiltStyle == TiltStyle::VERTICAL)
@@ -210,7 +219,7 @@ bool skewer(
             forkYAxis[2] = 0.0;
             forkYAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.032 * forkYAxis) + (-0.01 * forkXAxis));
+            endEffectorDirection += ((-0.03 * forkYAxis) + (-0.01 * forkXAxis));
             endEffectorDirection.normalize();
           }
           break;

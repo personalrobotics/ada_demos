@@ -175,6 +175,10 @@ namespace feeding {
 
         nodeHandle->setParam("/feeding/facePerceptionOn", true);
 
+        if (overrideTiltOffset == nullptr) {
+          distanceToPerson = 0;
+        }
+
         ROS_INFO_STREAM("Move towards person");
         moveSuccess = moveTowardsPerson(
           ada,
@@ -190,6 +194,7 @@ namespace feeding {
 
   // Execute Tilt
       if (overrideTiltOffset != nullptr) {
+        /*
         Eigen::Isometry3d person = ada->getHand()->getEndEffectorBodyNode()->getTransform();
         person.translation() += *overrideTiltOffset;
 
@@ -201,8 +206,8 @@ namespace feeding {
           horizontalToleranceForPerson,
           verticalToleranceForPerson,
           0,
-          M_PI / 4,
-          M_PI / 4);
+          M_PI / 8,
+          M_PI / 8);
         Eigen::Isometry3d eeTransform = Eigen::Isometry3d::Identity();
         eeTransform.linear()
         = eeTransform.linear() 
@@ -224,7 +229,9 @@ namespace feeding {
         for (int i=0; i<velocityLimits.size(); i++) {
           slowerVelocity.push_back(velocityLimits[i] / slowFactor);
         }
+        */
         talk("Tilting, hold tight.", true);
+        /*
         ada->moveArmToTSR(
           personTSR,
           nullptr, //collisionFreeWithWallFurtherBack,
@@ -232,6 +239,11 @@ namespace feeding {
           maxNumTrials,
           getConfigurationRanker(ada),
           slowerVelocity);
+        */
+
+        Eigen::VectorXd moveTiltPose(6);
+        moveTiltPose << 3.13435, 4.45108, 4.15493, -2.33557, 1.71750, -1.59486;
+        ada->moveArmToConfiguration(moveTiltPose, nullptr, 2.0, velocityLimits);
       }
 
       if (moveIFOSuccess)

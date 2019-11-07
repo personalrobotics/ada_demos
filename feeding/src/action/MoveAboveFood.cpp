@@ -49,7 +49,13 @@ bool moveAboveFood(
   Eigen::AngleAxisd baseRotation
       = Eigen::AngleAxisd(baseRotateAngle, Eigen::Vector3d::UnitZ());
   target = removeRotation(foodTransform);
-  target.linear() = target.linear() * baseRotation;
+  auto rotationFreeFoodNames = feedingDemo->mRotationFreeFoodNames;
+  if (std::find(
+          rotationFreeFoodNames.begin(), rotationFreeFoodNames.end(), foodName)
+      == rotationFreeFoodNames.end())
+  {
+    target.linear() = target.linear() * baseRotation;
+  }
   target.translation()[2] = feedingDemo->mTableHeight;
   ROS_WARN_STREAM("Food Height: " << target.translation()[2]);
 
@@ -74,7 +80,7 @@ bool moveAboveFood(
         = Eigen::AngleAxisd(rotateAngle, Eigen::Vector3d::UnitZ()) // Take into account action rotation
           * Eigen::Vector3d{0,
                           -sin(M_PI * 0.25) * heightAboveFood * 0.7,
-                          cos(M_PI * 0.25) * heightAboveFood * 0.4};
+                          cos(M_PI * 0.25) * heightAboveFood * 0.9};
   }
 
   return moveAbove(
