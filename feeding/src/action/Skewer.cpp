@@ -315,8 +315,11 @@ bool skewer(
 
     ada_demos::DetectAcquisition srv;
 
-    if (ros::service::call("acquisition_detection", srv))
+    ROS_INFO_STREAM("Calling service...");
+
+    if (ros::service::call("acquisition_detector", srv))
     {
+      ROS_INFO_STREAM("Made a call to service...");
       if (srv.response.success)
       {
         ROS_INFO_STREAM("Successful");
