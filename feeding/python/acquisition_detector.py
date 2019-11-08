@@ -24,10 +24,14 @@ def detector():
 
 
 class InferenceModel(object):
+    """
+    Model class for performing inference from a pre-trained model.
+    """
     def __init__(self):
         print('Torch version {}'.format(torch.__version__))
         print('Torchvision version {}'.format(torchvision.__version__))
         print('Python version {}'.format(sys.version_info))
+
         # Download the model file
         model_path = path.join(path.dirname(__file__), REL_MODEL_PATH)
         if not path.exists(model_path):
@@ -43,13 +47,16 @@ class InferenceModel(object):
         self.color_normalizer = transforms.Normalize(mean=[70.7759, 84.4663, 91.1007],
                                                      std=[71.4193, 57.9395, 61.5698])
 
-        #self.device = get_device(args)
-        #self.model = model.to(self.device)
         self.model.eval()
 
         self.bridge = CvBridge()
 
     def handle_detection(self, req):
+        """
+        Handle a detection service request.
+        :param req:                         Request message.
+        :return DetectAcquisitionResponse:  Detection response, containing boolean value success.
+        """
         msg = rospy.wait_for_message('/camera/color/image_raw/', Image, timeout=1.0)
 
         # Tensor transform
@@ -65,7 +72,7 @@ class InferenceModel(object):
         img = self.color_normalizer(img)
 
         img.unsqueeze_(0)  # batch size 1
-        #inputs = sample['image'].to(device)
+
         with torch.set_grad_enabled(False):
             outputs = self.model(img)
             _, preds = torch.max(outputs, 1)
