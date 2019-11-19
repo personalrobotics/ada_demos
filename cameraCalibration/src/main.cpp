@@ -133,8 +133,8 @@ int main(int argc, char** argv)
       "/camera/color/camera_info",
       true,
       5, // number of center points in width
-      4, // number of center points in height
-      0.012 // size of checkerboard in meter
+      8, // number of center points in height
+      0.011 // size of checkerboard in meter
       );
   tf::TransformListener tfListener;
   std::vector<Eigen::Isometry3d> targetPointsInCameraLensFrame;
