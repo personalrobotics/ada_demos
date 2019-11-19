@@ -153,6 +153,10 @@ int main(int argc, char** argv)
   {
     spanetDemo(*feedingDemo, perception, nodeHandle);
   }
+  // else if (demoType == "push")
+  // {
+  //   pushDemo(*feedingDemo, perception, nodeHandle);
+  // }
   else
   {
     // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
