@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/World.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
@@ -116,8 +116,8 @@ int main(int argc, char** argv)
   ROS_INFO_STREAM(
       "Starting viewer. Please subscribe to the '"
       << execTopicName << "' InteractiveMarker topic in RViz.");
-  aikido::rviz::WorldInteractiveMarkerViewer viewer(
-      env, execTopicName, baseFrameName);
+  aikido::rviz::InteractiveMarkerViewer viewer(
+      execTopicName, baseFrameName, env);
 
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);

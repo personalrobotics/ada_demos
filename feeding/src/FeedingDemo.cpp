@@ -100,10 +100,10 @@ FeedingDemo::FeedingDemo(
       relaxedArmCollisionGroup, relaxedEnvCollisionGroup);
 
   // visualization
-  mViewer = std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
-      mWorld,
+  mViewer = std::make_shared<aikido::rviz::InteractiveMarkerViewer>(
       getRosParam<std::string>("/visualization/topicName", mNodeHandle),
-      getRosParam<std::string>("/visualization/baseFrameName", mNodeHandle));
+      getRosParam<std::string>("/visualization/baseFrameName", mNodeHandle),
+      mWorld);
   mViewer->setAutoUpdate(true);
 
   if (mAdaReal)
@@ -243,7 +243,7 @@ Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
 }
 
 //==============================================================================
-aikido::rviz::WorldInteractiveMarkerViewerPtr FeedingDemo::getViewer()
+aikido::rviz::InteractiveMarkerViewerPtr FeedingDemo::getViewer()
 {
   return mViewer;
 }

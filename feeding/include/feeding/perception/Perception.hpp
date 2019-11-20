@@ -5,7 +5,7 @@
 #include <Eigen/Dense>
 #include <aikido/perception/AssetDatabase.hpp>
 #include <aikido/perception/PoseEstimatorModule.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <libada/Ada.hpp>

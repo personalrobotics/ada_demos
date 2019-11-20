@@ -1,4 +1,4 @@
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/Rn.hpp>
 #include <mcheck.h>
 #include <pr_tsr/plate.hpp>

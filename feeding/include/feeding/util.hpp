@@ -5,7 +5,7 @@
 #include <iostream>
 #include <utility>
 #include <Eigen/Dense>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/StateSpace.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
 #include <aikido/trajectory/Spline.hpp>
@@ -25,7 +25,7 @@ static const std::vector<std::string> FOOD_NAMES
 static const std::vector<std::string> ACTIONS
     = {"calibrate", "pickupfork", "putdownfork"};
 
-static aikido::rviz::WorldInteractiveMarkerViewerPtr VIEWER;
+static aikido::rviz::InteractiveMarkerViewerPtr VIEWER;
 
 /// Deals with the arguments supplied to the executable.
 /// \param[in] description Description for this program

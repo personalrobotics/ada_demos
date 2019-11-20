@@ -2,7 +2,7 @@
 #include <aikido/io/CatkinResourceRetriever.hpp>
 #include <aikido/io/util.hpp>
 #include <aikido/planner/World.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <dart/dynamics/Frame.hpp>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
@@ -26,8 +26,8 @@ bool tryPerceivePoint(
         std::string frameName,
         Perception& perception,
         tf::TransformListener& tfListener,
-        aikido::rviz::WorldInteractiveMarkerViewer& jouleViewer,
-        aikido::rviz::WorldInteractiveMarkerViewer& targetPointViewer,
+        aikido::rviz::InteractiveMarkerViewer& jouleViewer,
+        aikido::rviz::InteractiveMarkerViewer& targetPointViewer,
         std::vector<Eigen::Isometry3d>& targetPointsInCameraLensFrame,
         std::vector<Eigen::Isometry3d>& cameraLensPointsInWorldFrame,
         std::vector<dart::dynamics::SimpleFramePtr>& frames,
@@ -143,19 +143,19 @@ int main(int argc, char** argv)
   std::vector<Eigen::Isometry3d> cameraLensPointsInWorldFrame;
 
   // visualization
-  aikido::rviz::WorldInteractiveMarkerViewer viewer(
-      world, "dart_markers/cameraCalibration", "map");
+  aikido::rviz::InteractiveMarkerViewer viewer(
+      "dart_markers/cameraCalibration", "map", world);
   viewer.setAutoUpdate(true);
   auto frame1 = viewer.addFrame(
       ada.getMetaSkeleton()->getBodyNode("j2n6s200_end_effector"), 0.02, 0.002);
   auto frame2 = viewer.addFrame(
       ada.getMetaSkeleton()->getBodyNode("j2n6s200_hand_tip"), 0.02, 0.002);
 
-  aikido::rviz::WorldInteractiveMarkerViewer jouleViewer(
-      world, "dart_markers/cameraCalibration/cameraLens", "map");
+  aikido::rviz::InteractiveMarkerViewer jouleViewer(
+      "dart_markers/cameraCalibration/cameraLens", "map", world);
   jouleViewer.setAutoUpdate(true);
-  aikido::rviz::WorldInteractiveMarkerViewer targetPointViewer(
-      world, "dart_markers/cameraCalibration/targetPoint", "map");
+  aikido::rviz::InteractiveMarkerViewer targetPointViewer(
+      "dart_markers/cameraCalibration/targetPoint", "map", world);
   targetPointViewer.setAutoUpdate(true);
 
   waitForUser("Startup complete.");
