@@ -3,7 +3,7 @@
 
 #include <fstream>
 #include <iostream>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/calib3d/calib3d.hpp>

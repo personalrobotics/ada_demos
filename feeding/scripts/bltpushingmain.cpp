@@ -1,4 +1,4 @@
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -63,7 +63,7 @@ int bltpushingmain(
     FeedingDemo& feedingDemo,
     FTThresholdHelper& ftThresholdHelper,
     Perception& perception,
-    aikido::rviz::WorldInteractiveMarkerViewerPtr viewer,
+    aikido::rviz::InteractiveMarkerViewerPtr viewer,
     ros::NodeHandle nodeHandle,
     bool autoContinueDemo,
     bool adaReal)

@@ -1,5 +1,5 @@
 
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
 #include <libada/util.hpp>
 #include "feeding/FTThresholdHelper.hpp"
