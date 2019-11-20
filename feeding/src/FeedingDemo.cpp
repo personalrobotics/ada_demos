@@ -101,8 +101,8 @@ FeedingDemo::FeedingDemo(
 
   // visualization
   mViewer = std::make_shared<aikido::rviz::InteractiveMarkerViewer>(
-      getRosParam<std::string>("/visualization/topicName", mNodeHandle),
-      getRosParam<std::string>("/visualization/baseFrameName", mNodeHandle),
+      getRosParam<std::string>("/visualization/topicName", *mNodeHandle),
+      getRosParam<std::string>("/visualization/baseFrameName", *mNodeHandle),
       mWorld);
   mViewer->setAutoUpdate(true);
 
