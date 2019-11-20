@@ -146,7 +146,7 @@ int main(int argc, char** argv)
 
   auto defaultPose = getCurrentConfig(robot);
 
-  viewer.addFrame(hand->getEndEffectorBodyNode(), 0.2, 0.01, 1.0);
+  viewer.addFrameMarker(hand->getEndEffectorBodyNode(), 0.2, 0.01, 1.0);
   sodaTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("cylinder")->matrix();
   auto goalTsr = std::make_shared<TSR>(sodaTSR);
 

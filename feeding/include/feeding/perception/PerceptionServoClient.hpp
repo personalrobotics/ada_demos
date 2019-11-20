@@ -3,7 +3,7 @@
 
 #include <mutex>
 #include <aikido/control/ros/RosTrajectoryExecutor.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <boost/optional.hpp>

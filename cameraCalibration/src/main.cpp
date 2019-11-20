@@ -45,7 +45,7 @@ bool tryPerceivePoint(
     Eigen::Isometry3d joule = getWorldToJoule(tfListener).inverse();
     dart::dynamics::SimpleFramePtr jouleFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "joule_" + frameName, joule);
     frames.push_back(jouleFrame);
-    frameMarkers.push_back(jouleViewer.addFrame(jouleFrame.get(), 0.07, 0.007));
+    frameMarkers.push_back(jouleViewer.addFrameMarker(jouleFrame.get(), 0.07, 0.007));
     return true;
   }
   catch (...)
@@ -146,9 +146,9 @@ int main(int argc, char** argv)
   aikido::rviz::InteractiveMarkerViewer viewer(
       "dart_markers/cameraCalibration", "map", world);
   viewer.setAutoUpdate(true);
-  auto frame1 = viewer.addFrame(
+  auto frame1 = viewer.addFrameMarker(
       ada.getMetaSkeleton()->getBodyNode("j2n6s200_end_effector"), 0.02, 0.002);
-  auto frame2 = viewer.addFrame(
+  auto frame2 = viewer.addFrameMarker(
       ada.getMetaSkeleton()->getBodyNode("j2n6s200_hand_tip"), 0.02, 0.002);
 
   aikido::rviz::InteractiveMarkerViewer jouleViewer(
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
       = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
   auto targetTSR = getCalibrationTSR(targetPointPose);
   dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "targetFrame", targetPointPose);
-  auto targetFrameMarker = viewer.addFrame(targetFrame.get(), 0.07, 0.007);
+  auto targetFrameMarker = viewer.addFrameMarker(targetFrame.get(), 0.07, 0.007);
 
   if (!moveArmToTSR(targetTSR, ada, collisionFreeConstraint, armSpace))
   {
