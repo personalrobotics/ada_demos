@@ -12,10 +12,10 @@ FTThresholdHelper::FTThresholdHelper(
   if (!mUseThresholdControl)
     return;
 
-  mFTThresholdClient = std::unique_ptr<rewd_controllers::FTThresholdClient>(
-      new rewd_controllers::FTThresholdClient(
-          getRosParam<std::string>(
-              "/ftSensor/controllerFTThresholdTopic", mNodeHandle)));
+  // mFTThresholdClient = std::unique_ptr<rewd_controllers::FTThresholdClient>(
+  //     new rewd_controllers::FTThresholdClient(
+  //         getRosParam<std::string>(
+  //             "/ftSensor/controllerFTThresholdTopic", mNodeHandle)));
 }
 
 //==============================================================================
@@ -24,9 +24,9 @@ void FTThresholdHelper::init()
   if (!mUseThresholdControl)
     return;
 
-  auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
-  mFTThresholdClient->trySetThresholdsRepeatedly(
-      thresholdPair.first, thresholdPair.second);
+  // auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
+  // mFTThresholdClient->trySetThresholdsRepeatedly(
+  //     thresholdPair.first, thresholdPair.second);
 }
 
 //==============================================================================
@@ -35,9 +35,9 @@ bool FTThresholdHelper::setThresholds(FTThreshold threshold)
   if (!mUseThresholdControl)
     return true;
 
-  auto thresholdPair = getThresholdValues(threshold);
-  return mFTThresholdClient->setThresholds(
-      thresholdPair.first, thresholdPair.second);
+  // auto thresholdPair = getThresholdValues(threshold);
+  // return mFTThresholdClient->setThresholds(
+  //     thresholdPair.first, thresholdPair.second);
 }
 
 //==============================================================================

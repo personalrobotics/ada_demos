@@ -1,5 +1,5 @@
 
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
 #include "feeding/FTThresholdHelper.hpp"
@@ -52,10 +52,10 @@ int main(int argc, char** argv)
       nodeHandle);
 
   // visualization
-  aikido::rviz::WorldInteractiveMarkerViewer viewer(
-      feedingDemo.getWorld(),
+  aikido::rviz::InteractiveMarkerViewer viewer(
       getRosParam<std::string>("/visualization/topicName", nodeHandle),
-      getRosParam<std::string>("/visualization/baseFrameName", nodeHandle));
+      getRosParam<std::string>("/visualization/baseFrameName", nodeHandle),
+      feedingDemo.getWorld());
   viewer.setAutoUpdate(true);
 
   std::string collisionCheckResult;

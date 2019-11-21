@@ -1,7 +1,7 @@
 #ifndef FEEDING_FTTHRESHOLDHELPER_HPP_
 #define FEEDING_FTTHRESHOLDHELPER_HPP_
 
-#include <rewd_controllers/FTThresholdClient.hpp>
+// #include <rewd_controllers/FTThresholdClient.hpp>
 #include <ros/ros.h>
 
 namespace feeding {
@@ -43,7 +43,7 @@ private:
   bool mUseThresholdControl;
   ros::NodeHandle mNodeHandle;
 
-  std::unique_ptr<rewd_controllers::FTThresholdClient> mFTThresholdClient;
+  // std::unique_ptr<rewd_controllers::FTThresholdClient> mFTThresholdClient;
 
   std::pair<double, double> getThresholdValues(FTThreshold threshold);
 };
