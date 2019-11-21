@@ -55,6 +55,7 @@ add_executable(feeding
   src/action/PickUpFork.cpp
   src/action/PutDownFork.cpp
   src/action/Skewer.cpp
+  src/frechet/FrechetUtil.cpp
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp
   src/ranker/ShortestDistanceRanker.cpp
