@@ -370,7 +370,7 @@ SplinePtr PerceptionServoClient::planToGoalPose(
 
   //  Start from the closest point on the trajectory
   timedTraj = createPartialTimedTrajectoryFromCurrentConfig(timedTraj.get());
-  return timedTraj;
+  return std::move(timedTraj);
 }
 
 //==============================================================================

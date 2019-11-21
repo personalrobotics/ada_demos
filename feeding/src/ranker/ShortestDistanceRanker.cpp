@@ -37,8 +37,8 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
   auto itemPose = item.getMetaSkeleton()->getBodyNode(0)->getWorldTransform();
   double distance = getDistance(itemPose, forqueTransform);
 
-  return std::make_unique<FoodItem>(
-      item.getName(), item.getUid(), item.getMetaSkeleton(), action, distance);
+  return std::unique_ptr<FoodItem>(new FoodItem(
+      item.getName(), item.getUid(), item.getMetaSkeleton(), action, distance));
 }
 
 } // namespace feeding

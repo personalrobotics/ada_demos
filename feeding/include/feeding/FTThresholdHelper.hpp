@@ -4,9 +4,9 @@
 #include <geometry_msgs/WrenchStamped.h>
 // TODO
 #define REWD_CONTROLLERS_FOUND
-#ifdef REWD_CONTROLLERS_FOUND
-#include <rewd_controllers/FTThresholdClient.hpp>
-#endif
+// #ifdef REWD_CONTROLLERS_FOUND
+// #include <rewd_controllers/FTThresholdClient.hpp>
+// #endif
 #include <mutex>
 #include <Eigen/Geometry>
 #include <ros/ros.h>
@@ -65,9 +65,9 @@ private:
   // \brief Gets data from the force/torque sensor
   ros::Subscriber mForceTorqueDataSub;
 
-#ifdef REWD_CONTROLLERS_FOUND
-  std::unique_ptr<rewd_controllers::FTThresholdClient> mFTThresholdClient;
-#endif
+// #ifdef REWD_CONTROLLERS_FOUND
+//   std::unique_ptr<rewd_controllers::FTThresholdClient> mFTThresholdClient;
+// #endif
 
   std::pair<double, double> getThresholdValues(FTThreshold threshold);
 

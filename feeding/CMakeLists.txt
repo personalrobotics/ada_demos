@@ -20,7 +20,7 @@ find_package(rosbag REQUIRED)
 find_package(image_geometry REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-find_package(DART 6.6.2 REQUIRED
+find_package(DART 6.6.0 REQUIRED
   COMPONENTS utils utils-urdf optimizer-nlopt
   CONFIG
 )

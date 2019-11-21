@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 2.8.0)
 project(ada_demos)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_STANDARD 14)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -24,7 +24,7 @@ find_package(tf_conversions REQUIRED)
 include_directories(${tf_conversions_INCLUDE_DIRS})
 include_directories(${catkin_INCLUDE_DIRS})
 
-find_package(DART 6.6.2 REQUIRED
+find_package(DART 6.6.0 REQUIRED
   COMPONENTS utils utils-urdf optimizer-nlopt
 )
 include_directories(${DART_INCLUDE_DIRS})
@@ -71,12 +71,12 @@ include_directories(${Boost_INCLUDE_DIR})
 # Demos
 #
 
-add_subdirectory(soda_grasp)
-add_subdirectory(simple_trajectories)
-add_subdirectory(simple_perception)
-add_subdirectory(hand_control)
+#add_subdirectory(soda_grasp)
+#add_subdirectory(simple_trajectories)
+#add_subdirectory(simple_perception)
+#add_subdirectory(hand_control)
 add_subdirectory(feeding)
-add_subdirectory(cameraCalibration)
+#add_subdirectory(cameraCalibration)
 
 # ===============================================================================
 # Formatting
