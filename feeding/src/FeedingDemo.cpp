@@ -57,6 +57,12 @@ FeedingDemo::FeedingDemo(
   Eigen::Isometry3d robotPose = createIsometry(
       getRosParam<std::vector<double>>("/ada/baseFramePose", mNodeHandle));
 
+  std::cout << "" << std::endl;
+  std::cout << "" << std::endl;
+  std::cout << "ROBOT POSE: " << std::endl;
+  std::cout << robotPose.matrix() << std::endl;
+  std::cout << "" << std::endl;
+
   mWorkspace
       = std::make_shared<Workspace>(mWorld, robotPose, mAdaReal, mNodeHandle);
 
