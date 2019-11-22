@@ -176,6 +176,11 @@ void demo(
         continue;
       }
 
+      std::cout << "" << std::endl;
+      std::cout << "" << std::endl;
+      std::cout << "[INFO]: Successfully Generated a scooping motion plan!"
+        << std::endl;
+
       // bool skewer = action::skewer(
       //   ada,
       //   workspace,
