@@ -20,6 +20,9 @@ find_package(rosbag REQUIRED)
 find_package(image_geometry REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
+# NOTE: For sniyaz project.
+find_package(pr-ompl-frechet REQUIRED)
+
 find_package(DART 6.6.0 REQUIRED
   COMPONENTS utils utils-urdf optimizer-nlopt
   CONFIG
@@ -76,7 +79,8 @@ target_link_libraries(feeding
   ${rosbag_LIBRARIES}
   ${sensor_msgs_LIBRARIES}
   ${image_geometry_LIBRARIES}
-  libada)
+  libada
+  pr-ompl-frechet)
 
 IF (rewd_controllers_FOUND)
   target_link_libraries(feeding ${rewd_controllers_LIBRARIES})
