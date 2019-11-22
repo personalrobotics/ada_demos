@@ -294,7 +294,7 @@ bool moveToStartOfTraj(
   Eigen::VectorXd qStart
     = getTrajStartConfig(traj, armMetaSkeleton, armStateSpace);
 
-  return ada->moveArmToConfiguration(qStart, collisionFree, 2.0);
+  return ada->moveArmToConfiguration(qStart, collisionFree, 15.0);
 }
 
 } // namespace feeding
