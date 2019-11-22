@@ -41,9 +41,7 @@ void demo(
 
   // NOTE: This is also for the scooping project.
   auto armMetaSkeleton = ada->getArm()->getMetaSkeleton();
-  auto armStateSpace
-    = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
-          armMetaSkeleton.get());
+  auto armStateSpace = ada->getArm()->getStateSpace();
 
   talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
 
