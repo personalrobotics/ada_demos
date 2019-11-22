@@ -19,11 +19,18 @@ using aikido::constraint::TestablePtr;
 using aikido::distance::DistanceMetricPtr;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
 using aikido::trajectory::InterpolatedPtr;
+using aikido::trajectory::TrajectoryPtr;
 
 namespace feeding {
 
 // Read reference path for ADA to follow.
 std::vector<Eigen::Isometry3d> readADAPath(std::string pathFile);
+
+// Uses NNF to follow the given `referencePath`.
+TrajectoryPtr planFollowEndEffectorPath(
+    std::vector<Eigen::Isometry3d>& referencePath,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const std::shared_ptr<ada::Ada>& ada);
 
 } // namespace feeding
 
