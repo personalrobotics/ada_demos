@@ -36,7 +36,7 @@ void demo(
 
   // NOTE (sniyaz): SUPER terrible and hacky: just hard-code the path to the EE
   // path file here.
-  std::string eePathFile = "";
+  std::string eePathFile = "/home/sniyaz/my-workspace/src/frechet_search/ADA/recordedTrajs/test_scoop.txt";
   std::vector<Eigen::Isometry3d> scoopingPath = readADAPath(eePathFile);
 
   // NOTE: This is also for the scooping project.
