@@ -185,7 +185,7 @@ TrajectoryPtr planFollowEndEffectorPath(
   corePlanner->setDistanceFunc(
       [](Eigen::Isometry3d& firstPose, Eigen::Isometry3d& secondPose) {
         // TODO: Incooreperate SE(3) component.
-        return (firstPose.translation() - secondPose.translation()).norm();
+        return computeSE3Distance(firstPose, secondPose);
       });
 
   corePlanner->setFKFunc(
