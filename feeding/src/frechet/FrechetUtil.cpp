@@ -158,14 +158,14 @@ double computeSE3Distance(
 TrajectoryPtr planFollowEndEffectorPath(
     std::vector<Eigen::Isometry3d>& referencePath,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    MetaSkeletonPtr armMetaSkeleton,
+    MetaSkeletonStateSpacePtr armStateSpace,
     const std::shared_ptr<ada::Ada>& ada
 ) {
-  // TODO: Reset arm statespace at the end...
+  auto saver = MetaSkeletonStateSaver(
+      armMetaSkeleton, MetaSkeletonStateSaver::Options::POSITIONS);
+  DART_UNUSED(saver);
 
-  auto armMetaSkeleton = ada->getArm()->getMetaSkeleton();
-  auto armStateSpace
-    = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
-          armMetaSkeleton.get());
   auto hand = ada->getHand()->getEndEffectorBodyNode();
 
   // TODO: Decide what to do about this.

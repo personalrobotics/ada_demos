@@ -36,6 +36,8 @@ double computeSE3Distance(
 TrajectoryPtr planFollowEndEffectorPath(
     std::vector<Eigen::Isometry3d>& referencePath,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    MetaSkeletonPtr armMetaSkeleton,
+    MetaSkeletonStateSpacePtr armStateSpace,
     const std::shared_ptr<ada::Ada>& ada);
 
 // Used after planFollowEndEffectorPath has generated a motion plan/trajectory.
