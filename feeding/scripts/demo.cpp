@@ -12,6 +12,7 @@
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/action/MoveInFrontOfPerson.hpp"
 #include "feeding/action/MoveDirectlyToPerson.hpp"
+#include "feeding/frechet/FrechetUtil.hpp"
 #include <cstdlib>
 #include <ctime>
 
@@ -32,6 +33,17 @@ void demo(
   auto workspace = feedingDemo.getWorkspace();
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
+
+  // NOTE (sniyaz): SUPER terrible and hacky: just hard-code the path to the EE
+  // path file here.
+  std::string eePathFile = "";
+  std::vector<Eigen::Isometry3d> scoopingPath = readADAPath(eePathFile);
+
+  // NOTE: This is also for the scooping project.
+  auto armMetaSkeleton = ada->getArm()->getMetaSkeleton();
+  auto armStateSpace
+    = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
+          armMetaSkeleton.get());
 
   talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
 
@@ -128,74 +140,93 @@ void demo(
     }
     else
     {
-      bool skewer = action::skewer(
-        ada,
-        workspace,
+      // NOTE (sniyaz): Right we just replace *everything* that has to do with
+      // skewering with the Frechet scooping action.
+
+      // NOTE: Attempts first to plan with the NNF planner to perform
+      // a scooping action.
+      TrajectoryPtr scoopTraj = planFollowEndEffectorPath(
+        scoopingPath,
         collisionFree,
-        perception,
-        &nodeHandle,
-        foodName,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mFoodSkeweringForces,
-        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mFoodTSRParameters.at("height"),
-        feedingDemo.mFoodTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mFoodTSRParameters.at("verticalTolerance"),
-        feedingDemo.mFoodTSRParameters.at("rotationTolerance"),
-        feedingDemo.mFoodTSRParameters.at("tiltTolerance"),
-        feedingDemo.mMoveOufOfFoodLength,
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mWaitTimeForFood,
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mVelocityLimits,
-        feedingDemo.getFTThresholdHelper(),
-        feedingDemo.mRotationFreeFoodNames,
-        &feedingDemo);
+        armMetaSkeleton,
+        armStateSpace,
+        ada);
 
-      if (feedingDemo.getFTThresholdHelper())
-        feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
-
-      if (!skewer)
+      if (!scoopTraj)
       {
-        ROS_WARN_STREAM("Restart from the beginning");
-        continue;
+        std::cout << "" << std::endl;
+        std::cout << "" << std::endl;
+        std::cout << "[INFO]: Couldn't plan scoop with NNF. Rety!" << std::endl;
       }
 
-      // ===== IN FRONT OF PERSON =====
-      ROS_INFO_STREAM("Move forque in front of person");
-
-      bool tilted = (foodName != "celery");
-
-      action::feedFoodToPerson(
-        ada,
-        workspace,
-        collisionFree,
-        feedingDemo.getCollisionConstraintWithWallFurtherBack(),
-        perception,
-        &nodeHandle,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        workspace->getPersonPose(),
-        feedingDemo.mWaitTimeForPerson,
-        feedingDemo.mPlateTSRParameters.at("height"),
-        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mPersonTSRParameters.at("distance"),
-        feedingDemo.mPersonTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPersonTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mVelocityLimits,
-        tilted ? &feedingDemo.mTiltOffset : nullptr
-        );
+      // bool skewer = action::skewer(
+      //   ada,
+      //   workspace,
+      //   collisionFree,
+      //   perception,
+      //   &nodeHandle,
+      //   foodName,
+      //   plate,
+      //   feedingDemo.getPlateEndEffectorTransform(),
+      //   feedingDemo.mFoodSkeweringForces,
+      //   feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
+      //   feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
+      //   feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
+      //   feedingDemo.mFoodTSRParameters.at("height"),
+      //   feedingDemo.mFoodTSRParameters.at("horizontalTolerance"),
+      //   feedingDemo.mFoodTSRParameters.at("verticalTolerance"),
+      //   feedingDemo.mFoodTSRParameters.at("rotationTolerance"),
+      //   feedingDemo.mFoodTSRParameters.at("tiltTolerance"),
+      //   feedingDemo.mMoveOufOfFoodLength,
+      //   feedingDemo.mEndEffectorOffsetPositionTolerance,
+      //   feedingDemo.mEndEffectorOffsetAngularTolerance,
+      //   feedingDemo.mWaitTimeForFood,
+      //   feedingDemo.mPlanningTimeout,
+      //   feedingDemo.mMaxNumTrials,
+      //   feedingDemo.mVelocityLimits,
+      //   feedingDemo.getFTThresholdHelper(),
+      //   feedingDemo.mRotationFreeFoodNames,
+      //   &feedingDemo);
+      //
+      // if (feedingDemo.getFTThresholdHelper())
+      //   feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
+      //
+      // if (!skewer)
+      // {
+      //   ROS_WARN_STREAM("Restart from the beginning");
+      //   continue;
+      // }
+      //
+      // // ===== IN FRONT OF PERSON =====
+      // ROS_INFO_STREAM("Move forque in front of person");
+      //
+      // bool tilted = (foodName != "celery");
+      //
+      // action::feedFoodToPerson(
+      //   ada,
+      //   workspace,
+      //   collisionFree,
+      //   feedingDemo.getCollisionConstraintWithWallFurtherBack(),
+      //   perception,
+      //   &nodeHandle,
+      //   plate,
+      //   feedingDemo.getPlateEndEffectorTransform(),
+      //   workspace->getPersonPose(),
+      //   feedingDemo.mWaitTimeForPerson,
+      //   feedingDemo.mPlateTSRParameters.at("height"),
+      //   feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
+      //   feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
+      //   feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
+      //   feedingDemo.mPersonTSRParameters.at("distance"),
+      //   feedingDemo.mPersonTSRParameters.at("horizontalTolerance"),
+      //   feedingDemo.mPersonTSRParameters.at("verticalTolerance"),
+      //   feedingDemo.mPlanningTimeout,
+      //   feedingDemo.mMaxNumTrials,
+      //   feedingDemo.mEndEffectorOffsetPositionTolerance,
+      //   feedingDemo.mEndEffectorOffsetAngularTolerance,
+      //   feedingDemo.mVelocityLimits,
+      //   tilted ? &feedingDemo.mTiltOffset : nullptr
+      //   );
     }
   }
 
