@@ -72,28 +72,6 @@ double so2Distance(double first, double second)
   return dist;
 }
 
-Eigen::VectorXd getTrajStartConfig(
-  TrajectoryPtr traj,
-  MetaSkeletonPtr armMetaSkeleton,
-  MetaSkeletonStateSpacePtr armStateSpace
-) {
-  auto saver = MetaSkeletonStateSaver(
-      armMetaSkeleton, MetaSkeletonStateSaver::Options::POSITIONS);
-  DART_UNUSED(saver);
-
-  auto trajStartState = armStateSpace->createState();
-
-  // Gets the first state on the trajectory.
-  double trajStartTime = traj->getStartTime();
-  traj->evaluate(trajStartTime, trajStartState);
-
-  // Converts this state to a set of positions (i.e. a config).
-  Eigen::VectorXd qStart = Eigen::VectorXd::Zero(6);
-  armStateSpace->convertStateToPositions(trajStartState, qStart);
-
-  return qStart;
-}
-
 } // namespace
 
 std::vector<Eigen::Isometry3d> readADAPath(
@@ -284,17 +262,26 @@ TrajectoryPtr planFollowEndEffectorPath(
   return untimedTraj;
 }
 
-bool moveToStartOfTraj(
+TrajectoryPtr planToStartOfTraj(
     TrajectoryPtr traj,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     MetaSkeletonPtr armMetaSkeleton,
     MetaSkeletonStateSpacePtr armStateSpace,
     const std::shared_ptr<ada::Ada>& ada
 ) {
-  Eigen::VectorXd qStart
-    = getTrajStartConfig(traj, armMetaSkeleton, armStateSpace);
+  auto saver = MetaSkeletonStateSaver(
+      armMetaSkeleton, MetaSkeletonStateSaver::Options::POSITIONS);
+  DART_UNUSED(saver);
 
-  return ada->moveArmToConfiguration(qStart, collisionFree, 15.0);
+  auto trajStartState = armStateSpace->createState();
+
+  // Gets the first state on the trajectory.
+  double trajStartTime = traj->getStartTime();
+  traj->evaluate(trajStartTime, trajStartState);
+
+  // Uses libada methods to plan to this first state.
+  return ada->planToConfiguration(
+    armStateSpace, armMetaSkeleton, trajStartState, collisionFree, 15.0);
 }
 
 } // namespace feeding
