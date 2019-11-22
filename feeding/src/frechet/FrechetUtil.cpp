@@ -169,10 +169,9 @@ TrajectoryPtr planFollowEndEffectorPath(
       = dynamic_cast<NNFrechet*>(plannerOMPL.getOMPLPlanner().get());
 
   // Captured variables for NNF IK, FK, and task-space distance functions.
-  auto ikSeedSampler
+  // NOTE: This needs to be a shared pointer for lambda capture.
+  std::shared_ptr<Sampleable> ikSeedSampler
       = createSampleableBounds(armStateSpace, std::move(ada->cloneRNG()));
-  std::shared_ptr<SampleGenerator> ikSeedGenerator
-      = ikSeedSampler->createSampleGenerator();
 
   auto rightArmIK = InverseKinematics::create(hand);
   rightArmIK->setDofs(armMetaSkeleton->getDofs());
@@ -207,7 +206,7 @@ TrajectoryPtr planFollowEndEffectorPath(
   corePlanner->setIKFunc(
       [armMetaSkeleton,
        armStateSpace,
-       ikSeedGenerator,
+       ikSeedSampler,
        rightArmIK,
        omplStateSpace](Eigen::Isometry3d& targetPose, int numSolutions) {
         auto saver = MetaSkeletonStateSaver(
@@ -217,9 +216,12 @@ TrajectoryPtr planFollowEndEffectorPath(
         std::vector<ompl::base::State*> solutions;
         auto seedState = armStateSpace->createState();
 
+        std::shared_ptr<SampleGenerator> ikSeedGenerator
+          = ikSeedSampler->createSampleGenerator();
+
         // How many times the IK solver will re-sample a single solution if it
         // is out of tolerance.
-        int maxRetries = 2;
+        int maxRetries = 3;
         for (int i = 0; i < numSolutions; i++)
         {
           for (int tryIndex = 0; tryIndex < maxRetries; tryIndex++)
