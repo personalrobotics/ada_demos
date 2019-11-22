@@ -25,7 +25,7 @@ ada:
 # Workspace parameters
 plate:
   urdfUri: package://pr_assets/data/objects/plate.urdf
-  pose: [.445, 0.19, -0.04, 0, 0, 0]
+  pose: [.445, 0.35, -0.04, 0, 0, 0]
 table:
   urdfUri: package://pr_assets/data/furniture/table_feeding.urdf
   pose: [0.76, 0.38, -0.76, 0, 0, 0]
@@ -93,7 +93,7 @@ ftSensor:
     afterGrabFood:  # active when going up after food has been grabbed
       force: 50
       torque: 2
-    
+
 
 # Perception parameters
 perception:
