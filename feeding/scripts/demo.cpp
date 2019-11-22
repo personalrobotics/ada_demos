@@ -179,6 +179,24 @@ void demo(
       std::cout << "[INFO]: Successfully Generated a scooping motion plan!"
         << std::endl;
 
+      // Prompt for the positioning motion.
+      std::string positioningPrompt
+        = "[SCOOP]: Hit enter for POSITIONING action.";
+      ROS_INFO(positioningPrompt.c_str());
+      std::cin.get();
+
+      // Execute positioning motion.
+      // TODO: Should we use Kunz or parabolic retime?
+      ada->moveArmOnTrajectory(prepareTraj, collisionFree, ada::KUNZ);
+
+      // Prompt for the scooping motion.
+      std::string scoopingPrompt = "[SCOOP]: Hit enter for SCOOPING action.";
+      ROS_INFO(scoopingPrompt.c_str());
+      std::cin.get();
+
+      // Execute scooping motion.
+      ada->moveArmOnTrajectory(scoopTraj, collisionFree, ada::KUNZ);
+
       // bool skewer = action::skewer(
       //   ada,
       //   workspace,
