@@ -133,19 +133,6 @@ double computeSE3Distance(
   return finalWeights.norm();
 }
 
-Eigen::Isometry3d computeFK(
-  Eigen::VectorXd& config,
-  MetaSkeletonPtr arm,
-  BodyNodePtr hand
-) {
-  auto saver = MetaSkeletonStateSaver(
-      arm, MetaSkeletonStateSaver::Options::POSITIONS);
-  DART_UNUSED(saver);
-
-  arm->setPositions(config);
-  return hand->getTransform();
-}
-
 TrajectoryPtr planFollowEndEffectorPath(
     std::vector<Eigen::Isometry3d>& referencePath,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,

@@ -32,12 +32,6 @@ double computeSE3Distance(
   const Eigen::Isometry3d& firstPose,
   const Eigen::Isometry3d& secondPose);
 
-// Helper method to compute forward kinematics for ADA.
-Eigen::Isometry3d computeFK(
-  Eigen::VectorXd& config,
-  MetaSkeletonPtr arm,
-  BodyNodePtr hand);
-
 // Uses NNF to follow the given `referencePath`.
 TrajectoryPtr planFollowEndEffectorPath(
     std::vector<Eigen::Isometry3d>& referencePath,
