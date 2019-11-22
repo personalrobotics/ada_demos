@@ -157,6 +157,23 @@ void demo(
         std::cout << "" << std::endl;
         std::cout << "" << std::endl;
         std::cout << "[INFO]: Couldn't plan scoop with NNF. Rety!" << std::endl;
+        continue;
+      }
+
+      TrajectoryPtr prepareTraj = planToStartOfTraj(
+        scoopTraj,
+        collisionFree,
+        armMetaSkeleton,
+        armStateSpace,
+        ada);
+
+      if (!prepareTraj)
+      {
+        std::cout << "" << std::endl;
+        std::cout << "" << std::endl;
+        std::cout << "[INFO]: Couldn't plan to position ADA for scoop! Retry!"
+          << std::endl;
+        continue;
       }
 
       // bool skewer = action::skewer(
