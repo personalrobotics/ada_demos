@@ -38,6 +38,13 @@ TrajectoryPtr planFollowEndEffectorPath(
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const std::shared_ptr<ada::Ada>& ada);
 
+// Used after planFollowEndEffectorPath has generated a motion plan/trajectory.
+// Moves ada to the first state on that trajectory for execution.
+bool planToStartOfTraj(
+    TrajectoryPtr traj,
+    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    const std::shared_ptr<ada::Ada>& ada);
+
 } // namespace feeding
 
 #endif // FEEDING_FRECHET_UTIL_HPP_
