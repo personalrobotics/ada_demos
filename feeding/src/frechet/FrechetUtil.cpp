@@ -96,40 +96,42 @@ TrajectoryPtr planFollowEndEffectorPath(
 ) {
   // TODO: Reset arm statespace at the end...
 
-  auto rightArmMetaSkeleton = ada->getArm()->getMetaSkeleton();
-  auto rightArmStateSpace
+  auto armMetaSkeleton = ada->getArm()->getMetaSkeleton();
+  auto armStateSpace
     = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
-          rightArmMetaSkeleton.get());
-  auto rightHand = ada->getHand()->getEndEffectorBodyNode();
+          armMetaSkeleton.get());
+  auto hand = ada->getHand()->getEndEffectorBodyNode();
 
   // TODO: Decide what to do about this.
-  auto dummyStart = rightArmStateSpace->getScopedStateFromMetaSkeleton(
-      rightArmMetaSkeleton.get());
-  auto dummyGoal = rightArmStateSpace->getScopedStateFromMetaSkeleton(
-      rightArmMetaSkeleton.get());
+  auto dummyStart = armStateSpace->getScopedStateFromMetaSkeleton(
+      armMetaSkeleton.get());
+  auto dummyGoal = armStateSpace->getScopedStateFromMetaSkeleton(
+      armMetaSkeleton.get());
 
   // Includes self collision constraint.
   auto collisionTestable = ada->getFullCollisionConstraint(
-      rightArmStateSpace, rightArmMetaSkeleton, collisionFree);
+      armStateSpace, armMetaSkeleton, collisionFree);
 
   // NOTE: NOT the DART ConfToConf problem.
   auto problem = aikido::planner::ConfigurationToConfiguration(
-      rightArmStateSpace, dummyStart, dummyGoal, collisionTestable);
+      armStateSpace, dummyStart, dummyGoal, collisionTestable);
 
   OMPLConfigurationToConfigurationPlanner<NNFrechet> plannerOMPL(
-      rightArmStateSpace, ada->cloneRNG().get());
+      armStateSpace, ada->cloneRNG().get());
+
+  // TODO: Make everything below here a little nicer...
 
   auto corePlanner
       = dynamic_cast<NNFrechet*>(plannerOMPL.getOMPLPlanner().get());
 
   // Captured variables for NNF IK, FK, and task-space distance functions.
   auto ikSeedSampler
-      = createSampleableBounds(rightArmStateSpace, std::move(ada->cloneRNG()));
+      = createSampleableBounds(armStateSpace, std::move(ada->cloneRNG()));
   std::shared_ptr<SampleGenerator> ikSeedGenerator
       = ikSeedSampler->createSampleGenerator();
 
-  auto rightArmIK = InverseKinematics::create(rightHand);
-  rightArmIK->setDofs(rightArmMetaSkeleton->getDofs());
+  auto rightArmIK = InverseKinematics::create(hand);
+  rightArmIK->setDofs(armMetaSkeleton->getDofs());
 
   auto omplStateSpace = corePlanner->getSpaceInformation()->getStateSpace();
 
@@ -143,10 +145,10 @@ TrajectoryPtr planFollowEndEffectorPath(
       });
 
   corePlanner->setFKFunc(
-      [rightArmMetaSkeleton, rightArmStateSpace, rightHand](
+      [armMetaSkeleton, armStateSpace, hand](
           ompl::base::State* state) {
         auto saver = MetaSkeletonStateSaver(
-            rightArmMetaSkeleton, MetaSkeletonStateSaver::Options::POSITIONS);
+            armMetaSkeleton, MetaSkeletonStateSaver::Options::POSITIONS);
         DART_UNUSED(saver);
 
         auto geometricState
@@ -154,22 +156,22 @@ TrajectoryPtr planFollowEndEffectorPath(
         auto aikidoState = static_cast<MetaSkeletonStateSpace::State*>(
             geometricState->mState);
 
-        rightArmStateSpace->setState(rightArmMetaSkeleton.get(), aikidoState);
-        return rightHand->getTransform();
+        armStateSpace->setState(armMetaSkeleton.get(), aikidoState);
+        return hand->getTransform();
       });
 
   corePlanner->setIKFunc(
-      [rightArmMetaSkeleton,
-       rightArmStateSpace,
+      [armMetaSkeleton,
+       armStateSpace,
        ikSeedGenerator,
        rightArmIK,
        omplStateSpace](Eigen::Isometry3d& targetPose, int numSolutions) {
         auto saver = MetaSkeletonStateSaver(
-            rightArmMetaSkeleton, MetaSkeletonStateSaver::Options::POSITIONS);
+            armMetaSkeleton, MetaSkeletonStateSaver::Options::POSITIONS);
         DART_UNUSED(saver);
 
         std::vector<ompl::base::State*> solutions;
-        auto seedState = rightArmStateSpace->createState();
+        auto seedState = armStateSpace->createState();
 
         // How many times the IK solver will re-sample a single solution if it
         // is out of tolerance.
@@ -181,7 +183,7 @@ TrajectoryPtr planFollowEndEffectorPath(
             if (!ikSeedGenerator->sample(seedState))
               continue;
 
-            rightArmStateSpace->setState(rightArmMetaSkeleton.get(), seedState);
+            armStateSpace->setState(armMetaSkeleton.get(), seedState);
             rightArmIK->getTarget()->setTransform(targetPose);
 
             if (rightArmIK->solve(true))
@@ -194,8 +196,8 @@ TrajectoryPtr planFollowEndEffectorPath(
           auto aikidoSolutionState
               = static_cast<MetaSkeletonStateSpace::State*>(
                   geometricSolutionState->mState);
-          rightArmStateSpace->getState(
-              rightArmMetaSkeleton.get(), aikidoSolutionState);
+          armStateSpace->getState(
+              armMetaSkeleton.get(), aikidoSolutionState);
 
           solutions.push_back(solutionState);
         }
