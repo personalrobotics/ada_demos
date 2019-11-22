@@ -26,6 +26,12 @@ namespace feeding {
 // Read reference path for ADA to follow.
 std::vector<Eigen::Isometry3d> readADAPath(std::string pathFile);
 
+// Helper method to compute error in SE(3). Accounts for both position and
+// orientation.
+double computeSE3Distance(
+  const Eigen::Isometry3d& firstPose,
+  const Eigen::Isometry3d& secondPose);
+
 // Uses NNF to follow the given `referencePath`.
 TrajectoryPtr planFollowEndEffectorPath(
     std::vector<Eigen::Isometry3d>& referencePath,

@@ -28,9 +28,9 @@ using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::trajectory::Interpolated;
 using NNFrechet::NNFrechet;
 
+// Helpers that otherwise aren't useful, so we keep them in this anon namespace.
 namespace {
 
-// Helper for `readADAPath`, so kept in anon namespace.
 std::vector<Eigen::VectorXd> readVectorsFromFile(
   std::string dirPath,
   int vectorLength
@@ -61,7 +61,51 @@ std::vector<Eigen::VectorXd> readVectorsFromFile(
   return readVecs;
 }
 
+double so2Distance(double first, double second)
+{
+  // https://stackoverflow.com/questions/9505862/shortest-distance-between-two-
+  // degree-marks-on-a-circle
+  double raw_diff = first > second ? first - second : second - first;
+  double mod_diff = std::fmod(raw_diff, 2*M_PI);
+  double dist = mod_diff > M_PI ? 2*M_PI - mod_diff : mod_diff;
+
+  return dist;
+}
+
 } // namespace
+
+double computeSE3Distance(
+  const Eigen::Isometry3d& firstPose,
+  const Eigen::Isometry3d& secondPose
+) {
+  Eigen::VectorXd errorComponents = Eigen::VectorXd::Zero(6);
+
+  // Include translational components.
+  const Eigen::Vector3d& firstTrans = firstPose.translation();
+  const Eigen::Vector3d& secondTrans = secondPose.translation();
+  for (int i = 0; i < 3; i++)
+  {
+    errorComponents[i] = firstTrans[i] - secondTrans[i];
+  }
+
+  // And rotational components.
+  const Eigen::Vector3d& firstEuler
+    = dart::math::matrixToEulerXYZ(firstPose.linear());
+  const Eigen::Vector3d& secondEuler
+    = dart::math::matrixToEulerXYZ(secondPose.linear());
+  for (int i = 0; i < 3; i++)
+  {
+    errorComponents[i + 3] = so2Distance(firstEuler[i], secondEuler[i]);
+  }
+
+  // TODO: Tweak weights!
+  double rotWeight = 1.0;
+  Eigen::VectorXd weights = Eigen::VectorXd::Zero(6);
+  weights << 1.0, 1.0, 1.0, rotWeight, rotWeight, rotWeight;
+
+  Eigen::VectorXd finalWeights = errorComponents.cwiseProduct(weights);
+  return finalWeights.norm();
+}
 
 std::vector<Eigen::Isometry3d> readADAPath(
   std::string pathFile
