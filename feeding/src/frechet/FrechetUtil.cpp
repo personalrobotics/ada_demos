@@ -284,14 +284,17 @@ TrajectoryPtr planFollowEndEffectorPath(
   return untimedTraj;
 }
 
-bool planToStartOfTraj(
+bool moveToStartOfTraj(
     TrajectoryPtr traj,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
+    MetaSkeletonPtr armMetaSkeleton,
+    MetaSkeletonStateSpacePtr armStateSpace,
     const std::shared_ptr<ada::Ada>& ada
 ) {
-  // TODO.
+  Eigen::VectorXd qStart
+    = getTrajStartConfig(traj, armMetaSkeleton, armStateSpace);
 
-  return true;
+  return ada->moveArmToConfiguration(qStart, collisionFree, 2.0);
 }
 
 } // namespace feeding
