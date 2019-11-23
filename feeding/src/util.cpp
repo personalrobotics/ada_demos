@@ -200,8 +200,8 @@ std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle)
 {
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
-  sharedPtr = ros::topic::waitForMessage<std_msgs::String>(
-      "/study_food_msgs", ros::Duration(20));
+  sharedPtr = nullptr; /*ros::topic::waitForMessage<std_msgs::String>(
+      "/study_food_msgs", ros::Duration(1));*/
   if (sharedPtr == nullptr)
   {
     ROS_INFO_STREAM("No message from alexa, please input manually");

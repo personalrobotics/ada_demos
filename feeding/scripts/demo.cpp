@@ -36,7 +36,7 @@ void demo(
 
   // NOTE (sniyaz): SUPER terrible and hacky: just hard-code the path to the EE
   // path file here.
-  std::string eePathFile = "/home/sniyaz/my-workspace/src/frechet_search/ADA/recordedTrajs/test_scoop.txt";
+  std::string eePathFile = "/home/sniyaz/my_ws/src/ada_demos/feeding/config/test_scoop.txt";
   std::vector<Eigen::Isometry3d> scoopingPath = readADAPath(eePathFile);
 
   // NOTE: This is also for the scooping project.
@@ -187,7 +187,9 @@ void demo(
 
       // Execute positioning motion.
       // TODO: Should we use Kunz or parabolic retime?
-      ada->moveArmOnTrajectory(prepareTraj, collisionFree, ada::KUNZ);
+      ROS_INFO("Moving arm on trajectory");
+      ROS_INFO_STREAM("FeedingDemo Velocity Limits: " << feedingDemo.mVelocityLimits[0]);
+      ada->moveArmOnTrajectory(prepareTraj, collisionFree, ada::KUNZ, feedingDemo.mVelocityLimits);
 
       // Prompt for the scooping motion.
       std::string scoopingPrompt = "[SCOOP]: Hit enter for SCOOPING action.";
@@ -195,7 +197,8 @@ void demo(
       std::cin.get();
 
       // Execute scooping motion.
-      ada->moveArmOnTrajectory(scoopTraj, collisionFree, ada::KUNZ);
+      ROS_INFO("Moving arm on trajectory");
+      ada->moveArmOnTrajectory(scoopTraj, collisionFree, ada::KUNZ, feedingDemo.mVelocityLimits);
 
       // bool skewer = action::skewer(
       //   ada,
