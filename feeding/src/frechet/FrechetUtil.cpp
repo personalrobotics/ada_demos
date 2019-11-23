@@ -232,7 +232,7 @@ TrajectoryPtr planFollowEndEffectorPath(
             armStateSpace->setState(armMetaSkeleton.get(), seedState);
             rightArmIK->getTarget()->setTransform(targetPose);
 
-            if (rightArmIK->solve(true))
+            if (rightArmIK->solveAndApply(true))
               break;
           }
 

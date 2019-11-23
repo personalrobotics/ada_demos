@@ -67,6 +67,12 @@ include_directories(${pr_tsr_INCLUDE_DIRS})
 find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 
+find_package(pr-ompl-frechet REQUIRED)
+include_directories(${pr-ompl-frechet_INCLUDE_DIRS})
+
+find_package(ompl REQUIRED)
+include_directories(${OMPL_INCLUDE_DIRS})
+
 # ===============================================================================
 # Demos
 #

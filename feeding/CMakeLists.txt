@@ -19,9 +19,7 @@ find_package(cv_bridge REQUIRED)
 find_package(rosbag REQUIRED)
 find_package(image_geometry REQUIRED)
 find_package(sensor_msgs REQUIRED)
-
-# NOTE: For sniyaz project.
-find_package(pr-ompl-frechet REQUIRED)
+find_package(ompl REQUIRED)
 
 find_package(DART 6.6.0 REQUIRED
   COMPONENTS utils utils-urdf optimizer-nlopt
@@ -66,7 +64,7 @@ add_executable(feeding
   src/ranker/TargetFoodRanker.cpp
 )
 
-include_directories(include $(rosbag_INCLUDE_DIRS))
+include_directories(include ${rosbag_INCLUDE_DIRS})
 
 target_link_libraries(feeding
   ${DART_LIBRARIES}
@@ -79,8 +77,10 @@ target_link_libraries(feeding
   ${rosbag_LIBRARIES}
   ${sensor_msgs_LIBRARIES}
   ${image_geometry_LIBRARIES}
+  ${OMPL_LIBRARIES}
   libada
-  pr-ompl-frechet)
+  pr-ompl-frechet
+)
 
 IF (rewd_controllers_FOUND)
   target_link_libraries(feeding ${rewd_controllers_LIBRARIES})
