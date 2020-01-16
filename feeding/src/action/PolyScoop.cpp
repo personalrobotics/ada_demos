@@ -88,12 +88,12 @@ bool PolyScoop(
         delta_l = sqrt(delta_x*delta_x + delta_z*delta_z); // length
 
         Eigen::Vector3d unitDir = Eigen::Vector3d(delta_x/delta_l, 0.0, delta_z/delta_l);
+        Eigen::VectorXd twists(6);
 
         if (demotype == 0)
         {
             // 0 kinovascoop
 
-            Eigen::VectorXd twists(6);
             if (i<5)
                 twists << 0.0, 0.0, 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
             else
@@ -112,7 +112,6 @@ bool PolyScoop(
         {
             // 1 kinovascoop with twist
 
-            Eigen::VectorXd twists(6);
             if (i==0)
                 twists << - pose.roll_angle * sin(theta) * direction, pose.roll_angle * cos(theta) * direction, 0.0, delta_x * cos(theta), delta_x * sin(theta), delta_z;
             else if (i<5)
@@ -133,7 +132,6 @@ bool PolyScoop(
         {
             // 2 foward kinovascoop with twist
 
-            Eigen::VectorXd twists(6);
             if (i==0)
                 twists << 0.0, -(M_PI/2 - pose.roll_angle), 0.0, delta_x, 0.0, delta_z;
             else if (i<3)

@@ -126,6 +126,19 @@ FeedingDemo::FeedingDemo(
     mPickUpAngleModes[mFoodNames[i]] = pickUpAngleModes[i];
   }
 
+  mScoopParameters["height"] 
+   = getRosParam<double>("/scoopDemo/height", mNodeHandle);
+  mScoopParameters["minima"]
+   = getRosParam<double>("/scoopDemo/minima", mNodeHandle);
+  mScoopParameters["alpha"] 
+   = getRosParam<double>("/scoopDemo/alpha", mNodeHandle);
+  mScoopParameters["delta"]
+   = getRosParam<double>("/scoopDemo/delta", mNodeHandle);
+  mScoopParameters["beta"] 
+   = getRosParam<double>("/scoopDemo/beta", mNodeHandle);
+  mScoopParameters["mode"]
+   = getRosParam<int>("/scoopDemo/mode", mNodeHandle);    
+
   mPlateTSRParameters["height"]
       = getRosParam<double>("/feedingDemo/heightAbovePlate", mNodeHandle);
   mPlateTSRParameters["horizontalTolerance"] = getRosParam<double>(
@@ -292,6 +305,14 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
 
 Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int scoop_mode, double height, double minima, double theta, double direction, double delta) const
 {
+    std::cout << "param check : " << std::endl;
+    std::cout << "scoop_mode = " << scoop_mode << std::endl;
+    std::cout << "height = " << height << std::endl;
+    std::cout << "minima = " << minima << std::endl;
+    std::cout << "theta = " << theta << std::endl;
+    std::cout << "direction = " << direction << std::endl;
+    std::cout << "delta = " << delta << std::endl;
+
     Eigen::Isometry3d eeTransform
         = mAda->getHand()->getEndEffectorTransform("food").get();
     // std::cout << "food debug test"<< eeTransform.linear() << std::endl; // debug test

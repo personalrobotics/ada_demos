@@ -101,6 +101,8 @@ public:
   std::unordered_map<std::string, double> mFoodSkeweringForces;
   std::unordered_map<std::string, int> mPickUpAngleModes;
 
+  std::unordered_map<std::string, double> mScoopParameters;
+
   std::unordered_map<std::string, double> mPlateTSRParameters;
   std::unordered_map<std::string, double> mFoodTSRParameters;
   std::unordered_map<std::string, double> mPersonTSRParameters;

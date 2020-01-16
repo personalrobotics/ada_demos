@@ -64,9 +64,21 @@ pushingDemo:
   allow_push_img: true
   pushLength: 0.05
   liftLength: 0.05
-  downLength: 0.16
+  downLength: 0.14
   pushVelocityLimits: [0.4, 0.4, 0.4, 0.4, 0.4, 0.5]
   push_direction: "left"
+
+scoopDemo:
+  height: 0.15
+  minima: 0.12
+  alpha: 1.0
+  delta: 0.03
+  beta: 0.0
+  # scoop mode: 0 kinovascoop (default)
+  #             1 kinovascoop with twist
+  #             2 foward kinovascoop with twist
+  #             3 Ryan Scoop
+  mode: 1
 
 # Planning parameters
 planning:

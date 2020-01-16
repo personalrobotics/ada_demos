@@ -111,6 +111,7 @@ void pushingDemo(
         auto& item = candidateItems[0];
         mAction = item->getAction();
         foodTransform = item->getPose();
+        // Q: is the pose there same as the pose that we received directly from MarkerArray.
 
         perception->setFoodItemToTrack(item.get());
         
@@ -118,7 +119,7 @@ void pushingDemo(
         // push_direction = item->getYamlNode()["push_direction"].as<std::string>();
         // push_direction = "left";
         push_direction = getRosParam<std::string>("/pushingDemo/push_direction", nodeHandle);
-        
+
     }
     else
     {
@@ -332,78 +333,37 @@ void pushingDemo(
 
       if ((input_flag == 'Y') || (input_flag == 'y'))
       {
-          // 2. Do scooping
-          // 3. nodeHandle.setParam("/pushingDemo/allow_push_img", True) 
-          std::cout << "height = " << feedingDemo.mPlateTSRParameters["height"] << std::endl;
+          // std::cout << "height = " << feedingDemo.mPlateTSRParameters["height"] << std::endl;
           // moveAboveAndScoop(ada, foodTransform, feedingDemo, nodeHandle);
-      
-      //--------------------------------------------------------------------------------------------------------
-      // Decide to excecute which scooping mode
-
-          int scoop_mode = 1;
-          std::cout << "input scooping type \n \
-                        0: kinovascoop \n \
-                        1: kinovascoop with twist \n \
-                        2: foward kinovascoop with twist \n \
-                        else will triger 1"<< std::endl;
-          std::cout << "> ";
-          std::cin >> scoop_mode;
-
-          if (scoop_mode > 2 || scoop_mode < 0)
-              scoop_mode = 1;
-          /* scoop_mode: 0 kinovascoop
-                       1 kinovascoop with twist
-                       2 foward kinovascoop with twist
-                       3 Ryan Scoop
-          */
-
-          //--------------------------------------------------------------------------------------------------------
-          // Set Scooping Traj Parameters
-
-          double beta = 1.0;
-          std::cout << "input height coefficient < default beta = 1.0 >"<< std::endl;
-          std::cout << "> ";
-          std::cin >> beta;
-          std::cout << "height coefficient = "<< beta << std::endl;
-
-          double height = 0.1;
-          height = feedingDemo.mPlateTSRParameters.at("height") * beta;
-          std::cout << "height = "<< height << std::endl;
-
-          // double height = 0.15 * beta;
-          double minima = 0.8 * height;
-
-          double delta = 0.0;
-          std::cout << "input delta adjustment < default delta = 0.0 >" << std::endl;
-          std::cout << "> ";
-          std::cin >> delta;
-
-          // determine from which angle to scoop
-          double theta;
-          std::cout << "input theta coefficient < default theta coefficient = 0.0 >"<< std::endl;
-          std::cout << "> ";
-          std::cin >> theta;
-          theta *= M_PI;
-          std::cout << "input theta = " << theta << std::endl;
 
           ScoopHelper scoopHelper = ScoopHelper(nodeHandle, foodTransform);
-          // Q: is the pose there same as the pose that we received directly from MarkerArray.
-          std::cout << "fffffffffff = " << std::endl;
+          // double scoop_mode = feedingDemo.mScoopParameters["mode"];
+          // double height = feedingDemo.mScoopParameters["height"];
+          // double minima = feedingDemo.mScoopParameters["minima"];
+          // double alpha = feedingDemo.mScoopParameters["alpha"];
+          // double delta = feedingDemo.mScoopParameters["delta"];
+          // double beta = feedingDemo.mScoopParameters["beta"];
 
-      //--------------------------------------------------------------------------------------------------------
+          double height
+           = getRosParam<double>("/scoopDemo/height", nodeHandle);
+          double minima
+           = getRosParam<double>("/scoopDemo/minima", nodeHandle);
+          double alpha
+           = getRosParam<double>("/scoopDemo/alpha", nodeHandle);
+          double delta 
+           = getRosParam<double>("/scoopDemo/delta", nodeHandle);
+          double beta
+           = getRosParam<double>("/scoopDemo/beta", nodeHandle);
+          double scoop_mode
+           = getRosParam<int>("/scoopDemo/mode", nodeHandle);    
 
-          theta = scoopHelper.getTheta2();
-          std::cout << "final theta = " << theta << std::endl;
+          height *= alpha;
 
+          double theta = scoopHelper.getTheta2();
           double direction = scoopHelper.getDirection2();
 
       //--------------------------------------------------------------------------------------------------------
       // Move to the initial position above the food for scooping
-
-          waitForUser("next step?", ada);
-
-          Eigen::Isometry3d eeTransform;
-          eeTransform = feedingDemo.getFoodEndEffectorTransform(scoop_mode, height, minima, theta, direction, delta);
 
           ROS_INFO_STREAM("Move to the initial position above the food for scooping");
 
@@ -411,7 +371,7 @@ void pushingDemo(
               ada,
               feedingDemo.getCollisionConstraint(),
               scoopHelper.getTransform(),
-              eeTransform,
+              feedingDemo.getFoodEndEffectorTransform(scoop_mode, height, minima, theta, direction, delta),
               0.01,
               0.01,
               0.1,
@@ -428,7 +388,7 @@ void pushingDemo(
       //--------------------------------------------------------------------------------------------------------
       // Excecute Scooping    
 
-          waitForUser("next step?", ada); 
+          waitForUser("Execute Scooping?", ada); 
 
           action::PolyScoop(
           ada,
@@ -448,7 +408,7 @@ void pushingDemo(
           feedingDemo.mVelocityLimits);
           
           nodeHandle.setParam("/pushingDemo/allow_push_img", true);
-          // workspace.reset();          
+          workspace.reset(); // what does it use for?    
       }
     }
   }
