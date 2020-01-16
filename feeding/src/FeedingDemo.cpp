@@ -260,17 +260,73 @@ std::shared_ptr<FTThresholdHelper> FeedingDemo::getFTThresholdHelper()
   return mFTThresholdHelper;
 }
 
+// //==============================================================================
+// Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
+// {
+//   Eigen::Isometry3d eeTransform
+//       = mAda->getHand()->getEndEffectorTransform("plate").get();
+//   eeTransform.linear() = eeTransform.linear()
+//                          * Eigen::Matrix3d(Eigen::AngleAxisd(
+//                                M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+//   eeTransform.translation()
+//       = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
+
+//   return eeTransform;
+// }
+
 //==============================================================================
 Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
 {
   Eigen::Isometry3d eeTransform
       = mAda->getHand()->getEndEffectorTransform("plate").get();
-  eeTransform.linear() = eeTransform.linear()
-                         * Eigen::Matrix3d(Eigen::AngleAxisd(
-                               M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+  std::cout << "Plate debug test"<< eeTransform.linear() << std::endl; // debug test
+  eeTransform.linear()
+      = eeTransform.linear()
+        * Eigen::Matrix3d(
+              Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   eeTransform.translation()
       = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
 
   return eeTransform;
 }
+
+Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int scoop_mode, double height, double minima, double theta, double direction, double delta) const
+{
+    Eigen::Isometry3d eeTransform
+        = mAda->getHand()->getEndEffectorTransform("food").get();
+    // std::cout << "food debug test"<< eeTransform.linear() << std::endl; // debug test
+    
+    /* scoop_mode: 0 Kinova Scoop
+                 1 Kinova Scoop with twist
+                 2 Foward Kinova Scoop with twist
+                 3 Ryan Forward Scoop
+    */
+    // eeTransform.translation()
+    //     = Eigen::Vector3d(0, 0, 0);
+
+    eeTransform.translation()
+        = Eigen::Vector3d(0, 0, height);
+    eeTransform.translation()[0] = - cos(theta) * minima * direction;
+    eeTransform.translation()[1] = - sin(theta) * minima * direction;
+
+    if (scoop_mode == 0 || scoop_mode == 1) 
+    {
+        eeTransform.linear() = eeTransform.linear() * 
+        Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitZ())) *
+        Eigen::Matrix3d(Eigen::AngleAxisd(-theta, Eigen::Vector3d::UnitZ())) *
+        Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI/3, Eigen::Vector3d::UnitX()));
+        eeTransform.translation()[2] += delta;
+    }
+    if (scoop_mode == 2 || scoop_mode == 3)
+    {
+        eeTransform.linear() = eeTransform.linear() * 
+        Eigen::Matrix3d(Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ()));
+        // Eigen::Matrix3d(Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitZ())) *
+        // Eigen::Matrix3d(Eigen::AngleAxisd(M_PI/2, Eigen::Vector3d::UnitZ()));
+        eeTransform.translation()[2] += delta;
+    }
+
+    return eeTransform;
+}
+
 } // namespace feeding

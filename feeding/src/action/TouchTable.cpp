@@ -22,7 +22,7 @@ bool touchTable(
 
   ROS_INFO_STREAM("Move Down");
 
-  bool rotate;
+  bool rotate = true;
   if (angle != 0.0) 
   {
     Eigen::VectorXd twists(6);
@@ -49,6 +49,16 @@ bool touchTable(
     twists << 0.0, 0.0, 0.0, 0.0, 0.0, -length;
 
     ROS_INFO_STREAM("Going down");
+
+  // bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
+  //                               Eigen::Vector3d(0, 0, -1),
+  //                               length,
+  //                               collisionFree,
+  //                               planningTimeout,
+  //                               endEffectorOffsetPositionTolerance,
+  //                               endEffectorOffsetAngularTolerance,
+  //                               velocityLimits);
+
     bool trajectoryCompleted = ada->moveArmWithEndEffectorTwist(
                               twists,
                               1,

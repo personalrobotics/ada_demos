@@ -51,6 +51,19 @@ bool push(
       ftThresholdHelper->setThresholds(4, 4); // For stopping traj when touch the table
   }
   ROS_INFO_STREAM("Push forque");
+
+  Eigen::VectorXd twists(6);
+  twists << 0.0, 0.0, 0.0, -xOff, -yOff, 0;
+
+  // bool trajectoryCompleted = ada->moveArmWithEndEffectorTwist(
+  //                           twists,
+  //                           1,
+  //                           collisionFree,
+  //                           timelimit,
+  //                           positionTolerance,
+  //                           angularTolerance,
+  //                           velocityLimits);
+
   bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
                                 Eigen::Vector3d(-xOff, -yOff, 0),
                                 pushDist,

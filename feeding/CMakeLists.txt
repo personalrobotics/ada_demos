@@ -31,6 +31,9 @@ add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
   scripts/spanetDemo.cpp
+
+  scripts/pushingDemo.cpp
+
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
   # src/DataCollector.cpp
@@ -55,6 +58,13 @@ add_executable(feeding
   src/action/PickUpFork.cpp
   src/action/PutDownFork.cpp
   src/action/Skewer.cpp
+
+  src/action/Push.cpp
+  src/action/TouchTable.cpp
+  src/action/LiftUp.cpp
+  src/action/MoveAboveAndScoop.cpp
+  src/action/PolyScoop.cpp
+
   src/perception/Perception.cpp
   src/perception/PerceptionServoClient.cpp
   src/ranker/ShortestDistanceRanker.cpp

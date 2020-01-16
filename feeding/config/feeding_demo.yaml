@@ -26,6 +26,7 @@ ada:
 plate:
   urdfUri: package://pr_assets/data/objects/plate.urdf
   pose: [.445, 0.19, -0.04, 0, 0, 0]
+  centerPose: [0.25, -0.29, 0.25, 0, 0, 0]
 table:
   urdfUri: package://pr_assets/data/furniture/table_feeding.urdf
   pose: [0.76, 0.38, -0.76, 0, 0, 0]
@@ -57,6 +58,16 @@ feedingDemo:
   waitMillisecsAtPerson: 3000   # long pause so person can take a bite
   fixedFaceY: 0.3
 
+# Pushing demo parameters
+pushingDemo:
+  useSimFood: false
+  allow_push_img: true
+  pushLength: 0.05
+  liftLength: 0.05
+  downLength: 0.16
+  pushVelocityLimits: [0.4, 0.4, 0.4, 0.4, 0.4, 0.5]
+  push_direction: "left"
+
 # Planning parameters
 planning:
   maxNumberOfTrials: 1
@@ -64,7 +75,8 @@ planning:
   tsr:
     horizontalToleranceAbovePlate: 0.01
     verticalToleranceAbovePlate: 0.03
-    rotationToleranceAbovePlate: 3.1416
+    # rotationToleranceAbovePlate: 3.1416
+    rotationToleranceAbovePlate: 0.01
     horizontalToleranceNearFood: 0.003
     verticalToleranceNearFood: 0.008
     rotationToleranceNearFood: 0.005
@@ -139,3 +151,4 @@ study:
   tiltOffset: [-0.04, 0, -0.04]
 
   velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1]
+  # velocityLimits: [0.4, 0.4, 0.4, 0.4, 0.4, 0.5]

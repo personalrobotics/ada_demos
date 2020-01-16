@@ -128,14 +128,25 @@ bool skewer(
     if (!detectAndMoveAboveFoodSuccess)
       return false;
 
+    std::cout << "debug 1 --- start" << std::endl;
+    
+    double forceThresh;
+    if (foodName != "")
+      forceThresh = foodSkeweringForces.at(foodName);
+    else
+      forceThresh = foodSkeweringForces.at("apple");
+  
+
     ROS_INFO_STREAM(
-        "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
+        "Getting " << foodName << "with " << forceThresh
                    << "N with angle mode ");
+
+    std::cout << "debug 1 --- end" << std::endl;
 
     double torqueThreshold = 2;
     if (ftThresholdHelper)
       ftThresholdHelper->setThresholds(
-          foodSkeweringForces.at(foodName), torqueThreshold);
+          forceThresh, torqueThreshold);
 
     // ===== INTO FOOD =====
     talk("Here we go!", true);

@@ -88,6 +88,7 @@ public:
   std::shared_ptr<FTThresholdHelper> getFTThresholdHelper();
 
   Eigen::Isometry3d getPlateEndEffectorTransform() const;
+  Eigen::Isometry3d getFoodEndEffectorTransform(int demotype, double height, double minima, double theta=0.0, double direction=1.0, double delta=0.0) const;
 
   // bool moveWithEndEffectorTwist(
   //   const Eigen::Vector6d& twists,

@@ -6,6 +6,9 @@
 #include <dart/dart.hpp>
 #include "feeding/AcquisitionAction.hpp"
 
+#include "aikido/io/yaml.hpp"
+#include <string>
+
 namespace feeding {
 
 AIKIDO_DECLARE_POINTERS(FoodItem)
@@ -18,7 +21,8 @@ public:
       std::string uid,
       dart::dynamics::MetaSkeletonPtr metaSkeleton,
       AcquisitionAction action,
-      double score);
+      double score,
+      const std::string& yamlStr);
 
   Eigen::Isometry3d getPose() const;
 
@@ -32,6 +36,8 @@ public:
 
   double getScore() const;
 
+  YAML::Node getYamlNode();
+
 private:
   const std::string mName;
 
@@ -42,6 +48,9 @@ private:
   AcquisitionAction mAction;
 
   double mScore;
+
+  YAML::Node mYamlNode;
+
 };
 
 } // namespace feeding

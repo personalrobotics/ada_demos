@@ -36,7 +36,7 @@ bool moveAboveFood(
 
   if (tiltStyle == TiltStyle::NONE)
   {
-    target = foodTransform;
+    target = removeRotation(foodTransform);
     eeTransform.linear() = eeTransform.linear() * rotation;
     eeTransform.translation()[2] = heightAboveFood;
   }

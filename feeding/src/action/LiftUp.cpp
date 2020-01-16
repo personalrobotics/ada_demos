@@ -19,6 +19,16 @@ bool liftUp(
 {
 
   ROS_INFO_STREAM("Lift Up");
+  
+  // bool trajectoryCompleted = ada->moveArmToEndEffectorOffset(
+  //                               Eigen::Vector3d(0, 0, 1),
+  //                               upDist,
+  //                               collisionFree,
+  //                               planningTimeout,
+  //                               endEffectorOffsetPositionTolerance,
+  //                               endEffectorOffsetAngularTolerance,
+  //                               velocityLimits);
+
   Eigen::VectorXd twists(6);
   twists << 0.0, 0.0, 0.0, 0.0, 0.0, upDist;
 
@@ -46,6 +56,8 @@ bool liftUp(
       ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
     }
   }
+
+  
   return trajectoryCompleted;
 }
 
