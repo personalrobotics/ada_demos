@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
-  std::string demoType{"nips"};
+  std::string demoType{"acquire"};
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
@@ -152,6 +152,10 @@ int main(int argc, char** argv)
   else if (demoType == "spanet")
   {
     spanetDemo(*feedingDemo, perception, nodeHandle);
+  }
+  else if (demoType == "acquire") 
+  {
+    acquisitionDemo(*feedingDemo, perception, nodeHandle);
   }
   else
   {
