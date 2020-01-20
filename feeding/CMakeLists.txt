@@ -34,6 +34,7 @@ add_executable(feeding
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
   # src/DataCollector.cpp
+  scripts/acquisitionDemo.cpp
   src/AcquisitionAction.cpp
   src/FoodItem.cpp
   src/FeedingDemo.cpp

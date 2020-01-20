@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
-  std::string demoType{"acquire"};
+  std::string demoType{"nips"};
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
@@ -147,16 +147,12 @@ int main(int argc, char** argv)
 
   if (demoType == "nips")
   {
-    demo(*feedingDemo, perception, nodeHandle);
+    acquisitionDemo(*feedingDemo, perception, nodeHandle);
   }
   else if (demoType == "spanet")
   {
     spanetDemo(*feedingDemo, perception, nodeHandle);
-  }
-  else if (demoType == "acquire") 
-  {
-    acquisitionDemo(*feedingDemo, perception, nodeHandle);
-  }
+  } 
   else
   {
     // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
