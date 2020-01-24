@@ -13,7 +13,8 @@ const static std::vector<std::string> trajectoryController{
     "rewd_trajectory_controller"};
 const static std::vector<std::string> ftTrajectoryController{
     "move_until_touch_topic_controller"};
-void moveOutOf(
+
+void moveOutOf( // Liftoff Angle
     const std::shared_ptr<::ada::Ada>& ada,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     TargetItem item,

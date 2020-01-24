@@ -12,7 +12,7 @@
 namespace feeding {
 namespace action {
 
-bool moveInto(
+bool moveInto( // Force and inFoodRotationAngle
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Perception>& perception,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
