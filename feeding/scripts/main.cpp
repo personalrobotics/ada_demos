@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
-  std::string demoType{"nips"};
+  std::string demoType{"acquisition"};
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 
   std::shared_ptr<TargetFoodRanker> ranker;
 
-  if (demoType == "nips")
+  if (demoType == "nips" || demoType == "acquisition")
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
@@ -147,12 +147,16 @@ int main(int argc, char** argv)
 
   if (demoType == "nips")
   {
-    acquisitionDemo(*feedingDemo, perception, nodeHandle);
+    demo(*feedingDemo, perception, nodeHandle);
   }
   else if (demoType == "spanet")
   {
     spanetDemo(*feedingDemo, perception, nodeHandle);
   } 
+  else if (demoType == "acquisition")
+  {
+    acquisitionDemo(*feedingDemo, perception, nodeHandle);
+  }
   else
   {
     // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
