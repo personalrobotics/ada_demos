@@ -1,8 +1,9 @@
 // Acquire action to be made similar to Skewer. 
 
 #include "feeding/action/Acquire.hpp"
-#include "feeding/action/DetectAndMoveAboveFood.hpp"
+#include "feeding/action/DetectFood.hpp"
 #include "feeding/action/Grab.hpp"
+#include "feeding/action/MoveAboveFood.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
