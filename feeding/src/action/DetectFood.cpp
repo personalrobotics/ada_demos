@@ -1,5 +1,6 @@
 // Detect Food
 #include "feeding/action/DetectFood.hpp"
+#include "feeding/util.hpp"
 
 namespace feeding {
 namespace action {
@@ -7,11 +8,12 @@ std::vector<std::unique_ptr<FoodItem>> detectFood(
     const std::shared_ptr<Perception>& perception,
     const std::string& foodName)
 {
+    std::vector<std::unique_ptr<FoodItem>> candidateItems;
     while (true)
     {
         // Perception returns the list of good candidates, any one of them is good.
         // Multiple candidates are preferrable since planning may fail.
-        candidateItems = perception->perceiveFood(foodName);
+	candidateItems = perception->perceiveFood(foodName);
 
         if (candidateItems.size() == 0)
         {

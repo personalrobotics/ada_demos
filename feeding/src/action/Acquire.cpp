@@ -46,7 +46,6 @@ bool acquire(
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
     std::vector<std::string> rotationFreeFoodNames,
     FeedingDemo* feedingDemo,
-    
     const double incidentAngle,
     const double force,
     const double inFoodRotationAngle,
