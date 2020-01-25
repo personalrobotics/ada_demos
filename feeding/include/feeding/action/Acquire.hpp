@@ -37,12 +37,11 @@ bool acquire(
     std::vector<double> velocityLimits,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
     std::vector<std::string> rotationFreeFoodNames = std::vector<std::string>(),
-    FeedingDemo* feedingDemo = nullptr
-    
-    const double incidentAngle = -1,
-    const double force = -1,
-    const double inFoodRotationAngle = -1,
-    const double exitAngle = -1);
+    FeedingDemo* feedingDemo = nullptr,
+    const double incidentAngle = 0,
+    const double force = 0,
+    const double inFoodRotationAngle = 0,
+    const double exitAngle = 0);
 }
 } // namespace feeding
 

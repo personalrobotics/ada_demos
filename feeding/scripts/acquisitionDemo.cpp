@@ -8,8 +8,10 @@
 #include <ros/ros.h>
 #include <libada/util.hpp>
 
+
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/util.hpp"
+#include "feeding/action/Acquire.hpp"
 #include "feeding/action/PickUpFork.hpp"
 #include "feeding/action/PutDownFork.hpp"
 #include "feeding/action/FeedFoodToPerson.hpp"
@@ -134,7 +136,11 @@ void acquisitionDemo(
         feedingDemo.mVelocityLimits,
         feedingDemo.getFTThresholdHelper(),
         feedingDemo.mRotationFreeFoodNames,
-        &feedingDemo);
+        &feedingDemo,
+	0,
+	0,
+	0,
+	0);
 
       if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);

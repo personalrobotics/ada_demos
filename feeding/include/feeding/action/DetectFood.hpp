@@ -15,3 +15,4 @@ std::vector<std::unique_ptr<FoodItem>> detectFood(
 } // namespace feeding
 } // namespace action
 
+#endif
