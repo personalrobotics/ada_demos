@@ -107,7 +107,7 @@ void acquisitionDemo(
     }
     else
     {
-      bool skewer = action::skewer(
+      bool acquire = action::acquire(
         ada,
         workspace,
         collisionFree,
@@ -139,7 +139,7 @@ void acquisitionDemo(
       if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
-      if (!skewer)
+      if (!acquire)
       {
         ROS_WARN_STREAM("Restart from the beginning");
         continue;
