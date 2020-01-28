@@ -1,9 +1,9 @@
 // Acquire action to be made similar to Skewer. 
 
 #include "feeding/action/Acquire.hpp"
+#include "feeding/action/AcquireMoveAboveFood.hpp"
 #include "feeding/action/DetectFood.hpp"
 #include "feeding/action/Grab.hpp"
-#include "feeding/action/MoveAboveFood.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
@@ -112,7 +112,7 @@ bool acquire(
         auto action = foodItem->getAction();
 
         std::cout << "Tilt style " << action->getTiltStyle() << std::endl;
-        if (!moveAboveFood(
+        if (!acquireMoveAboveFood( // create new move above
                 ada,
                 collisionFree,
                 foodItem->getName(),
@@ -125,6 +125,7 @@ bool acquire(
                 rotationToleranceForFood,
                 tiltToleranceForFood,
                 planningTimeout,
+                0, // incident angle parameter
                 maxNumTrials,
                 velocityLimits,
                 feedingDemo))
