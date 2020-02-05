@@ -19,7 +19,6 @@ bool acquire(
     const std::string& foodName,
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
-    const std::unordered_map<std::string, double>& foodSkeweringForces,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
     double rotationToleranceAbovePlate,

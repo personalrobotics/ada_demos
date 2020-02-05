@@ -42,6 +42,8 @@ add_executable(feeding
   src/Workspace.cpp
   src/util.cpp
   src/action/Acquire.cpp
+  src/action/AcquireMoveOutOf.cpp
+  src/action/AcquireMoveInto.cpp
   src/action/AcquireMoveAboveFood.cpp
   src/action/Grab.cpp
   src/action/DetectAndMoveAboveFood.cpp

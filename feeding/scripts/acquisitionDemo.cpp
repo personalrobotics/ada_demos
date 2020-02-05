@@ -118,7 +118,6 @@ void acquisitionDemo(
         foodName,
         plate,
         feedingDemo.getPlateEndEffectorTransform(),
-        feedingDemo.mFoodSkeweringForces,
         feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
         feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
         feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
@@ -137,10 +136,10 @@ void acquisitionDemo(
         feedingDemo.getFTThresholdHelper(),
         feedingDemo.mRotationFreeFoodNames,
         &feedingDemo,
-	0,
-	0,
-	0,
-	0);
+	      0, // incidentAngle
+	      5, // force
+	      0, // inFoodRotationAngle
+	      0); // exitAngle
 
       if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);

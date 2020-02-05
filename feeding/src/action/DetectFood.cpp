@@ -13,7 +13,7 @@ std::vector<std::unique_ptr<FoodItem>> detectFood(
     {
         // Perception returns the list of good candidates, any one of them is good.
         // Multiple candidates are preferrable since planning may fail.
-	candidateItems = perception->perceiveFood(foodName);
+	    candidateItems = perception->perceiveFood(foodName);
 
         if (candidateItems.size() == 0)
         {

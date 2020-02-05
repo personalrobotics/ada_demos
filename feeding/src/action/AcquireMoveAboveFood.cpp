@@ -29,14 +29,47 @@ bool acquireMoveAboveFood(
     std::vector<double> velocityLimits,
     FeedingDemo* feedingDemo)
 {
+  // 0 <= incidentAngle <= PI/4
+  if(incidentAngle < 0 || incidentAngle > M_PI * 0.25) {
+    ROS_INFO_STREAM("incident angle is out of range");
+    return false;
+  }
+
   Eigen::Isometry3d target;
   Eigen::Isometry3d eeTransform
       = *ada->getHand()->getEndEffectorTransform("food");
-  
-  // rotation is similar to the incident angle
   Eigen::AngleAxisd rotation
       = Eigen::AngleAxisd(-rotateAngle, Eigen::Vector3d::UnitZ());
 
+
+  // TODO: incorporate incident angle
+  if (tiltStyle == TiltStyle::NONE)
+  {
+    //target = foodTransform;
+    // eeTransform.linear() = eeTransform.linear() * rotation;
+    // eeTransform.translation()[2] = heightAboveFood;
+    target = removeRotation(foodTransform);
+    eeTransform.linear()
+    = eeTransform.linear() * rotation
+          * Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ())
+          * Eigen::AngleAxisd(M_PI * 5.0/6.0, Eigen::Vector3d::UnitX());
+    eeTransform.translation()
+    = Eigen::Vector3d{-sin(M_PI * 0.25) * heightAboveFood * 0.5,
+                          0,
+                          cos(M_PI * 0.25) * heightAboveFood * 0.5};
+  }
+  else if (tiltStyle == TiltStyle::VERTICAL)
+  {
+    target = removeRotation(foodTransform);
+    eeTransform.linear()
+        = eeTransform.linear()
+          * Eigen::AngleAxisd(-M_PI * 0.5, Eigen::Vector3d::UnitZ())
+          * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX())
+          * Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitX());
+    eeTransform.translation()[2] = heightAboveFood;
+  }
+  else // angled
+  {
     target = removeRotation(foodTransform);
     eeTransform.linear()
         = eeTransform.linear() * rotation
@@ -46,7 +79,8 @@ bool acquireMoveAboveFood(
         = Eigen::Vector3d{-sin(M_PI * 0.25) * heightAboveFood * 0.5,
                           0,
                           cos(M_PI * 0.25) * heightAboveFood * 0.5};
-  
+  }
+
   return moveAbove(
       ada,
       collisionFree,

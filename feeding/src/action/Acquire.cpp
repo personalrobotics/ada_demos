@@ -5,7 +5,7 @@
 #include "feeding/action/DetectFood.hpp"
 #include "feeding/action/Grab.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
-#include "feeding/action/MoveInto.hpp"
+#include "feeding/action/AcquireMoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
 #include "feeding/FeedingDemo.hpp"
@@ -27,7 +27,6 @@ bool acquire(
     const std::string& foodName,
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
-    const std::unordered_map<std::string, double>& foodSkeweringForces,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
     double rotationToleranceAbovePlate,
@@ -111,8 +110,8 @@ bool acquire(
       {
         auto action = foodItem->getAction();
 
-        std::cout << "Tilt style " << action->getTiltStyle() << std::endl;
-        if (!acquireMoveAboveFood( // create new move above
+        //std::cout << "Tilt style " << action->getTiltStyle() << std::endl;
+        if (!acquireMoveAboveFood( // created new move above
                 ada,
                 collisionFree,
                 foodItem->getName(),
@@ -125,7 +124,7 @@ bool acquire(
                 rotationToleranceForFood,
                 tiltToleranceForFood,
                 planningTimeout,
-                0, // incident angle parameter
+                incidentAngle, // incident angle parameter
                 maxNumTrials,
                 velocityLimits,
                 feedingDemo))
@@ -175,17 +174,22 @@ bool acquire(
       return false;
 
     ROS_INFO_STREAM(
-        "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
-                   << "N with angle mode ");
+        "Getting " << foodName << " with " << force << "N with angle mode ");
 
     double torqueThreshold = 2;
+    // clamp the forces with an if-statement here? 
+    if(force < 3 || force > 25) {
+      ROS_INFO_STREAM("Force parameter is out of the range");
+      return false;
+    }
+
     if (ftThresholdHelper)
       ftThresholdHelper->setThresholds(
-          foodSkeweringForces.at(foodName), torqueThreshold);
+          force, torqueThreshold);
 
     // ===== INTO FOOD =====
     talk("Here we go!", true);
-    auto moveIntoSuccess = moveInto( // Modify moveInto to take a force parameter
+    auto moveIntoSuccess = acquireMoveInto( // rotate in food angle
         ada,
         perception,
         collisionFree,
@@ -207,8 +211,8 @@ bool acquire(
     std::this_thread::sleep_for(waitTimeForFood);
 
     // ===== OUT OF FOOD =====
-    Eigen::Vector3d direction(0, 0, 1);
-    moveOutOf( // Liftoff angle
+    Eigen::Vector3d direction(0, 0, 1); // incorporate liftoff angle into direction vector
+    moveOutOf( 
         ada,
         nullptr,
         TargetItem::FOOD,
