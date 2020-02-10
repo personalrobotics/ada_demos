@@ -4,7 +4,7 @@
 #include <aikido/distance/ConfigurationRanker.hpp>
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/TSRMarker.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
@@ -76,7 +76,7 @@ public:
   /// Valid only for simulation mode
   Eigen::Isometry3d getDefaultFoodTransform();
 
-  aikido::rviz::WorldInteractiveMarkerViewerPtr getViewer();
+  aikido::rviz::InteractiveMarkerViewerPtr getViewer();
 
   void waitForUser(const std::string& prompt);
 
@@ -152,7 +152,7 @@ private:
 
   std::vector<aikido::rviz::TSRMarkerPtr> tsrMarkers;
 
-  aikido::rviz::WorldInteractiveMarkerViewerPtr mViewer;
+  aikido::rviz::InteractiveMarkerViewerPtr mViewer;
   aikido::rviz::FrameMarkerPtr frameMarker;
   aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
 };
