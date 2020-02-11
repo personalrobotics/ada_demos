@@ -80,11 +80,11 @@ bool acquire(
   }
 
   bool detectAndMoveAboveFoodSuccess = true;
-  Eigen::Vector3d endEffectorDirection(0, 0, -1);
+  Eigen::Vector3d endEffectorDirection(0, sin(M_PI/2 - incidentAngle), -cos(M_PI/2 - incidentAngle)); // change this for incident angle
 
   for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
   {
-    for (std::size_t i = 0; i < 2; ++i)
+    for (std::size_t i = 0; i < 2; ++i) 
     {
       if (i == 0)
       {
@@ -110,7 +110,6 @@ bool acquire(
       {
         auto action = foodItem->getAction();
 
-        //std::cout << "Tilt style " << action->getTiltStyle() << std::endl;
         if (!acquireMoveAboveFood( // created new move above
                 ada,
                 collisionFree,
@@ -145,27 +144,6 @@ bool acquire(
         talk("Failed, let me start from beginning");
         return false;
       }
-      // auto item = detectAndMoveAboveFood( // This needs to be made into 2 actions: DetectFood + MoveAbove (incident angle)
-      //     ada,
-      //     collisionFree,
-      //     perception,
-      //     foodName,
-      //     heightAboveFood,
-      //     horizontalToleranceForFood,
-      //     verticalToleranceForFood,
-      //     rotationToleranceForFood,
-      //     tiltToleranceForFood,
-      //     planningTimeout,
-      //     maxNumTrials,
-      //     velocityLimits,
-      //     feedingDemo);
-
-      auto tiltStyle = item->getAction()->getTiltStyle();
-      if (tiltStyle == TiltStyle::ANGLED)
-      {
-        endEffectorDirection = Eigen::Vector3d(0.1, 0, -0.18);
-        endEffectorDirection.normalize();
-      }
       if (!item)
         detectAndMoveAboveFoodSuccess = false;
     }
@@ -174,10 +152,9 @@ bool acquire(
       return false;
 
     ROS_INFO_STREAM(
-        "Getting " << foodName << " with " << force << "N with angle mode ");
+        "Getting " << foodName << " with " << force << "N force");
 
     double torqueThreshold = 2;
-    // clamp the forces with an if-statement here? 
     if(force < 3 || force > 25) {
       ROS_INFO_STREAM("Force parameter is out of the range");
       return false;
@@ -189,7 +166,7 @@ bool acquire(
 
     // ===== INTO FOOD =====
     talk("Here we go!", true);
-    auto moveIntoSuccess = acquireMoveInto( // rotate in food angle
+    auto moveIntoSuccess = acquireMoveInto(
         ada,
         perception,
         collisionFree,
@@ -210,8 +187,30 @@ bool acquire(
 
     std::this_thread::sleep_for(waitTimeForFood);
 
+
+    if(inFoodRotationAngle < 0 || inFoodRotationAngle > M_PI/4) {
+      ROS_INFO_STREAM("in food rotation angle is invalid");
+      return false;
+    }
+    // Rotate the fork in the food
+    std::cout << "Rotating the fork in the food..." << std::endl;
+    Eigen::Vector3d rotateForkDirection(0, 0, -1);
+    ada->moveArmToEndEffectorOffset(
+        rotateForkDirection,
+        0.05,
+        nullptr,
+        planningTimeout,
+        endEffectorOffsetPositionTolerance,
+        endEffectorOffsetAngularTolerance);
+
     // ===== OUT OF FOOD =====
-    Eigen::Vector3d direction(0, 0, 1); // incorporate liftoff angle into direction vector
+    if(exitAngle < M_PI/4 || exitAngle > M_PI/2) {
+      ROS_INFO_STREAM("exit angle is invalid");
+      return false;
+    }
+    Eigen::Vector3d direction(0, cos(exitAngle), sin(exitAngle)); // incorporate liftoff angle into direction vector
+    std::cout << "Move out of: " << direction.transpose() << std::endl;
+    
     moveOutOf( 
         ada,
         nullptr,

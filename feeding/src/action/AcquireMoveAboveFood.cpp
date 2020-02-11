@@ -41,46 +41,19 @@ bool acquireMoveAboveFood(
   Eigen::AngleAxisd rotation
       = Eigen::AngleAxisd(-rotateAngle, Eigen::Vector3d::UnitZ());
 
+  std::cout << "Rotation angle: " << rotateAngle << std::endl;
+  std::cout<< "Incident angle: " << incidentAngle << std::endl;
 
-  // TODO: incorporate incident angle
-  if (tiltStyle == TiltStyle::NONE)
-  {
-    //target = foodTransform;
-    // eeTransform.linear() = eeTransform.linear() * rotation;
-    // eeTransform.translation()[2] = heightAboveFood;
+    // taken from demo/humanStudy branch
     target = removeRotation(foodTransform);
-    eeTransform.linear()
-    = eeTransform.linear() * rotation
-          * Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ())
-          * Eigen::AngleAxisd(M_PI * 5.0/6.0, Eigen::Vector3d::UnitX());
+    eeTransform.linear() 
+      = eeTransform.linear() * rotation
+          * Eigen::AngleAxisd(-incidentAngle, Eigen::Vector3d::UnitX());
     eeTransform.translation()
-    = Eigen::Vector3d{-sin(M_PI * 0.25) * heightAboveFood * 0.5,
-                          0,
-                          cos(M_PI * 0.25) * heightAboveFood * 0.5};
-  }
-  else if (tiltStyle == TiltStyle::VERTICAL)
-  {
-    target = removeRotation(foodTransform);
-    eeTransform.linear()
-        = eeTransform.linear()
-          * Eigen::AngleAxisd(-M_PI * 0.5, Eigen::Vector3d::UnitZ())
-          * Eigen::AngleAxisd(M_PI + 0.5, Eigen::Vector3d::UnitX())
-          * Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitX());
-    eeTransform.translation()[2] = heightAboveFood;
-  }
-  else // angled
-  {
-    target = removeRotation(foodTransform);
-    eeTransform.linear()
-        = eeTransform.linear() * rotation
-          * Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ())
-          * Eigen::AngleAxisd(M_PI * 5.0 / 6.0, Eigen::Vector3d::UnitX());
-    eeTransform.translation()
-        = Eigen::Vector3d{-sin(M_PI * 0.25) * heightAboveFood * 0.5,
-                          0,
-                          cos(M_PI * 0.25) * heightAboveFood * 0.5};
-  }
-
+      = Eigen::AngleAxisd(rotateAngle, Eigen::Vector3d::UnitZ()) // Take into account action rotation
+        * Eigen::Vector3d{0,
+                        -sin(M_PI * 0.25) * heightAboveFood * 0.7,
+                        cos(M_PI * 0.25) * heightAboveFood * 0.9};
   return moveAbove(
       ada,
       collisionFree,

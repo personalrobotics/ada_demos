@@ -136,10 +136,10 @@ void acquisitionDemo(
         feedingDemo.getFTThresholdHelper(),
         feedingDemo.mRotationFreeFoodNames,
         &feedingDemo,
-	      0, // incidentAngle
-	      5, // force
+	      M_PI/4, // 0 <= incidentAngle <= pi/4
+	      5, // 3N <= force <= 25N
 	      0, // inFoodRotationAngle
-	      0); // exitAngle
+	      M_PI/2); // pi/4 <= exitAngle <= pi/2
 
       if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
@@ -149,43 +149,11 @@ void acquisitionDemo(
         ROS_WARN_STREAM("Restart from the beginning");
         continue;
       }
-
-      // ===== IN FRONT OF PERSON =====
-      ROS_INFO_STREAM("Move forque in front of person");
-
-      bool tilted = (foodName != "celery");
-
-      action::feedFoodToPerson(
-        ada,
-        workspace,
-        collisionFree,
-        feedingDemo.getCollisionConstraintWithWallFurtherBack(),
-        perception,
-        &nodeHandle,
-        plate,
-        feedingDemo.getPlateEndEffectorTransform(),
-        workspace->getPersonPose(),
-        feedingDemo.mWaitTimeForPerson,
-        feedingDemo.mPlateTSRParameters.at("height"),
-        feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mPersonTSRParameters.at("distance"),
-        feedingDemo.mPersonTSRParameters.at("horizontalTolerance"),
-        feedingDemo.mPersonTSRParameters.at("verticalTolerance"),
-        feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mVelocityLimits,
-        tilted ? &feedingDemo.mTiltOffset : nullptr
-        );
     }
   }
 
   // ===== DONE =====
   ROS_INFO("Demo finished.");
-  talk("Thank you, I hope I was helpful!");
 }
 };
 
