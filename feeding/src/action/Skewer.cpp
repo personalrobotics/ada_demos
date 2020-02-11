@@ -1,3 +1,4 @@
+#include "ada_demos/DetectAcquisition.h"
 #include "feeding/action/Skewer.hpp"
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include "feeding/action/Grab.hpp"
@@ -129,7 +130,7 @@ bool skewer(
       return false;
 
     ROS_INFO_STREAM(
-        "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
+        "Getting " << foodName << " with " << foodSkeweringForces.at(foodName)
                    << "N with angle mode ");
 
     double torqueThreshold = 2;
@@ -173,14 +174,33 @@ bool skewer(
         endEffectorOffsetAngularTolerance,
         ftThresholdHelper);
 
-    if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+    // ===== CALL TO SERVICE ====
+    
+    ada_demos::DetectAcquisition srv;
+
+    ROS_INFO_STREAM("Calling service...");
+    ROS_INFO_STREAM("Service call: " 
+		    << ros::service::call("acquisition_detector", srv));
+    
+    if (ros::service::call("acquisition_detector", srv))
+    {
+      ROS_INFO_STREAM("Made a call to service...");
+      ROS_INFO_STREAM("Service responded: " << srv.response.success);
+
+      if (srv.response.success)
+      {
+        ROS_INFO_STREAM("Successful");
+        return true;
+      }
+    } 
+    else if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
     {
       ROS_INFO_STREAM("Successful");
       return true;
     }
 
     ROS_INFO_STREAM("Failed.");
-    talk("Oops, let me try again.");
+    talk("Failed, let me try again.");
   }
   return false;
 }
