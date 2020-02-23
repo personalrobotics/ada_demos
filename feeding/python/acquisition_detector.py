@@ -76,7 +76,8 @@ class InferenceModel(object):
         with torch.set_grad_enabled(False):
             outputs = self.model(img)
             _, preds = torch.max(outputs, 1)
-
+        print(preds)
+        print(bool(preds))
         return DetectAcquisitionResponse(bool(preds))
 
 

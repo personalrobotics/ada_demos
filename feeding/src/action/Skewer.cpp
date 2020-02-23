@@ -7,6 +7,7 @@
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
 #include "feeding/FeedingDemo.hpp"
+#include "feeding/onFork.hpp"
 
 #include <libada/util.hpp>
 
@@ -179,29 +180,52 @@ bool skewer(
     ada_demos::DetectAcquisition srv;
 
     ROS_INFO_STREAM("Calling service...");
-    ROS_INFO_STREAM("Service call: " 
-		    << ros::service::call("acquisition_detector", srv));
+    //bool serviceCalledSucc = ros::service::call("acquisition_detector", srv);
     
     if (ros::service::call("acquisition_detector", srv))
     {
-      ROS_INFO_STREAM("Made a call to service...");
-      ROS_INFO_STREAM("Service responded: " << srv.response.success);
-
-      if (srv.response.success)
-      {
-        ROS_INFO_STREAM("Successful");
-        return true;
-      }
+        ROS_INFO_STREAM("Made a call to service...");
+        bool visualRes = srv.response.success;
+        bool hapticRes = true;
+        int combinedRes = isFoodOnFork(visualRes, hapticRes);
+        if (combinedRes > 0)
+        {
+            ROS_INFO_STREAM("Successful in picking up food.");
+            return true;
+        } 
+        else if (combinedRes < 0)
+        {
+            ROS_INFO_STREAM("Failed to pick up food.");
+            return false;
+        }
+        //serviceCalledSucc = false;
+        ROS_INFO_STREAM("Unable to determine");
+        talk("Let me try again.");
     } 
-    else if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
-    {
-      ROS_INFO_STREAM("Successful");
-      return true;
-    }
 
-    ROS_INFO_STREAM("Failed.");
-    talk("Failed, let me try again.");
+    //if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+    //{
+    //   ROS_INFO_STREAM("Successful");
+    //   return true;
+    //}
+
+    //ROS_INFO_STREAM("Failed.");
+    //talk("Failed, let me try again.");
   }
+  
+  ROS_INFO_STREAM("Three trials failed. Asking for help.");
+  talk("Please helper me determine");
+
+  if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+  {
+    ROS_INFO_STREAM("Successful");
+    return true;
+  }
+
+  ROS_INFO_STREAM("Failed.");
+  talk("Failed");
+
+
   return false;
 }
 
