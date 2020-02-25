@@ -29,12 +29,6 @@ bool acquireMoveAboveFood(
     std::vector<double> velocityLimits,
     FeedingDemo* feedingDemo)
 {
-  // 0 <= incidentAngle <= PI/4
-  if(incidentAngle < 0 || incidentAngle > M_PI * 0.25) {
-    ROS_INFO_STREAM("incident angle is out of range");
-    return false;
-  }
-
   Eigen::Isometry3d target;
   Eigen::Isometry3d eeTransform
       = *ada->getHand()->getEndEffectorTransform("food");

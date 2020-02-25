@@ -80,7 +80,14 @@ bool acquire(
   }
 
   bool detectAndMoveAboveFoodSuccess = true;
-  Eigen::Vector3d endEffectorDirection(0, sin(M_PI/2 - incidentAngle), -cos(M_PI/2 - incidentAngle)); // change this for incident angle
+
+    // 0 <= incidentAngle <= PI/4
+  if(incidentAngle < 0 || incidentAngle > M_PI/4) {
+    ROS_WARN_STREAM("incident angle is out of range");
+    return false;
+  }
+
+  Eigen::Vector3d endEffectorDirection(sin(incidentAngle), 0, -cos(incidentAngle)); // change this for incident angle
 
   for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
   {
@@ -123,7 +130,7 @@ bool acquire(
                 rotationToleranceForFood,
                 tiltToleranceForFood,
                 planningTimeout,
-                incidentAngle, // incident angle parameter
+                incidentAngle, // incident angle parameter; clamped between 0 and pi/4
                 maxNumTrials,
                 velocityLimits,
                 feedingDemo))
@@ -154,9 +161,9 @@ bool acquire(
     ROS_INFO_STREAM(
         "Getting " << foodName << " with " << force << "N force");
 
-    double torqueThreshold = 2;
+    double torqueThreshold = 2; // kept same from demo.cpp
     if(force < 3 || force > 25) {
-      ROS_INFO_STREAM("Force parameter is out of the range");
+      ROS_WARN_STREAM("Force parameter is out of range");
       return false;
     }
 
@@ -188,27 +195,36 @@ bool acquire(
     std::this_thread::sleep_for(waitTimeForFood);
 
 
+    // ========== Rotate the fork in the food =================
+    std::cout << "Rotating the fork in the food..." << std::endl;
     if(inFoodRotationAngle < 0 || inFoodRotationAngle > M_PI/4) {
-      ROS_INFO_STREAM("in food rotation angle is invalid");
+      ROS_WARN_STREAM("in food rotation angle is invalid");
       return false;
     }
-    // Rotate the fork in the food
-    std::cout << "Rotating the fork in the food..." << std::endl;
-    Eigen::Vector3d rotateForkDirection(0, 0, -1);
-    ada->moveArmToEndEffectorOffset(
-        rotateForkDirection,
-        0.05,
+
+    // Don't think these are the right calculations?
+    Eigen::Isometry3d eeTransform
+      = *ada->getHand()->getEndEffectorTransform("food");
+    Eigen::Isometry3d goalPose = eeTransform.linear()
+      * Eigen::AngleAxisd(-inFoodRotationAngle, Eigen::Vector3d::UnitX())
+      * ada->getHand()->getEndEffectorBodyNode()->getWorldTransform();
+    
+    ada->moveArmToEndEffectorPose( // move the fork to a goal pose
         nullptr,
+        eeTransform,
+        0.05,
         planningTimeout,
-        endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);
+        endEffectorOffsetAngularTolerance,
+        velocityLimits);
 
     // ===== OUT OF FOOD =====
-    if(exitAngle < M_PI/4 || exitAngle > M_PI/2) {
+
+    // PI/4 <= liftoffangle <= PI/2
+    if(exitAngle < M_PI/4|| exitAngle > M_PI/2) {
       ROS_INFO_STREAM("exit angle is invalid");
       return false;
     }
-    Eigen::Vector3d direction(0, cos(exitAngle), sin(exitAngle)); // incorporate liftoff angle into direction vector
+    Eigen::Vector3d direction(cos(exitAngle), 0, sin(exitAngle)); // incorporate liftoff angle into direction vector
     std::cout << "Move out of: " << direction.transpose() << std::endl;
     
     moveOutOf( 
