@@ -199,11 +199,11 @@ Eigen::Isometry3d Perception::perceiveFace()
       {
         faceTransform.translation().y() = fixedFaceY;
         // Wheelchair
-        //faceTransform.translation().z() -= 0.02;
+        faceTransform.translation().z() -= 0.02;
         
         // Tripod
-        faceTransform.translation().x() += 0.085;
-        faceTransform.translation().z() -= 0.03;
+        //faceTransform.translation().x() -= 0.02;
+        //faceTransform.translation().z() -= 0.03;
       }
       oldFaceTransform = faceTransform;
       saved = true;

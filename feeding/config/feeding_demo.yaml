@@ -25,30 +25,30 @@ ada:
 # Workspace parameters
 plate:
   urdfUri: package://pr_assets/data/objects/plate.urdf
-  pose: [.445, 0.19, -0.08, 0, 0, 0]
+  pose: [.445, 0.19, -0.045, 0, 0, 0]
 table:
   urdfUri: package://pr_assets/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.8, 0, 0, 0]
+  pose: [0.76, 0.38, -0.765, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_assets/data/objects/food_item.urdf
-  pose: [.445, 0.19, -0.08, 3.1415, 0, 0]
+  pose: [.445, 0.19, -0.045, 3.1415, 0, 0]
 person: # the mannequin
   urdfUri: package://pr_assets/data/objects/tom.urdf
-  pose: [0.425, -0.45, 0.472, 0, 0, 1.57]
+  pose: [0.425, -0.45, 0.507, 0, 0, 1.57]
 workspaceEnvironment:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
-  pose: [0, 0, -0.03, 0, 0, 0]
+  pose: [0, 0, 0.005, 0, 0, 0]
 workspaceEnvironmentWithWallFurtherBack:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_without_wall.urdf
-  pose: [0, 0, -0.03, 0, 0, 0]
+  pose: [0, 0, 0.005, 0, 0, 0]
 wheelchair:
   urdfUri: package://pr_assets/data/furniture/wheelchair.urdf
-  pose: [0.0, 0.0, -0.03, 0, 0, 0]
+  pose: [0.0, 0.0, 0.005, 0, 0, 0]
 
 # Feeding demo movement parameters
 feedingDemo:
   heightAbovePlate: 0.15
-  heightAboveFood: 0.10
+  heightAboveFood: 0.08
   heightIntoFood: 0.05           # the real robot plans *below* the food. This parameter specifies how far
   moveOutofFood: 0.025
   #distanceToPerson: 0.25
@@ -56,7 +56,7 @@ feedingDemo:
   distanceFromPerson: 0.15
   waitMillisecsAtFood: 00     # short pause after skewering the food
   waitMillisecsAtPerson: 1000   # long pause so person can take a bite
-  fixedFaceY: 0.37
+  fixedFaceY: 0.28
 
 # Planning parameters
 planning:
@@ -111,14 +111,14 @@ foodItems:
   #forces: [15,3,3,7,22,15,7]
   #pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
   names: ["apple", "banana", "bell_pepper", "broccoli", "cantaloupe", "carrot", "cauliflower", "celery", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry", "lettuce", "spinach", "kale"]
-  forces: [10, 10, 10, 10, 15, 25, 7, 22, 7, 7, 7, 7, 10, 7, 7, 7]
+  forces: [10, 10, 10, 10, 15, 30, 7, 22, 7, 10, 7, 7, 15, 7, 7, 7]
   pickUpAngleModes: [1, 5, 1, 2, 1, 1, 0, 1, 1, 3, 3, 3, 0, 1, 2, 0]
 
 humanStudy:
-  autoAcquisition: false
+  autoAcquisition: true
   autoTiming: true
-  autoTransfer: false
-  createError: true
+  autoTransfer: true
+  createError: false
   foodTopic: /study_food_msgs
   actionTopic: /study_action_msgs
 
@@ -132,7 +132,7 @@ study:
   skipSkewering: false
   doForkPickup: false
 
-  tableHeight: 0.2
+  tableHeight: 0.235
 
   # y positive is closer to wheelchair
   # z
@@ -153,7 +153,7 @@ study:
   # personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
   # ERRONEOUS:
   personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
-  tiltOffset: [0.0, 0.025, -0.02]
+  tiltOffset: [0.0, 0.05, -0.02]
 
   # FAST:
   velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1.0]
