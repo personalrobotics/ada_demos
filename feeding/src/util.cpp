@@ -420,7 +420,7 @@ void talk(const std::string& statement, bool background)
   std::system(cmd.c_str());
   std_msgs::String msg;
   msg.data = statement;
-  while (talkPub.getNumSubscribers() < 1) {
+  if (talkPub.getNumSubscribers() < 1) {
     ROS_INFO_STREAM("Waiting for subscribers...");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
@@ -433,7 +433,7 @@ void publishActionDoneToWeb(ros::NodeHandle* nodeHandle) {
   }
   std_msgs::String msg;
   msg.data = "action done";
-  while (actionPub.getNumSubscribers() < 1) {
+  if (actionPub.getNumSubscribers() < 1) {
     ROS_INFO_STREAM("Waiting for subscribers...");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
@@ -444,7 +444,7 @@ void publishActionDoneToWeb(ros::NodeHandle* nodeHandle) {
 void publishTimingDoneToWeb(ros::NodeHandle* nodeHandle) {
   std_msgs::String msg;
   msg.data = "timing done";
-  while (timingPub.getNumSubscribers() < 1) {
+  if (timingPub.getNumSubscribers() < 1) {
     ROS_INFO_STREAM("Waiting for subscribers...");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
@@ -455,7 +455,7 @@ void publishTimingDoneToWeb(ros::NodeHandle* nodeHandle) {
 void publishTransferDoneToWeb(ros::NodeHandle* nodeHandle) {
   std_msgs::String msg;
   msg.data = "transfer done";
-  while (transferPub.getNumSubscribers() < 1) {
+  if (transferPub.getNumSubscribers() < 1) {
     ROS_INFO_STREAM("Waiting for subscribers...");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }

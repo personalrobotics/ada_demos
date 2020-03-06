@@ -146,7 +146,7 @@ namespace feeding {
           getRosParam<bool>("/humanStudy/createError", *nodeHandle)) {
           ROS_WARN_STREAM("Error Requested for Transfer!");
           // Erroneous Transfer
-          moveDirectlyToPerson(
+          /*moveDirectlyToPerson(
             ada,
             collisionFreeWithWallFurtherBack,
             personPose,
@@ -159,11 +159,15 @@ namespace feeding {
             nullptr,
             feedingDemo
             );
+          */
+          Eigen::VectorXd moveErrorPose(6);
+          moveErrorPose << -2.78470, 4.57978, 4.86316, -3.05050, 1.89748, -0.6150;
+          ada->moveArmToConfiguration(moveErrorPose, nullptr, 2.0, velocityLimits);
           std::this_thread::sleep_for(std::chrono::milliseconds(3000));
           talk("Oops, let me try that again.", true);
           moveIFOSuccess = moveInFrontOfPerson(
             ada,
-            collisionFreeWithWallFurtherBack,
+            nullptr,
             personPose,
             distanceToPerson,
             horizontalToleranceForPerson,
@@ -194,7 +198,7 @@ namespace feeding {
 
   // Execute Tilt
       if (overrideTiltOffset != nullptr) {
-        /*
+        
         Eigen::Isometry3d person = ada->getHand()->getEndEffectorBodyNode()->getTransform();
         person.translation() += *overrideTiltOffset;
 
@@ -229,9 +233,9 @@ namespace feeding {
         for (int i=0; i<velocityLimits.size(); i++) {
           slowerVelocity.push_back(velocityLimits[i] / slowFactor);
         }
-        */
+        
         talk("Tilting, hold tight.", true);
-        /*
+        
         ada->moveArmToTSR(
           personTSR,
           nullptr, //collisionFreeWithWallFurtherBack,
@@ -239,11 +243,12 @@ namespace feeding {
           maxNumTrials,
           getConfigurationRanker(ada),
           slowerVelocity);
-        */
-
+        
+        /*
         Eigen::VectorXd moveTiltPose(6);
-        moveTiltPose << 3.13435, 4.45108, 4.15493, -2.33557, 1.71750, -1.59486;
+        moveTiltPose << -2.9180319979864375, 2.7142495745346644, 2.1617317989753038, -3.0472035666546597, -2.144422317154225, -1.1420007596812383;
         ada->moveArmToConfiguration(moveTiltPose, nullptr, 2.0, velocityLimits);
+        */
       }
 
       if (moveIFOSuccess)
