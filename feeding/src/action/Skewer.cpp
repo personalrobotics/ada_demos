@@ -7,6 +7,7 @@
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
 #include "feeding/FeedingDemo.hpp"
+#include "feeding/onFork.hpp"
 
 #include <libada/util.hpp>
 
@@ -182,7 +183,7 @@ bool skewer(
           {
             // Apply base rotation of food
             Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
-            Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ(); 
+            Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ();
             newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.2 / 0.1);
             endEffectorDirection = newEEDir;
             endEffectorDirection.normalize();
@@ -204,7 +205,7 @@ bool skewer(
             forkYAxis.normalize();
             Eigen::Vector3d forkXAxis = eePose.rotation() * Eigen::Vector3d::UnitX();
             forkXAxis[2] = 0.0;
-            forkXAxis.normalize(); 
+            forkXAxis.normalize();
             endEffectorDirection *= heightAboveFood;
             endEffectorDirection += ((-0.035 * forkYAxis) + (0.00 * forkXAxis));
             endEffectorDirection.normalize();
@@ -218,7 +219,7 @@ bool skewer(
             forkXAxis[2] = 0.0;
             forkXAxis.normalize();
             forkYAxis[2] = 0.0;
-            forkYAxis.normalize(); 
+            forkYAxis.normalize();
             endEffectorDirection *= heightAboveFood;
             endEffectorDirection += ((-0.03 * forkYAxis) + (-0.01 * forkXAxis));
             endEffectorDirection.normalize();
@@ -258,7 +259,7 @@ bool skewer(
       if(getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())) && // autonomous
         getRosParam<bool>("/humanStudy/createError", *(feedingDemo->getNodeHandle())) && // add error
         trialCount == 0) // First Trial
-      { 
+      {
         ROS_WARN_STREAM("Error Requested for Acquisition!");
         endEffectorDirection(1) -= 1.0;
         endEffectorDirection.normalize();
@@ -269,7 +270,7 @@ bool skewer(
       return false;
 
     ROS_INFO_STREAM(
-        "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
+        "Getting " << foodName << " with " << foodSkeweringForces.at(foodName)
                    << "N with angle mode ");
 
     double torqueThreshold = 2;
@@ -313,29 +314,57 @@ bool skewer(
         endEffectorOffsetAngularTolerance,
         ftThresholdHelper);
 
+    // ===== CALL TO SERVICE ====
+
     ada_demos::DetectAcquisition srv;
 
     ROS_INFO_STREAM("Calling service...");
+    //bool serviceCalledSucc = ros::service::call("acquisition_detector", srv);
 
     if (ros::service::call("acquisition_detector", srv))
     {
-      ROS_INFO_STREAM("Made a call to service...");
-      if (srv.response.success)
-      {
-        ROS_INFO_STREAM("Successful");
-        return true;
-      }
-    }
-    else if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
-    {
-      ROS_INFO_STREAM("Successful");
-      talk("Success.");
-      return true;
+        ROS_INFO_STREAM("Made a call to service...");
+        bool visualRes = srv.response.success;
+        bool hapticRes = true;
+        int combinedRes = isFoodOnFork(visualRes, hapticRes);
+        if (combinedRes > 0)
+        {
+            ROS_INFO_STREAM("Successful in picking up food.");
+            return true;
+        }
+        else if (combinedRes < 0)
+        {
+            ROS_INFO_STREAM("Failed to pick up food.");
+            return false;
+        }
+        //serviceCalledSucc = false;
+        ROS_INFO_STREAM("Unable to determine");
+        talk("Let me try again.");
     }
 
-    ROS_INFO_STREAM("Failed.");
-    talk("Failed, let me try again.");
+    //if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+    //{
+    //   ROS_INFO_STREAM("Successful");
+    //   return true;
+    //}
+
+    //ROS_INFO_STREAM("Failed.");
+    //talk("Failed, let me try again.");
   }
+
+  ROS_INFO_STREAM("Three trials failed. Asking for help.");
+  talk("Please helper me determine");
+
+  if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+  {
+    ROS_INFO_STREAM("Successful");
+    return true;
+  }
+
+  ROS_INFO_STREAM("Failed.");
+  talk("Failed");
+
+
   return false;
 }
 

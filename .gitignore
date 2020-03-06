@@ -58,3 +58,6 @@ feeding/.vscode/
 
 # Model checkpoints
 feeding/bash_scripts/checkpoint
+
+# Checkpoints
+*.pth

@@ -42,6 +42,7 @@ add_executable(feeding
   src/FTThresholdHelper.cpp
   src/Workspace.cpp
   src/util.cpp
+  src/onFork.cpp
   src/action/Grab.cpp
   src/action/DetectAndMoveAboveFood.cpp
   src/action/FeedFoodToPerson.cpp
