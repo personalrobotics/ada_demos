@@ -205,13 +205,15 @@ bool acquire(
     // Don't think these are the right calculations?
     Eigen::Isometry3d eeTransform
       = *ada->getHand()->getEndEffectorTransform("food");
-    Eigen::Isometry3d goalPose = eeTransform.linear()
-      * Eigen::AngleAxisd(-inFoodRotationAngle, Eigen::Vector3d::UnitX())
-      * ada->getHand()->getEndEffectorBodyNode()->getWorldTransform();
+    // Eigen::Isometry3d goalPose = eeTransform.linear()
+    //   * Eigen::AngleAxisd(-inFoodRotationAngle, Eigen::Vector3d::UnitX())
+    //   * ada->getHand()->getEndEffectorBodyNode()->getWorldTransform();
+    Eigen::Isometry3d goalPose = ada->getHand()->getEndEffectorBodyNode()->getWorldTransform()
+      * Eigen::AngleAxisd(-inFoodRotationAngle, Eigen::Vector3d::UnitX());
     
     ada->moveArmToEndEffectorPose( // move the fork to a goal pose
         nullptr,
-        eeTransform,
+        goalPose,
         0.05,
         planningTimeout,
         endEffectorOffsetAngularTolerance,

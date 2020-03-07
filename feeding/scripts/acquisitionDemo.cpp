@@ -138,8 +138,8 @@ void acquisitionDemo(
         &feedingDemo,
 	      M_PI/4, // 0 <= incidentAngle <= pi/4
 	      5, // 3N <= force <= 25N
-	      M_PI/6, // 0 <= inFoodRotationAngle <= pi/4
-	      M_PI/2); // pi/4 <= exitAngle <= pi/2
+	      M_PI/4, // 0 <= inFoodRotationAngle <= pi/4
+	      M_PI/4); // pi/4 <= exitAngle <= pi/2
 
       if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
