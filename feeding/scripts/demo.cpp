@@ -33,6 +33,8 @@ void demo(
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
+  initTopics(&nodeHandle);
+
   talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
 
   srand(time(NULL));
@@ -43,7 +45,7 @@ void demo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     talk("What food would you like?");
-    
+
     auto foodName = getUserFoodInput(false, nodeHandle);
     if (foodName == std::string("quit")) {
         break;
