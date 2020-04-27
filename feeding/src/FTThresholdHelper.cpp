@@ -13,12 +13,13 @@ FTThresholdHelper::FTThresholdHelper(
     bool useThresholdControl, ros::NodeHandle nodeHandle)
   : mUseThresholdControl(useThresholdControl), mNodeHandle(nodeHandle)
 {
+  std::string ftThresholdTopic = getRosParam<std::string>(
+      "/ftSensor/controllerFTThresholdTopic", mNodeHandle);
+
   if (!mUseThresholdControl)
     return;
 
 #ifdef REWD_CONTROLLERS_FOUND
-  std::string ftThresholdTopic = getRosParam<std::string>(
-      "/ftSensor/controllerFTThresholdTopic", mNodeHandle);
   mFTThresholdClient = std::unique_ptr<rewd_controllers::FTThresholdClient>(
       new rewd_controllers::FTThresholdClient(ftThresholdTopic));
 #else
@@ -29,6 +30,12 @@ FTThresholdHelper::FTThresholdHelper(
 //==============================================================================
 void FTThresholdHelper::init()
 {
+  std::string ftTopic
+      = getRosParam<std::string>("/ftSensor/ftTopic", mNodeHandle);
+  ROS_INFO_STREAM("FTThresholdHelper is listening for " << ftTopic);
+  mForceTorqueDataSub = mNodeHandle.subscribe(
+      ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
+
   if (!mUseThresholdControl)
     return;
 
@@ -37,12 +44,6 @@ void FTThresholdHelper::init()
   mFTThresholdClient->trySetThresholdsRepeatedly(
       thresholdPair.first, thresholdPair.second);
   ROS_WARN_STREAM("trySetThresholdsRepeatedly finished");
-
-  std::string ftTopic
-      = getRosParam<std::string>("/ftSensor/ftTopic", mNodeHandle);
-  ROS_INFO_STREAM("FTThresholdHelper is listening for " << ftTopic);
-  mForceTorqueDataSub = mNodeHandle.subscribe(
-      ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
 #endif
 }
 
@@ -69,8 +70,8 @@ void FTThresholdHelper::forceTorqueDataCallback(
 
 bool FTThresholdHelper::startDataCollection(int numberOfDataPoints)
 {
-  if (!mUseThresholdControl)
-    return false;
+  //if (!mUseThresholdControl)
+  //  return false;
   std::lock_guard<std::mutex> lock(mDataCollectionMutex);
   mDataPointsToCollect = numberOfDataPoints;
   mCollectedForces.clear();

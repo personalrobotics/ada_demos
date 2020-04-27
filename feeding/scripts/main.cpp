@@ -98,13 +98,22 @@ int main(int argc, char** argv)
   spinner.start();
 
   std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr;
-
-  if (useFTSensingToStopTrajectories)
-  {
-    std::cout << "Construct FTThresholdHelper" << std::endl;
-    ftThresholdHelper = std::make_shared<FTThresholdHelper>(
-    adaReal && useFTSensingToStopTrajectories, *nodeHandle);
-  }
+  //if (useFTSensingToStopTrajectories)
+  //if (true)
+  // {
+  std::cout << "Construct FTThresholdHelper" << std::endl;
+  ftThresholdHelper = std::make_shared<FTThresholdHelper>(
+      adaReal && useFTSensingToStopTrajectories, *nodeHandle);
+  //ROS_INFO_STREAM("IN");
+  //}
+  //else
+  //{
+  //  ROS_INFO_STREAM("OUT");
+  //}
+//else
+// {
+//   ftThresholdHelper = std::make_shared<FTThresholdHelper>(false, *nodeHandle);
+//  }
 
   // start demo
   auto feedingDemo = std::make_shared<FeedingDemo>(
@@ -121,7 +130,7 @@ int main(int argc, char** argv)
   if (demoType == "spanet")
   {
     ranker = std::make_shared<SuccessRateRanker>();
-  } 
+  }
   else
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
@@ -149,8 +158,10 @@ int main(int argc, char** argv)
         false);
   }
 
-  if (ftThresholdHelper)
+  if (ftThresholdHelper) {
     ftThresholdHelper->init();
+    ROS_INFO_STREAM("INIT");
+  }
 
   feedingDemo->getAda()->closeHand();
 

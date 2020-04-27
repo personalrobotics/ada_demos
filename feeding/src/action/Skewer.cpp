@@ -278,6 +278,22 @@ bool skewer(
       ftThresholdHelper->setThresholds(
           foodSkeweringForces.at(foodName), torqueThreshold);
 
+    // ===== COLLECT FORQUE DATA =====
+    ROS_INFO_STREAM("Collecting forque data before action.");
+    int numDataPts = 100;
+    Eigen::Vector3d beforeForceAvg;
+    Eigen::Vector3d beforeTorqueAvg;
+
+    if (ftThresholdHelper)
+    {
+      bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
+      if (canCollect)
+      {
+        while (!ftThresholdHelper->isDataCollectionFinished(beforeForceAvg, beforeTorqueAvg)) { }
+        ROS_INFO_STREAM("Done with FT data collection.");
+      }
+    }
+
     // ===== INTO FOOD =====
     talk("Here we go!", true);
     auto moveIntoSuccess = moveInto(
@@ -315,18 +331,32 @@ bool skewer(
         ftThresholdHelper);
 
     // ===== CALL TO SERVICE ====
-
     ada_demos::DetectAcquisition srv;
-
     ROS_INFO_STREAM("Calling service...");
-    //bool serviceCalledSucc = ros::service::call("acquisition_detector", srv);
+    Eigen::Vector3d afterForceAvg;
+    Eigen::Vector3d afterTorqueAvg;
 
     if (ros::service::call("acquisition_detector", srv))
     {
-        ROS_INFO_STREAM("Made a call to service...");
         bool visualRes = srv.response.success;
-        bool hapticRes = true;
-        int combinedRes = isFoodOnFork(visualRes, hapticRes);
+        double zForceAvgDiff;
+
+        ROS_INFO_STREAM("Visual system says: " << visualRes);
+
+        if (ftThresholdHelper)
+        {
+          bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
+          if (canCollect)
+          {
+            ROS_INFO_STREAM("Collecting forque data after action.");
+            while (!ftThresholdHelper->isDataCollectionFinished(afterForceAvg, afterTorqueAvg)) { }
+            ROS_INFO_STREAM("Done with data collection.");
+            // Use only z-force
+            zForceAvgDiff = afterForceAvg.z() - beforeForceAvg.z();
+          }
+        }
+
+        int combinedRes = isFoodOnFork(visualRes, &zForceAvgDiff);
         if (combinedRes > 0)
         {
             ROS_INFO_STREAM("Successful in picking up food.");

@@ -4,9 +4,7 @@
 
 namespace feeding {
 
-int isFoodOnFork(
-        bool boolFromVisual, 
-        bool boolFromHaptic);
+int isFoodOnFork(bool boolFromVisual, double *zForceAvg);
 
 } // namespace feeding
 
