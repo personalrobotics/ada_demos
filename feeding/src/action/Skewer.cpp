@@ -8,7 +8,6 @@
 #include "feeding/util.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/onFork.hpp"
-
 #include <libada/util.hpp>
 
 using ada::util::getRosParam;
@@ -289,6 +288,7 @@ bool skewer(
       bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
       if (canCollect)
       {
+        // may need to add timer or way to detect FT failure
         while (!ftThresholdHelper->isDataCollectionFinished(beforeForceAvg, beforeTorqueAvg)) { }
         ROS_INFO_STREAM("Done with FT data collection.");
       }
@@ -335,67 +335,69 @@ bool skewer(
     ROS_INFO_STREAM("Calling service...");
     Eigen::Vector3d afterForceAvg;
     Eigen::Vector3d afterTorqueAvg;
-
+    bool visualRes = false;
     if (ros::service::call("acquisition_detector", srv))
     {
-        bool visualRes = srv.response.success;
-        double zForceAvgDiff;
-
-        ROS_INFO_STREAM("Visual system says: " << visualRes);
-
-        if (ftThresholdHelper)
-        {
-          bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
-          if (canCollect)
-          {
-            ROS_INFO_STREAM("Collecting forque data after action.");
-            while (!ftThresholdHelper->isDataCollectionFinished(afterForceAvg, afterTorqueAvg)) { }
-            ROS_INFO_STREAM("Done with data collection.");
-            // Use only z-force
-            zForceAvgDiff = afterForceAvg.z() - beforeForceAvg.z();
-          }
-        }
-
-        int combinedRes = isFoodOnFork(visualRes, &zForceAvgDiff);
-        if (combinedRes > 0)
-        {
-            ROS_INFO_STREAM("Successful in picking up food.");
-            return true;
-        }
-        else if (combinedRes < 0)
-        {
-            ROS_INFO_STREAM("Failed to pick up food.");
-            return false;
-        }
-        //serviceCalledSucc = false;
-        ROS_INFO_STREAM("Unable to determine");
-        talk("Let me try again.");
+      ROS_INFO_STREAM("Success in calling Vision service.");
+      visualRes = srv.response.success;
+      ROS_INFO_STREAM("Visual system says: " << visualRes);
+    }
+    else
+    {
+      ROS_INFO_STREAM("Failure in calling Vision service.");
     }
 
-    //if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
-    //{
-    //   ROS_INFO_STREAM("Successful");
-    //   return true;
-    //}
+    double zForceAvgDiff;
+    if (ftThresholdHelper)
+    {
+      bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
+      if (canCollect)
+      {
+        ROS_INFO_STREAM("Collecting forque data after action.");
+        while (!ftThresholdHelper->isDataCollectionFinished(afterForceAvg, afterTorqueAvg)) { }
+        ROS_INFO_STREAM("Done with data collection.");
+        // Use only z-force
+        zForceAvgDiff = afterForceAvg.z() - beforeForceAvg.z();
+      }
+      else
+      {
+        ROS_INFO_STREAM("Failure in collecting FT data");
+      }
+    }
 
-    //ROS_INFO_STREAM("Failed.");
-    //talk("Failed, let me try again.");
+    int combinedRes = isFoodOnFork(visualRes, &zForceAvgDiff);
+    if (combinedRes > 0)
+    {
+      ROS_INFO_STREAM("Successful in picking up food.");
+      return true;
+    }
+    else if (combinedRes < 0)
+    {
+      ROS_INFO_STREAM("Failed to pick up food.");
+      return false;
+    }
+    else
+    {
+      ROS_INFO_STREAM("Unable to determine");
+      talk("Let me try again.");
+    }
   }
 
   ROS_INFO_STREAM("Three trials failed. Asking for help.");
-  talk("Please helper me determine");
+  talk("Please helper me determine whether I successfully picked up food.");
 
   if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
   {
     ROS_INFO_STREAM("Successful");
+    talk("Success");
     return true;
   }
-
-  ROS_INFO_STREAM("Failed.");
-  talk("Failed");
-
-
-  return false;
+  else
+  {
+    ROS_INFO_STREAM("Failed.");
+    talk("Failed");
+    return false;
+  }
 }
 
 } // namespace action
