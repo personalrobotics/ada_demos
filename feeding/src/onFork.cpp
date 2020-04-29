@@ -7,12 +7,13 @@ namespace feeding {
 
 double tpVisual = 0.9871309613928841; // P(V1|on) = #(visual:on, true on) / #(trials)
 double tnVisual = 0.9606164383561644; // P(V0|off) = #(visual:off, true off) / #(trials)
-//double trueOn   = 0.5307352350341502; // P(true on) = #(true on) / #(trials)
 double sigma = 0.1330150445692865;
-double intersectX = -0.15731022803131997;
+double weight = 5;  // in grams
 double lowerThreshold = 0.3;
-double upperThreshold = 0.8;
+double upperThreshold = 0.85;
 
+// Calculate phi value of standard normal distribution.
+// Integrating from -inf to x.
 double phi(double x)
 {
   // constants
@@ -34,32 +35,46 @@ double phi(double x)
   return 0.5*(1.0 + sign*y);
 }
 
-int isFoodOnFork(bool boolFromVisual, double *zForceAvgPtr)
+int isFoodOnFork(int fromVisual, double zForceAvg)
 {
-    double visualOn = boolFromVisual ? tpVisual : (1 - tpVisual);
-    double visualOff = boolFromVisual ? (1 - tnVisual) : tnVisual;
-    double priorProb = 0.8;
-    if (zForceAvgPtr != NULL)
-    {
-      double mu = *zForceAvgPtr;
-      priorProb = 1 - phi((intersectX - mu) / sigma);
-      ROS_INFO_STREAM("Mean: " << mu << "; Prior probability: " << priorProb);
-    }
-    double p = (visualOn * priorProb) / (visualOn * priorProb + visualOff * (1.0 - priorProb));
+    double visualOn = 0.5;   // default in case Visual system down
+    double visualOff = 0.5;  // default in case Visual system down
+    double priorProb = 0.5;
+    double p = 0.5;
+    double mu = zForceAvg;
+    double forceThreshold = weight * 0.0098;
 
-    ROS_INFO_STREAM("Probability of food is on: " << p);
+    if (fromVisual == 1)
+    {
+      visualOn = tpVisual;
+      visualOff = 1 - tnVisual;
+    }
+    else if (fromVisual == 0)
+    {
+      visualOn = 1 - tpVisual;
+      visualOff = tnVisual;
+    }
+
+    ROS_INFO_STREAM("Demo mean: " << mu);
+    if (mu != 0.0)  // Forque sensor up
+      priorProb = 1 - phi((forceThreshold - mu) / sigma);
+    ROS_INFO_STREAM("Prior probability given by forque (0.5 if default): " << priorProb);
+    ROS_INFO_STREAM("Probability given by vision: " << visualOn);
+
+    p = (visualOn * priorProb) / (visualOn * priorProb + visualOff * (1.0 - priorProb));
+    ROS_INFO_STREAM("Probability of ~" << weight << "g of food on fork is: " << p);
 
     if (p >= upperThreshold)
     {
-        return 1;
+      return 1;
     }
     else if (p <= lowerThreshold)
     {
-        return -1;
+      return -1;
     }
     else
     {
-        return 0;
+      return 0;
     }
 }
 

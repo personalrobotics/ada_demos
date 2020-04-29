@@ -279,18 +279,31 @@ bool skewer(
 
     // ===== COLLECT FORQUE DATA =====
     ROS_INFO_STREAM("Collecting forque data before action.");
-    int numDataPts = 100;
+    int numDataPts = 200;
     Eigen::Vector3d beforeForceAvg;
     Eigen::Vector3d beforeTorqueAvg;
+    bool ftTimeout = false;
 
     if (ftThresholdHelper)
     {
       bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
       if (canCollect)
       {
-        // may need to add timer or way to detect FT failure
-        while (!ftThresholdHelper->isDataCollectionFinished(beforeForceAvg, beforeTorqueAvg)) { }
-        ROS_INFO_STREAM("Done with FT data collection.");
+        ros::Time start_time = ros::Time::now();
+        ros::Duration timeout(10.0); // Timeout of 10 seconds
+        while (!ftThresholdHelper->isDataCollectionFinished(beforeForceAvg,
+              beforeTorqueAvg)) {
+          ftTimeout = ros::Time::now() - start_time > timeout;
+          if (ftTimeout)
+            break;
+        }
+        if (ftTimeout) {
+          ROS_INFO_STREAM("FT data collection failed. Use Vision only.");
+        }
+        else
+        {
+          ROS_INFO_STREAM("Done with FT data collection.");
+        }
       }
     }
 
@@ -335,7 +348,7 @@ bool skewer(
     ROS_INFO_STREAM("Calling service...");
     Eigen::Vector3d afterForceAvg;
     Eigen::Vector3d afterTorqueAvg;
-    bool visualRes = false;
+    int visualRes = -1;
     if (ros::service::call("acquisition_detector", srv))
     {
       ROS_INFO_STREAM("Success in calling Vision service.");
@@ -347,17 +360,19 @@ bool skewer(
       ROS_INFO_STREAM("Failure in calling Vision service.");
     }
 
-    double zForceAvgDiff;
-    if (ftThresholdHelper)
+    double zForceAvgDiff = 0.0;
+    if (ftThresholdHelper && !ftTimeout)
     {
       bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
       if (canCollect)
       {
         ROS_INFO_STREAM("Collecting forque data after action.");
-        while (!ftThresholdHelper->isDataCollectionFinished(afterForceAvg, afterTorqueAvg)) { }
+        while (!ftThresholdHelper->isDataCollectionFinished(afterForceAvg,
+              afterTorqueAvg)) { }
         ROS_INFO_STREAM("Done with data collection.");
         // Use only z-force
-        zForceAvgDiff = afterForceAvg.z() - beforeForceAvg.z();
+        zForceAvgDiff = afterForceAvg.z();  // use in simulation
+        // zForceAvgDiff = afterForceAvg.z() - beforeForceAvg.z();  // using in real
       }
       else
       {
@@ -365,7 +380,7 @@ bool skewer(
       }
     }
 
-    int combinedRes = isFoodOnFork(visualRes, &zForceAvgDiff);
+    int combinedRes = isFoodOnFork(visualRes, zForceAvgDiff);
     if (combinedRes > 0)
     {
       ROS_INFO_STREAM("Successful in picking up food.");
