@@ -67,15 +67,13 @@ class InferenceModel(object):
         img = np.asarray(cv_image).astype(np.float32)
         img = img.transpose((2, 0, 1))  # HWC --> CHW
         img = torch.tensor(img)
-
-        print(img.size())
         img = self.color_normalizer(img)
-
         img.unsqueeze_(0)  # batch size 1
 
         with torch.set_grad_enabled(False):
             outputs = self.model(img)
             _, preds = torch.max(outputs, 1)
+
         return DetectAcquisitionResponse(bool(preds))
 
 

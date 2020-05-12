@@ -93,7 +93,7 @@ ftSensor:
     afterGrabFood:  # active when going up after food has been grabbed
       force: 50
       torque: 2
-    
+
 
 # Perception parameters
 perception:
@@ -156,6 +156,6 @@ study:
   tiltOffset: [0.0, 0.05, -0.02]
 
   # FAST:
-  velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1.0]
+  #velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1.0]
   # SLOW:
-  #velocityLimits: [0.2, 0.2, 0.2, 0.2, 0.2, 0.4]
+  velocityLimits: [0.2, 0.2, 0.2, 0.2, 0.2, 0.4]

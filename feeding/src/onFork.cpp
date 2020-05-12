@@ -5,12 +5,12 @@
 
 namespace feeding {
 
-double tpVisual = 0.9871309613928841; // P(V1|on) = #(visual:on, true on) / #(trials)
-double tnVisual = 0.9606164383561644; // P(V0|off) = #(visual:off, true off) / #(trials)
-double sigma = 0.1330150445692865;
-double weight = 5;  // in grams
-double lowerThreshold = 0.3;
-double upperThreshold = 0.85;
+double tpVision = 0.9871309613928841; // P(V1|on) = #(vision:on, true on) / #(trials)
+double tnVision = 0.9606164383561644; // P(V0|off) = #(vision:off, true off) / #(trials)
+double sigma = 0.1330150445692865 * 2;
+double weight = 10;  // in grams, minimum weight threshold
+double lowerThreshold = 0.4;
+double upperThreshold = 0.7;
 
 // Calculate phi value of standard normal distribution.
 // Integrating from -inf to x.
@@ -35,33 +35,49 @@ double phi(double x)
   return 0.5*(1.0 + sign*y);
 }
 
-int isFoodOnFork(int fromVisual, double zForceAvg)
+int isFoodOnFork(int fromVision, double zForceAvg, int numPts)
 {
-    double visualOn = 0.5;   // default in case Visual system down
-    double visualOff = 0.5;  // default in case Visual system down
-    double priorProb = 0.5;
+    double visionOn, visionOff, priorProb;
     double p = 0.5;
     double mu = zForceAvg;
-    double forceThreshold = weight * 0.0098;
+    double forceThreshold = weight * 0.0098;  // weight is set on top of file
 
-    if (fromVisual == 1)
+    if (fromVision != -1)  // vision is up
     {
-      visualOn = tpVisual;
-      visualOff = 1 - tnVisual;
+      visionOn = (fromVision == 1) ? tpVision : 1 - tpVision;
+      visionOff = (fromVision == 1) ? 1 - tnVision : tnVision;
+      ROS_INFO_STREAM("Probability given by Vision: " << visionOn);
     }
-    else if (fromVisual == 0)
+    else
     {
-      visualOn = 1 - tpVisual;
-      visualOff = tnVisual;
+      ROS_INFO_STREAM("Vision is down...");
     }
 
-    ROS_INFO_STREAM("Demo mean: " << mu);
-    if (mu != 0.0)  // Forque sensor up
-      priorProb = 1 - phi((forceThreshold - mu) / sigma);
-    ROS_INFO_STREAM("Prior probability given by forque (0.5 if default): " << priorProb);
-    ROS_INFO_STREAM("Probability given by vision: " << visualOn);
+    if (mu != 0.0)  // haptic is up
+    {
+      ROS_INFO_STREAM("Demo mean: " << mu);
+      ROS_INFO_STREAM("Standardized z: " << sqrt(numPts) * (forceThreshold - mu) / sigma);
+      priorProb = 1 - phi(sqrt(numPts) * (forceThreshold - mu) / sigma);
+      ROS_INFO_STREAM("Prior probability given by Haptics: " << priorProb);
+    }
+    else
+    {
+      ROS_INFO_STREAM("Haptics is down...");
+    }
 
-    p = (visualOn * priorProb) / (visualOn * priorProb + visualOff * (1.0 - priorProb));
+    if (fromVision != -1 && mu != 0.0)  // both systems up
+    {
+      p = (visionOn * priorProb) / (visionOn * priorProb + visionOff * (1.0 - priorProb));
+    }
+    else if (fromVision != -1)  // vision up, haptics down
+    {
+      p = visionOn;
+    }
+    else if (mu != 0.0)  // vision down, haptics up
+    {
+      p = priorProb;
+    } // else: both systems down, default to 0.5 as initialized
+
     ROS_INFO_STREAM("Probability of ~" << weight << "g of food on fork is: " << p);
 
     if (p >= upperThreshold)

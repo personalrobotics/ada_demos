@@ -24,10 +24,9 @@ void moveOutOf(
     double endEffectorOffsetAngularTolerance,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper)
 {
-  bool adaReal = false;
   ROS_INFO_STREAM("Move Out of " + TargetToString.at(item));
 
-  if (ftThresholdHelper && adaReal)
+  if (ftThresholdHelper)
   {
     ROS_WARN_STREAM("Stop FT, start Traj Controller");
     ada->getTrajectoryExecutor()->cancel();
@@ -50,7 +49,7 @@ void moveOutOf(
 
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted
-  if (ftThresholdHelper && adaReal)
+  if (ftThresholdHelper)
   {
     ROS_WARN_STREAM("Start FT, stop Traj Controller");
    bool result

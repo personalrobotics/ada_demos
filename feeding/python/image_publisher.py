@@ -14,8 +14,8 @@ def image_publisher():
     r = rospy.Rate(20)
     while not rospy.is_shutdown():
         #image_path = './empty_fork.png' # Always empty fork
-        #image_path = './food_on_fork.png' # Always food on fork
-        image_path = './food_on_fork.png' if np.random.randint(0, 2) == 1 else './empty_fork.png'
+        image_path = './food_on_fork.png' # Always food on fork
+        #image_path = './food_on_fork.png' if np.random.randint(0, 2) == 1 else './empty_fork.png'
         cv_image = cv2.imread(image_path)
         image_msg = br.cv2_to_imgmsg(cv_image, "bgr8")
         pub.publish(image_msg)

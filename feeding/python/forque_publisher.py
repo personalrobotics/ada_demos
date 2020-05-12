@@ -4,9 +4,10 @@ import rospy
 import numpy as np
 from geometry_msgs.msg import WrenchStamped
 
+weight = 5
 empty_mu = 0
 empty_sigma = 0.1716494429280944
-food_mu = 20 * 0.0098  # simulate food weight (in Newtons)
+food_mu = weight * 0.0098  # simulate food weight (in Newtons)
 food_sigma = 0.1330150445692865
 
 def forque_publisher():
@@ -20,7 +21,7 @@ def forque_publisher():
     #sigma = empty_sigma
     mu = food_mu
     sigma = food_sigma
-
+    print('weight:', weight)
     while not rospy.is_shutdown():
         forque_msg = WrenchStamped()
         forque_msg.header.seq = 0

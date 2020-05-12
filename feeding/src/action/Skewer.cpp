@@ -279,7 +279,7 @@ bool skewer(
 
     // ===== COLLECT FORQUE DATA =====
     ROS_INFO_STREAM("Collecting forque data before action.");
-    int numDataPts = 200;
+    int numDataPts = 300;
     Eigen::Vector3d beforeForceAvg;
     Eigen::Vector3d beforeTorqueAvg;
     bool ftTimeout = false;
@@ -303,6 +303,7 @@ bool skewer(
         else
         {
           ROS_INFO_STREAM("Done with FT data collection.");
+          ROS_INFO_STREAM("Before average z force: " << beforeForceAvg.z());
         }
       }
     }
@@ -319,7 +320,7 @@ bool skewer(
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
         endEffectorDirection,
-        ftThresholdHelper);
+        (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr);
 
     if (!moveIntoSuccess)
     {
@@ -341,7 +342,9 @@ bool skewer(
         planningTimeout,
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
-        ftThresholdHelper);
+        (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     // ===== CALL TO SERVICE ====
     ada_demos::DetectAcquisition srv;
@@ -370,9 +373,17 @@ bool skewer(
         while (!ftThresholdHelper->isDataCollectionFinished(afterForceAvg,
               afterTorqueAvg)) { }
         ROS_INFO_STREAM("Done with data collection.");
+        ROS_INFO_STREAM("After average z force: " << afterForceAvg.z());
         // Use only z-force
+        if (!feedingDemo->isAdaReal())
+        {
         zForceAvgDiff = afterForceAvg.z();  // use in simulation
-        // zForceAvgDiff = afterForceAvg.z() - beforeForceAvg.z();  // using in real
+        }
+        else
+        {
+        zForceAvgDiff = afterForceAvg.z() - beforeForceAvg.z();  // use in real
+        }
+        ROS_INFO_STREAM("Difference between average z forces: " << zForceAvgDiff);
       }
       else
       {
@@ -380,7 +391,7 @@ bool skewer(
       }
     }
 
-    int combinedRes = isFoodOnFork(visualRes, zForceAvgDiff);
+    int combinedRes = isFoodOnFork(visualRes, zForceAvgDiff, numDataPts);
     if (combinedRes > 0)
     {
       ROS_INFO_STREAM("Successful in picking up food.");
