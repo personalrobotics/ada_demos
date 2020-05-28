@@ -278,8 +278,10 @@ bool skewer(
           foodSkeweringForces.at(foodName), torqueThreshold);
 
     // ===== COLLECT FORQUE DATA =====
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
     ROS_INFO_STREAM("Collecting forque data before action.");
-    int numDataPts = 300;
+    int numDataPts = 400;
     Eigen::Vector3d beforeForceAvg;
     Eigen::Vector3d beforeTorqueAvg;
     bool ftTimeout = false;
@@ -344,26 +346,13 @@ bool skewer(
         endEffectorOffsetAngularTolerance,
         (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
-    // ===== CALL TO SERVICE ====
-    ada_demos::DetectAcquisition srv;
-    ROS_INFO_STREAM("Calling service...");
+    // ===== COLLECT FORQUE DATA =====
     Eigen::Vector3d afterForceAvg;
     Eigen::Vector3d afterTorqueAvg;
-    int visualRes = -1;
-    if (ros::service::call("acquisition_detector", srv))
-    {
-      ROS_INFO_STREAM("Success in calling Vision service.");
-      visualRes = srv.response.success;
-      ROS_INFO_STREAM("Visual system says: " << visualRes);
-    }
-    else
-    {
-      ROS_INFO_STREAM("Failure in calling Vision service.");
-    }
-
     double zForceAvgDiff = 0.0;
+    
     if (ftThresholdHelper && !ftTimeout)
     {
       bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
@@ -389,6 +378,21 @@ bool skewer(
       {
         ROS_INFO_STREAM("Failure in collecting FT data");
       }
+    }
+
+    // ===== CALL TO SERVICE ====
+    ada_demos::DetectAcquisition srv;
+    ROS_INFO_STREAM("Calling service...");
+    int visualRes = -1;
+    if (ros::service::call("acquisition_detector", srv))
+    {
+      ROS_INFO_STREAM("Success in calling Vision service.");
+      visualRes = srv.response.success;
+      ROS_INFO_STREAM("Visual system says: " << visualRes);
+    }
+    else
+    {
+      ROS_INFO_STREAM("Failure in calling Vision service.");
     }
 
     int combinedRes = isFoodOnFork(visualRes, zForceAvgDiff, numDataPts);

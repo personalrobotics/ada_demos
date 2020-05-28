@@ -57,7 +57,7 @@ int isFoodOnFork(int fromVision, double zForceAvg, int numPts)
     {
       ROS_INFO_STREAM("Demo mean: " << mu);
       ROS_INFO_STREAM("Standardized z: " << sqrt(numPts) * (forceThreshold - mu) / sigma);
-      priorProb = 1 - phi(sqrt(numPts) * (forceThreshold - mu) / sigma);
+      priorProb = phi(sqrt(numPts) * (-forceThreshold - mu) / sigma);
       ROS_INFO_STREAM("Prior probability given by Haptics: " << priorProb);
     }
     else
