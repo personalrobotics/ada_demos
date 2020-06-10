@@ -8,7 +8,7 @@ namespace feeding {
 double tpVision = 0.9871309613928841; // P(V1|on) = #(vision:on, true on) / #(trials)
 double tnVision = 0.9606164383561644; // P(V0|off) = #(vision:off, true off) / #(trials)
 double sigma = 0.1330150445692865 * 2;
-double weight = 10;  // in grams, minimum weight threshold
+double weight = 5;  // in grams, minimum weight threshold
 double lowerThreshold = 0.4;
 double upperThreshold = 0.7;
 
@@ -57,7 +57,7 @@ int isFoodOnFork(int fromVision, double zForceAvg, int numPts)
     {
       ROS_INFO_STREAM("Demo mean: " << mu);
       ROS_INFO_STREAM("Standardized z: " << sqrt(numPts) * (forceThreshold - mu) / sigma);
-      priorProb = phi(sqrt(numPts) * (-forceThreshold - mu) / sigma);
+      priorProb = 1 - phi(sqrt(numPts) * (forceThreshold - mu) / sigma);
       ROS_INFO_STREAM("Prior probability given by Haptics: " << priorProb);
     }
     else

@@ -243,7 +243,6 @@ bool skewer(
           feedingDemo,
           nullptr,
           actionOverride);
-
       if (!item)
       {
         talk("Failed, let me start from the beginning");
@@ -276,7 +275,7 @@ bool skewer(
     if (ftThresholdHelper)
       ftThresholdHelper->setThresholds(
           foodSkeweringForces.at(foodName), torqueThreshold);
-
+ 
     // ===== COLLECT FORQUE DATA =====
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 
@@ -292,7 +291,7 @@ bool skewer(
       if (canCollect)
       {
         ros::Time start_time = ros::Time::now();
-        ros::Duration timeout(10.0); // Timeout of 10 seconds
+        ros::Duration timeout(10.0); // Timeout after 10 seconds
         while (!ftThresholdHelper->isDataCollectionFinished(beforeForceAvg,
               beforeTorqueAvg)) {
           ftTimeout = ros::Time::now() - start_time > timeout;
@@ -346,7 +345,7 @@ bool skewer(
         endEffectorOffsetAngularTolerance,
         (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
 
     // ===== COLLECT FORQUE DATA =====
     Eigen::Vector3d afterForceAvg;
