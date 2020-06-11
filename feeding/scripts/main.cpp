@@ -144,6 +144,9 @@ int main(int argc, char** argv)
 
   ROS_INFO_STREAM("Startup complete."); 
 
+  // Init ROS topics
+  initTopics(nodeHandle.get());
+
   // Start Demo
   if (demoType == "spanet")
   {
