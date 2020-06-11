@@ -143,8 +143,8 @@ FeedingDemo::FeedingDemo(
       "/planning/tsr/verticalToleranceNearFood", *mNodeHandle);
   mFoodTSRParameters["rotationTolerance"] = getRosParam<double>(
       "/planning/tsr/rotationToleranceNearFood", *mNodeHandle);
-  mFoodTSRParameters["tiltTolerance"]
-      = getRosParam<double>("/planning/tsr/tiltToleranceNearFood", *mNodeHandle);
+  mFoodTSRParameters["tiltTolerance"] = getRosParam<double>(
+      "/planning/tsr/tiltToleranceNearFood", *mNodeHandle);
   mMoveOufOfFoodLength
       = getRosParam<double>("/feedingDemo/moveOutofFood", *mNodeHandle);
 
@@ -169,7 +169,8 @@ FeedingDemo::FeedingDemo(
   mPersonTSRParameters["verticalTolerance"] = getRosParam<double>(
       "/planning/tsr/verticalToleranceNearPerson", *mNodeHandle);
 
-  mForkHolderAngle = getRosParam<double>("/study/forkHolderAngle", *mNodeHandle);
+  mForkHolderAngle
+      = getRosParam<double>("/study/forkHolderAngle", *mNodeHandle);
   mForkHolderTranslation = getRosParam<std::vector<double>>(
       "/study/forkHolderTranslation", *mNodeHandle);
 
@@ -178,8 +179,8 @@ FeedingDemo::FeedingDemo(
   mTiltOffset = Eigen::Vector3d(
       tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
 
-  mVelocityLimits = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
-  mIsOnlineDemo = getRosParam<bool>("/onlineStudy", *mNodeHandle);
+  mVelocityLimits
+      = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
   mTableHeight = getRosParam<double>("/study/tableHeight", *mNodeHandle);
 }
 

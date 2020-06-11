@@ -1,13 +1,11 @@
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include <chrono>
 #include <thread>
-#include "feeding/util.hpp"
-#include <libada/util.hpp>
 #include <yaml-cpp/exceptions.h>
+#include <libada/util.hpp>
+#include "feeding/util.hpp"
 
 #include "feeding/action/MoveAboveFood.hpp"
-
-#include "conban_spanet/GetAction.h"
 
 using ada::util::getRosParam;
 
@@ -40,7 +38,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
 
     if (candidateItems.size() == 0)
     {
-      //talk("I can't find that food. Try putting it on the plate.");
+      // talk("I can't find that food. Try putting it on the plate.");
       ROS_WARN_STREAM(
           "Failed to detect any food. Please place food on the plate.");
     }
@@ -56,35 +54,12 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
 
   for (auto& item : candidateItems)
   {
-    //actionOverride = 5;
+    // actionOverride = 5;
 
     if (actionOverride >= 0)
     {
       // Overwrite action in item
       item->setAction(actionOverride);
-    } else if (feedingDemo->mIsOnlineDemo) {
-      ROS_WARN_STREAM("Entering online demo!");
-      // Get features from item
-      YAML::Node node = item->getExtraInfo();
-      if(node["features"].IsSequence()) {
-        std::vector<double> features = node["features"].as<std::vector<double>>();
-
-        // Send features to ROS Service
-        conban_spanet::GetAction srv;
-        srv.request.features.insert(std::end(srv.request.features), std::begin(features), std::end(features));
-        if (ros::service::call("GetAction", srv))
-        {
-          // Set mAnnotation and overwrite action.
-          item->mAnnotation = srv.response.p_t;
-          item->setAction(srv.response.a_t);
-        }
-        else
-        {
-          ROS_ERROR("Failed to call service get_action");
-        }
-      } else {
-        ROS_WARN_STREAM("Warning: no feature vector, using default action!");
-      }
     }
 
     auto action = item->getAction();

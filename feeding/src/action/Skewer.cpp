@@ -1,5 +1,6 @@
 #include "ada_demos/DetectAcquisition.h"
 #include "feeding/action/Skewer.hpp"
+#include "feeding/FeedingDemo.hpp"
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include "feeding/action/Grab.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
@@ -8,12 +9,14 @@
 #include "feeding/util.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/AcquisitionDetector.hpp"
+
 #include <libada/util.hpp>
 
 using ada::util::getRosParam;
 
 static const std::vector<std::string> optionPrompts{"(1) success", "(2) fail"};
-static const std::vector<std::string> actionPrompts{"(1) skewer", "(3) tilt", "(5) angle"};
+static const std::vector<std::string> actionPrompts{
+    "(1) skewer", "(3) tilt", "(5) angle"};
 
 namespace feeding {
 namespace action {
@@ -74,56 +77,77 @@ bool skewer(
 
   int actionOverride = -1;
 
-  if (!getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())))
+  if (!getRosParam<bool>(
+          "/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())))
+  {
+    // Read Action from Topic
+    talk("How should I pick up the food?", true);
+    ROS_INFO_STREAM("Waiting for action...");
+    std::string actionName;
+    std::string actionTopic;
+    feedingDemo->getNodeHandle()->param<std::string>(
+        "/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
+    actionName = getInputFromTopic(
+        actionTopic, *(feedingDemo->getNodeHandle()), false, -1);
+    talk("Alright, let me use " + actionName, false);
+
+    if (actionName == "skewer")
+    {
+      actionOverride = 1;
+    }
+    else if (actionName == "vertical")
+    {
+      actionOverride = 1;
+    }
+    else if (actionName == "cross_skewer")
+    {
+      actionOverride = 1;
+    }
+    else if (actionName == "tilt")
+    {
+      actionOverride = 3;
+    }
+    else if (actionName == "cross_tilt")
+    {
+      actionOverride = 3;
+    }
+    else if (actionName == "angle")
+    {
+      actionOverride = 5;
+    }
+    else if (actionName == "cross_angle")
+    {
+      actionOverride = 5;
+    }
+    else
+    {
+      actionOverride = getUserInputWithOptions(
+          actionPrompts, "Didn't get valid action. Choose manually:");
+      if (actionOverride > 5 || actionOverride < 0)
       {
-          // Read Action from Topic
-          talk("How should I pick up the food?", true);
-          ROS_INFO_STREAM("Waiting for action...");
-          std::string actionName;
-          std::string actionTopic;
-          feedingDemo->getNodeHandle()->param<std::string>("/humanStudy/actionTopic", actionTopic, "/study_action_msgs");
-          actionName = getInputFromTopic(actionTopic, *(feedingDemo->getNodeHandle()), false, -1);
-          talk("Alright, let me use " + actionName, false);
-
-          if (actionName == "skewer") {
-            actionOverride = 1;
-          } else if (actionName == "vertical") {
-            actionOverride = 1;
-          } else if (actionName == "cross_skewer") {
-            actionOverride = 1;
-          } else if (actionName == "tilt") {
-            actionOverride = 3;
-          } else if (actionName == "cross_tilt") {
-            actionOverride = 3;
-          } else if (actionName == "angle") {
-            actionOverride = 5;
-          } else if (actionName == "cross_angle"){
-            actionOverride = 5;
-          } else {
-            actionOverride = getUserInputWithOptions(actionPrompts, "Didn't get valid action. Choose manually:");
-            if (actionOverride > 5 || actionOverride < 0) {
-              actionOverride = 1;
-            }
-          }
+        actionOverride = 1;
       }
+    }
+  }
 
-    if (std::find(
+  if (std::find(
           rotationFreeFoodNames.begin(), rotationFreeFoodNames.end(), foodName)
       != rotationFreeFoodNames.end())
   {
     rotationToleranceForFood = M_PI;
-    if (actionOverride == 1) {
+    if (actionOverride == 1)
+    {
       actionOverride = 0;
     }
   }
 
-    // Pause a bit so camera can catch up
-    /*
-    if(velocityLimits[0] > 0.5) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    }
-    */
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+  // Pause a bit so camera can catch up
+  /*
+  if(velocityLimits[0] > 0.5) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  }
+  */
+  std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
   for (std::size_t trialCount = 0; trialCount < 3; ++trialCount)
   {
@@ -138,30 +162,33 @@ bool skewer(
       }
       if (i == 1)
       {
-          talk("Adjusting, hold tight!", true);
-          std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        talk("Adjusting, hold tight!", true);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-          // Set Action Override
-          auto action = item->getAction();
-          int actionNum = 0;
-          switch(action->getTiltStyle()) {
-            case TiltStyle::ANGLED:
+        // Set Action Override
+        auto action = item->getAction();
+        int actionNum = 0;
+        switch (action->getTiltStyle())
+        {
+          case TiltStyle::ANGLED:
             actionNum = 4;
             break;
-            case TiltStyle::VERTICAL:
+          case TiltStyle::VERTICAL:
             actionNum = 2;
             break;
-            default:
+          default:
             actionNum = 0;
-          }
-          if (action->getRotationAngle() > 0.01) {
-            // Assume 90-degree action
-            actionNum++;
-          }
-          // Call here so we don't overwrite features
-          Eigen::Vector3d foodVec = item->getPose().rotation() * Eigen::Vector3d::UnitX();
-          double baseRotateAngle = atan2(foodVec[1], foodVec[0]);
-          detectAndMoveAboveFood(
+        }
+        if (action->getRotationAngle() > 0.01)
+        {
+          // Assume 90-degree action
+          actionNum++;
+        }
+        // Call here so we don't overwrite features
+        Eigen::Vector3d foodVec
+            = item->getPose().rotation() * Eigen::Vector3d::UnitX();
+        double baseRotateAngle = atan2(foodVec[1], foodVec[0]);
+        detectAndMoveAboveFood(
             ada,
             collisionFree,
             perception,
@@ -177,53 +204,63 @@ bool skewer(
             feedingDemo,
             &baseRotateAngle,
             actionNum);
-          auto tiltStyle = item->getAction()->getTiltStyle();
-          if (tiltStyle == TiltStyle::ANGLED)
-          {
-            // Apply base rotation of food
-            Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
-            Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ();
-            newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0)) * (-0.2 / 0.1);
-            endEffectorDirection = newEEDir;
-            endEffectorDirection.normalize();
 
-            Eigen::Vector3d forkXAxis = eePose.rotation() * Eigen::Vector3d::UnitX();
-            forkXAxis[2] = 0.0;
-            forkXAxis.normalize();
-            endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += (0.01 * forkXAxis);
-            endEffectorDirection.normalize();
+        auto tiltStyle = item->getAction()->getTiltStyle();
+        if (tiltStyle == TiltStyle::ANGLED)
+        {
+          // Apply base rotation of food
+          Eigen::Isometry3d eePose
+              = ada->getHand()->getEndEffectorBodyNode()->getTransform();
+          Eigen::Vector3d newEEDir
+              = eePose.rotation() * Eigen::Vector3d::UnitZ();
+          newEEDir[2] = sqrt(pow(newEEDir[0], 2.0) + pow(newEEDir[1], 2.0))
+                        * (-0.2 / 0.1);
+          endEffectorDirection = newEEDir;
+          endEffectorDirection.normalize();
 
-          }
-          else if (tiltStyle == TiltStyle::NONE)
-          {
-            // Apply base rotation of food
-            Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
-            Eigen::Vector3d forkYAxis = eePose.rotation() * Eigen::Vector3d::UnitY();
-            forkYAxis[2] = 0.0;
-            forkYAxis.normalize();
-            Eigen::Vector3d forkXAxis = eePose.rotation() * Eigen::Vector3d::UnitX();
-            forkXAxis[2] = 0.0;
-            forkXAxis.normalize();
-            endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.02 * forkYAxis) + (-0.005 * forkXAxis));
-            endEffectorDirection.normalize();
-          }
-          else if (tiltStyle == TiltStyle::VERTICAL)
-          {
-            // Apply base rotation of food
-            Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
-            Eigen::Vector3d forkYAxis = eePose.rotation() * Eigen::Vector3d::UnitY();
-            Eigen::Vector3d forkXAxis = eePose.rotation() * Eigen::Vector3d::UnitX();
-            forkXAxis[2] = 0.0;
-            forkXAxis.normalize();
-            forkYAxis[2] = 0.0;
-            forkYAxis.normalize();
-            endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.025 * forkYAxis) + (-0.01 * forkXAxis));
-            endEffectorDirection.normalize();
-          }
-          break;
+          Eigen::Vector3d forkXAxis
+              = eePose.rotation() * Eigen::Vector3d::UnitX();
+          forkXAxis[2] = 0.0;
+          forkXAxis.normalize();
+          endEffectorDirection *= heightAboveFood;
+          endEffectorDirection += (0.01 * forkXAxis);
+          endEffectorDirection.normalize();
+        }
+        else if (tiltStyle == TiltStyle::NONE)
+        {
+          // Apply base rotation of food
+          Eigen::Isometry3d eePose
+              = ada->getHand()->getEndEffectorBodyNode()->getTransform();
+          Eigen::Vector3d forkYAxis
+              = eePose.rotation() * Eigen::Vector3d::UnitY();
+          forkYAxis[2] = 0.0;
+          forkYAxis.normalize();
+          Eigen::Vector3d forkXAxis
+              = eePose.rotation() * Eigen::Vector3d::UnitX();
+          forkXAxis[2] = 0.0;
+          forkXAxis.normalize();
+          endEffectorDirection *= heightAboveFood;
+          endEffectorDirection += ((-0.02 * forkYAxis) + (-0.005 * forkXAxis));
+          endEffectorDirection.normalize();
+        }
+        else if (tiltStyle == TiltStyle::VERTICAL)
+        {
+          // Apply base rotation of food
+          Eigen::Isometry3d eePose
+              = ada->getHand()->getEndEffectorBodyNode()->getTransform();
+          Eigen::Vector3d forkYAxis
+              = eePose.rotation() * Eigen::Vector3d::UnitY();
+          Eigen::Vector3d forkXAxis
+              = eePose.rotation() * Eigen::Vector3d::UnitX();
+          forkXAxis[2] = 0.0;
+          forkXAxis.normalize();
+          forkYAxis[2] = 0.0;
+          forkYAxis.normalize();
+          endEffectorDirection *= heightAboveFood;
+          endEffectorDirection += ((-0.025 * forkYAxis) + (-0.01 * forkXAxis));
+          endEffectorDirection.normalize();
+        }
+        break;
       }
 
       ROS_INFO_STREAM("Detect and Move above food");
@@ -249,7 +286,8 @@ bool skewer(
         return false;
       }
 
-      if (!item) {
+      if (!item)
+      {
         detectAndMoveAboveFoodSuccess = false;
       }
 
@@ -257,6 +295,13 @@ bool skewer(
       if(getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())) && // autonomous
         getRosParam<bool>("/humanStudy/createError", *(feedingDemo->getNodeHandle())) && // add error
         trialCount == 0) // First Trial
+      if (getRosParam<bool>(
+              "/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle()))
+          && // autonomous
+          getRosParam<bool>(
+              "/humanStudy/createError", *(feedingDemo->getNodeHandle()))
+          &&               // add error
+          trialCount == 0) // First Trial
       {
         ROS_WARN_STREAM("Error Requested for Acquisition!");
         endEffectorDirection(1) -= 1.0;

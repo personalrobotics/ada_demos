@@ -1,10 +1,10 @@
 #include "feeding/action/MoveAboveFood.hpp"
 #include <aikido/constraint/dart/TSR.hpp>
+#include <math.h>
 #include <libada/util.hpp>
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/util.hpp"
-#include <math.h>
 
 using aikido::constraint::dart::TSR;
 
@@ -36,12 +36,14 @@ bool moveAboveFood(
   Eigen::AngleAxisd rotation
       = Eigen::AngleAxisd(-rotateAngle, Eigen::Vector3d::UnitZ());
   ROS_WARN_STREAM("Rotate Angle: " << rotateAngle);
-  
+
   // Apply base rotation to food
   Eigen::Vector3d foodVec = foodTransform.rotation() * Eigen::Vector3d::UnitX();
   double baseRotateAngle = atan2(foodVec[1], foodVec[0]);
-  if(angleGuess) {
-    while(abs(baseRotateAngle - *angleGuess) > (M_PI / 2.0)) {
+  if (angleGuess)
+  {
+    while (abs(baseRotateAngle - *angleGuess) > (M_PI / 2.0))
+    {
       baseRotateAngle += (*angleGuess > baseRotateAngle) ? M_PI : (-M_PI);
     }
   }
@@ -66,21 +68,22 @@ bool moveAboveFood(
   }
   else if (tiltStyle == TiltStyle::VERTICAL)
   {
-    eeTransform.linear()
-        = eeTransform.linear() * rotation
-          * Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitX());
+    eeTransform.linear() = eeTransform.linear() * rotation
+                           * Eigen::AngleAxisd(0.5, Eigen::Vector3d::UnitX());
     eeTransform.translation()[2] = heightAboveFood;
   }
   else // angled
   {
     eeTransform.linear()
         = eeTransform.linear() * rotation
-           * Eigen::AngleAxisd(-M_PI / 8, Eigen::Vector3d::UnitX());
+          * Eigen::AngleAxisd(-M_PI / 8, Eigen::Vector3d::UnitX());
     eeTransform.translation()
-        = Eigen::AngleAxisd(rotateAngle, Eigen::Vector3d::UnitZ()) // Take into account action rotation
+        = Eigen::AngleAxisd(
+              rotateAngle,
+              Eigen::Vector3d::UnitZ()) // Take into account action rotation
           * Eigen::Vector3d{0,
-                          -sin(M_PI * 0.25) * heightAboveFood * 0.7,
-                          cos(M_PI * 0.25) * heightAboveFood * 0.9};
+                            -sin(M_PI * 0.25) * heightAboveFood * 0.7,
+                            cos(M_PI * 0.25) * heightAboveFood * 0.9};
   }
 
   return moveAbove(

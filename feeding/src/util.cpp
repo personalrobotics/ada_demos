@@ -16,8 +16,8 @@
 
 static const std::vector<double> weights = {1, 1, 0.01, 0.01, 0.01, 0.01};
 
-using aikido::distance::NominalConfigurationRanker;
 using ada::util::getRosParam;
+using aikido::distance::NominalConfigurationRanker;
 
 namespace feeding {
 
@@ -140,13 +140,16 @@ std::string getCurrentTimeDate()
 }
 
 //==============================================================================
-std::string getUserFoodInput(bool food_only, ros::NodeHandle& nodeHandle, bool useAlexa, double timeout)
+std::string getUserFoodInput(
+    bool food_only, ros::NodeHandle& nodeHandle, bool useAlexa, double timeout)
 {
 
   std::string foodName;
   std::string foodTopic;
-  nodeHandle.param<std::string>("/humanStudy/foodTopic", foodTopic, "/study_food_msgs");
-  foodName = useAlexa ? getInputFromTopic(foodTopic, nodeHandle, true, timeout) : "";
+  nodeHandle.param<std::string>(
+      "/humanStudy/foodTopic", foodTopic, "/study_food_msgs");
+  foodName
+      = useAlexa ? getInputFromTopic(foodTopic, nodeHandle, true, timeout) : "";
   if (foodName != "")
   {
     ROS_INFO_STREAM("Got " << foodName << " from Alexa.");
@@ -202,16 +205,21 @@ std::string getUserFoodInput(bool food_only, ros::NodeHandle& nodeHandle, bool u
 }
 
 //==============================================================================
-std::string getInputFromTopic(std::string topic, const ros::NodeHandle& nodeHandle, bool validateAsFood, double timeout)
+std::string getInputFromTopic(
+    std::string topic,
+    const ros::NodeHandle& nodeHandle,
+    bool validateAsFood,
+    double timeout)
 {
   boost::shared_ptr<std_msgs::String const> sharedPtr;
   std_msgs::String rosFoodWord;
-  
+
   if (timeout > 0)
   {
     sharedPtr = ros::topic::waitForMessage<std_msgs::String>(
         topic, ros::Duration(timeout));
-  } else
+  }
+  else
   {
     sharedPtr = ros::topic::waitForMessage<std_msgs::String>(topic);
   }
@@ -398,7 +406,8 @@ static ros::Publisher actionPub;
 static ros::Publisher timingPub;
 static ros::Publisher transferPub;
 static ros::Publisher talkPub;
-void initTopics(ros::NodeHandle* nodeHandle) {
+void initTopics(ros::NodeHandle* nodeHandle)
+{
   actionPub = nodeHandle->advertise<std_msgs::String>("/action_done", 100);
   timingPub = nodeHandle->advertise<std_msgs::String>("/timing_done", 100);
   transferPub = nodeHandle->advertise<std_msgs::String>("/transfer_done", 100);
@@ -420,20 +429,24 @@ void talk(const std::string& statement, bool background)
   std::system(cmd.c_str());
   std_msgs::String msg;
   msg.data = statement;
-  if (talkPub.getNumSubscribers() < 1) {
+  if (talkPub.getNumSubscribers() < 1)
+  {
     ROS_INFO_STREAM("Waiting for subscribers...");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
   talkPub.publish(msg);
 }
 
-void publishActionDoneToWeb(ros::NodeHandle* nodeHandle) {
-  if (!actionPub) {
+void publishActionDoneToWeb(ros::NodeHandle* nodeHandle)
+{
+  if (!actionPub)
+  {
     ROS_WARN_STREAM("EMPTY ACTION PUBLISHER");
   }
   std_msgs::String msg;
   msg.data = "action done";
-  if (actionPub.getNumSubscribers() < 1) {
+  if (actionPub.getNumSubscribers() < 1)
+  {
     ROS_INFO_STREAM("Waiting for subscribers...");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
@@ -441,10 +454,12 @@ void publishActionDoneToWeb(ros::NodeHandle* nodeHandle) {
   ROS_INFO_STREAM("action done published to web page");
 }
 
-void publishTimingDoneToWeb(ros::NodeHandle* nodeHandle) {
+void publishTimingDoneToWeb(ros::NodeHandle* nodeHandle)
+{
   std_msgs::String msg;
   msg.data = "timing done";
-  if (timingPub.getNumSubscribers() < 1) {
+  if (timingPub.getNumSubscribers() < 1)
+  {
     ROS_INFO_STREAM("Waiting for subscribers...");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
@@ -452,10 +467,12 @@ void publishTimingDoneToWeb(ros::NodeHandle* nodeHandle) {
   ROS_INFO_STREAM("timing done published to web page");
 }
 
-void publishTransferDoneToWeb(ros::NodeHandle* nodeHandle) {
+void publishTransferDoneToWeb(ros::NodeHandle* nodeHandle)
+{
   std_msgs::String msg;
   msg.data = "transfer done";
-  if (transferPub.getNumSubscribers() < 1) {
+  if (transferPub.getNumSubscribers() < 1)
+  {
     ROS_INFO_STREAM("Waiting for subscribers...");
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
   }
