@@ -7,7 +7,7 @@
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
 #include "feeding/FeedingDemo.hpp"
-#include "feeding/onFork.hpp"
+#include "feeding/AcquisitionDetector.hpp"
 #include <libada/util.hpp>
 
 using ada::util::getRosParam;
@@ -89,7 +89,7 @@ bool skewer(
             actionOverride = 1;
           } else if (actionName == "vertical") {
             actionOverride = 1;
-          }else if (actionName == "cross_skewer") {
+          } else if (actionName == "cross_skewer") {
             actionOverride = 1;
           } else if (actionName == "tilt") {
             actionOverride = 3;
@@ -276,38 +276,13 @@ bool skewer(
       ftThresholdHelper->setThresholds(
           foodSkeweringForces.at(foodName), torqueThreshold);
  
-    // ===== COLLECT FORQUE DATA =====
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    // ===== COLLECT FORQUE DATA BEFORE ACTION =====
+    AcquisitionDetector aqDetector(
+      feedingDemo->isAdaReal(),
+      feedingDemo->getNodeHandle(),
+      ftThresholdHelper);
 
-    ROS_INFO_STREAM("Collecting forque data before action.");
-    int numDataPts = 400;
-    Eigen::Vector3d beforeForceAvg;
-    Eigen::Vector3d beforeTorqueAvg;
-    bool ftTimeout = false;
-
-    if (ftThresholdHelper)
-    {
-      bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
-      if (canCollect)
-      {
-        ros::Time start_time = ros::Time::now();
-        ros::Duration timeout(10.0); // Timeout after 10 seconds
-        while (!ftThresholdHelper->isDataCollectionFinished(beforeForceAvg,
-              beforeTorqueAvg)) {
-          ftTimeout = ros::Time::now() - start_time > timeout;
-          if (ftTimeout)
-            break;
-        }
-        if (ftTimeout) {
-          ROS_INFO_STREAM("FT data collection failed. Use Vision only.");
-        }
-        else
-        {
-          ROS_INFO_STREAM("Done with FT data collection.");
-          ROS_INFO_STREAM("Before average z force: " << beforeForceAvg.z());
-        }
-      }
-    }
+    aqDetector.collectForqueDataBeforeAction();
 
     // ===== INTO FOOD =====
     talk("Here we go!", true);
@@ -345,56 +320,13 @@ bool skewer(
         endEffectorOffsetAngularTolerance,
         (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    // ===== COLLECT FORQUE DATA AFTER ACTION =====
+    aqDetector.collectForqueDataAfterAction();
 
-    // ===== COLLECT FORQUE DATA =====
-    Eigen::Vector3d afterForceAvg;
-    Eigen::Vector3d afterTorqueAvg;
-    double zForceAvgDiff = 0.0;
-    
-    if (ftThresholdHelper && !ftTimeout)
-    {
-      bool canCollect = ftThresholdHelper->startDataCollection(numDataPts);
-      if (canCollect)
-      {
-        ROS_INFO_STREAM("Collecting forque data after action.");
-        while (!ftThresholdHelper->isDataCollectionFinished(afterForceAvg,
-              afterTorqueAvg)) { }
-        ROS_INFO_STREAM("Done with data collection.");
-        ROS_INFO_STREAM("After average z force: " << afterForceAvg.z());
-        // Use only z-force
-        if (!feedingDemo->isAdaReal())
-        {
-        zForceAvgDiff = afterForceAvg.z();  // use in simulation
-        }
-        else
-        {
-        zForceAvgDiff = afterForceAvg.z() - beforeForceAvg.z();  // use in real
-        }
-        ROS_INFO_STREAM("Difference between average z forces: " << zForceAvgDiff);
-      }
-      else
-      {
-        ROS_INFO_STREAM("Failure in collecting FT data");
-      }
-    }
+    // ===== CALL TO VISION SERVICE ====
+    int visualRes = aqDetector.getResponseFromVision();
 
-    // ===== CALL TO SERVICE ====
-    ada_demos::DetectAcquisition srv;
-    ROS_INFO_STREAM("Calling service...");
-    int visualRes = -1;
-    if (ros::service::call("acquisition_detector", srv))
-    {
-      ROS_INFO_STREAM("Success in calling Vision service.");
-      visualRes = srv.response.success;
-      ROS_INFO_STREAM("Visual system says: " << visualRes);
-    }
-    else
-    {
-      ROS_INFO_STREAM("Failure in calling Vision service.");
-    }
-
-    int combinedRes = isFoodOnFork(visualRes, zForceAvgDiff, numDataPts);
+    int combinedRes = aqDetector.autoDetectAcquisition();
     if (combinedRes > 0)
     {
       ROS_INFO_STREAM("Successful in picking up food.");
@@ -402,13 +334,13 @@ bool skewer(
     }
     else if (combinedRes < 0)
     {
-      ROS_INFO_STREAM("Failed to pick up food.");
-      return false;
+      ROS_INFO_STREAM("Unable to determine");
+      talk("Let me try again.");
     }
     else
     {
-      ROS_INFO_STREAM("Unable to determine");
-      talk("Let me try again.");
+      ROS_INFO_STREAM("Failed to pick up food.");
+      return false;
     }
   }
 
