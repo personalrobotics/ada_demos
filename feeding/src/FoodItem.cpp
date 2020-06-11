@@ -15,7 +15,7 @@ FoodItem::FoodItem(
   , mMetaSkeleton(metaSkeleton)
   , mAction(action)
   , mScore(score)
-{ 
+{
   if (!mMetaSkeleton)
     throw std::invalid_argument("MetaSkeleton is nullptr.");
 }
@@ -73,14 +73,15 @@ bool FoodItem::setAction(int actionNum)
 {
   TiltStyle tiltStyle(TiltStyle::NONE);
   // Create New Acquisition Action
-  switch (actionNum / 2) {
-      case 1:
+  switch (actionNum / 2)
+  {
+    case 1:
       tiltStyle = TiltStyle::VERTICAL;
       break;
-      case 2:
+    case 2:
       tiltStyle = TiltStyle::ANGLED;
       break;
-      default:
+    default:
       tiltStyle = TiltStyle::NONE;
   }
   auto rotation = (actionNum % 2 == 0) ? 0.0 : M_PI / 2.0;

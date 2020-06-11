@@ -68,7 +68,7 @@ bool moveDirectlyToPerson(
         *= ada->getHand()->getEndEffectorTransform("person")->matrix();
   }
 
-  //if (feedingDemo)
+  // if (feedingDemo)
   //{
   //  feedingDemo->getViewer()->addTSRMarker(personTSR);
   //  std::cout << "check person TSR" << std::endl;

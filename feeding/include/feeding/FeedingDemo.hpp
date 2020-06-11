@@ -3,8 +3,8 @@
 
 #include <aikido/distance/ConfigurationRanker.hpp>
 #include <aikido/planner/World.hpp>
-#include <aikido/rviz/TSRMarker.hpp>
 #include <aikido/rviz/InteractiveMarkerViewer.hpp>
+#include <aikido/rviz/TSRMarker.hpp>
 
 #include <ros/ros.h>
 #include <libada/Ada.hpp>
@@ -120,7 +120,6 @@ public:
   std::vector<double> mForkHolderTranslation;
   Eigen::Vector3d mTiltOffset;
 
-  bool mIsOnlineDemo;
   double mTableHeight;
 
 private:

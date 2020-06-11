@@ -122,9 +122,6 @@ humanStudy:
   foodTopic: /study_food_msgs
   actionTopic: /study_action_msgs
 
-onlineStudy: false
-spanetIncludeFeatures: false
-
 rotationFree:
   names: ["banana", "broccoli", "cantaloupe", "cauliflower", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry"]
 

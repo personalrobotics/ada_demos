@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
-  std::string demoType{"nips"};
+  std::string demoType{"default"};
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
@@ -126,9 +126,7 @@ int main(int argc, char** argv)
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
-  std::shared_ptr<Perception> perception;
-  if (demoType == "spanet") {
-    perception = std::make_shared<Perception>(
+  std::shared_ptr<Perception> perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
       feedingDemo->getAda(),
       feedingDemo->getAda()->getMetaSkeleton(),
@@ -136,18 +134,6 @@ int main(int argc, char** argv)
       ranker,
       0.0,
       false);
-  }
-  else
-  {
-    perception = std::make_shared<Perception>(
-        feedingDemo->getWorld(),
-        feedingDemo->getAda(),
-        feedingDemo->getAda()->getMetaSkeleton(),
-        nodeHandle,
-        ranker,
-        0.0,
-        false);
-  }
 
   if (ftThresholdHelper)
     ftThresholdHelper->init();
@@ -156,15 +142,10 @@ int main(int argc, char** argv)
 
   feedingDemo->setPerception(perception);
 
-  ROS_INFO_STREAM("Startup complete.");
+  ROS_INFO_STREAM("Startup complete."); 
 
-  //feedingDemo->moveToStartConfiguration();
-
-  if (demoType == "nips")
-  {
-    demo(*feedingDemo, perception, *nodeHandle);
-  }
-  else if (demoType == "spanet")
+  // Start Demo
+  if (demoType == "spanet")
   {
     spanetDemo(*feedingDemo, perception, *nodeHandle);
   }
@@ -172,30 +153,9 @@ int main(int argc, char** argv)
   {
     humanStudyDemo(*feedingDemo, perception, nodeHandle);
   }
-  else if (demoType == "online")
-  {
-    onlineDemo(*feedingDemo, perception, *nodeHandle);
-  }
   else
   {
-    // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
-    // DataCollector dataCollector(
-    //   feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
-
-    // if (StringToAction.find(demoType) == StringToAction.end())
-    // {
-    //   throw std::invalid_argument(demoType + "not recognized.");
-    // }
-
-    // if (StringToAction.at(demoType) == Action::IMAGE_ONLY)
-    // {
-    //   dataCollector.collect_images(foodName);
-    // }
-    // else
-    // {
-    //   dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
-    // }
-
+    demo(*feedingDemo, perception, *nodeHandle);
   }
 
   return 0;

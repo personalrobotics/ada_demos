@@ -41,7 +41,8 @@ bool moveAbove(
   try
   {
     bool trajectoryCompleted = false;
-    do {
+    do
+    {
       std::cout << "MoveAbove Current pose \n"
                 << ada->getMetaSkeleton()->getPositions().transpose()
                 << std::endl;
@@ -54,33 +55,39 @@ bool moveAbove(
           velocityLimits,
           ::ada::TrajectoryPostprocessType::KUNZ);
 
-      if (!trajectoryCompleted) {
-        if(rotationTolerance <= 2.0) {
+      if (!trajectoryCompleted)
+      {
+        if (rotationTolerance <= 2.0)
+        {
           rotationTolerance *= 4;
-          std::cout << "Trying again with rotation Tolerance:" << rotationTolerance << std::endl;
+          std::cout << "Trying again with rotation Tolerance:"
+                    << rotationTolerance << std::endl;
           target.mBw = createBwMatrixForTSR(
-            horizontalTolerance,
-            horizontalTolerance,
-            verticalTolerance,
-            0,
-            tiltTolerance,
-            rotationTolerance);
+              horizontalTolerance,
+              horizontalTolerance,
+              verticalTolerance,
+              0,
+              tiltTolerance,
+              rotationTolerance);
           continue;
         }
-      } else {
+      }
+      else
+      {
         break;
       }
 
-    } while(rotationTolerance <= 2.0);
-    if(!trajectoryCompleted) {
-      //talk("No trajectory, check T.S.R.", true);
-        if (feedingDemo && feedingDemo->getViewer())
-        {
-           feedingDemo->getViewer()->addTSRMarker(target);
-           std::cout << "Check TSR" << std::endl;
-           int n;
-           std::cin >> n;
-        }
+    } while (rotationTolerance <= 2.0);
+    if (!trajectoryCompleted)
+    {
+      // talk("No trajectory, check T.S.R.", true);
+      if (feedingDemo && feedingDemo->getViewer())
+      {
+        feedingDemo->getViewer()->addTSRMarker(target);
+        std::cout << "Check TSR" << std::endl;
+        int n;
+        std::cin >> n;
+      }
     }
     return trajectoryCompleted;
   }

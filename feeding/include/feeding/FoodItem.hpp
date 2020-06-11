@@ -44,9 +44,6 @@ public:
 
   YAML::Node getExtraInfo() const;
 
-  // TODO: Get rid of this hack from Online Learning Study
-  std::vector<double> mAnnotation;
-
 private:
   const std::string mName;
 

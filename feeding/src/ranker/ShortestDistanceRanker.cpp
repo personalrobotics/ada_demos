@@ -1,7 +1,7 @@
 #include "feeding/ranker/ShortestDistanceRanker.hpp"
 
-#include <dart/common/StlHelpers.hpp>
 #include <iterator>
+#include <dart/common/StlHelpers.hpp>
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/util.hpp"
 
@@ -28,15 +28,16 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
   if (it != FOOD_NAMES.end())
   {
     int actionNum = BEST_ACTIONS[std::distance(FOOD_NAMES.begin(), it)];
-    switch (actionNum / 2) {
+    switch (actionNum / 2)
+    {
       case 1:
-      tiltStyle = TiltStyle::VERTICAL;
-      break;
+        tiltStyle = TiltStyle::VERTICAL;
+        break;
       case 2:
-      tiltStyle = TiltStyle::ANGLED;
-      break;
+        tiltStyle = TiltStyle::ANGLED;
+        break;
       default:
-      tiltStyle = TiltStyle::NONE;
+        tiltStyle = TiltStyle::NONE;
     }
     rotation = (actionNum % 2 == 0) ? 0.0 : M_PI / 2.0;
   }
@@ -48,7 +49,12 @@ std::unique_ptr<FoodItem> ShortestDistanceRanker::createFoodItem(
   double distance = getDistance(itemPose, forqueTransform);
 
   return std::make_unique<FoodItem>(
-      item.getName(), item.getUid(), item.getMetaSkeleton(), action, distance, item.getYamlNode());
+      item.getName(),
+      item.getUid(),
+      item.getMetaSkeleton(),
+      action,
+      distance,
+      item.getYamlNode());
 }
 
 } // namespace feeding
