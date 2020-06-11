@@ -22,7 +22,8 @@ bool moveInto(
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
     const Eigen::Vector3d& endEffectorDirection,
-    std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
+    std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
+    const std::vector<double>& velocityLimits)
 {
   ROS_INFO_STREAM("Move into " + TargetToString.at(item));
 
@@ -37,7 +38,8 @@ bool moveInto(
         collisionFree,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);
+        endEffectorOffsetAngularTolerance,
+        velocityLimits);
 
   // if (perception)
   // {
@@ -83,7 +85,8 @@ bool moveInto(
         nullptr,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);
+        endEffectorOffsetAngularTolerance,
+        velocityLimits);
     ROS_INFO_STREAM(" Execution result: " << result);
   }
 

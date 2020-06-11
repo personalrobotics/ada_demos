@@ -39,7 +39,7 @@ workspaceEnvironment:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0.005, 0, 0, 0]
 workspaceEnvironmentWithWallFurtherBack:
-  urdfUri: package://pr_assets/data/furniture/workspace_feeding_without_wall.urdf
+  urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0.005, 0, 0, 0]
 wheelchair:
   urdfUri: package://pr_assets/data/furniture/wheelchair.urdf

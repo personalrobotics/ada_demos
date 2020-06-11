@@ -327,7 +327,8 @@ bool skewer(
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
         endEffectorDirection,
-        ftThresholdHelper);
+        ftThresholdHelper,
+        velocityLimits);
 
     if (!moveIntoSuccess)
     {
@@ -349,7 +350,8 @@ bool skewer(
         planningTimeout,
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
-        ftThresholdHelper);
+        ftThresholdHelper,
+        velocityLimits);
 
     if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
     {
