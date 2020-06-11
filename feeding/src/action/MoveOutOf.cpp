@@ -53,7 +53,8 @@ void moveOutOf(
   {
     ROS_WARN_STREAM("Start FT, stop Traj Controller");
     bool result = false;
-    //    = ada->switchControllers(ftTrajectoryController, trajectoryController);
+    //    = ada->switchControllers(ftTrajectoryController,
+    //    trajectoryController);
     if (!result)
     {
       ROS_WARN_STREAM("Failed to switch; continue with traj controller");

@@ -1,5 +1,6 @@
-#include "ada_demos/DetectAcquisition.h"
 #include "feeding/action/Skewer.hpp"
+#include "ada_demos/DetectAcquisition.h"
+#include "feeding/AcquisitionDetector.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include "feeding/action/Grab.hpp"
@@ -7,8 +8,6 @@
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
-#include "feeding/FeedingDemo.hpp"
-#include "feeding/AcquisitionDetector.hpp"
 
 #include <libada/util.hpp>
 
@@ -292,9 +291,6 @@ bool skewer(
       }
 
       // Add error if autonomous
-      if(getRosParam<bool>("/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle())) && // autonomous
-        getRosParam<bool>("/humanStudy/createError", *(feedingDemo->getNodeHandle())) && // add error
-        trialCount == 0) // First Trial
       if (getRosParam<bool>(
               "/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle()))
           && // autonomous
@@ -302,11 +298,18 @@ bool skewer(
               "/humanStudy/createError", *(feedingDemo->getNodeHandle()))
           &&               // add error
           trialCount == 0) // First Trial
-      {
-        ROS_WARN_STREAM("Error Requested for Acquisition!");
-        endEffectorDirection(1) -= 1.0;
-        endEffectorDirection.normalize();
-      }
+        if (getRosParam<bool>(
+                "/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle()))
+            && // autonomous
+            getRosParam<bool>(
+                "/humanStudy/createError", *(feedingDemo->getNodeHandle()))
+            &&               // add error
+            trialCount == 0) // First Trial
+        {
+          ROS_WARN_STREAM("Error Requested for Acquisition!");
+          endEffectorDirection(1) -= 1.0;
+          endEffectorDirection.normalize();
+        }
     }
 
     if (!detectAndMoveAboveFoodSuccess)
@@ -320,12 +323,12 @@ bool skewer(
     if (ftThresholdHelper)
       ftThresholdHelper->setThresholds(
           foodSkeweringForces.at(foodName), torqueThreshold);
- 
+
     // ===== COLLECT FORQUE DATA BEFORE ACTION =====
     AcquisitionDetector aqDetector(
-      feedingDemo->isAdaReal(),
-      feedingDemo->getNodeHandle(),
-      ftThresholdHelper);
+        feedingDemo->isAdaReal(),
+        feedingDemo->getNodeHandle(),
+        ftThresholdHelper);
 
     aqDetector.collectForqueDataBeforeAction();
 

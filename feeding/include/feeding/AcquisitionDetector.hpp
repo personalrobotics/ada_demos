@@ -1,10 +1,10 @@
 #ifndef ACQUISITION_DETECTOR_HPP_
 #define ACQUISITION_DETECTOR_HPP_
 
-#include "feeding/util.hpp"
-#include "feeding/FTThresholdHelper.hpp"
-#include "ada_demos/DetectAcquisition.h"
 #include <libada/util.hpp>
+#include "ada_demos/DetectAcquisition.h"
+#include "feeding/FTThresholdHelper.hpp"
+#include "feeding/util.hpp"
 
 namespace feeding {
 
@@ -42,7 +42,7 @@ public:
   // determines there is food on fork or not.
   //
   // Returns 1 on success, 0 on failure, -1 on failure in calling the
-  // Vision service. 
+  // Vision service.
   int getResponseFromVision();
 
   // Detect whether food has been picked up successfully.
