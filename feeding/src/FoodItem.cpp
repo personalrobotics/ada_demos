@@ -26,7 +26,7 @@ FoodItem::FoodItem(
     dart::dynamics::MetaSkeletonPtr metaSkeleton,
     AcquisitionAction action,
     double score,
-    YAML::Node info)
+    const YAML::Node info)
   : mName(name)
   , mUid(uid)
   , mMetaSkeleton(metaSkeleton)
