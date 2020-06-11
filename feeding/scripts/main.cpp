@@ -178,6 +178,7 @@ int main(int argc, char** argv)
   }
   else
   {
+    ROS_INFO_STREAM("Demo doesn't exist. Exiting...");
     // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
     // DataCollector dataCollector(
     //   feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);

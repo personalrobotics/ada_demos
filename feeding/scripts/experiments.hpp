@@ -34,7 +34,7 @@ void humanStudyDemo(
 void onlineDemo(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
-    ros::NodeHandle nodeHandle);
+    ros::NodeHandle& nodeHandle);
 
 void spanetDemo(
     FeedingDemo& feedingDemo,

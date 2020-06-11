@@ -22,7 +22,8 @@ void moveOutOf(
     double planningTimeout,
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
-    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper)
+    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
+    const std::vector<double>& velocityLimits)
 {
 
   ROS_INFO_STREAM("Move Out of " + TargetToString.at(item));
@@ -46,7 +47,8 @@ void moveOutOf(
       collisionFree,
       planningTimeout,
       endEffectorOffsetPositionTolerance,
-      endEffectorOffsetAngularTolerance);
+      endEffectorOffsetAngularTolerance,
+      velocityLimits);
 
   // trajectoryCompleted might be false because the forque hit the food
   // along the way and the trajectory was aborted

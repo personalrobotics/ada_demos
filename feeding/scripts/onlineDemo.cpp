@@ -23,7 +23,7 @@ namespace feeding {
 void onlineDemo(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
-    ros::NodeHandle nodeHandle)
+    ros::NodeHandle& nodeHandle)
 {
 
   ROS_INFO_STREAM("==========  DEMO ==========");
@@ -33,6 +33,7 @@ void onlineDemo(
   auto collisionFree = feedingDemo.getCollisionConstraint();
   auto plate = workspace->getPlate()->getRootBodyNode()->getWorldTransform();
 
+  initTopics(&nodeHandle);
   //talk("Hello, my name is aid uh. It's my pleasure to serve you today!");
 
   srand(time(NULL));

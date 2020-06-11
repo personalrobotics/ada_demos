@@ -55,6 +55,14 @@ bool moveAbove(
           ::ada::TrajectoryPostprocessType::KUNZ);
 
       if (!trajectoryCompleted) {
+        //talk("No trajectory, check T.S.R.", true);
+        if (feedingDemo && feedingDemo->getViewer())
+        {
+           feedingDemo->getViewer()->addTSRMarker(target);
+           std::cout << "Check TSR" << std::endl;
+           int n;
+           std::cin >> n;
+        }
         if(rotationTolerance <= 2.0) {
           rotationTolerance *= 4;
           std::cout << "Trying again with rotation Tolerance:" << rotationTolerance << std::endl;

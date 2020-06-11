@@ -122,8 +122,8 @@ humanStudy:
   foodTopic: /study_food_msgs
   actionTopic: /study_action_msgs
 
-onlineStudy: false
-spanetIncludeFeatures: false
+onlineStudy: true
+spanetIncludeFeatures: true
 
 rotationFree:
   names: ["banana", "broccoli", "cantaloupe", "cauliflower", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry"]
@@ -156,6 +156,6 @@ study:
   tiltOffset: [0.0, 0.05, -0.02]
 
   # FAST:
-  velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1.0]
+  velocityLimits: [0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
   # SLOW:
   #velocityLimits: [0.2, 0.2, 0.2, 0.2, 0.2, 0.4]

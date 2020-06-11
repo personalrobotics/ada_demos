@@ -18,7 +18,8 @@ void moveOutOf(
     double planningTimeout,
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
-    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper);
+    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
+    const std::vector<double>& velocityLimits = std::vector<double>());
 }
 } // namespace feeding
 

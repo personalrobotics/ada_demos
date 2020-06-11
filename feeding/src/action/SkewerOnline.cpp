@@ -73,8 +73,6 @@ bool skewerOnline(
 
   // Re-tare force-torque sensor
   if (ftThresholdHelper) {
-      ftThresholdHelper->setThresholds(
-          -2, torqueThreshold);
       ftThresholdHelper->setThresholds(STANDARD_FT_THRESHOLD);
     }
 
@@ -85,12 +83,14 @@ bool skewerOnline(
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+  /*
   if (std::find(
           rotationFreeFoodNames.begin(), rotationFreeFoodNames.end(), foodName)
       != rotationFreeFoodNames.end())
   {
     rotationToleranceForFood = M_PI;
   }
+  */
 
   bool detectAndMoveAboveFoodSuccess = true;
   Eigen::Vector3d endEffectorDirection(0, 0, -1);
@@ -146,7 +146,6 @@ bool skewerOnline(
           auto tiltStyle = item->getAction()->getTiltStyle();
           if (tiltStyle == TiltStyle::ANGLED)
           {
-            ROS_WARN_STREAM("WORKING");
             // Apply base rotation of food
             Eigen::Isometry3d eePose = ada->getHand()->getEndEffectorBodyNode()->getTransform();
             Eigen::Vector3d newEEDir = eePose.rotation() * Eigen::Vector3d::UnitZ(); 
@@ -158,7 +157,7 @@ bool skewerOnline(
             forkXAxis[2] = 0.0;
             forkXAxis.normalize();
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += (0.01 * forkXAxis);
+            endEffectorDirection += (-0.005 * forkXAxis);
             endEffectorDirection.normalize();
 
           }
@@ -173,7 +172,7 @@ bool skewerOnline(
             forkXAxis[2] = 0.0;
             forkXAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.016 * forkYAxis) + (0.007 * forkXAxis));
+            endEffectorDirection += ((-0.02 * forkYAxis) + (-0.005 * forkXAxis));
             endEffectorDirection.normalize();
           }
           else if (tiltStyle == TiltStyle::VERTICAL)
@@ -187,7 +186,7 @@ bool skewerOnline(
             forkYAxis[2] = 0.0;
             forkYAxis.normalize(); 
             endEffectorDirection *= heightAboveFood;
-            endEffectorDirection += ((-0.015 * forkYAxis) + (0.005 * forkXAxis));
+            endEffectorDirection += ((-0.025 * forkYAxis) + (-0.005 * forkXAxis));
             endEffectorDirection.normalize();
           }
           break;
@@ -243,7 +242,8 @@ bool skewerOnline(
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
         endEffectorDirection,
-        ftThresholdHelper);
+        ftThresholdHelper, 
+        feedingDemo->mVelocityLimits);
 
     if (!moveIntoSuccess)
     {
@@ -265,7 +265,8 @@ bool skewerOnline(
         planningTimeout,
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
-        ftThresholdHelper);
+        ftThresholdHelper,
+        feedingDemo->mVelocityLimits);
 
     // Wait for 5s for falling off
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
@@ -288,7 +289,11 @@ bool skewerOnline(
 
     int loss = 1;
     talk("Record success.", true);
-    if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+    int prompt = -1;
+    while (prompt != 1 && prompt != 2) {
+      prompt = getUserInputWithOptions(optionPrompts, "Did I succeed?");
+    }
+    if (prompt == 1)
     {
       ROS_INFO_STREAM("Successful");
       loss = 0;

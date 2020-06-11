@@ -37,7 +37,8 @@ bool moveAboveFood(
       = Eigen::AngleAxisd(-rotateAngle, Eigen::Vector3d::UnitZ());
   ROS_WARN_STREAM("Rotate Angle: " << rotateAngle);
   
-  // Apply base rotation to food
+  // Apply base rotation to food (Fixed rotation)
+  /*
   Eigen::Vector3d foodVec = foodTransform.rotation() * Eigen::Vector3d::UnitX();
   double baseRotateAngle = atan2(foodVec[1], foodVec[0]);
   if(angleGuess) {
@@ -48,7 +49,9 @@ bool moveAboveFood(
   ROS_WARN_STREAM("Food Rotate Angle: " << baseRotateAngle);
   Eigen::AngleAxisd baseRotation
       = Eigen::AngleAxisd(baseRotateAngle, Eigen::Vector3d::UnitZ());
+  */
   target = removeRotation(foodTransform);
+  /*
   auto rotationFreeFoodNames = feedingDemo->mRotationFreeFoodNames;
   if (std::find(
           rotationFreeFoodNames.begin(), rotationFreeFoodNames.end(), foodName)
@@ -56,6 +59,7 @@ bool moveAboveFood(
   {
     target.linear() = target.linear() * baseRotation;
   }
+  */
   target.translation()[2] = feedingDemo->mTableHeight;
   ROS_WARN_STREAM("Food Height: " << target.translation()[2]);
 
@@ -75,11 +79,13 @@ bool moveAboveFood(
   {
     eeTransform.linear()
         = eeTransform.linear() * rotation
+           * Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ())
            * Eigen::AngleAxisd(-M_PI / 8, Eigen::Vector3d::UnitX());
     eeTransform.translation()
         = Eigen::AngleAxisd(rotateAngle, Eigen::Vector3d::UnitZ()) // Take into account action rotation
+          * Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitZ())
           * Eigen::Vector3d{0,
-                          -sin(M_PI * 0.25) * heightAboveFood * 0.7,
+                          -sin(M_PI * 0.25) * heightAboveFood * 0.9,
                           cos(M_PI * 0.25) * heightAboveFood * 0.9};
   }
 
