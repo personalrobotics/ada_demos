@@ -18,6 +18,7 @@ public:
   // Takes care of setting up the detector.
   // \param[in] adaReal True if the real robot is used, false it's running in
   // simulation.
+  // \param[in] nodeHandle Handle of the ros node.
   // \param[in] ftThresholdHelper manages the forque sensor threshold
   AcquisitionDetector(
       bool adaReal,
