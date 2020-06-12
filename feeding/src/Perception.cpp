@@ -57,4 +57,4 @@ bool Perception::perceiveFood(Eigen::Isometry3d& foodTransform)
     return false;
   }
 }
-}
+} // namespace feeding

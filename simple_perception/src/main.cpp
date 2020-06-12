@@ -4,23 +4,21 @@
 #include <aikido/perception/AssetDatabase.hpp>
 #include <aikido/perception/PoseEstimatorModule.hpp>
 #include <aikido/planner/World.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/DartLoader.hpp>
-#include <tf/transform_broadcaster.h>
-#include <tf_conversions/tf_eigen.h>
 #include <libada/Ada.hpp>
 
 namespace po = boost::program_options;
 
-using dart::dynamics::SkeletonPtr;
 using dart::dynamics::MetaSkeletonPtr;
+using dart::dynamics::SkeletonPtr;
 
+using aikido::robot::Robot;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
-using aikido::robot::Robot;
 
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
@@ -32,12 +30,7 @@ dart::common::Uri adaSrdfUri{
 
 void waitForUser(const std::string& msg)
 {
-  std::cin.sync_with_stdio(false);
   ROS_INFO(msg.c_str());
-  while (!std::cin.rdbuf()->in_avail())
-  {
-    ros::spinOnce();
-  }
   std::cin.get();
 }
 
@@ -52,29 +45,6 @@ std::string getRosParamString(
     value = paramDefault;
   }
   return value;
-}
-
-#define BASE_NAME "j2n6s200_link_base"
-#define JOULE_NAME "j2n6s200_joule"
-void publishTransform(const dart::dynamics::MetaSkeletonPtr metaSkeleton)
-{
-  static tf::TransformBroadcaster br;
-  tf::Transform transform;
-
-  // Get Transform from MetaSkeleton
-  auto bodyNode = metaSkeleton->getBodyNode(BASE_NAME);
-  auto jouleNode = metaSkeleton->getBodyNode(JOULE_NAME);
-  Eigen::Isometry3d e = jouleNode->getTransform(bodyNode);
-  tf::transformEigenToTF(e, transform);
-  br.sendTransform(
-      tf::StampedTransform(transform, ros::Time::now(), BASE_NAME, JOULE_NAME));
-}
-
-void detectObjects(
-    aikido::planner::WorldPtr env,
-    std::shared_ptr<aikido::perception::PoseEstimatorModule> mDetector)
-{
-  mDetector->detectObjects(env, ros::Duration(1.0));
 }
 
 int main(int argc, char** argv)
@@ -109,6 +79,7 @@ int main(int argc, char** argv)
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
+  auto robotSkeleton = robot.getMetaSkeleton();
 
   // Start Visualization Topic
   static const std::string execTopicName = topicName + "/simple_perception";
@@ -116,18 +87,18 @@ int main(int argc, char** argv)
   // Start the RViz viewer.
   ROS_INFO_STREAM(
       "Starting viewer. Please subscribe to the '"
-      << execTopicName
-      << "' InteractiveMarker topic in RViz.");
-  aikido::rviz::WorldInteractiveMarkerViewer viewer(
-      env, execTopicName, baseFrameName);
+      << execTopicName << "' InteractiveMarker topic in RViz.");
+  aikido::rviz::InteractiveMarkerViewer viewer(
+      execTopicName, baseFrameName, env);
+
+  auto space = robot.getStateSpace();
+  auto collision = robot.getSelfCollisionConstraint(space, robotSkeleton);
 
   dart::dynamics::MetaSkeletonPtr metaSkeleton = robot.getMetaSkeleton();
-
-  // Create TF publisher
-  ros::Timer tfTimer = nh.createTimer(
-      ros::Duration(0.1), boost::bind(publishTransform, metaSkeleton));
+  auto metaSpace = std::make_shared<MetaSkeletonStateSpace>(metaSkeleton.get());
 
   auto armSkeleton = robot.getArm()->getMetaSkeleton();
+  auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
 
   if (adaSim)
   {
@@ -135,24 +106,26 @@ int main(int argc, char** argv)
     home[1] = 3.14;
     home[2] = 3.14;
     armSkeleton->setPositions(home);
+
+    auto startState
+        = space->getScopedStateFromMetaSkeleton(robotSkeleton.get());
+
+    aikido::constraint::dart::CollisionFreeOutcome collisionCheckOutcome;
+    if (!collision->isSatisfied(startState, &collisionCheckOutcome))
+    {
+      throw std::runtime_error(
+          "Robot is in collison: " + collisionCheckOutcome.toString());
+    }
   }
 
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);
-  ROS_INFO("You can view ADA in RViz now.");
-  if (adaSim)
-  {
-    ROS_INFO(
-        "If running from the launch file, here are the simulated object "
-        "positions (map frame) from deep_pose_estimators:");
-    ros::Duration(0.5).sleep();
-  }
-  waitForUser("Press [ENTER] to proceed:");
+  waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
   if (!adaSim)
   {
-    waitForUser(
-        "Move robot so camera can see objects. \n Press [ENTER] to proceed:");
+    ROS_INFO("Start trajectory executor");
+    robot.startTrajectoryExecutor();
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -160,15 +133,15 @@ int main(int argc, char** argv)
   /////////////////////////////////////////////////////////////////////////////
   std::string detectorDataURI
       = "package://pr_assets/data/objects/tag_data_foods.json";
-  std::string referenceFrameName = BASE_NAME;
+  std::string referenceFrameName = robotSkeleton->getBodyNode(0)->getName();
   std::string foodDetectorTopicName = getRosParamString(
-      "/perception/detectorTopicName", nh, "/simulated_pose/marker_array");
+      "/perception/foodDetectorTopicName", nh, "/simulated_pose/marker_array");
 
   const auto resourceRetriever
       = std::make_shared<aikido::io::CatkinResourceRetriever>();
 
-  std::shared_ptr<aikido::perception::PoseEstimatorModule> mDetector
-      = std::shared_ptr<aikido::perception::PoseEstimatorModule>(
+  std::unique_ptr<aikido::perception::PoseEstimatorModule> mDetector
+      = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
           new aikido::perception::PoseEstimatorModule(
               nh,
               foodDetectorTopicName,
@@ -183,12 +156,13 @@ int main(int argc, char** argv)
   //   Detect Objects
   /////////////////////////////////////////////////////////////////////////////
 
-  ROS_INFO("Running perception! You should now see published markers in RViz.");
-  ROS_INFO("Press ^C to exit...");
+  ROS_INFO("Running perception! Press ^C to exit...");
 
-  // Create detect objects thread
-  ros::Timer perceptionTimer = nh.createTimer(
-      ros::Duration(1.0), boost::bind(detectObjects, env, mDetector));
-  ros::spin();
+  while (ros::ok())
+  {
+    mDetector->detectObjects(env, ros::Duration(1.0));
+    ros::spinOnce();
+  }
+
   return 0;
 }

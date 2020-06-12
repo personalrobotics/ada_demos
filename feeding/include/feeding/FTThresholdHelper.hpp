@@ -1,7 +1,14 @@
 #ifndef FEEDING_FTTHRESHOLDHELPER_HPP_
 #define FEEDING_FTTHRESHOLDHELPER_HPP_
 
+#include <geometry_msgs/WrenchStamped.h>
+// TODO
+#define REWD_CONTROLLERS_FOUND
+#ifdef REWD_CONTROLLERS_FOUND
 #include <rewd_controllers/FTThresholdClient.hpp>
+#endif
+#include <mutex>
+#include <Eigen/Geometry>
 #include <ros/ros.h>
 
 namespace feeding {
@@ -10,7 +17,8 @@ enum FTThreshold
 {
   STANDARD_FT_THRESHOLD,
   GRAB_FOOD_FT_THRESHOLD,
-  AFTER_GRAB_FOOD_FT_THRESHOLD
+  AFTER_GRAB_FOOD_FT_THRESHOLD,
+  PUSH_FOOD_FT_THRESHOLD
 };
 
 /// The FTThresholdHelper configures the MoveUntilTouchController's
@@ -39,14 +47,35 @@ public:
   /// experienced a timeout.
   bool setThresholds(FTThreshold);
 
+  bool setThresholds(double forces, double torques);
+
+  bool startDataCollection(int numberOfDataPoints);
+  bool isDataCollectionFinished(
+      Eigen::Vector3d& forces, Eigen::Vector3d& torques);
+
 private:
   bool mUseThresholdControl;
   ros::NodeHandle mNodeHandle;
 
+  int mDataPointsToCollect = 0;
+  std::mutex mDataCollectionMutex;
+  std::vector<Eigen::Vector3d> mCollectedForces;
+  std::vector<Eigen::Vector3d> mCollectedTorques;
+
+  // \brief Gets data from the force/torque sensor
+  ros::Subscriber mForceTorqueDataSub;
+
+#ifdef REWD_CONTROLLERS_FOUND
   std::unique_ptr<rewd_controllers::FTThresholdClient> mFTThresholdClient;
+#endif
 
   std::pair<double, double> getThresholdValues(FTThreshold threshold);
+
+  /**
+   * \brief Called whenever a new Force/Torque message arrives on the ros topic
+   */
+  void forceTorqueDataCallback(const geometry_msgs::WrenchStamped& msg);
 };
-}
+} // namespace feeding
 
 #endif

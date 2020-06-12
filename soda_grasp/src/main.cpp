@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/World.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
@@ -13,12 +13,12 @@
 
 namespace po = boost::program_options;
 
-using dart::dynamics::SkeletonPtr;
 using dart::dynamics::MetaSkeletonPtr;
+using dart::dynamics::SkeletonPtr;
 
+using aikido::constraint::dart::TSR;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
-using aikido::constraint::dart::TSR;
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
@@ -115,10 +115,9 @@ int main(int argc, char** argv)
   // Start the RViz viewer.
   ROS_INFO_STREAM(
       "Starting viewer. Please subscribe to the '"
-      << execTopicName
-      << "' InteractiveMarker topic in RViz.");
-  aikido::rviz::WorldInteractiveMarkerViewer viewer(
-      env, execTopicName, baseFrameName);
+      << execTopicName << "' InteractiveMarker topic in RViz.");
+  aikido::rviz::InteractiveMarkerViewer viewer(
+      execTopicName, baseFrameName, env);
 
   // Add ADA to the viewer.
   viewer.setAutoUpdate(true);
@@ -147,7 +146,7 @@ int main(int argc, char** argv)
 
   auto defaultPose = getCurrentConfig(robot);
 
-  viewer.addFrame(hand->getEndEffectorBodyNode(), 0.2, 0.01, 1.0);
+  viewer.addFrameMarker(hand->getEndEffectorBodyNode(), 0.2, 0.01, 1.0);
   sodaTSR.mTw_e.matrix() *= hand->getEndEffectorTransform("cylinder")->matrix();
   auto goalTsr = std::make_shared<TSR>(sodaTSR);
 

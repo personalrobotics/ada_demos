@@ -2,7 +2,7 @@
 #include <Eigen/Dense>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/World.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
@@ -11,12 +11,12 @@
 
 namespace po = boost::program_options;
 
-using dart::dynamics::SkeletonPtr;
 using dart::dynamics::MetaSkeletonPtr;
+using dart::dynamics::SkeletonPtr;
 
+using aikido::robot::Robot;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
-using aikido::robot::Robot;
 
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
@@ -123,10 +123,9 @@ int main(int argc, char** argv)
   // Start the RViz viewer.
   ROS_INFO_STREAM(
       "Starting viewer. Please subscribe to the '"
-      << execTopicName
-      << "' InteractiveMarker topic in RViz.");
-  aikido::rviz::WorldInteractiveMarkerViewer viewer(
-      env, execTopicName, baseFrameName);
+      << execTopicName << "' InteractiveMarker topic in RViz.");
+  aikido::rviz::InteractiveMarkerViewer viewer(
+      execTopicName, baseFrameName, env);
 
   auto space = robot.getStateSpace();
   auto collision = robot.getSelfCollisionConstraint(space, robotSkeleton);
