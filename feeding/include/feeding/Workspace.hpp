@@ -38,6 +38,9 @@ public:
   /// Gets the workspace environment
   dart::dynamics::ConstSkeletonPtr getWorkspaceEnvironment() const;
 
+  dart::dynamics::ConstSkeletonPtr getWorkspaceEnvironmentWithWallFurtherBack()
+      const;
+
   /// Gets the default food item
   dart::dynamics::SkeletonPtr getDefaultFoodItem() const;
 
@@ -47,8 +50,15 @@ public:
   /// Gets the wheelchair
   dart::dynamics::ConstSkeletonPtr getWheelchair() const;
 
+  Eigen::Isometry3d getPersonPose() const;
+
   /// Removes the default food item from the world.
   void deleteFood();
+
+  void addDefaultFoodItemAtPose(const Eigen::Isometry3d& pose);
+
+  /// Resets the environmnet.
+  void reset();
 
 private:
   ros::NodeHandle mNodeHandle;
@@ -58,9 +68,13 @@ private:
   dart::dynamics::SkeletonPtr mPlate;
   dart::dynamics::SkeletonPtr mTable;
   dart::dynamics::SkeletonPtr mWorkspaceEnvironment;
+  dart::dynamics::SkeletonPtr mWorkspaceEnvironmentWithWallFurtherBack;
   dart::dynamics::SkeletonPtr mDefaultFoodItem;
   dart::dynamics::SkeletonPtr mPerson;
   dart::dynamics::SkeletonPtr mWheelchair;
+
+  Eigen::Isometry3d mRobotPose;
+  Eigen::Isometry3d mPersonPose;
 
   /// Takes a skeleton pointer, fills it with a new skeleton and adds that to
   /// the world.
@@ -73,7 +87,13 @@ private:
       dart::dynamics::SkeletonPtr& skeleton,
       const std::string& name,
       const Eigen::Isometry3d& robotPose);
+
+  /// TODO: docstring
+  void addToWorldAtPose(
+      dart::dynamics::SkeletonPtr& skeleton,
+      const std::string& name,
+      const Eigen::Isometry3d& pose);
 };
-}
+} // namespace feeding
 
 #endif
