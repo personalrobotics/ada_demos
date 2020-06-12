@@ -19,7 +19,8 @@ bool moveInto(
     double endEffectorOffsetPositionTolerenace,
     double endEffectorOffsetAngularTolerance,
     const Eigen::Vector3d& endEffectorDirection,
-    std::shared_ptr<FTThresholdHelper> ftThresholdHelper);
+    std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
+    const std::vector<double>& velocityLimits = std::vector<double>());
 
 } // namespace action
 } // namespace feeding

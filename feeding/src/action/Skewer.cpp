@@ -279,6 +279,7 @@ bool skewer(
           feedingDemo,
           nullptr,
           actionOverride);
+
       if (!item)
       {
         talk("Failed, let me start from the beginning");
@@ -298,25 +299,18 @@ bool skewer(
               "/humanStudy/createError", *(feedingDemo->getNodeHandle()))
           &&               // add error
           trialCount == 0) // First Trial
-        if (getRosParam<bool>(
-                "/humanStudy/autoAcquisition", *(feedingDemo->getNodeHandle()))
-            && // autonomous
-            getRosParam<bool>(
-                "/humanStudy/createError", *(feedingDemo->getNodeHandle()))
-            &&               // add error
-            trialCount == 0) // First Trial
-        {
-          ROS_WARN_STREAM("Error Requested for Acquisition!");
-          endEffectorDirection(1) -= 1.0;
-          endEffectorDirection.normalize();
-        }
+      {
+        ROS_WARN_STREAM("Error Requested for Acquisition!");
+        endEffectorDirection(1) -= 1.0;
+        endEffectorDirection.normalize();
+      }
     }
 
     if (!detectAndMoveAboveFoodSuccess)
       return false;
 
     ROS_INFO_STREAM(
-        "Getting " << foodName << " with " << foodSkeweringForces.at(foodName)
+        "Getting " << foodName << "with " << foodSkeweringForces.at(foodName)
                    << "N with angle mode ");
 
     double torqueThreshold = 2;
@@ -344,7 +338,8 @@ bool skewer(
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
         endEffectorDirection,
-        (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr);
+        (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr,
+        velocityLimits);
 
     if (!moveIntoSuccess)
     {
@@ -366,7 +361,8 @@ bool skewer(
         planningTimeout,
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
-        (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr);
+        (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr,
+        velocityLimits);
 
     // ===== COLLECT FORQUE DATA AFTER ACTION =====
     aqDetector.collectForqueDataAfterAction();

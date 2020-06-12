@@ -98,22 +98,10 @@ int main(int argc, char** argv)
   spinner.start();
 
   std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr;
-  //if (useFTSensingToStopTrajectories)
-  //if (true)
-  // {
   std::cout << "Construct FTThresholdHelper" << std::endl;
   ftThresholdHelper = std::make_shared<FTThresholdHelper>(
       adaReal && useFTSensingToStopTrajectories, *nodeHandle);
-  //ROS_INFO_STREAM("IN");
-  //}
-  //else
-  //{
-  //  ROS_INFO_STREAM("OUT");
-  //}
-//else
-// {
-//   ftThresholdHelper = std::make_shared<FTThresholdHelper>(false, *nodeHandle);
-//  }
+
 
   // start demo
   auto feedingDemo = std::make_shared<FeedingDemo>(
@@ -144,16 +132,18 @@ int main(int argc, char** argv)
       0.0,
       false);
 
-  if (ftThresholdHelper) {
+
+  if (ftThresholdHelper)
     ftThresholdHelper->init();
-    ROS_INFO_STREAM("INIT");
-  }
 
   feedingDemo->getAda()->closeHand();
 
   feedingDemo->setPerception(perception);
 
   ROS_INFO_STREAM("Startup complete."); 
+
+  // Init ROS topics
+  initTopics(nodeHandle.get());
 
   // Start Demo
   if (demoType == "spanet")

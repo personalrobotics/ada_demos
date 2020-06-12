@@ -70,8 +70,6 @@ void FTThresholdHelper::forceTorqueDataCallback(
 
 bool FTThresholdHelper::startDataCollection(int numberOfDataPoints)
 {
-  // if (!mUseThresholdControl)
-  //  return false;
   std::lock_guard<std::mutex> lock(mDataCollectionMutex);
   mDataPointsToCollect = numberOfDataPoints;
   mCollectedForces.clear();

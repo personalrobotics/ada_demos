@@ -39,7 +39,7 @@ workspaceEnvironment:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0.005, 0, 0, 0]
 workspaceEnvironmentWithWallFurtherBack:
-  urdfUri: package://pr_assets/data/furniture/workspace_feeding_without_wall.urdf
+  urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
   pose: [0, 0, 0.005, 0, 0, 0]
 wheelchair:
   urdfUri: package://pr_assets/data/furniture/wheelchair.urdf
@@ -93,6 +93,7 @@ ftSensor:
     afterGrabFood:  # active when going up after food has been grabbed
       force: 50
       torque: 2
+    
 
 
 # Perception parameters
@@ -153,9 +154,9 @@ study:
   tiltOffset: [0.0, 0.05, -0.02]
 
   # FAST:
-  #velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1.0]
+  velocityLimits: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
   # SLOW:
-  velocityLimits: [0.2, 0.2, 0.2, 0.2, 0.2, 0.4]
+  #velocityLimits: [0.2, 0.2, 0.2, 0.2, 0.2, 0.4]
 
 # Parameters for AcquisitionDetector
 acquisitionDetector:
