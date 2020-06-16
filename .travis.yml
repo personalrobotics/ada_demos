@@ -1,6 +1,5 @@
+os: linux
 dist: bionic
-
-sudo: required
 
 group: travis_lts
 
@@ -13,7 +12,7 @@ env:
 cache:
   apt: true
 
-matrix:
+jobs:
   fast_finish: true
   include:
     - os: linux
@@ -64,11 +63,11 @@ after_failure:
     fi
 
 deploy:
-  github-token: $GITHUB_TOKEN
+  strategy: git
+  token: $GITHUB_TOKEN
   provider: pages
-  skip-cleanup: true
-  local-dir: gh-pages
-  keep-history: false
+  local_dir: gh-pages
+  keep_history: false
   verbose: true
   on:
     branch: master
