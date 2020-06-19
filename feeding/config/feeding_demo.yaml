@@ -95,6 +95,7 @@ ftSensor:
       torque: 2
     
 
+
 # Perception parameters
 perception:
   detectorDataUri: package://pr_assets/data/objects/tag_data_foods.json
@@ -156,3 +157,22 @@ study:
   velocityLimits: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
   # SLOW:
   #velocityLimits: [0.2, 0.2, 0.2, 0.2, 0.2, 0.4]
+
+# Parameters for AcquisitionDetector
+acquisitionDetector:
+  # Vision says food on, when food is truly on (true positive)
+  tpVision: 0.9871309613928841
+  # Vision says food off, when food is truly off (true negative)
+  tnVision: 0.9606164383561644
+  # standard deviation of forque sensor z-force
+  sigma: 0.26603008913
+  # minimum weight threshold in grams
+  weight: 5.0
+  # lower probability threshold for auto detector of food
+  lowerThreshold: 0.4
+  # upper probability threshold for auto detector of food
+  upperThreshold: 0.7
+  # number of forque data points to collect during demo
+  numDataPts: 400
+  # wait before attempt to collect forque data
+  waitMillisecsBeforeCollection: 2000

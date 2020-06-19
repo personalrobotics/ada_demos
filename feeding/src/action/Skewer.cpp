@@ -1,4 +1,6 @@
 #include "feeding/action/Skewer.hpp"
+#include "ada_demos/DetectAcquisition.h"
+#include "feeding/AcquisitionDetector.hpp"
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include "feeding/action/Grab.hpp"
@@ -201,6 +203,7 @@ bool skewer(
             feedingDemo,
             &baseRotateAngle,
             actionNum);
+
         auto tiltStyle = item->getAction()->getTiltStyle();
         if (tiltStyle == TiltStyle::ANGLED)
         {
@@ -315,6 +318,14 @@ bool skewer(
       ftThresholdHelper->setThresholds(
           foodSkeweringForces.at(foodName), torqueThreshold);
 
+    // ===== COLLECT FORQUE DATA BEFORE ACTION =====
+    AcquisitionDetector aqDetector(
+        feedingDemo->isAdaReal(),
+        feedingDemo->getNodeHandle(),
+        ftThresholdHelper);
+
+    aqDetector.collectForqueDataBeforeAction();
+
     // ===== INTO FOOD =====
     talk("Here we go!", true);
     auto moveIntoSuccess = moveInto(
@@ -327,7 +338,7 @@ bool skewer(
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
         endEffectorDirection,
-        ftThresholdHelper,
+        (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr,
         velocityLimits);
 
     if (!moveIntoSuccess)
@@ -350,20 +361,48 @@ bool skewer(
         planningTimeout,
         endEffectorOffsetPositionTolerance,
         endEffectorOffsetAngularTolerance,
-        ftThresholdHelper,
+        (feedingDemo->isAdaReal()) ? ftThresholdHelper : nullptr,
         velocityLimits);
 
-    if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+    // ===== COLLECT FORQUE DATA AFTER ACTION =====
+    aqDetector.collectForqueDataAfterAction();
+
+    // ===== CALL TO VISION SERVICE ====
+    int visualRes = aqDetector.getResponseFromVision();
+
+    int combinedRes = aqDetector.autoDetectAcquisition();
+    if (combinedRes > 0)
     {
-      ROS_INFO_STREAM("Successful");
-      talk("Success.");
+      ROS_INFO_STREAM("Successful in picking up food.");
       return true;
     }
-
-    ROS_INFO_STREAM("Failed.");
-    talk("Failed, let me try again.");
+    else if (combinedRes < 0)
+    {
+      ROS_INFO_STREAM("Unable to determine");
+      talk("Let me try again.");
+    }
+    else
+    {
+      ROS_INFO_STREAM("Failed to pick up food.");
+      return false;
+    }
   }
-  return false;
+
+  ROS_INFO_STREAM("Three trials failed. Asking for help.");
+  talk("Please helper me determine whether I successfully picked up food.");
+
+  if (getUserInputWithOptions(optionPrompts, "Did I succeed?") == 1)
+  {
+    ROS_INFO_STREAM("Successful");
+    talk("Success");
+    return true;
+  }
+  else
+  {
+    ROS_INFO_STREAM("Failed.");
+    talk("Failed");
+    return false;
+  }
 }
 
 } // namespace action

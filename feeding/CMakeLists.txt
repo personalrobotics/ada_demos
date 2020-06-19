@@ -33,6 +33,7 @@ add_executable(feeding
   scripts/humanStudy.cpp
   scripts/spanetDemo.cpp
   src/AcquisitionAction.cpp
+  src/AcquisitionDetector.cpp
   src/FoodItem.cpp
   src/FeedingDemo.cpp
   src/FTThresholdHelper.cpp

@@ -26,6 +26,7 @@ void moveOutOf(
     const std::vector<double>& velocityLimits)
 {
 
+>>>>>>> master
   ROS_INFO_STREAM("Move Out of " + TargetToString.at(item));
 
   if (ftThresholdHelper)

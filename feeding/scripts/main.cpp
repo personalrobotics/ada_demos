@@ -98,13 +98,10 @@ int main(int argc, char** argv)
   spinner.start();
 
   std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr;
+  std::cout << "Construct FTThresholdHelper" << std::endl;
+  ftThresholdHelper = std::make_shared<FTThresholdHelper>(
+      adaReal && useFTSensingToStopTrajectories, *nodeHandle);
 
-  if (useFTSensingToStopTrajectories)
-  {
-    std::cout << "Construct FTThresholdHelper" << std::endl;
-    ftThresholdHelper = std::make_shared<FTThresholdHelper>(
-    adaReal && useFTSensingToStopTrajectories, *nodeHandle);
-  }
 
   // start demo
   auto feedingDemo = std::make_shared<FeedingDemo>(
@@ -121,7 +118,7 @@ int main(int argc, char** argv)
   if (demoType == "spanet")
   {
     ranker = std::make_shared<SuccessRateRanker>();
-  } 
+  }
   else
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
@@ -134,6 +131,7 @@ int main(int argc, char** argv)
       ranker,
       0.0,
       false);
+
 
   if (ftThresholdHelper)
     ftThresholdHelper->init();
