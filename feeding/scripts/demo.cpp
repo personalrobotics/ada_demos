@@ -170,7 +170,8 @@ void demo(
       // ===== IN FRONT OF PERSON =====
       ROS_INFO_STREAM("Move forque in front of person");
 
-      bool tilted = (foodName != "celery");
+      // TODO: Set tilted explcitly for long food items:
+      bool tilted = (foodName == "celery" || foodName == "carrot" || foodName == "bell_pepper" || foodName == "apple");
 
       action::feedFoodToPerson(
         ada,
