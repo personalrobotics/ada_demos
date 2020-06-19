@@ -1,19 +1,19 @@
 #include "feeding/perception/Perception.hpp"
-#include "feeding/util.hpp"
-
-#include <Eigen/Eigenvalues>
-#include <opencv2/core/eigen.hpp>
-#include <ros/topic.h>
 
 #include <algorithm>
+
+#include <Eigen/Eigenvalues>
 #include <aikido/perception/AssetDatabase.hpp>
 #include <aikido/perception/DetectedObject.hpp>
+#include <opencv2/core/eigen.hpp>
+#include <ros/topic.h>
 #include <tf_conversions/tf_eigen.h>
-#include <libada/util.hpp>
-
 #include <yaml-cpp/exceptions.h>
 
+#include <libada/util.hpp>
+
 #include "feeding/FoodItem.hpp"
+#include "feeding/util.hpp"
 
 using ada::util::getRosParam;
 using aikido::perception::DetectedObject;

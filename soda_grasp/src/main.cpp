@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+
 #include <Eigen/Dense>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/World.hpp>
@@ -9,6 +10,7 @@
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/DartLoader.hpp>
 #include <pr_tsr/can.hpp>
+
 #include <libada/Ada.hpp>
 
 namespace po = boost::program_options;

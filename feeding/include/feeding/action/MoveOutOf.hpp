@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_MOVEOUTOF_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/TargetItem.hpp"
 #include "feeding/Workspace.hpp"

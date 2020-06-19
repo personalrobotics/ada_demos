@@ -5,15 +5,14 @@
 #include <aikido/planner/World.hpp>
 #include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/rviz/TSRMarker.hpp>
-
 #include <ros/ros.h>
+
 #include <libada/Ada.hpp>
 
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/TargetItem.hpp"
 #include "feeding/Workspace.hpp"
-
 #include "feeding/perception/Perception.hpp"
 #include "feeding/perception/PerceptionServoClient.hpp"
 #include "feeding/ranker/TargetFoodRanker.hpp"

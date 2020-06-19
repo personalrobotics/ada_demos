@@ -1,6 +1,7 @@
 #include "feeding/ranker/TargetFoodRanker.hpp"
 
 #include <algorithm>
+
 #include "feeding/util.hpp"
 
 namespace feeding {

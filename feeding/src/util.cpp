@@ -1,6 +1,8 @@
 #include "feeding/util.hpp"
+
 #include <algorithm>
 #include <cstdlib>
+
 #include <aikido/common/Spline.hpp>
 #include <aikido/common/StepSequence.hpp>
 #include <aikido/distance/NominalConfigurationRanker.hpp>
@@ -11,7 +13,9 @@
 #include <aikido/trajectory/Interpolated.hpp>
 #include <dart/common/StlHelpers.hpp>
 #include <tf_conversions/tf_eigen.h>
+
 #include <libada/util.hpp>
+
 #include "std_msgs/String.h"
 
 static const std::vector<double> weights = {1, 1, 0.01, 0.01, 0.01, 0.01};
@@ -380,12 +384,8 @@ double getDistance(
 //==============================================================================
 Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener)
 {
-  /*
   return getRelativeTransform(
-    tfListener,
-    "/map",
-    "/j2n6s200_forque_end_effector");
-  */
+      tfListener, "/map", "/j2n6s200_forque_end_effector");
 }
 
 //==============================================================================

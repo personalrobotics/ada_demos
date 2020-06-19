@@ -2,29 +2,28 @@
 #define FEEDING_PERCEPTION_HPP_
 
 #include <memory>
+
 #include <Eigen/Dense>
 #include <aikido/perception/AssetDatabase.hpp>
 #include <aikido/perception/PoseEstimatorModule.hpp>
 #include <aikido/rviz/InteractiveMarkerViewer.hpp>
+#include <cv_bridge/cv_bridge.h>
+#include <geometry_msgs/Pose2D.h>
+#include <image_geometry/pinhole_camera_model.h>
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <ros/ros.h>
+#include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/image_encodings.h>
 #include <tf/transform_listener.h>
+
 #include <libada/Ada.hpp>
 
 #include "feeding/FoodItem.hpp"
 #include "feeding/ranker/ShortestDistanceRanker.hpp"
 #include "feeding/ranker/TargetFoodRanker.hpp"
-
-#include <cv_bridge/cv_bridge.h>
-#include <image_geometry/pinhole_camera_model.h>
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/Image.h>
-#include <sensor_msgs/image_encodings.h>
-
-#include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-
-#include <geometry_msgs/Pose2D.h>
 
 namespace feeding {
 

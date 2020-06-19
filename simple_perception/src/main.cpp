@@ -1,4 +1,5 @@
 #include <iostream>
+
 #include <Eigen/Dense>
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/perception/AssetDatabase.hpp>
@@ -9,6 +10,7 @@
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
 #include <dart/utils/urdf/DartLoader.hpp>
+
 #include <libada/Ada.hpp>
 
 namespace po = boost::program_options;

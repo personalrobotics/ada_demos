@@ -2,6 +2,7 @@
 #define FEEDING_PERCEPTIONSERVOCLIENT_HPP_
 
 #include <mutex>
+
 #include <aikido/control/ros/RosTrajectoryExecutor.hpp>
 #include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
@@ -10,7 +11,9 @@
 #include <dart/dynamics/BodyNode.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
+
 #include <libada/Ada.hpp>
+
 #include "feeding/perception/Perception.hpp"
 
 namespace feeding {

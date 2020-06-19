@@ -1,7 +1,10 @@
 #include "feeding/action/MoveAboveFood.hpp"
+
 #include <aikido/constraint/dart/TSR.hpp>
 #include <math.h>
+
 #include <libada/util.hpp>
+
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/action/MoveAbove.hpp"
 #include "feeding/util.hpp"
@@ -81,9 +84,10 @@ bool moveAboveFood(
         = Eigen::AngleAxisd(
               rotateAngle,
               Eigen::Vector3d::UnitZ()) // Take into account action rotation
-          * Eigen::Vector3d{0,
-                            -sin(M_PI * 0.25) * heightAboveFood * 0.7,
-                            cos(M_PI * 0.25) * heightAboveFood * 0.9};
+          * Eigen::Vector3d{
+              0,
+              -sin(M_PI * 0.25) * heightAboveFood * 0.7,
+              cos(M_PI * 0.25) * heightAboveFood * 0.9};
   }
 
   return moveAbove(

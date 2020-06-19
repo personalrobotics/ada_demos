@@ -1,5 +1,7 @@
 #include "feeding/perception/PerceptionServoClient.hpp"
+
 #include <chrono>
+
 #include <aikido/constraint/Satisfied.hpp>
 #include <aikido/planner/ConfigurationToConfiguration.hpp>
 #include <aikido/planner/SnapConfigurationToConfigurationPlanner.hpp>
@@ -7,6 +9,7 @@
 #include <aikido/planner/parabolic/ParabolicTimer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSaver.hpp>
 #include <aikido/trajectory/util.hpp>
+
 #include <libada/util.hpp>
 
 #include "feeding/util.hpp"

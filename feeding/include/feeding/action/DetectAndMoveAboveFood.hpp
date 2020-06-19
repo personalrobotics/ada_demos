@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_DETECTANDMOVEABOVEFOOD_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/FoodItem.hpp"
 #include "feeding/Workspace.hpp"

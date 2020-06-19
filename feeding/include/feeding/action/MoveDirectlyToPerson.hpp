@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_MOVEDIRECTLYTO_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/FeedingDemo.hpp"
 
 namespace feeding {
