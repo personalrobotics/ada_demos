@@ -82,7 +82,7 @@ add_subdirectory(cameraCalibration)
 # Formatting
 #
 include(ClangFormat)
-clang_format_setup()
+clang_format_setup(VERSION 6.0)
 
 if(CLANG_FORMAT_EXECUTABLE)
   file(GLOB_RECURSE ALL_SOURCE_FILES

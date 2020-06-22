@@ -1,4 +1,5 @@
 #include "feeding/FoodItem.hpp"
+
 #include <yaml-cpp/exceptions.h>
 
 namespace feeding {
@@ -69,7 +70,7 @@ AcquisitionAction const* FoodItem::getAction() const
 }
 
 //==============================================================================
-bool FoodItem::setAction(int actionNum)
+void FoodItem::setAction(int actionNum)
 {
   TiltStyle tiltStyle(TiltStyle::NONE);
   // Create New Acquisition Action

@@ -1,5 +1,7 @@
 #include "feeding/action/MoveInFrontOfPerson.hpp"
+
 #include <libada/util.hpp>
+
 #include "feeding/util.hpp"
 
 using ada::util::createBwMatrixForTSR;

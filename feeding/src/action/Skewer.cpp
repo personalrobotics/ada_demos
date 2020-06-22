@@ -1,4 +1,7 @@
 #include "feeding/action/Skewer.hpp"
+
+#include <libada/util.hpp>
+
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
 #include "feeding/action/Grab.hpp"
@@ -6,8 +9,6 @@
 #include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
 #include "feeding/util.hpp"
-
-#include <libada/util.hpp>
 
 using ada::util::getRosParam;
 

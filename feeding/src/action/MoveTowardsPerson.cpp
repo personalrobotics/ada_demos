@@ -1,6 +1,7 @@
 #include "feeding/action/MoveTowardsPerson.hpp"
 
 #include <libada/util.hpp>
+
 #include "feeding/perception/Perception.hpp"
 
 namespace feeding {

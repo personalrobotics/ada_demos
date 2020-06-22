@@ -1,7 +1,9 @@
 #include "feeding/ranker/ShortestDistanceRanker.hpp"
 
 #include <iterator>
+
 #include <dart/common/StlHelpers.hpp>
+
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/util.hpp"
 

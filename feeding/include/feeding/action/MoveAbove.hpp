@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_MOVEABOVE_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/FeedingDemo.hpp"
 #include "feeding/Workspace.hpp"
 

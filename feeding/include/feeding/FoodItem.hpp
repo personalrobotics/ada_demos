@@ -5,6 +5,7 @@
 #include <aikido/perception/DetectedObject.hpp>
 #include <dart/dart.hpp>
 #include <yaml-cpp/exceptions.h>
+
 #include "feeding/AcquisitionAction.hpp"
 
 namespace feeding {
@@ -38,7 +39,7 @@ public:
   dart::dynamics::MetaSkeletonPtr getMetaSkeleton() const;
 
   AcquisitionAction const* getAction() const;
-  bool setAction(int actionNum);
+  void setAction(int actionNum);
 
   double getScore() const;
 

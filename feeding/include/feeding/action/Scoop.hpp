@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_SCOOP_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/Workspace.hpp"
 
 namespace feeding {

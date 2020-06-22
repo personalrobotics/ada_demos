@@ -1,5 +1,7 @@
 #include "feeding/FTThresholdHelper.hpp"
+
 #include <thread>
+
 #include <libada/util.hpp>
 
 #include "feeding/util.hpp"
@@ -118,6 +120,9 @@ bool FTThresholdHelper::setThresholds(FTThreshold threshold)
   return mFTThresholdClient->setThresholds(
       thresholdPair.first, thresholdPair.second);
 #endif
+
+  // Handle no rewd_controllers case as if thresholds disabled
+  return true;
 }
 
 //==============================================================================
@@ -130,6 +135,9 @@ bool FTThresholdHelper::setThresholds(double forces, double torques)
   ROS_INFO_STREAM("Set thresholds " << forces << " " << torques);
   return mFTThresholdClient->setThresholds(forces, torques);
 #endif
+
+  // Handle no rewd_controllers case as if thresholds disabled
+  return true;
 }
 
 //==============================================================================

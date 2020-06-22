@@ -1,6 +1,8 @@
 #include "feeding/Workspace.hpp"
+
 #include <aikido/io/CatkinResourceRetriever.hpp>
 #include <aikido/io/util.hpp>
+
 #include <libada/util.hpp>
 
 using ada::util::createIsometry;
@@ -50,7 +52,7 @@ void Workspace::addToWorld(
 {
   Eigen::Isometry3d pose = robotPose.inverse()
                            * createIsometry(getRosParam<std::vector<double>>(
-                                 "/" + name + "/pose", mNodeHandle));
+                               "/" + name + "/pose", mNodeHandle));
   addToWorldAtPose(skeleton, name, pose);
 }
 

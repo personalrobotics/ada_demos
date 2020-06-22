@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <utility>
+
 #include <Eigen/Dense>
 #include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/StateSpace.hpp>
@@ -12,29 +13,30 @@
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
-#include <libada/Ada.hpp>
-
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 
+#include <libada/Ada.hpp>
+
 namespace feeding {
 
-static const std::vector<std::string> FOOD_NAMES = {"apple",
-                                                    "banana",
-                                                    "bell_pepper",
-                                                    "broccoli",
-                                                    "cantaloupe",
-                                                    "carrot",
-                                                    "cauliflower",
-                                                    "celery",
-                                                    "cherry_tomato",
-                                                    "grape",
-                                                    "honeydew",
-                                                    "kiwi",
-                                                    "strawberry",
-                                                    "lettuce",
-                                                    "spinach",
-                                                    "kale"};
+static const std::vector<std::string> FOOD_NAMES
+    = {"apple",
+       "banana",
+       "bell_pepper",
+       "broccoli",
+       "cantaloupe",
+       "carrot",
+       "cauliflower",
+       "celery",
+       "cherry_tomato",
+       "grape",
+       "honeydew",
+       "kiwi",
+       "strawberry",
+       "lettuce",
+       "spinach",
+       "kale"};
 
 static const std::vector<int> BEST_ACTIONS
     = {1, 5, 1, 2, 3, 1, 3, 1, 1, 3, 3, 3, 1, 1, 2, 0};

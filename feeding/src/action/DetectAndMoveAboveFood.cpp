@@ -1,11 +1,14 @@
 #include "feeding/action/DetectAndMoveAboveFood.hpp"
+
 #include <chrono>
 #include <thread>
+
 #include <yaml-cpp/exceptions.h>
+
 #include <libada/util.hpp>
-#include "feeding/util.hpp"
 
 #include "feeding/action/MoveAboveFood.hpp"
+#include "feeding/util.hpp"
 
 using ada::util::getRosParam;
 
@@ -52,6 +55,8 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
 
   bool moveAboveSuccessful = false;
 
+  std::unique_ptr<FoodItem> ret;
+
   for (auto& item : candidateItems)
   {
     // actionOverride = 5;
@@ -90,7 +95,8 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     moveAboveSuccessful = true;
 
     perception->setFoodItemToTrack(item.get());
-    return std::move(item);
+    ret = std::move(item);
+    break;
   }
 
   if (!moveAboveSuccessful)
@@ -101,6 +107,8 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
         "help?");
     return nullptr;
   }
+
+  return ret;
 }
 } // namespace action
 } // namespace feeding

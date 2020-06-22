@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_PUTDOWNFORK_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/FTThresholdHelper.hpp"
 
 namespace feeding {
