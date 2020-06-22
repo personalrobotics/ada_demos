@@ -118,6 +118,8 @@ FeedingDemo::FeedingDemo(
       = getRosParam<std::vector<double>>("/foodItems/forces", *mNodeHandle);
   mRotationFreeFoodNames = getRosParam<std::vector<std::string>>(
       "/rotationFree/names", *mNodeHandle);
+  mTiltFoodNames
+      = getRosParam<std::vector<std::string>>("/tiltFood/names", *mNodeHandle);
   auto pickUpAngleModes = getRosParam<std::vector<int>>(
       "/foodItems/pickUpAngleModes", *mNodeHandle);
 
@@ -277,7 +279,7 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
       = mAda->getHand()->getEndEffectorTransform("plate").get();
   eeTransform.linear() = eeTransform.linear()
                          * Eigen::Matrix3d(Eigen::AngleAxisd(
-                             M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+                               M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   eeTransform.translation()
       = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
 

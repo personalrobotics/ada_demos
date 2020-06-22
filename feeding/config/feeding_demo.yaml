@@ -125,6 +125,9 @@ humanStudy:
 rotationFree:
   names: ["banana", "broccoli", "cantaloupe", "cauliflower", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry"]
 
+tiltFood:
+  names: ["apple", "bell_pepper", "carrot", "celery"]
+
 study:
   skipSkewering: false
   doForkPickup: false
