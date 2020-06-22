@@ -53,8 +53,8 @@ bool moveDirectlyToPerson(
     eeTransform.linear()
         = eeTransform.linear()
           * Eigen::Matrix3d(
-                Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
-                * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
+              Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
+              * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
     personTSR.mTw_e.matrix() *= eeTransform.matrix();
   }
   else

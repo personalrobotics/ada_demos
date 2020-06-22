@@ -52,7 +52,7 @@ void Workspace::addToWorld(
 {
   Eigen::Isometry3d pose = robotPose.inverse()
                            * createIsometry(getRosParam<std::vector<double>>(
-                                 "/" + name + "/pose", mNodeHandle));
+                               "/" + name + "/pose", mNodeHandle));
   addToWorldAtPose(skeleton, name, pose);
 }
 

@@ -24,9 +24,10 @@ void moveAboveForque(
   // forquePose.translation() = Eigen::Vector3d{0.57, -0.019, 0.012};
   // forquePose.linear() = Eigen::Matrix3d(Eigen::AngleAxisd(0.15,
   // Eigen::Vector3d::UnitX()));
-  forquePose.translation() = Eigen::Vector3d{forkHolderTranslation[0],
-                                             forkHolderTranslation[1],
-                                             forkHolderTranslation[2]};
+  forquePose.translation() = Eigen::Vector3d{
+      forkHolderTranslation[0],
+      forkHolderTranslation[1],
+      forkHolderTranslation[2]};
   forquePose.linear() = Eigen::Matrix3d(
       Eigen::AngleAxisd(forkHolderAngle, Eigen::Vector3d::UnitX()));
   aboveForqueTSR.mT0_w = forquePose;

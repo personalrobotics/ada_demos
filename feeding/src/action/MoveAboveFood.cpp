@@ -84,9 +84,10 @@ bool moveAboveFood(
         = Eigen::AngleAxisd(
               rotateAngle,
               Eigen::Vector3d::UnitZ()) // Take into account action rotation
-          * Eigen::Vector3d{0,
-                            -sin(M_PI * 0.25) * heightAboveFood * 0.7,
-                            cos(M_PI * 0.25) * heightAboveFood * 0.9};
+          * Eigen::Vector3d{
+              0,
+              -sin(M_PI * 0.25) * heightAboveFood * 0.7,
+              cos(M_PI * 0.25) * heightAboveFood * 0.9};
   }
 
   return moveAbove(
