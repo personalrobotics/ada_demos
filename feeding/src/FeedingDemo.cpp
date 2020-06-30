@@ -118,6 +118,8 @@ FeedingDemo::FeedingDemo(
       = getRosParam<std::vector<double>>("/foodItems/forces", *mNodeHandle);
   mRotationFreeFoodNames = getRosParam<std::vector<std::string>>(
       "/rotationFree/names", *mNodeHandle);
+  mTiltFoodNames
+      = getRosParam<std::vector<std::string>>("/tiltFood/names", *mNodeHandle);
   auto pickUpAngleModes = getRosParam<std::vector<int>>(
       "/foodItems/pickUpAngleModes", *mNodeHandle);
 

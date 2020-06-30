@@ -170,7 +170,8 @@ void demo(
       // ===== IN FRONT OF PERSON =====
       ROS_INFO_STREAM("Move forque in front of person");
 
-      bool tilted = (foodName != "celery");
+      auto tiltFoods = feedingDemo.mTiltFoodNames;
+      bool tilted = (std::find(tiltFoods.begin(), tiltFoods.end(), foodName) != tiltFoods.end());
 
       action::feedFoodToPerson(
         ada,
