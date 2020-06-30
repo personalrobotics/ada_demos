@@ -12,40 +12,48 @@ namespace feeding {
 
 //==============================================================================
 FTThresholdHelper::FTThresholdHelper(
-    bool useThresholdControl, ros::NodeHandle nodeHandle)
+    bool useThresholdControl, ros::NodeHandle nodeHandle, const std::string &topicOverride)
   : mUseThresholdControl(useThresholdControl), mNodeHandle(nodeHandle)
 {
   if (!mUseThresholdControl)
     return;
 
-#ifdef REWD_CONTROLLERS_FOUND
-  std::string ftThresholdTopic = getRosParam<std::string>(
-      "/ftSensor/controllerFTThresholdTopic", mNodeHandle);
-  mFTThresholdClient = std::unique_ptr<rewd_controllers::FTThresholdClient>(
-      new rewd_controllers::FTThresholdClient(ftThresholdTopic));
-#else
-  mUseThresholdControl = false;
-#endif
+  swapTopic(topicOverride);
 }
 
 //==============================================================================
-void FTThresholdHelper::init()
+void FTThresholdHelper::swapTopic(const std::string &topic) {
+  #ifdef REWD_CONTROLLERS_FOUND
+    std::string ftThresholdTopic = topic;
+    if (topic == "") {
+      ftThresholdTopic = getRosParam<std::string>(
+          "/ftSensor/controllerFTThresholdTopic", mNodeHandle);
+    }
+    mFTThresholdClient.reset(
+      new rewd_controllers::FTThresholdClient(ftThresholdTopic));
+  #else
+    mUseThresholdControl = false;
+  #endif
+}
+
+//==============================================================================
+void FTThresholdHelper::init(bool retare)
 {
   if (!mUseThresholdControl)
     return;
 
-#ifdef REWD_CONTROLLERS_FOUND
-  auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
-  mFTThresholdClient->trySetThresholdsRepeatedly(
-      thresholdPair.first, thresholdPair.second);
-  ROS_WARN_STREAM("trySetThresholdsRepeatedly finished");
+  #ifdef REWD_CONTROLLERS_FOUND
+    auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
+    mFTThresholdClient->setThresholds(
+        thresholdPair.first, thresholdPair.second, retare);
+    ROS_WARN_STREAM("initial threshold set finished");
 
-  std::string ftTopic
-      = getRosParam<std::string>("/ftSensor/ftTopic", mNodeHandle);
-  ROS_INFO_STREAM("FTThresholdHelper is listening for " << ftTopic);
-  mForceTorqueDataSub = mNodeHandle.subscribe(
-      ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
-#endif
+    std::string ftTopic
+        = getRosParam<std::string>("/ftSensor/ftTopic", mNodeHandle);
+    ROS_INFO_STREAM("FTThresholdHelper is listening for " << ftTopic);
+    mForceTorqueDataSub = mNodeHandle.subscribe(
+        ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
+  #endif
 }
 
 //=============================================================================
@@ -108,7 +116,7 @@ bool FTThresholdHelper::isDataCollectionFinished(
 }
 
 //==============================================================================
-bool FTThresholdHelper::setThresholds(FTThreshold threshold)
+bool FTThresholdHelper::setThresholds(FTThreshold threshold, bool retare)
 {
   if (!mUseThresholdControl)
     return true;
@@ -118,7 +126,7 @@ bool FTThresholdHelper::setThresholds(FTThreshold threshold)
   ROS_INFO_STREAM(
       "Set thresholds " << thresholdPair.first << " " << thresholdPair.second);
   return mFTThresholdClient->setThresholds(
-      thresholdPair.first, thresholdPair.second);
+      thresholdPair.first, thresholdPair.second, retare);
 #endif
 
   // Handle no rewd_controllers case as if thresholds disabled
@@ -126,14 +134,14 @@ bool FTThresholdHelper::setThresholds(FTThreshold threshold)
 }
 
 //==============================================================================
-bool FTThresholdHelper::setThresholds(double forces, double torques)
+bool FTThresholdHelper::setThresholds(double forces, double torques, bool retare)
 {
   if (!mUseThresholdControl)
     return true;
 
 #ifdef REWD_CONTROLLERS_FOUND
   ROS_INFO_STREAM("Set thresholds " << forces << " " << torques);
-  return mFTThresholdClient->setThresholds(forces, torques);
+  return mFTThresholdClient->setThresholds(forces, torques, retare);
 #endif
 
   // Handle no rewd_controllers case as if thresholds disabled
