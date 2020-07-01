@@ -34,12 +34,14 @@ public:
   /// these thresholds.
   /// \param[in] nodeHandle Handle of the ros node.
   /// \param[in] topicOverride manually specify FTThreshold Action Server
-  FTThresholdHelper(bool useThresholdControl, ros::NodeHandle nodeHandle, 
-                    const std::string &topicOverride = "");
+  FTThresholdHelper(
+      bool useThresholdControl,
+      ros::NodeHandle nodeHandle,
+      const std::string& topicOverride = "");
 
   /// Swaps the action client to a new server.
   /// Blocks until server is online.
-  void swapTopic(const std::string &topic);
+  void swapTopic(const std::string& topic);
 
   /// Needs to be called before setting the first thresholds.
   /// Blocks until the threshold could be set successfully.
