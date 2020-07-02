@@ -61,12 +61,15 @@ public:
   std::vector<std::unique_ptr<FoodItem>> perceiveFood(
       const std::string& foodName = "");
 
+  // Filter above function by UID
+  std::unique_ptr<Eigen::Isometry3d> perceiveFoodByUID(const std::string& uid);
+
   void setFoodItemToTrack(FoodItem* target);
 
   /// Throws exception if target item is not set.
   Eigen::Isometry3d getTrackedFoodItemPose();
 
-  Eigen::Isometry3d perceiveFace();
+  std::unique_ptr<Eigen::Isometry3d> perceiveFace();
 
   /// Returns true if mouth is detected to be open.
   bool isMouthOpen();

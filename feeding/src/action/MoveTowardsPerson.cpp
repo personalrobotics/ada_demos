@@ -52,16 +52,13 @@ bool moveTowardsPerson(
   Eigen::Isometry3d personPose;
   while (!seePerson)
   {
-    try
-    {
-      personPose = perception->perceiveFace();
+    auto ptr = perception->perceiveFace();
+    if (ptr != nullptr) {
+      personPose = *ptr;
       seePerson = true;
-    }
-    catch (...)
-    {
+    } else {
       ROS_WARN_STREAM("No Face Detected!");
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      continue;
     }
   }
 

@@ -104,6 +104,20 @@ Perception::Perception(
 }
 
 //==============================================================================
+std::unique_ptr<Eigen::Isometry3d> Perception::perceiveFoodByUID(
+    const std::string& uid)
+{
+  std::unique_ptr<Eigen::Isometry3d> ret = nullptr;
+  auto candidates = perceiveFood();
+  for (int i = 0; i < candidates.size(); i++) {
+    if (candidates[i]->getUid() == uid) {
+      ret.reset(new Eigen::Isometry3d{candidates[i]->getPose()});
+    }
+  }
+  return ret;
+}
+
+//==============================================================================
 std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
     const std::string& foodName)
 {
@@ -167,8 +181,9 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
 //==============================================================================
 static Eigen::Isometry3d oldFaceTransform;
 static bool saved = false;
-Eigen::Isometry3d Perception::perceiveFace()
+std::unique_ptr<Eigen::Isometry3d> Perception::perceiveFace()
 {
+  std::unique_ptr<Eigen::Isometry3d> ret = nullptr;
   std::vector<DetectedObject> detectedObjects;
 
   if (!mFaceDetector->detectObjects(
@@ -205,17 +220,11 @@ Eigen::Isometry3d Perception::perceiveFace()
         // faceTransform.translation().x() -= 0.02;
         // faceTransform.translation().z() -= 0.03;
       }
-      oldFaceTransform = faceTransform;
-      saved = true;
-      return faceTransform;
+      ret.reset(new Eigen::Isometry3d{faceTransform});
     }
   }
-  if (saved)
-  {
-    return oldFaceTransform;
-  }
-  ROS_WARN("face perception failed");
-  throw std::runtime_error("Face perception failed");
+  
+  return ret;
 }
 
 //==============================================================================
