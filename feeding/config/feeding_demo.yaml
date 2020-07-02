@@ -51,9 +51,7 @@ feedingDemo:
   heightAboveFood: 0.08
   heightIntoFood: 0.05           # the real robot plans *below* the food. This parameter specifies how far
   moveOutofFood: 0.025
-  #distanceToPerson: 0.25
   distanceToPerson: 0.05
-  distanceFromPerson: 0.15
   waitMillisecsAtFood: 00     # short pause after skewering the food
   waitMillisecsAtPerson: 1000   # long pause so person can take a bite
   fixedFaceY: 0.28
@@ -159,3 +157,7 @@ study:
   velocityLimits: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
   # SLOW:
   #velocityLimits: [0.2, 0.2, 0.2, 0.2, 0.2, 0.4]
+
+  # For Servoing, m/s
+  servoVelocity: 0.05
+  

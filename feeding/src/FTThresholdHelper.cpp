@@ -16,6 +16,7 @@ FTThresholdHelper::FTThresholdHelper(
     ros::NodeHandle nodeHandle,
     const std::string& topicOverride)
   : mUseThresholdControl(useThresholdControl), mNodeHandle(nodeHandle)
+  , mForceThresh(0.0), mTorqueThresh(0.0)
 {
   if (!mUseThresholdControl)
     return;
@@ -24,7 +25,7 @@ FTThresholdHelper::FTThresholdHelper(
 }
 
 //==============================================================================
-void FTThresholdHelper::swapTopic(const std::string& topic)
+void FTThresholdHelper::swapTopic(const std::string& topic, bool maintainThresholds)
 {
 #ifdef REWD_CONTROLLERS_FOUND
   std::string ftThresholdTopic = topic;
@@ -35,28 +36,41 @@ void FTThresholdHelper::swapTopic(const std::string& topic)
   }
   mFTThresholdClient.reset(
       new rewd_controllers::FTThresholdClient(ftThresholdTopic));
+
+  if (maintainThresholds) {
+    setThresholds(mForceThresh, mTorqueThresh);
+  }
 #else
   mUseThresholdControl = false;
 #endif
 }
 
 //==============================================================================
-void FTThresholdHelper::init(bool retare)
+bool FTThresholdHelper::init(bool retare)
 {
   if (!mUseThresholdControl)
-    return;
+    return true;
 
 #ifdef REWD_CONTROLLERS_FOUND
   auto thresholdPair = getThresholdValues(STANDARD_FT_THRESHOLD);
-  mFTThresholdClient->setThresholds(
-      thresholdPair.first, thresholdPair.second, retare);
-  ROS_WARN_STREAM("initial threshold set finished");
+  if (!mFTThresholdClient->setThresholds(
+      thresholdPair.first, thresholdPair.second, retare))
+  {
+    ROS_WARN_STREAM("failed to set initial thresholds");
+    return false;
+  } else {
+    mForceThresh = thresholdPair.first;
+    mTorqueThresh = thresholdPair.second;
+    ROS_INFO_STREAM("initial threshold set finished");
+  }
 
   std::string ftTopic
       = getRosParam<std::string>("/ftSensor/ftTopic", mNodeHandle);
   ROS_INFO_STREAM("FTThresholdHelper is listening for " << ftTopic);
   mForceTorqueDataSub = mNodeHandle.subscribe(
       ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
+
+  return true;
 #endif
 }
 
@@ -146,10 +160,14 @@ bool FTThresholdHelper::setThresholds(
 
 #ifdef REWD_CONTROLLERS_FOUND
   ROS_INFO_STREAM("Set thresholds " << forces << " " << torques);
-  return mFTThresholdClient->setThresholds(forces, torques, retare);
+  if (mFTThresholdClient->setThresholds(forces, torques, retare)) {
+    mForceThresh = forces;
+    mTorqueThresh = torques;
+  } else {
+    return false;
+  }
 #endif
 
-  // Handle no rewd_controllers case as if thresholds disabled
   return true;
 }
 

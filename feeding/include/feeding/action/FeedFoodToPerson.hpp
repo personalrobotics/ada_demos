@@ -4,7 +4,6 @@
 #include <libada/Ada.hpp>
 
 #include "feeding/FeedingDemo.hpp"
-#include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
 
 // Contains motions which are mainly TSR actions
@@ -13,30 +12,27 @@ namespace action {
 
 void feedFoodToPerson(
     const std::shared_ptr<ada::Ada>& ada,
-    const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-    const aikido::constraint::dart::CollisionFreePtr&
-        collisionFreeWithWallFurtherBack,
     const std::shared_ptr<Perception>& perception,
     const ros::NodeHandle* nodeHandle,
+    ros::Duration waitAtPerson,
+    FeedingDemo* feedingDemo,
+    std::vector<double> jointVelocityLimits,
+    // Visual Servoing Params
+    double servoVelocityLimit,
+    double distanceFromPerson,
+    // Returning to plate params
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
-    const Eigen::Isometry3d& personPose,
-    std::chrono::milliseconds waitAtPerson,
-    double heightAbovePlate,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
     double rotationToleranceAbovePlate,
-    double distanceToPerson,
+    // Tilting params
+    const Eigen::Vector3d* tiltOffset,
     double horizontalToleranceForPerson,
     double verticalToleranceForPerson,
     double planningTimeout,
-    int maxNumTrials,
-    double endEffectorOffsetPositionTolerenace,
-    double endEffectorOffsetAngularTolerance,
-    std::vector<double> velocityLimits,
-    const Eigen::Vector3d* tiltOffset,
-    FeedingDemo* feedingDemo);
+    int maxNumTrials);
 }
 } // namespace feeding
 

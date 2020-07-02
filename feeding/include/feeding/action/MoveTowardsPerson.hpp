@@ -3,21 +3,20 @@
 
 #include <libada/Ada.hpp>
 
-#include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
+#include "feeding/perception/PerceptionServoClient.hpp"
+#include "feeding/FeedingDemo.hpp"
 
 namespace feeding {
 namespace action {
 
 bool moveTowardsPerson(
     const std::shared_ptr<ada::Ada>& ada,
-    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const std::shared_ptr<Perception>& perception,
     const ros::NodeHandle* nodeHandle,
-    double distanceToPerson,
-    double planningTimeout,
-    double endEffectorOffsetPositionTolerenace,
-    double endEffectorOffsetAngularTolerance);
+    FeedingDemo* feedingDemo,
+    double distanceFromPerson,
+    double velocityLimit);
 }
 } // namespace feeding
 

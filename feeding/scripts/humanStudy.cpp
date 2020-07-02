@@ -104,30 +104,27 @@ void humanStudyDemo(
 
       action::feedFoodToPerson(
         ada,
-        workspace,
         collisionFree,
-        feedingDemo.getCollisionConstraintWithWallFurtherBack(),
         perception,
         nodeHandle.get(),
+        feedingDemo.mWaitTimeForPerson,
+        &feedingDemo,
+        feedingDemo.mVelocityLimits,
+        // Visual Servoing params
+        feedingDemo.mServoVelocity,
+        feedingDemo.mPersonTSRParameters.at("distance"),
+        // Returning to Plate Params
         plate,
         feedingDemo.getPlateEndEffectorTransform(),
-        workspace->getPersonPose(),
-        feedingDemo.mWaitTimeForPerson,
-        feedingDemo.mPlateTSRParameters.at("height"),
         feedingDemo.mPlateTSRParameters.at("horizontalTolerance"),
         feedingDemo.mPlateTSRParameters.at("verticalTolerance"),
         feedingDemo.mPlateTSRParameters.at("rotationTolerance"),
-        feedingDemo.mPersonTSRParameters.at("distance"),
+        // Tilting Params
+        tilted ? &feedingDemo.mTiltOffset : nullptr,
         feedingDemo.mPersonTSRParameters.at("horizontalTolerance"),
         feedingDemo.mPersonTSRParameters.at("verticalTolerance"),
         feedingDemo.mPlanningTimeout,
-        feedingDemo.mMaxNumTrials,
-        feedingDemo.mEndEffectorOffsetPositionTolerance,
-        feedingDemo.mEndEffectorOffsetAngularTolerance,
-        feedingDemo.mVelocityLimits,
-        tilted ? &feedingDemo.mTiltOffset : nullptr,
-        &feedingDemo
-        );
+        feedingDemo.mMaxNumTrials);
 
   }
 

@@ -3,93 +3,44 @@
 #include <libada/util.hpp>
 
 #include "feeding/perception/Perception.hpp"
+#include "feeding/perception/PerceptionServoClient.hpp"
 
 namespace feeding {
 namespace action {
 
 bool moveTowardsPerson(
     const std::shared_ptr<ada::Ada>& ada,
-    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const std::shared_ptr<Perception>& perception,
     const ros::NodeHandle* nodeHandle,
-    double distanceToPerson,
-    double planningTimeout,
-    double endEffectorOffsetPositionTolerenace,
-    double endEffectorOffsetAngularTolerance)
+    FeedingDemo* feedingDemo,
+    double distanceFromPerson,
+    double velocityLimit)
 {
   ROS_INFO_STREAM("Move towards person");
 
-  int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
-  // FAST
-  std::vector<double> velocityLimits(numDofs, 0.3);
-  // SLOW
-  // std::vector<double> velocityLimits(numDofs, 0.1);
-
-  /*
-
   PerceptionServoClient servoClient(
       nodeHandle,
-      boost::bind(&Perception::perceiveFace, perception.get()),
-      ada->getArm()->getStateSpace(),
+      std::bind(&Perception::perceiveFace, perception.get()),
       ada,
-      ada->getArm()->getMetaSkeleton(),
-      ada->getHand()->getEndEffectorBodyNode(),
-      ada->getTrajectoryExecutor(),
-      collisionFree,
-      0.2,
-      0.015,
-      planningTimeout,
-      endEffectorOffsetPositionTolerenace,
-      endEffectorOffsetAngularTolerance,
-      false, // not food
-      velocityLimits);
-  servoClient.start();
-  return servoClient.wait(10);
-  */
+      ros::Duration(0.1), // Update trajectory at 10Hz
+      ros::Duration(0.5), // Stop if we can't see the face
+      distanceFromPerson,
+      velocityLimit,
+      feedingDemo->getFTThresholdHelper());
 
-  // Read Person Pose
-  bool seePerson = false;
-  Eigen::Isometry3d personPose;
-  while (!seePerson)
-  {
-    auto ptr = perception->perceiveFace();
-    if (ptr != nullptr) {
-      personPose = *ptr;
-      seePerson = true;
-    } else {
-      ROS_WARN_STREAM("No Face Detected!");
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-  }
-
-  Eigen::Isometry3d currentPose
-      = ada->getHand()->getEndEffectorBodyNode()->getTransform();
-
-  // Plan from current to goal pose
-  Eigen::Vector3d vectorToGoalPose
-      = personPose.translation() - currentPose.translation();
-  vectorToGoalPose.y() -= distanceToPerson;
-  auto length = vectorToGoalPose.norm();
-  vectorToGoalPose.normalize();
-
-  ROS_WARN_STREAM("Angular Tolerance: " << endEffectorOffsetAngularTolerance);
-  ROS_WARN_STREAM("Pose Tolerance: " << endEffectorOffsetPositionTolerenace);
-  ROS_WARN_STREAM("Offset: " << distanceToPerson);
-  ROS_WARN_STREAM("Goal Pose: " << vectorToGoalPose);
-
-  if (!ada->moveArmToEndEffectorOffset(
-          vectorToGoalPose,
-          length,
-          nullptr,
-          planningTimeout,
-          endEffectorOffsetPositionTolerenace,
-          endEffectorOffsetAngularTolerance,
-          velocityLimits))
-  {
-    ROS_WARN_STREAM("Execution failed");
+  auto future = servoClient.start();
+  
+  // Time-out after 10s
+  std::future_status status = future.wait_for(std::chrono::seconds(10));
+  if(status != std::future_status::ready) {
+    // Cancel servoing
+    servoClient.stop();
+    ROS_WARN_STREAM("Servoing took too long.");
     return false;
   }
-  return true;
+
+  auto result = future.get();
+  return (result == ada::CartVelocityResult::kCVR_SUCCESS);
 }
 } // namespace action
 } // namespace feeding

@@ -6,6 +6,8 @@
 
 #include <libada/Ada.hpp>
 
+#include "feeding/FTThresholdHelper.hpp"
+
 namespace feeding {
 
 class PerceptionServoClient
@@ -20,8 +22,8 @@ public:
       ros::Duration perceptionUpdateTime, // How often to run perception 
       ros::Duration perceptionTimeout, // How long to keep running without perception
       double goalPrecision, // In m, defines sphere around goal point
-      double approachVelocity,
-      bool useFT); // In m/s, how fast to approach goal
+      double approachVelocity, // In m/s, how fast to approach goal
+      std::shared_ptr<FTThresholdHelper> ftThresholdHelper); // Set to use FT sensor
 
   virtual ~PerceptionServoClient();
 
@@ -58,7 +60,7 @@ protected:
   std::function<std::unique_ptr<Eigen::Isometry3d>(void)> mGetPerception;
   double mGoalPrecision;
   double mApproachVelocity;
-  bool mUseFT;
+  std::shared_ptr<FTThresholdHelper> mFTThresholdHelper;
 };
 } // namespace feeding
 

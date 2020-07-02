@@ -162,8 +162,8 @@ FeedingDemo::FeedingDemo(
 
   mWaitTimeForFood = std::chrono::milliseconds(
       getRosParam<int>("/feedingDemo/waitMillisecsAtFood", *mNodeHandle));
-  mWaitTimeForPerson = std::chrono::milliseconds(
-      getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", *mNodeHandle));
+  mWaitTimeForPerson = ros::Duration(
+      0.001 * getRosParam<double>("/feedingDemo/waitMillisecsAtPerson", *mNodeHandle));
 
   mPersonTSRParameters["distance"]
       = getRosParam<double>("/feedingDemo/distanceToPerson", *mNodeHandle);
@@ -185,6 +185,8 @@ FeedingDemo::FeedingDemo(
   mVelocityLimits
       = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
   mTableHeight = getRosParam<double>("/study/tableHeight", *mNodeHandle);
+
+  mServoVelocity = getRosParam<double>("/study/servoVelocity", *mNodeHandle);
 }
 
 //==============================================================================

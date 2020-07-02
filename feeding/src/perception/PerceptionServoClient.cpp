@@ -19,7 +19,7 @@ PerceptionServoClient::PerceptionServoClient(
       ros::Duration perceptionTimeout,
       double goalPrecision,
       double approachVelocity,
-      bool useFT)
+      std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
   : mNodeHandle(*node, "perceptionServo")
   , mGetPerception(getPerception)
   , mAda(std::move(ada))
@@ -28,7 +28,7 @@ PerceptionServoClient::PerceptionServoClient(
   , mPromise(nullptr)
   , mGoalPrecision(goalPrecision)
   , mApproachVelocity(approachVelocity)
-  , mUseFT(useFT)
+  , mFTThresholdHelper(ftThresholdHelper)
 {
   mNonRealtimeTimer = mNodeHandle.createTimer(
       perceptionUpdateTime,
@@ -65,9 +65,16 @@ std::future<CartVelocityResult> PerceptionServoClient::start()
   std::future<CartVelocityResult> ret = mPromise->get_future();
   mWatchdogFed.store(false);
 
-  if (!mAda->setVelocityControl(true, mUseFT)) {
+  if (!mAda->setVelocityControl(true, mFTThresholdHelper.get())) {
     mPromise->set_value(CartVelocityResult::kCVR_INVALID);
     return ret;
+  }
+
+  // Swap to proper ftThresholdServer
+  if (mFTThresholdHelper) {
+    mFTThresholdHelper->swapTopic(
+      "/move_until_touch_cartvel_controller/set_forcetorque_threshold/", 
+      true);
   }
 
   mExecutionDone.store(false);
@@ -86,7 +93,13 @@ void PerceptionServoClient::stop(CartVelocityResult result)
     mNonRealtimeWatchdog.stop();
 
     mAda->cancelCommandVelocity();
-    mAda->setVelocityControl(false, mUseFT);
+    mAda->setVelocityControl(false, mFTThresholdHelper.get());
+
+    // Swap to proper ftThresholdServer
+    if (mFTThresholdHelper) {
+      mFTThresholdHelper->swapTopic("", true);
+    }
+
     mPromise->set_value(result);
   }
 }

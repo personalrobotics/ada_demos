@@ -41,12 +41,12 @@ public:
 
   /// Swaps the action client to a new server.
   /// Blocks until server is online.
-  void swapTopic(const std::string& topic);
+  void swapTopic(const std::string& topic, bool maintainThresholds = false);
 
   /// Needs to be called before setting the first thresholds.
-  /// Blocks until the threshold could be set successfully.
+  /// Blocks until initial thresholds set.
   /// Can be aborted with Ctrl-C.
-  void init(bool retare = true);
+  bool init(bool retare = true);
 
   /// Sets the MoveUntilTouchControllers Thresholds accordingly.
   /// Throws a runtime_error if we useThresholdControl and we are unable to set
@@ -64,6 +64,9 @@ public:
 private:
   bool mUseThresholdControl;
   ros::NodeHandle mNodeHandle;
+
+  double mForceThresh;
+  double mTorqueThresh;
 
   int mDataPointsToCollect = 0;
   std::mutex mDataCollectionMutex;

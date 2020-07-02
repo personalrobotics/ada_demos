@@ -113,7 +113,7 @@ public:
   double mEndEffectorOffsetPositionTolerance;
   double mEndEffectorOffsetAngularTolerance;
   std::chrono::milliseconds mWaitTimeForFood;
-  std::chrono::milliseconds mWaitTimeForPerson;
+  ros::Duration mWaitTimeForPerson;
   std::vector<double> mVelocityLimits;
 
   double mForkHolderAngle;
@@ -121,6 +121,8 @@ public:
   Eigen::Vector3d mTiltOffset;
 
   double mTableHeight;
+
+  double mServoVelocity;
 
 private:
   /// Attach food to forque
