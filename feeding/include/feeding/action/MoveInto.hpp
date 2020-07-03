@@ -15,15 +15,10 @@ namespace action {
 bool moveInto(
     const std::shared_ptr<ada::Ada>& ada,
     const std::shared_ptr<Perception>& perception,
-    const aikido::constraint::dart::CollisionFreePtr& collisionFree,
     const ::ros::NodeHandle* nodeHandle,
-    TargetItem item,
-    double planningTimeout,
-    double endEffectorOffsetPositionTolerenace,
-    double endEffectorOffsetAngularTolerance,
-    const Eigen::Vector3d& endEffectorDirection,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
-    const std::vector<double>& velocityLimits = std::vector<double>());
+    double velocityLimit,
+    const std::string mFoodUid);
 
 } // namespace action
 } // namespace feeding
