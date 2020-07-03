@@ -23,7 +23,7 @@ bool moveTowardsPerson(
       std::bind(&Perception::perceiveFace, perception.get()),
       ada,
       ros::Duration(0.1), // Update trajectory at 10Hz
-      ros::Duration(0.5), // Stop if we can't see the face
+      ros::Duration(1.0), // Stop if we can't see the face
       distanceFromPerson,
       velocityLimit,
       feedingDemo->getFTThresholdHelper());

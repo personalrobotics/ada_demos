@@ -184,7 +184,10 @@ void feedFoodToPerson(
 
   // Do not tilt if servoing fails (e.g. because user is touching fork)
   if (!moveSuccess) {
+    ROS_WARN_STREAM("Unsuccessful servoing (FT threshold?), we probably shouldn't tilt.");
     overrideTiltOffset = nullptr;
+  } else {
+    ROS_WARN_STREAM("Visual servoing completed!");
   }
 
   // Step 4: Execute Tilt
@@ -242,6 +245,7 @@ void feedFoodToPerson(
   // Step 5: EATING
   ROS_WARN("Human is eating");
   talk("Ready to eat!");
+  ROS_WARN("Waiting for person...");
   waitAtPerson.sleep();
 
   // Step 6: Return to fronto of person

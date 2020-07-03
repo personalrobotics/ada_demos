@@ -193,7 +193,7 @@ std::unique_ptr<Eigen::Isometry3d> Perception::perceiveFace()
           &detectedObjects))
   {
     ROS_WARN("face perception failed");
-    throw std::runtime_error("Face perception failed");
+    return nullptr;
   }
 
   // TODO: the needs to be updated

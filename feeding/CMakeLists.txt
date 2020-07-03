@@ -3,7 +3,7 @@ project(feeding)
 
 IF (rewd_controllers_FOUND)
   message(STATUS "rewd controllers found!")
-  add_definitions(-LREWD_CONTROLLERS_FOUND)
+  add_definitions(-DREWD_CONTROLLERS_FOUND)
 ELSE()
 message("rewd controllers not found!")
 ENDIF()

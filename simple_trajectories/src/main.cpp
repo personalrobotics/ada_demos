@@ -201,6 +201,7 @@ int main(int argc, char** argv)
   robot.moveArmToConfiguration(
       homeConfig, nullptr, 2.0, velocityLimits);
   waitForUser("Done. \n Press [ENTER] to proceed:");
+  
 
   /////////////////////////////////////////////////////////////////////////////
   //   Cartesian Velocity control (real only)

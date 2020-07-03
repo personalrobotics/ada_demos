@@ -49,6 +49,8 @@ PerceptionServoClient::PerceptionServoClient(
 PerceptionServoClient::~PerceptionServoClient()
 {
   stop();
+  mNonRealtimeTimer.stop();
+  mNonRealtimeWatchdog.stop();
 }
 
 //==============================================================================
@@ -63,7 +65,7 @@ std::future<CartVelocityResult> PerceptionServoClient::start()
   // Invalid until first velocity command
   mFuture = std::future<CartVelocityResult>();
   std::future<CartVelocityResult> ret = mPromise->get_future();
-  mWatchdogFed.store(false);
+  mWatchdogFed.store(true);
 
   if (!mAda->setVelocityControl(true, mFTThresholdHelper.get())) {
     mPromise->set_value(CartVelocityResult::kCVR_INVALID);
@@ -81,6 +83,8 @@ std::future<CartVelocityResult> PerceptionServoClient::start()
   mNonRealtimeTimer.start();
   mNonRealtimeWatchdog.start();
   ROS_INFO("Servoclient started");
+
+  return ret;
 }
 
 //==============================================================================
@@ -89,10 +93,7 @@ void PerceptionServoClient::stop(CartVelocityResult result)
   // Only stop if we are running
   if(!mExecutionDone.exchange(true)) {
     ROS_INFO("Stopping ServoClient");
-    mNonRealtimeTimer.stop();
-    mNonRealtimeWatchdog.stop();
 
-    mAda->cancelCommandVelocity();
     mAda->setVelocityControl(false, mFTThresholdHelper.get());
 
     // Swap to proper ftThresholdServer
@@ -109,6 +110,7 @@ void PerceptionServoClient::nonRealtimeWatchdog(const ros::TimerEvent& event) {
   // If the watchdog hasn't been fed by perception
   // Stop the visual servoing
   if(!mWatchdogFed.exchange(false)) {
+    ROS_WARN("ServoClient: Watchdog timed out.");
     stop(CartVelocityResult::kCVR_TIMEOUT);
   }
 }
@@ -126,6 +128,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     if (status == std::future_status::ready) {
       auto result = mFuture.get();
       if (result != CartVelocityResult::kCVR_SUCCESS) {
+        ROS_WARN_STREAM("Velocity command returned non-success: " << result);
         stop(result);
         return;
       }
@@ -166,6 +169,7 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
     if (status == std::future_status::ready) {
       auto result = mFuture.get();
       if (result != CartVelocityResult::kCVR_SUCCESS) {
+        ROS_WARN_STREAM("Velocity command returned non-success: " << result);
         stop(result);
         return;
       }
