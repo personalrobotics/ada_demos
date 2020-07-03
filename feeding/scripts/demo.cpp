@@ -129,7 +129,7 @@ void demo(
     }
     else
     {
-      bool skewer = true; /*action::skewer(
+      bool skewer = action::skewer(
         ada,
         workspace,
         collisionFree,
@@ -156,7 +156,7 @@ void demo(
         feedingDemo.mVelocityLimits,
         feedingDemo.getFTThresholdHelper(),
         feedingDemo.mRotationFreeFoodNames,
-        &feedingDemo); */
+        &feedingDemo);
 
       if (feedingDemo.getFTThresholdHelper())
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
