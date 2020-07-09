@@ -1,6 +1,7 @@
 #include "feeding/FTThresholdHelper.hpp"
 
 #include <thread>
+#include <fstream>
 
 #include <libada/util.hpp>
 
@@ -48,6 +49,14 @@ void FTThresholdHelper::swapTopic(const std::string& topic, bool maintainThresho
 //==============================================================================
 bool FTThresholdHelper::init(bool retare)
 {
+  // Start sensor topic
+  std::string ftTopic
+      = getRosParam<std::string>("/ftSensor/ftTopic", mNodeHandle);
+  ROS_INFO_STREAM("FTThresholdHelper is listening for " << ftTopic);
+  mForceTorqueDataSub = mNodeHandle.subscribe(
+      ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
+
+  // Start threshold client if requested
   if (!mUseThresholdControl)
     return true;
 
@@ -63,15 +72,10 @@ bool FTThresholdHelper::init(bool retare)
     mTorqueThresh = thresholdPair.second;
     ROS_INFO_STREAM("initial threshold set finished");
   }
-
-  std::string ftTopic
-      = getRosParam<std::string>("/ftSensor/ftTopic", mNodeHandle);
-  ROS_INFO_STREAM("FTThresholdHelper is listening for " << ftTopic);
-  mForceTorqueDataSub = mNodeHandle.subscribe(
-      ftTopic, 1, &FTThresholdHelper::forceTorqueDataCallback, this);
+#endif
 
   return true;
-#endif
+
 }
 
 //=============================================================================
@@ -79,8 +83,12 @@ void FTThresholdHelper::forceTorqueDataCallback(
     const geometry_msgs::WrenchStamped& msg)
 {
   std::lock_guard<std::mutex> lock(mDataCollectionMutex);
-  if (mCollectedForces.size() >= mDataPointsToCollect)
+  if(!mCollectingData.load()) {
+    return;
+  }
+  if (mDataPointsToCollect && mCollectedForces.size() >= mDataPointsToCollect)
   {
+    mCollectingData.store(false);
     return;
   }
   Eigen::Vector3d force;
@@ -93,29 +101,47 @@ void FTThresholdHelper::forceTorqueDataCallback(
   torque.z() = msg.wrench.torque.z;
   mCollectedForces.push_back(force);
   mCollectedTorques.push_back(torque);
+  mTimestamps.push_back(msg.header.stamp);
 }
 
 bool FTThresholdHelper::startDataCollection(int numberOfDataPoints)
 {
-  if (!mUseThresholdControl)
-    return false;
   std::lock_guard<std::mutex> lock(mDataCollectionMutex);
+  if(mCollectingData.load()) {
+    return false;
+  }
+
   mDataPointsToCollect = numberOfDataPoints;
   mCollectedForces.clear();
   mCollectedTorques.clear();
+  mTimestamps.clear();
+  mCollectingData.store(true);
   return true;
 }
 
-bool FTThresholdHelper::isDataCollectionFinished(
-    Eigen::Vector3d& forces, Eigen::Vector3d& torques)
+void FTThresholdHelper::stopDataCollection() {
+  mCollectingData.store(false);
+}
+
+bool FTThresholdHelper::isDataCollectionFinished() {
+  return mCollectingData.load();
+}
+
+bool FTThresholdHelper::getDataAverage(
+    Eigen::Vector3d& forceMean, Eigen::Vector3d& torqueMean)
 {
   std::lock_guard<std::mutex> lock(mDataCollectionMutex);
-  forces.fill(0);
-  torques.fill(0);
-  if (mCollectedForces.size() < mDataPointsToCollect)
-  {
+  if(mCollectingData.load()) {
     return false;
   }
+
+  forceMean.fill(0);
+  torqueMean.fill(0);
+
+  if (mCollectedForces.size() == 0) {
+    return true;
+  }
+  
   Eigen::Vector3d summedForces, summedTorques;
   summedForces.fill(0);
   summedTorques.fill(0);
@@ -124,13 +150,41 @@ bool FTThresholdHelper::isDataCollectionFinished(
     summedForces = summedForces + mCollectedForces[i];
     summedTorques = summedTorques + mCollectedTorques[i];
   }
-  forces.x() = summedForces.x() / mCollectedForces.size();
-  forces.y() = summedForces.y() / mCollectedForces.size();
-  forces.z() = summedForces.z() / mCollectedForces.size();
-  torques.x() = summedTorques.x() / mCollectedForces.size();
-  torques.y() = summedTorques.y() / mCollectedForces.size();
-  torques.z() = summedTorques.z() / mCollectedForces.size();
+  forceMean.x() = summedForces.x() / mCollectedForces.size();
+  forceMean.y() = summedForces.y() / mCollectedForces.size();
+  forceMean.z() = summedForces.z() / mCollectedForces.size();
+  torqueMean.x() = summedTorques.x() / mCollectedTorques.size();
+  torqueMean.y() = summedTorques.y() / mCollectedTorques.size();
+  torqueMean.z() = summedTorques.z() / mCollectedTorques.size();
   return true;
+}
+
+bool FTThresholdHelper::writeDataToFile(const std::string& fileName) {
+  if(mCollectingData.load()) {
+    return false;
+  }
+
+  std::ofstream file(fileName);
+  if(!file.is_open()) {
+    ROS_WARN_STREAM("FTThresholdHelper: Error opening file");
+    return false;
+  }
+
+  // Header
+  file << "Time (s), Fx, Fy, Fz, Tx, Ty, Tz" << std::endl;
+
+  for (int i = 0; i < mCollectedForces.size(); i++)
+  {
+    file << mTimestamps[i].toSec() << ", ";
+    file << mCollectedForces[i].x() << ", " 
+          << mCollectedForces[i].y() << ", "
+          << mCollectedForces[i].z() << ", ";
+    file << mCollectedTorques[i].x() << ", " 
+          << mCollectedTorques[i].y() << ", "
+          << mCollectedTorques[i].z() << std::endl;
+  }
+
+  file.close();
 }
 
 //==============================================================================

@@ -57,9 +57,16 @@ public:
 
   bool setThresholds(double forces, double torques, bool retare = false);
 
-  bool startDataCollection(int numberOfDataPoints);
-  bool isDataCollectionFinished(
-      Eigen::Vector3d& forces, Eigen::Vector3d& torques);
+  // Collect until stop if numberOfDataPoints == 0
+  bool startDataCollection(int numberOfDataPoints = 0);
+  void stopDataCollection();
+
+  bool isDataCollectionFinished();
+
+  // Return false if !isDatacollectionFinished
+  bool getDataAverage(
+      Eigen::Vector3d& forceMean, Eigen::Vector3d& torqueMean);
+  bool writeDataToFile(const std::string& fileName);
 
 private:
   bool mUseThresholdControl;
@@ -72,6 +79,8 @@ private:
   std::mutex mDataCollectionMutex;
   std::vector<Eigen::Vector3d> mCollectedForces;
   std::vector<Eigen::Vector3d> mCollectedTorques;
+  std::vector<ros::Time> mTimestamps;
+  std::atomic<bool> mCollectingData;
 
   // \brief Gets data from the force/torque sensor
   ros::Subscriber mForceTorqueDataSub;

@@ -31,6 +31,7 @@ add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
   scripts/humanStudy.cpp
+  scripts/dataCollection.cpp
   scripts/spanetDemo.cpp
   src/AcquisitionAction.cpp
   src/FoodItem.cpp
