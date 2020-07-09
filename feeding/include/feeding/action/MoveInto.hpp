@@ -18,7 +18,8 @@ bool moveInto(
     const ::ros::NodeHandle* nodeHandle,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
     double velocityLimit,
-    const std::string mFoodUid);
+    const std::string mFoodUid,
+    Eigen::Vector3d foodOffset = Eigen::Vector3d(0, 0, 0));
 
 } // namespace action
 } // namespace feeding

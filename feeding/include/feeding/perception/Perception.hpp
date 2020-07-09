@@ -62,7 +62,7 @@ public:
       const std::string& foodName = "");
 
   // Filter above function by UID
-  std::unique_ptr<Eigen::Isometry3d> perceiveFoodByUID(const std::string& uid);
+  std::unique_ptr<Eigen::Isometry3d> perceiveFoodByUID(const std::string& uid, Eigen::Vector3d offset);
 
   void setFoodItemToTrack(FoodItem* target);
 

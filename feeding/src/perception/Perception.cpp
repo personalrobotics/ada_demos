@@ -105,13 +105,15 @@ Perception::Perception(
 
 //==============================================================================
 std::unique_ptr<Eigen::Isometry3d> Perception::perceiveFoodByUID(
-    const std::string& uid)
+    const std::string& uid, Eigen::Vector3d offset)
 {
   std::unique_ptr<Eigen::Isometry3d> ret = nullptr;
   auto candidates = perceiveFood();
   for (int i = 0; i < candidates.size(); i++) {
-    if (candidates[i]->getUid() == uid) {
+    if (candidates[i]->getUid() == uid || uid == "") {
       ret.reset(new Eigen::Isometry3d{candidates[i]->getPose()});
+      ret->translation() += offset;
+      break;
     }
   }
   return ret;

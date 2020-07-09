@@ -171,11 +171,11 @@ bool FTThresholdHelper::writeDataToFile(const std::string& fileName) {
   }
 
   // Header
-  file << "Time (s), Fx, Fy, Fz, Tx, Ty, Tz" << std::endl;
+  file << "Time (ms), Fx, Fy, Fz, Tx, Ty, Tz" << std::endl;
 
   for (int i = 0; i < mCollectedForces.size(); i++)
   {
-    file << mTimestamps[i].toSec() << ", ";
+    file << (mTimestamps[i].toNSec() / 1000000) << ", ";
     file << mCollectedForces[i].x() << ", " 
           << mCollectedForces[i].y() << ", "
           << mCollectedForces[i].z() << ", ";

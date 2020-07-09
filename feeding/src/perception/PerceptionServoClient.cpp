@@ -177,7 +177,8 @@ void PerceptionServoClient::nonRealtimeCallback(const ros::TimerEvent& event)
   } // mFuture valid
 
   // Execute new velocity command
-  mFuture = mAda->moveArmCommandVelocity(vectorToGoalPose);
+  // TODO: have duration be 1s or watchdog, whichever is longer
+  mFuture = mAda->moveArmCommandVelocity(vectorToGoalPose, Eigen::Vector3d(0.0, 0.0, 0.0), ros::Duration(10.0));
 }
 
 } // namespace feeding

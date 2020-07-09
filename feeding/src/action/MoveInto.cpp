@@ -13,15 +13,16 @@ bool moveInto(
     const ::ros::NodeHandle* nodeHandle,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
     double velocityLimit,
-    const std::string mFoodUid)
+    const std::string mFoodUid,
+    Eigen::Vector3d foodOffset)
 {
   ROS_INFO_STREAM("Move into " + mFoodUid);
 
   PerceptionServoClient servoClient(
       nodeHandle,
-      std::bind(&Perception::perceiveFoodByUID, perception.get(), mFoodUid),
+      std::bind(&Perception::perceiveFoodByUID, perception.get(), mFoodUid, foodOffset),
       ada,
-      ros::Duration(0.1), // Update trajectory at 10Hz
+      ros::Duration(0.5), // Update trajectory at 2Hz
       ros::Duration(15.0), // Don't stop if we cannot see food
       0.0, // Don't stop until force threshold met
       velocityLimit,

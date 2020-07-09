@@ -18,6 +18,49 @@
 using ada::util::getRosParam;
 using ada::util::waitForUser;
 
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <array>
+#include <algorithm> 
+#include <cctype>
+#include <locale>
+
+static std::string exec(const char* cmd) {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
+// trim from start (in place)
+static inline void ltrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+        return !std::isspace(ch);
+    }));
+}
+
+// trim from end (in place)
+static inline void rtrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+        return !std::isspace(ch);
+    }).base(), s.end());
+}
+
+// trim from both ends (in place)
+static inline void trim(std::string &s) {
+    ltrim(s);
+    rtrim(s);
+}
+
 namespace feeding {
 
 void dataCollection(
@@ -36,8 +79,9 @@ void dataCollection(
   srand(time(NULL));
 
   std::string dataPath(ros::package::getPath("ada_demos"));
-  dataPath = dataPath + getRosParam<std::string>("/acquisitionData/datasetDir", nodeHandle);
+  dataPath = dataPath + "/" + getRosParam<std::string>("/acquisitionData/datasetDir", nodeHandle);
   ROS_INFO_STREAM("Writing data to: " << dataPath);
+  nodeHandle.setParam("/acquisitionData/imageFile", "");
 
   while (true)
   {
@@ -105,7 +149,17 @@ void dataCollection(
         break;
     }
     std::string folderName = dataPath + fileName;
+    std::string sysCommand = "mkdir -p " + folderName;
+    system(sysCommand.c_str());
+
+    sysCommand = "ls " + folderName + " | wc -l";
+    std::string trial = exec(sysCommand.c_str());
+    trim(trial);
+    trial = std::string(3 - trial.length(), '0') + trial;
+    folderName = folderName + trial + "/";
     ROS_INFO_STREAM("Saving to folder: " << folderName);
+    sysCommand = "mkdir -p " + folderName;
+    system(sysCommand.c_str());
 
     // Move above plate
     ROS_INFO_STREAM("Move above plate");
@@ -134,6 +188,8 @@ void dataCollection(
       nodeHandle.getParam("/acquisitionData/imageFile", imageFile);
     }
 
+    waitForUser("Check image file.", ada);
+
     // Move above food item
     ROS_INFO_STREAM("Detect and move above food");
     auto item = action::detectAndMoveAboveFood(
@@ -153,10 +209,30 @@ void dataCollection(
             nullptr,
             action);
 
+    ROS_INFO_STREAM("Adjusting...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    item = action::detectAndMoveAboveFood(
+            ada,
+            collisionFree,
+            perception,
+            foodName,
+            feedingDemo.mFoodTSRParameters.at("height"),
+            feedingDemo.mFoodTSRParameters.at("horizontalTolerance"),
+            feedingDemo.mFoodTSRParameters.at("verticalTolerance"),
+            feedingDemo.mFoodTSRParameters.at("rotationTolerance"),
+            feedingDemo.mFoodTSRParameters.at("tiltTolerance"),
+            feedingDemo.mPlanningTimeout,
+            feedingDemo.mMaxNumTrials,
+            feedingDemo.mVelocityLimits,
+            &feedingDemo,
+            nullptr,
+            action);
+
+
     // Re-tare force, set to move-in threshold
     ROS_INFO_STREAM("Setting force thresholds and re-taring...");
     if (feedingDemo.getFTThresholdHelper()) {
-        feedingDemo.getFTThresholdHelper()->setThresholds(10.0, 10.0, true);
+        feedingDemo.getFTThresholdHelper()->setThresholds(10.0, 2.0, true);
     }
 
     // Start Force Data Collection
@@ -164,6 +240,26 @@ void dataCollection(
     if (feedingDemo.getFTThresholdHelper()) {
       feedingDemo.getFTThresholdHelper()->startDataCollection();
     }
+
+    // Add fudge factor
+    std::vector<double> offsetVector
+      = getRosParam<std::vector<double>>("/acquisitionData/foodOffsetFork", nodeHandle);
+    Eigen::Vector3d foodOffset(offsetVector[0], offsetVector[1], offsetVector[2]);
+
+    Eigen::Isometry3d eePose
+              = ada->getHand()->getEndEffectorBodyNode()->getTransform();
+    foodOffset = eePose.rotation() * foodOffset;
+
+    if(action > 3) {
+      // No fork offset for angled skewering
+      foodOffset = Eigen::Vector3d(0, 0, 0);
+    }
+
+    offsetVector
+      = getRosParam<std::vector<double>>("/acquisitionData/foodOffsetWorld", nodeHandle);
+    Eigen::Vector3d worldOffset(offsetVector[0], offsetVector[1], offsetVector[2]);
+    
+    foodOffset += worldOffset;
 
     // Move into food item
     ROS_INFO_STREAM("Skewering...");
@@ -173,7 +269,8 @@ void dataCollection(
         &nodeHandle,
         feedingDemo.getFTThresholdHelper(),
         feedingDemo.mServoVelocity,
-        item->getUid());
+        "", // Just get the one food present
+        foodOffset);
 
     if (!moveIntoSuccess)
     {
@@ -206,7 +303,7 @@ void dataCollection(
     ROS_INFO_STREAM("Wait before determining success...");
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     bool success;
-    std::cout << "Did I succeed?";
+    std::cout << "Did I succeed (0, 1)? ";
     std::cin >> success;
     if (success)
     {
