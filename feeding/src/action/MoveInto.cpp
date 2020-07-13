@@ -22,7 +22,7 @@ bool moveInto(
       nodeHandle,
       std::bind(&Perception::perceiveFoodByUID, perception.get(), mFoodUid, foodOffset),
       ada,
-      ros::Duration(0.5), // Update trajectory at 2Hz
+      ros::Duration(0.1), // Update trajectory at 10Hz
       ros::Duration(15.0), // Don't stop if we cannot see food
       0.0, // Don't stop until force threshold met
       velocityLimit,

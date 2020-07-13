@@ -102,7 +102,7 @@ void dataCollection(
     int action = -1;
     double pitch = 0.0;
     double roll = 0.0;
-    std::cout << "Action List (all Force 10N, Rotate 0, Liftoff 0)" << std::endl;
+    std::cout << "Action List (all Force 15N, Rotate 0, Liftoff 0)" << std::endl;
     std::cout << "[0] Pitch 0, Roll 0" << std::endl;
     std::cout << "[1] Pitch 0, Roll 90" << std::endl;
     std::cout << "[2] Pitch -0.5, Roll 0" << std::endl;
@@ -118,32 +118,32 @@ void dataCollection(
     std::string fileName = foodName;
     switch(action) {
         case 0:
-        fileName += "_0_0_10_0_0/";
+        fileName += "_0_0_15_0_0/";
         pitch = 0.0;
         roll = 0.0;
         break;
         case 1:
-        fileName += "_0_1.57_10_0_0/";
+        fileName += "_0_1.57_15_0_0/";
         pitch = 0.0;
         roll = 1.57;
         break;
         case 2:
-        fileName += "_-0.5_0_10_0_0/";
+        fileName += "_-0.5_0_15_0_0/";
         pitch = -0.5;
         roll = 0.0;
         break;
         case 3:
-        fileName += "_-0.5_1.57_10_0_0/";
+        fileName += "_-0.5_1.57_15_0_0/";
         pitch = -0.5;
         roll = 1.57;
         break;
         case 4:
-        fileName += "_0.4_0_10_0_0/";
+        fileName += "_0.4_0_15_0_0/";
         pitch = 0.4;
         roll = 0.0;
         break;
         case 5:
-        fileName += "_0.4_1.57_10_0_0/";
+        fileName += "_0.4_1.57_15_0_0/";
         pitch = 0.4;
         roll = 1.57;
         break;
@@ -232,7 +232,7 @@ void dataCollection(
     // Re-tare force, set to move-in threshold
     ROS_INFO_STREAM("Setting force thresholds and re-taring...");
     if (feedingDemo.getFTThresholdHelper()) {
-        feedingDemo.getFTThresholdHelper()->setThresholds(10.0, 2.0, true);
+        feedingDemo.getFTThresholdHelper()->setThresholds(15.0, 2.0, true);
     }
 
     // Start Force Data Collection
