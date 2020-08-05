@@ -42,10 +42,10 @@ Note that the current demo has only been tested on the JACO 2.
 
 After running `catkin build` and `devel/setup.bash` on your Workspace:
 
-1) Start 'roscore', 'rviz', subscribe to the topic 'feeding/update/InteractiveMarkers'
+1) Start 'roscore', 'rviz'
 2) `roslaunch ada_launch simulation.launch` (will put 2 simulated *cantaloupe* on the plate)
-3) `roslaunch ada_demos feeding.launch` (will quit after writing ROS parameters) 
-3) `cd my_catkin_workspace/devel/bin/` and `./feeding`
+3) `roslaunch ada_demos feeding.launch` (will quit after writing ROS parameters), in RViz, subscribe to the topic 'feeding/update/InteractiveMarkers'
+4) `cd my_catkin_workspace/devel/bin/` and `./feeding`
 
 ## Running the Demo on the JACO 2
 
