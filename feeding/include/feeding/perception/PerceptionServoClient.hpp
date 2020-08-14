@@ -2,17 +2,18 @@
 #define FEEDING_PERCEPTIONSERVOCLIENT_HPP_
 
 #include <mutex>
+
 #include <aikido/control/ros/RosTrajectoryExecutor.hpp>
-#include <aikido/control/ros/RosTrajectoryExecutor.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
-#include <aikido/trajectory/Spline.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <boost/optional.hpp>
 #include <dart/dynamics/BodyNode.hpp>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
+
 #include <libada/Ada.hpp>
+
 #include "feeding/perception/Perception.hpp"
 
 namespace feeding {
@@ -62,10 +63,11 @@ protected:
       const Eigen::Isometry3d& goalPose);
 
   aikido::trajectory::TrajectoryPtr planEndEffectorOffset(
-      const Eigen::Vector3d& goalDirection);
+      const Eigen::Vector3d& goalDirection, double threshold = 0.1);
 
-  aikido::trajectory::UniqueSplinePtr createPartialTimedTrajectoryFromCurrentConfig(
-  const aikido::trajectory::Spline* trajectory);
+  aikido::trajectory::UniqueSplinePtr
+  createPartialTimedTrajectoryFromCurrentConfig(
+      const aikido::trajectory::Spline* trajectory);
 
   ::ros::NodeHandle mNodeHandle;
   boost::function<Eigen::Isometry3d(void)> mGetTransform;
@@ -95,6 +97,7 @@ protected:
   Eigen::VectorXd mCurrentPosition;
 
   Eigen::Isometry3d mOriginalPose;
+  Eigen::Isometry3d mPreviousGoalPose;
   Eigen::VectorXd mOriginalConfig;
 
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
@@ -124,6 +127,6 @@ protected:
   bool mRemoveRotation;
   Eigen::VectorXd mVelocityLimits;
 };
-}
+} // namespace feeding
 
 #endif // FEEDING_PERCEPTIONSERVOCLIENT_HPP_

@@ -25,37 +25,38 @@ ada:
 # Workspace parameters
 plate:
   urdfUri: package://pr_assets/data/objects/plate.urdf
-  pose: [.445, 0.19, -0.04, 0, 0, 0]
+  pose: [.445, 0.19, -0.045, 0, 0, 0]
 table:
   urdfUri: package://pr_assets/data/furniture/table_feeding.urdf
-  pose: [0.76, 0.38, -0.76, 0, 0, 0]
+  pose: [0.76, 0.38, -0.765, 0, 0, 0]
 defaultFoodItem:
   urdfUri: package://pr_assets/data/objects/food_item.urdf
-  pose: [.445, 0.19, 0.0, 3.1415, 0, 0]
+  pose: [.445, 0.19, -0.045, 3.1415, 0, 0]
 person: # the mannequin
   urdfUri: package://pr_assets/data/objects/tom.urdf
-  pose: [0.425, -0.45, 0.502, 0, 0, 1.57]
+  pose: [0.425, -0.45, 0.507, 0, 0, 1.57]
 workspaceEnvironment:
   urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
-  pose: [0, 0, 0, 0, 0, 0]
+  pose: [0, 0, 0.005, 0, 0, 0]
 workspaceEnvironmentWithWallFurtherBack:
-  urdfUri: package://pr_assets/data/furniture/workspace_feeding_without_wall.urdf
-  pose: [0, 0, 0, 0, 0, 0]
+  urdfUri: package://pr_assets/data/furniture/workspace_feeding_demo.urdf
+  pose: [0, 0, 0.005, 0, 0, 0]
 wheelchair:
   urdfUri: package://pr_assets/data/furniture/wheelchair.urdf
-  pose: [0.0, 0.0, 0, 0, 0, 0]
+  pose: [0.0, 0.0, 0.005, 0, 0, 0]
 
 # Feeding demo movement parameters
 feedingDemo:
   heightAbovePlate: 0.15
-  heightAboveFood: 0.05
+  heightAboveFood: 0.08
   heightIntoFood: 0.05           # the real robot plans *below* the food. This parameter specifies how far
-  moveOutofFood: 0.01
-  distanceToPerson: 0.25
+  moveOutofFood: 0.025
+  #distanceToPerson: 0.25
+  distanceToPerson: 0.05
   distanceFromPerson: 0.15
   waitMillisecsAtFood: 00     # short pause after skewering the food
-  waitMillisecsAtPerson: 3000   # long pause so person can take a bite
-  fixedFaceY: 0.27
+  waitMillisecsAtPerson: 1000   # long pause so person can take a bite
+  fixedFaceY: 0.28
 
 # Planning parameters
 planning:
@@ -67,12 +68,12 @@ planning:
     rotationToleranceAbovePlate: 3.1416
     horizontalToleranceNearFood: 0.003
     verticalToleranceNearFood: 0.008
-    rotationToleranceNearFood: 0.005
-    horizontalToleranceNearPerson: 0.03
-    verticalToleranceNearPerson: 0.03
-    tiltToleranceNearFood: 0.0
+    rotationToleranceNearFood: 0.01
+    tiltToleranceNearFood: 0.00
+    horizontalToleranceNearPerson: 0.005
+    verticalToleranceNearPerson: 0.005
   endEffectorOffset:
-    positionTolerance: 0.00008
+    positionTolerance: 0.004
     angularTolerance: 0.004
   endEffectorTwist:
     positionTolerance: 0.0002
@@ -82,10 +83,9 @@ planning:
 ftSensor:
   controllerFTThresholdTopic: /move_until_touch_topic_controller/set_forcetorque_threshold/
   ftTopic: /forque/forqueSensor
-  # ftTopic: /fingervision/fv_3_l/wrench
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 7
+      force: 4
       torque: 4
     grabFood:       # active when going down to grab the food
       force: 22
@@ -99,7 +99,7 @@ ftSensor:
 perception:
   detectorDataUri: package://pr_assets/data/objects/tag_data_foods.json
   foodDetectorTopicName: /food_detector/marker_array
-  faceDetectorTopicName: /face_pose # TODO(GL): added marker_array
+  faceDetectorTopicName: /face_detector/marker_array
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
   faceName: mouth
@@ -107,16 +107,33 @@ perception:
 foodItems:
   # names: ["apricot", "apple", "cantaloupe", "egg", "bell_pepper", "cherry_tomato", "banana", "carrot", "grape_green", "watermelon", "blackberry", "celery", "strawberry", "broccoli", "cauliflower"]
   # forces: [25,       11.75,     7.37,        4.67,  20.99,        11.36,            6.13,       22.49,      9.07,       5.21,          5.98,        17.48,      6.63,         21.63,    21.63]
-  names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "melon"]
-  forces: [15,3,3,7,22,15,7]
-  pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
+  #names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "melon"]
+  #forces: [15,3,3,7,22,15,7]
+  #pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
+  names: ["apple", "banana", "bell_pepper", "broccoli", "cantaloupe", "carrot", "cauliflower", "celery", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry", "lettuce", "spinach", "kale"]
+  forces: [10, 10, 10, 10, 15, 30, 7, 22, 7, 10, 7, 7, 15, 7, 7, 7]
+  pickUpAngleModes: [1, 5, 1, 2, 1, 1, 0, 1, 1, 3, 3, 3, 0, 1, 2, 0]
+
+humanStudy:
+  autoAcquisition: true
+  autoTiming: true
+  autoTransfer: true
+  createError: false
+  foodTopic: /study_food_msgs
+  actionTopic: /study_action_msgs
 
 rotationFree:
-  names: ["cantaloupe", "banana", "melon", "strawberry"]
+  names: ["banana", "broccoli", "cantaloupe", "cauliflower", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry"]
+
+tiltFood:
+  names: ["apple", "bell_pepper", "carrot", "celery"]
 
 study:
   skipSkewering: false
   doForkPickup: false
+
+  tableHeight: 0.235
+
   # y positive is closer to wheelchair
   # z
   forkHolderTranslation: [0.558, -0.023, 0.037]
@@ -127,14 +144,18 @@ study:
   # 2 banana-style
   pickupAngleMode: 0
 
-
-
-
-
   # x: from operator
   # y: towards user 0.24
   # z: up
 
   # 0.73
+  # TRUE:
+  # personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
+  # ERRONEOUS:
   personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
-  tiltOffset: [-0.04, 0, -0.04]
+  tiltOffset: [0.0, 0.05, -0.02]
+
+  # FAST:
+  velocityLimits: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
+  # SLOW:
+  #velocityLimits: [0.2, 0.2, 0.2, 0.2, 0.2, 0.4]

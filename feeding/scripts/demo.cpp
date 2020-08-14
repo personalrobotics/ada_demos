@@ -1,5 +1,5 @@
 
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
 #include <libada/util.hpp>
 
@@ -43,7 +43,11 @@ void demo(
         feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
 
     talk("What food would you like?");
-    auto foodName = getUserInput(false, nodeHandle);
+    
+    auto foodName = getUserFoodInput(false, nodeHandle);
+    if (foodName == std::string("quit")) {
+        break;
+    }
 
     nodeHandle.setParam("/deep_pose/forceFood", false);
     nodeHandle.setParam("/deep_pose/publish_spnet", (true));
@@ -52,6 +56,7 @@ void demo(
 
     ROS_INFO_STREAM("Running bite transfer study for " << foodName);
 
+/*
     switch((rand() % 10)) {
         case 0:
         talk("Good choice!");
@@ -77,6 +82,7 @@ void demo(
         default:
         talk("Alright.");
     }
+*/
 
     talk(std::string("One ") + foodName + std::string(" coming right up!"), true);
 
@@ -152,6 +158,9 @@ void demo(
         feedingDemo.mRotationFreeFoodNames,
         &feedingDemo);
 
+      if (feedingDemo.getFTThresholdHelper())
+        feedingDemo.getFTThresholdHelper()->setThresholds(STANDARD_FT_THRESHOLD);
+
       if (!skewer)
       {
         ROS_WARN_STREAM("Restart from the beginning");
@@ -161,7 +170,8 @@ void demo(
       // ===== IN FRONT OF PERSON =====
       ROS_INFO_STREAM("Move forque in front of person");
 
-      bool tilted = (foodName != "celery");
+      auto tiltFoods = feedingDemo.mTiltFoodNames;
+      bool tilted = (std::find(tiltFoods.begin(), tiltFoods.end(), foodName) != tiltFoods.end());
 
       action::feedFoodToPerson(
         ada,
@@ -186,7 +196,8 @@ void demo(
         feedingDemo.mEndEffectorOffsetPositionTolerance,
         feedingDemo.mEndEffectorOffsetAngularTolerance,
         feedingDemo.mVelocityLimits,
-        tilted ? &feedingDemo.mTiltOffset : nullptr
+        tilted ? &feedingDemo.mTiltOffset : nullptr,
+        &feedingDemo
         );
     }
   }

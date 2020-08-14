@@ -1,11 +1,8 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.10.0)
 project(ada_demos)
 
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
-
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(catkin REQUIRED
@@ -86,13 +83,14 @@ add_subdirectory(feeding)
 # Formatting
 #
 include(ClangFormat)
-clang_format_setup(VERSION 3.8)
+clang_format_setup(VERSION 6.0)
 
 if(CLANG_FORMAT_EXECUTABLE)
   file(GLOB_RECURSE ALL_SOURCE_FILES
     LIST_DIRECTORIES false
     soda_grasp/src/*.cpp
     simple_trajectories/src/*.cpp
+    simple_perception/src/*.cpp
     feeding/src/*.cpp
     feeding/include/feeding/*.hpp
   )

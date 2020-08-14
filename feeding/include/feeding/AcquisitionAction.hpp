@@ -2,6 +2,7 @@
 #define FEEDING_ACQUISITIONACTION_HPP_
 
 #include <unordered_map>
+
 #include <Eigen/Core>
 #include <dart/dart.hpp>
 
@@ -42,6 +43,6 @@ private:
   double mTiltAngle;
   Eigen::Vector3d mMoveIntoDirection;
 };
-}
+} // namespace feeding
 
 #endif

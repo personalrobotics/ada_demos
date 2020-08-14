@@ -14,6 +14,9 @@
   <depend>libada</depend>
   <depend>tf_conversions</depend>
   <depend>rewd_controllers</depend>
+  <depend>image_transport</depend>
+  <depend>image_geometry</depend>
+  <depend>cv_bridge</depend>
 
   <depend>ada_description</depend>
   <depend>pr_assets</depend>
@@ -25,7 +28,7 @@
   <exec_depend>catkin</exec_depend>
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>cmake</buildtool_depend>
-  <buildtool_depend>clang-format-3.8</buildtool_depend>
+  <buildtool_depend>clang-format</buildtool_depend>
   <export>
     <build_type>cmake</build_type>
   </export>

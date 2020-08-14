@@ -1,4 +1,4 @@
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/Rn.hpp>
 #include <mcheck.h>
 #include <pr_tsr/plate.hpp>
@@ -43,12 +43,11 @@ int main(int argc, char** argv)
   bool autoContinueDemo = false;
 
   // the FT sensing can stop trajectories if the forces are too big
-  bool useFTSensingToStopTrajectories = true;
+  bool useFTSensingToStopTrajectories = false;
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
-  //std::string demoType{"gelslight_calib"};
-  std::string demoType{"gelslight_calib"};
+  std::string demoType{"default"};
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
@@ -93,21 +92,18 @@ int main(int argc, char** argv)
 
   // start node
   ros::init(argc, argv, "feeding");
-  ros::NodeHandle nodeHandle("~");
-  nodeHandle.setParam("/feeding/facePerceptionOn", false);
+  std::shared_ptr<ros::NodeHandle> nodeHandle = std::make_shared<ros::NodeHandle>("~");
+  nodeHandle->setParam("/feeding/facePerceptionOn", false);
   ros::AsyncSpinner spinner(2); // 2 threads
   spinner.start();
 
-
   std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr;
-
-  std::cout << "adaReal " << adaReal << std::endl;
 
   if (useFTSensingToStopTrajectories)
   {
     std::cout << "Construct FTThresholdHelper" << std::endl;
     ftThresholdHelper = std::make_shared<FTThresholdHelper>(
-    adaReal && useFTSensingToStopTrajectories, nodeHandle);
+    adaReal && useFTSensingToStopTrajectories, *nodeHandle);
   }
 
   // start demo
@@ -122,21 +118,22 @@ int main(int argc, char** argv)
 
   std::shared_ptr<TargetFoodRanker> ranker;
 
-  if (demoType == "nips" || demoType == "gelslight_calib")
+  if (demoType == "spanet")
+  {
+    ranker = std::make_shared<SuccessRateRanker>();
+  } 
+  else
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
-  else if (demoType == "spanet")
-  {
-    ranker = std::make_shared<SuccessRateRanker>();
-  }
-
-  auto perception = std::make_shared<Perception>(
+  std::shared_ptr<Perception> perception = std::make_shared<Perception>(
       feedingDemo->getWorld(),
       feedingDemo->getAda(),
       feedingDemo->getAda()->getMetaSkeleton(),
-      &nodeHandle,
-      ranker);
+      nodeHandle,
+      ranker,
+      0.0,
+      false);
 
   if (ftThresholdHelper)
     ftThresholdHelper->init();
@@ -145,48 +142,23 @@ int main(int argc, char** argv)
 
   feedingDemo->setPerception(perception);
 
-  ROS_INFO_STREAM("Startup complete.");
+  ROS_INFO_STREAM("Startup complete."); 
 
-  //feedingDemo->moveToStartConfiguration();
+  // Init ROS topics
+  initTopics(nodeHandle.get());
 
-  if (demoType == "nips")
+  // Start Demo
+  if (demoType == "spanet")
   {
-    demo(*feedingDemo, perception, nodeHandle);
+    spanetDemo(*feedingDemo, perception, *nodeHandle);
   }
-  else if (demoType == "spanet")
+  else if (demoType == "humanStudy")
   {
-    spanetDemo(*feedingDemo, perception, nodeHandle);
-  }
-  else if (demoType == "gelslight_calib")
-  {
-    gelslightCalibration(*feedingDemo, perception, nodeHandle);
-    //gelslight_demo(*feedingDemo, perception, nodeHandle);
-  }
-  else if (demoType == "gelslight_ba")
-  {
-    gelslightBiteAcquisition(*feedingDemo, perception, nodeHandle);
-    //gelslight_demo(*feedingDemo, perception, nodeHandle);
+    humanStudyDemo(*feedingDemo, perception, nodeHandle);
   }
   else
   {
-    // ROS_INFO_STREAM("Data will be saved at " << dataCollectorPath << "." << std::endl);
-    // DataCollector dataCollector(
-    //   feedingDemo, feedingDemo->getAda(), nodeHandle, autoContinueDemo, adaReal, perceptionReal, dataCollectorPath);
-
-    // if (StringToAction.find(demoType) == StringToAction.end())
-    // {
-    //   throw std::invalid_argument(demoType + "not recognized.");
-    // }
-
-    // if (StringToAction.at(demoType) == Action::IMAGE_ONLY)
-    // {
-    //   dataCollector.collect_images(foodName);
-    // }
-    // else
-    // {
-    //   dataCollector.collect(StringToAction.at(demoType), foodName, directionIndex, trialIndex);
-    // }
-
+    demo(*feedingDemo, perception, *nodeHandle);
   }
 
   return 0;

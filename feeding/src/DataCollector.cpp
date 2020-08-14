@@ -1,18 +1,21 @@
 #include "feeding/DataCollector.hpp"
+
+#include <iostream>
+#include <sstream>
+
 #include <boost/date_time.hpp>
 #include <boost/filesystem/path.hpp>
 #include <stdlib.h>
 #include <yaml-cpp/yaml.h>
+
 #include <libada/util.hpp>
 
-#include <iostream>
-#include <sstream>
 #include "boost/date_time/posix_time/posix_time.hpp"
 
+using ada::util::createBwMatrixForTSR;
+using ada::util::createIsometry;
 using ada::util::getRosParam;
 using ada::util::waitForUser;
-using ada::util::createIsometry;
-using ada::util::createBwMatrixForTSR;
 using aikido::constraint::dart::TSR;
 
 namespace {
@@ -26,19 +29,19 @@ TSR getSideViewTSR(int step)
 {
   double angle = 0.1745 * step;
   auto tsr = pr_tsr::getDefaultPlateTSR();
-  tsr.mT0_w
-      = robotPose.inverse() * createIsometry(
-                                  0.425 + sin(angle) * 0.1 + cos(angle) * -0.03,
-                                  0.15 - cos(angle) * 0.1 + sin(angle) * -0.03,
-                                  0.05,
-                                  3.58,
-                                  0,
-                                  angle);
+  tsr.mT0_w = robotPose.inverse()
+              * createIsometry(
+                  0.425 + sin(angle) * 0.1 + cos(angle) * -0.03,
+                  0.15 - cos(angle) * 0.1 + sin(angle) * -0.03,
+                  0.05,
+                  3.58,
+                  0,
+                  angle);
 
   tsr.mBw = createBwMatrixForTSR(0.001, 0.001, 0, 0);
   return tsr;
 }
-}
+} // namespace
 namespace feeding {
 
 //==============================================================================
@@ -348,8 +351,7 @@ void DataCollector::collect(
 
   ROS_INFO_STREAM(
       "\nTrial " << trialIndex << ": Food [" << foodName << "] Direction ["
-                 << mAngleNames[directionIndex]
-                 << "] \n\n");
+                 << mAngleNames[directionIndex] << "] \n\n");
 
   std::cout << "Set data collection params." << std::endl;
   ;
@@ -499,12 +501,11 @@ bool DataCollector::skewer(float rotateForqueAngle, TiltStyle tiltStyle)
   if (tiltStyle == TiltStyle::ANGLED)
   {
     Eigen::Vector3d food(mFeedingDemo->getDefaultFoodTransform().translation());
-    Eigen::Vector3d hand(
-        mFeedingDemo->getAda()
-            ->getHand()
-            ->getEndEffectorBodyNode()
-            ->getTransform()
-            .translation());
+    Eigen::Vector3d hand(mFeedingDemo->getAda()
+                             ->getHand()
+                             ->getEndEffectorBodyNode()
+                             ->getTransform()
+                             .translation());
     direction = food - hand;
     direction.normalize();
   }
@@ -532,8 +533,7 @@ void DataCollector::recordSuccess()
 
   ROS_INFO_STREAM(
       "Record success for " << food << " direction " << direction << " trial "
-                            << trial
-                            << " [y/n]");
+                            << trial << " [y/n]");
 
   std::vector<std::string> optionPrompts{
       "(1) success", "(2) fail", "(3) delete"};

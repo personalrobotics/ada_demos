@@ -4,28 +4,49 @@
 #include <fstream>
 #include <iostream>
 #include <utility>
+
 #include <Eigen/Dense>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/statespace/StateSpace.hpp>
 #include <aikido/trajectory/Interpolated.hpp>
 #include <aikido/trajectory/Spline.hpp>
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
 #include <dart/dart.hpp>
-#include <libada/Ada.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
-
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
+
+#include <libada/Ada.hpp>
 
 namespace feeding {
 
 static const std::vector<std::string> FOOD_NAMES
-    = {"strawberry", "cantaloupe", "celery", "carrot"};
+    = {"apple",
+       "banana",
+       "bell_pepper",
+       "broccoli",
+       "cantaloupe",
+       "carrot",
+       "cauliflower",
+       "celery",
+       "cherry_tomato",
+       "grape",
+       "honeydew",
+       "kiwi",
+       "strawberry",
+       "lettuce",
+       "spinach",
+       "kale"};
+
+static const std::vector<int> BEST_ACTIONS
+    = {1, 5, 1, 2, 3, 1, 3, 1, 1, 3, 3, 3, 1, 1, 2, 0};
+/*static const std::vector<int> BEST_ACTIONS
+    = {1, 5, 1, 2, 3, 1, 0, 1, 1, 3, 3, 3, 3, 1, 2, 0};*/
 
 static const std::vector<std::string> ACTIONS
     = {"calibrate", "pickupfork", "putdownfork"};
 
-static aikido::rviz::WorldInteractiveMarkerViewerPtr VIEWER;
+static aikido::rviz::InteractiveMarkerViewerPtr VIEWER;
 
 /// Deals with the arguments supplied to the executable.
 /// \param[in] description Description for this program
@@ -67,7 +88,11 @@ void dumpSplinePhasePlot(
 /// Gets user selection of food and actions
 /// param[in] food_only If true, only food choices are valid
 /// param[in]] nodeHandle Ros Node to set food name for detection.
-std::string getUserInput(bool food_only, ros::NodeHandle& nodeHandle);
+std::string getUserFoodInput(
+    bool food_only,
+    ros::NodeHandle& nodeHandle,
+    bool useAlexa = true,
+    double timeout = 5);
 
 int getUserInputWithOptions(
     const std::vector<std::string>& optionPrompts, const std::string& prompt);
@@ -111,10 +136,30 @@ Eigen::Isometry3d getForqueTransform(tf::TransformListener& tfListener);
 aikido::distance::ConfigurationRankerPtr getConfigurationRanker(
     const std::shared_ptr<::ada::Ada>& ada);
 
-std::string getUserInputFromAlexa(ros::NodeHandle& nodeHandle);
+std::string getInputFromTopic(
+    std::string topic,
+    const ros::NodeHandle& nodeHandle,
+    bool validateAsFood,
+    double timeout = 20);
 
 void talk(const std::string&, bool background = false);
 
-} // feeding
+void initTopics(ros::NodeHandle* nodeHandle);
+
+//==============================================================================
+// Publish msg to the web interface to indicate food acquisition is done
+void publishActionDoneToWeb(ros::NodeHandle* nodeHandle);
+
+//==============================================================================
+// Publish msg to the web interface to indicate food transfer in front of person
+// is done
+void publishTimingDoneToWeb(ros::NodeHandle* nodeHandle);
+
+//==============================================================================
+// Publish msg to the web interface to indicate food transfer in front of person
+// is done
+void publishTransferDoneToWeb(ros::NodeHandle* nodeHandle);
+
+} // namespace feeding
 
 #endif

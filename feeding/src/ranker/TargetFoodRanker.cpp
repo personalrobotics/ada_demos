@@ -1,6 +1,7 @@
 #include "feeding/ranker/TargetFoodRanker.hpp"
 
 #include <algorithm>
+
 #include "feeding/util.hpp"
 
 namespace feeding {
@@ -33,4 +34,4 @@ void TargetFoodRanker::sort(
   for (auto& item : items)
     std::cout << item->getName() << " " << item->getScore() << std::endl;
 }
-}
+} // namespace feeding

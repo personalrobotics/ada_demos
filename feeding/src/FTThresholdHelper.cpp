@@ -1,5 +1,7 @@
 #include "feeding/FTThresholdHelper.hpp"
+
 #include <thread>
+
 #include <libada/util.hpp>
 
 #include "feeding/util.hpp"
@@ -24,7 +26,6 @@ FTThresholdHelper::FTThresholdHelper(
 #else
   mUseThresholdControl = false;
 #endif
-
 }
 
 //==============================================================================
@@ -112,13 +113,16 @@ bool FTThresholdHelper::setThresholds(FTThreshold threshold)
   if (!mUseThresholdControl)
     return true;
 
-
 #ifdef REWD_CONTROLLERS_FOUND
   auto thresholdPair = getThresholdValues(threshold);
-  ROS_INFO_STREAM("Set thresholds " << thresholdPair.first << " " << thresholdPair.second);
+  ROS_INFO_STREAM(
+      "Set thresholds " << thresholdPair.first << " " << thresholdPair.second);
   return mFTThresholdClient->setThresholds(
       thresholdPair.first, thresholdPair.second);
 #endif
+
+  // Handle no rewd_controllers case as if thresholds disabled
+  return true;
 }
 
 //==============================================================================
@@ -131,6 +135,9 @@ bool FTThresholdHelper::setThresholds(double forces, double torques)
   ROS_INFO_STREAM("Set thresholds " << forces << " " << torques);
   return mFTThresholdClient->setThresholds(forces, torques);
 #endif
+
+  // Handle no rewd_controllers case as if thresholds disabled
+  return true;
 }
 
 //==============================================================================
@@ -171,4 +178,4 @@ std::pair<double, double> FTThresholdHelper::getThresholdValues(
   }
   return std::pair<double, double>(forceThreshold, torqueThreshold);
 }
-}
+} // namespace feeding

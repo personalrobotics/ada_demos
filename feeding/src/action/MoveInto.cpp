@@ -1,11 +1,11 @@
-#include "feeding/action/PutDownFork.hpp"
+#include "feeding/action/MoveInto.hpp"
 
 #include <libada/util.hpp>
 
 #include "feeding/TargetItem.hpp"
 #include "feeding/action/MoveAbove.hpp"
-#include "feeding/action/MoveInto.hpp"
 #include "feeding/action/MoveOutOf.hpp"
+#include "feeding/action/PutDownFork.hpp"
 #include "feeding/perception/PerceptionServoClient.hpp"
 #include "feeding/util.hpp"
 
@@ -22,7 +22,8 @@ bool moveInto(
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
     const Eigen::Vector3d& endEffectorDirection,
-    std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
+    std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
+    const std::vector<double>& velocityLimits)
 {
   ROS_INFO_STREAM("Move into " + TargetToString.at(item));
 
@@ -37,7 +38,8 @@ bool moveInto(
         collisionFree,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);
+        endEffectorOffsetAngularTolerance,
+        velocityLimits);
 
   // if (perception)
   // {
@@ -68,9 +70,12 @@ bool moveInto(
   // }
   // else
 
-  std::cout << "endEffectorDirection " << endEffectorDirection.transpose() << std::endl;
+  std::cout << "endEffectorDirection " << endEffectorDirection.transpose()
+            << std::endl;
+  // int n;
+  // std::cin >> n;
   {
-    double length = 0.05;
+    double length = 0.085;
     int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
     // Collision constraint is not set because f/t sensor stops execution.
 
@@ -80,12 +85,13 @@ bool moveInto(
         nullptr,
         planningTimeout,
         endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance);
+        endEffectorOffsetAngularTolerance,
+        velocityLimits);
     ROS_INFO_STREAM(" Execution result: " << result);
   }
 
   return true;
 }
 
-} // namespace feeding
 } // namespace action
+} // namespace feeding

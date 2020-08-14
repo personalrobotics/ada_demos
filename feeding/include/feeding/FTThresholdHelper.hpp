@@ -2,12 +2,12 @@
 #define FEEDING_FTTHRESHOLDHELPER_HPP_
 
 #include <geometry_msgs/WrenchStamped.h>
-// TODO
-#define REWD_CONTROLLERS_FOUND
+
 #ifdef REWD_CONTROLLERS_FOUND
 #include <rewd_controllers/FTThresholdClient.hpp>
 #endif
 #include <mutex>
+
 #include <Eigen/Geometry>
 #include <ros/ros.h>
 
@@ -76,6 +76,6 @@ private:
    */
   void forceTorqueDataCallback(const geometry_msgs::WrenchStamped& msg);
 };
-}
+} // namespace feeding
 
 #endif

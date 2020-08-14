@@ -2,9 +2,10 @@
 #define FEEDING_ACTION_MOVEABOVEFOOD_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/AcquisitionAction.hpp"
-#include "feeding/Workspace.hpp"
 #include "feeding/FeedingDemo.hpp"
+#include "feeding/Workspace.hpp"
 
 // Contains motions which are mainly TSR actions
 namespace feeding {
@@ -25,7 +26,8 @@ bool moveAboveFood(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    FeedingDemo* feedingDemo=nullptr);
+    FeedingDemo* feedingDemo = nullptr,
+    double* angleGuess = nullptr);
 
 } // namespace action
 } // namespace feeding

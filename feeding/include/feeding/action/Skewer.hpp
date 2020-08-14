@@ -2,10 +2,11 @@
 #define FEEDING_ACTION_SKEWER_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/FTThresholdHelper.hpp"
+#include "feeding/FeedingDemo.hpp"
 #include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
-#include "feeding/FeedingDemo.hpp"
 
 namespace feeding {
 namespace action {
@@ -37,8 +38,8 @@ bool skewer(
     std::vector<double> velocityLimits,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
     std::vector<std::string> rotationFreeFoodNames = std::vector<std::string>(),
-    FeedingDemo* feedingDemo=nullptr);
+    FeedingDemo* feedingDemo = nullptr);
 }
-}
+} // namespace feeding
 
 #endif

@@ -1,4 +1,5 @@
 #include "feeding/action/MoveAbovePlate.hpp"
+
 #include "feeding/action/MoveAbove.hpp"
 
 namespace feeding {
@@ -20,7 +21,8 @@ bool moveAbovePlate(
   // Hardcoded pose
   Eigen::VectorXd homeConfig(6);
   homeConfig << -2.11666, 3.34967, 2.04129, -2.30031, -2.34026, 2.9545;
-  bool success = ada->moveArmToConfiguration(homeConfig, collisionFree, 2.0);
+  bool success = ada->moveArmToConfiguration(
+      homeConfig, collisionFree, 2.0, velocityLimits);
   if (!success)
     return moveAbove(
         ada,

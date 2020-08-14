@@ -2,7 +2,9 @@
 #define FEEDING_TARGETFOODRANKER_HPP_
 
 #include <vector>
+
 #include <Eigen/Core>
+
 #include "feeding/FoodItem.hpp"
 
 namespace feeding {

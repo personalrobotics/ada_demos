@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_MOVETOWARDSPERSON_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
 
@@ -18,6 +19,6 @@ bool moveTowardsPerson(
     double endEffectorOffsetPositionTolerenace,
     double endEffectorOffsetAngularTolerance);
 }
-}
+} // namespace feeding
 
 #endif

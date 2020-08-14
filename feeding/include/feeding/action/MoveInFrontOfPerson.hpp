@@ -2,8 +2,9 @@
 #define FEEDING_ACTION_MOVEINFRONTOFPERSON_HPP_
 
 #include <libada/Ada.hpp>
-#include "feeding/Workspace.hpp"
+
 #include "feeding/FeedingDemo.hpp"
+#include "feeding/Workspace.hpp"
 
 // Contains motions which are mainly TSR actions
 namespace feeding {
@@ -19,8 +20,8 @@ bool moveInFrontOfPerson(
     double planningTimeout,
     int maxNumTrials,
     std::vector<double> velocityLimits,
-    FeedingDemo* feedingDemo=nullptr);
+    FeedingDemo* feedingDemo = nullptr);
 }
-}
+} // namespace feeding
 
 #endif

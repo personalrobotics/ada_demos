@@ -3,17 +3,16 @@
 
 #include <aikido/distance/ConfigurationRanker.hpp>
 #include <aikido/planner/World.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <aikido/rviz/TSRMarker.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
-
 #include <ros/ros.h>
+
 #include <libada/Ada.hpp>
 
 #include "feeding/AcquisitionAction.hpp"
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/TargetItem.hpp"
 #include "feeding/Workspace.hpp"
-
 #include "feeding/perception/Perception.hpp"
 #include "feeding/perception/PerceptionServoClient.hpp"
 #include "feeding/ranker/TargetFoodRanker.hpp"
@@ -44,7 +43,7 @@ public:
   /// \param[in] nodeHandle Handle of the ros node.
   FeedingDemo(
       bool adaReal,
-      ros::NodeHandle nodeHandle,
+      std::shared_ptr<ros::NodeHandle> nodeHandle,
       bool useFTSensingToStopTrajectories,
       bool useVisualServo,
       bool allowFreeRotation,
@@ -57,6 +56,9 @@ public:
 
   void setPerception(std::shared_ptr<Perception> perception);
 
+  /// Gets the Node Handle
+  std::shared_ptr<ros::NodeHandle> getNodeHandle();
+
   /// Gets the aikido world
   aikido::planner::WorldPtr getWorld();
 
@@ -66,17 +68,21 @@ public:
   /// Gets Ada
   std::shared_ptr<ada::Ada> getAda();
 
+  /// Determines if Demo is Real or Sim
+  bool isAdaReal();
+
   /// Gets the transform of the default food object (defined in Workspace)
   /// Valid only for simulation mode
   Eigen::Isometry3d getDefaultFoodTransform();
 
-  aikido::rviz::WorldInteractiveMarkerViewerPtr getViewer();
+  aikido::rviz::InteractiveMarkerViewerPtr getViewer();
 
   void waitForUser(const std::string& prompt);
 
   aikido::constraint::dart::CollisionFreePtr getCollisionConstraint();
 
-  aikido::constraint::dart::CollisionFreePtr getCollisionConstraintWithWallFurtherBack();
+  aikido::constraint::dart::CollisionFreePtr
+  getCollisionConstraintWithWallFurtherBack();
 
   /// Resets the environmnet.
   void reset();
@@ -92,6 +98,7 @@ public:
 
   std::vector<std::string> mFoodNames;
   std::vector<std::string> mRotationFreeFoodNames;
+  std::vector<std::string> mTiltFoodNames;
   std::vector<double> mSkeweringForces;
   std::unordered_map<std::string, double> mFoodSkeweringForces;
   std::unordered_map<std::string, int> mPickUpAngleModes;
@@ -113,6 +120,8 @@ public:
   std::vector<double> mForkHolderTranslation;
   Eigen::Vector3d mTiltOffset;
 
+  double mTableHeight;
+
 private:
   /// Attach food to forque
   void grabFoodWithForque();
@@ -125,7 +134,7 @@ private:
   bool mAutoContinueDemo;
   bool mVisualServo;
   bool mAllowRotationFree;
-  ros::NodeHandle mNodeHandle;
+  std::shared_ptr<ros::NodeHandle> mNodeHandle;
   std::shared_ptr<Perception> mPerception;
   std::shared_ptr<FTThresholdHelper> mFTThresholdHelper;
 
@@ -135,16 +144,17 @@ private:
   aikido::statespace::dart::MetaSkeletonStateSpacePtr mArmSpace;
   std::shared_ptr<Workspace> mWorkspace;
   aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
-  aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraintWithWallFurtherBack;
+  aikido::constraint::dart::CollisionFreePtr
+      mCollisionFreeConstraintWithWallFurtherBack;
 
   std::unique_ptr<PerceptionServoClient> mServoClient;
 
   std::vector<aikido::rviz::TSRMarkerPtr> tsrMarkers;
 
-  aikido::rviz::WorldInteractiveMarkerViewerPtr mViewer;
+  aikido::rviz::InteractiveMarkerViewerPtr mViewer;
   aikido::rviz::FrameMarkerPtr frameMarker;
   aikido::rviz::TrajectoryMarkerPtr trajectoryMarkerPtr;
 };
-}
+} // namespace feeding
 
 #endif

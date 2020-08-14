@@ -1,32 +1,32 @@
 #include "feeding/FeedingDemo.hpp"
-#include <aikido/rviz/TrajectoryMarker.hpp>
-#include <boost/optional.hpp>
-
-#include <libada/util.hpp>
 
 #include <fstream>
 #include <iostream>
 #include <string>
 
+#include <aikido/rviz/TrajectoryMarker.hpp>
+#include <boost/optional.hpp>
+
+#include <libada/util.hpp>
+
 #include "feeding/FoodItem.hpp"
 #include "feeding/util.hpp"
 
-using ada::util::getRosParam;
 using ada::util::createIsometry;
+using ada::util::getRosParam;
 using aikido::constraint::dart::CollisionFreePtr;
 
 const bool TERMINATE_AT_USER_PROMPT = true;
 
 static const std::size_t MAX_NUM_TRIALS = 3;
 static const double inf = std::numeric_limits<double>::infinity();
-static const std::vector<double> velocityLimits{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
 
 namespace feeding {
 
 //==============================================================================
 FeedingDemo::FeedingDemo(
     bool adaReal,
-    ros::NodeHandle nodeHandle,
+    std::shared_ptr<ros::NodeHandle> nodeHandle,
     bool useFTSensingToStopTrajectories,
     bool useVisualServo,
     bool allowFreeRotation,
@@ -49,17 +49,17 @@ FeedingDemo::FeedingDemo(
   mAda = std::make_shared<ada::Ada>(
       mWorld,
       !mAdaReal,
-      getRosParam<std::string>("/ada/urdfUri", mNodeHandle),
-      getRosParam<std::string>("/ada/srdfUri", mNodeHandle),
-      getRosParam<std::string>("/ada/endEffectorName", mNodeHandle),
+      getRosParam<std::string>("/ada/urdfUri", *mNodeHandle),
+      getRosParam<std::string>("/ada/srdfUri", *mNodeHandle),
+      getRosParam<std::string>("/ada/endEffectorName", *mNodeHandle),
       armTrajectoryExecutor);
   mArmSpace = mAda->getArm()->getStateSpace();
 
   Eigen::Isometry3d robotPose = createIsometry(
-      getRosParam<std::vector<double>>("/ada/baseFramePose", mNodeHandle));
+      getRosParam<std::vector<double>>("/ada/baseFramePose", *mNodeHandle));
 
   mWorkspace
-      = std::make_shared<Workspace>(mWorld, robotPose, mAdaReal, mNodeHandle);
+      = std::make_shared<Workspace>(mWorld, robotPose, mAdaReal, *mNodeHandle);
 
   // Setting up collisions
   dart::collision::CollisionDetectorPtr collisionDetector
@@ -80,7 +80,6 @@ FeedingDemo::FeedingDemo(
   mCollisionFreeConstraint->addPairwiseCheck(
       armCollisionGroup, envCollisionGroup);
 
-
   dart::collision::CollisionDetectorPtr relaxedCollisionDetector
       = dart::collision::FCLCollisionDetector::create();
   std::shared_ptr<dart::collision::CollisionGroup> relaxedArmCollisionGroup
@@ -95,16 +94,17 @@ FeedingDemo::FeedingDemo(
 
   mCollisionFreeConstraintWithWallFurtherBack
       = std::make_shared<aikido::constraint::dart::CollisionFree>(
-          mArmSpace, mAda->getArm()->getMetaSkeleton(), relaxedCollisionDetector);
+          mArmSpace,
+          mAda->getArm()->getMetaSkeleton(),
+          relaxedCollisionDetector);
   mCollisionFreeConstraintWithWallFurtherBack->addPairwiseCheck(
       relaxedArmCollisionGroup, relaxedEnvCollisionGroup);
 
-
   // visualization
-  mViewer = std::make_shared<aikido::rviz::WorldInteractiveMarkerViewer>(
-      mWorld,
-      getRosParam<std::string>("/visualization/topicName", mNodeHandle),
-      getRosParam<std::string>("/visualization/baseFrameName", mNodeHandle));
+  mViewer = std::make_shared<aikido::rviz::InteractiveMarkerViewer>(
+      getRosParam<std::string>("/visualization/topicName", *mNodeHandle),
+      getRosParam<std::string>("/visualization/baseFrameName", *mNodeHandle),
+      mWorld);
   mViewer->setAutoUpdate(true);
 
   if (mAdaReal)
@@ -113,13 +113,15 @@ FeedingDemo::FeedingDemo(
   }
 
   mFoodNames
-      = getRosParam<std::vector<std::string>>("/foodItems/names", mNodeHandle);
+      = getRosParam<std::vector<std::string>>("/foodItems/names", *mNodeHandle);
   mSkeweringForces
-      = getRosParam<std::vector<double>>("/foodItems/forces", mNodeHandle);
+      = getRosParam<std::vector<double>>("/foodItems/forces", *mNodeHandle);
   mRotationFreeFoodNames = getRosParam<std::vector<std::string>>(
-      "/rotationFree/names", mNodeHandle);
+      "/rotationFree/names", *mNodeHandle);
+  mTiltFoodNames
+      = getRosParam<std::vector<std::string>>("/tiltFood/names", *mNodeHandle);
   auto pickUpAngleModes = getRosParam<std::vector<int>>(
-      "/foodItems/pickUpAngleModes", mNodeHandle);
+      "/foodItems/pickUpAngleModes", *mNodeHandle);
 
   for (int i = 0; i < mFoodNames.size(); i++)
   {
@@ -128,58 +130,61 @@ FeedingDemo::FeedingDemo(
   }
 
   mPlateTSRParameters["height"]
-      = getRosParam<double>("/feedingDemo/heightAbovePlate", mNodeHandle);
+      = getRosParam<double>("/feedingDemo/heightAbovePlate", *mNodeHandle);
   mPlateTSRParameters["horizontalTolerance"] = getRosParam<double>(
-      "/planning/tsr/horizontalToleranceAbovePlate", mNodeHandle);
+      "/planning/tsr/horizontalToleranceAbovePlate", *mNodeHandle);
   mPlateTSRParameters["verticalTolerance"] = getRosParam<double>(
-      "/planning/tsr/verticalToleranceAbovePlate", mNodeHandle);
+      "/planning/tsr/verticalToleranceAbovePlate", *mNodeHandle);
   mPlateTSRParameters["rotationTolerance"] = getRosParam<double>(
-      "/planning/tsr/rotationToleranceAbovePlate", mNodeHandle);
+      "/planning/tsr/rotationToleranceAbovePlate", *mNodeHandle);
 
   mFoodTSRParameters["height"]
-      = getRosParam<double>("/feedingDemo/heightAboveFood", mNodeHandle);
+      = getRosParam<double>("/feedingDemo/heightAboveFood", *mNodeHandle);
   mFoodTSRParameters["horizontalTolerance"] = getRosParam<double>(
-      "/planning/tsr/horizontalToleranceNearFood", mNodeHandle);
+      "/planning/tsr/horizontalToleranceNearFood", *mNodeHandle);
   mFoodTSRParameters["verticalTolerance"] = getRosParam<double>(
-      "/planning/tsr/verticalToleranceNearFood", mNodeHandle);
+      "/planning/tsr/verticalToleranceNearFood", *mNodeHandle);
   mFoodTSRParameters["rotationTolerance"] = getRosParam<double>(
-      "/planning/tsr/rotationToleranceNearFood", mNodeHandle);
-  mFoodTSRParameters["tiltTolerance"]
-      = getRosParam<double>("/planning/tsr/tiltToleranceNearFood", mNodeHandle);
+      "/planning/tsr/rotationToleranceNearFood", *mNodeHandle);
+  mFoodTSRParameters["tiltTolerance"] = getRosParam<double>(
+      "/planning/tsr/tiltToleranceNearFood", *mNodeHandle);
   mMoveOufOfFoodLength
-      = getRosParam<double>("/feedingDemo/moveOutofFood", mNodeHandle);
+      = getRosParam<double>("/feedingDemo/moveOutofFood", *mNodeHandle);
 
   mPlanningTimeout
-      = getRosParam<double>("/planning/timeoutSeconds", mNodeHandle);
-  mMaxNumTrials = getRosParam<int>("/planning/maxNumberOfTrials", mNodeHandle);
+      = getRosParam<double>("/planning/timeoutSeconds", *mNodeHandle);
+  mMaxNumTrials = getRosParam<int>("/planning/maxNumberOfTrials", *mNodeHandle);
 
   mEndEffectorOffsetPositionTolerance = getRosParam<double>(
-      "/planning/endEffectorOffset/positionTolerance", mNodeHandle),
+      "/planning/endEffectorOffset/positionTolerance", *mNodeHandle),
   mEndEffectorOffsetAngularTolerance = getRosParam<double>(
-      "/planning/endEffectorOffset/angularTolerance", mNodeHandle);
+      "/planning/endEffectorOffset/angularTolerance", *mNodeHandle);
 
   mWaitTimeForFood = std::chrono::milliseconds(
-      getRosParam<int>("/feedingDemo/waitMillisecsAtFood", mNodeHandle));
+      getRosParam<int>("/feedingDemo/waitMillisecsAtFood", *mNodeHandle));
   mWaitTimeForPerson = std::chrono::milliseconds(
-      getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", mNodeHandle));
+      getRosParam<int>("/feedingDemo/waitMillisecsAtPerson", *mNodeHandle));
 
   mPersonTSRParameters["distance"]
-      = getRosParam<double>("/feedingDemo/distanceToPerson", mNodeHandle);
+      = getRosParam<double>("/feedingDemo/distanceToPerson", *mNodeHandle);
   mPersonTSRParameters["horizontalTolerance"] = getRosParam<double>(
-      "/planning/tsr/horizontalToleranceNearPerson", mNodeHandle);
+      "/planning/tsr/horizontalToleranceNearPerson", *mNodeHandle);
   mPersonTSRParameters["verticalTolerance"] = getRosParam<double>(
-      "/planning/tsr/verticalToleranceNearPerson", mNodeHandle);
+      "/planning/tsr/verticalToleranceNearPerson", *mNodeHandle);
 
-  mForkHolderAngle = getRosParam<double>("/study/forkHolderAngle", mNodeHandle);
+  mForkHolderAngle
+      = getRosParam<double>("/study/forkHolderAngle", *mNodeHandle);
   mForkHolderTranslation = getRosParam<std::vector<double>>(
-      "/study/forkHolderTranslation", mNodeHandle);
+      "/study/forkHolderTranslation", *mNodeHandle);
 
   std::vector<double> tiltOffsetVector
-      = getRosParam<std::vector<double>>("/study/tiltOffset", mNodeHandle);
+      = getRosParam<std::vector<double>>("/study/tiltOffset", *mNodeHandle);
   mTiltOffset = Eigen::Vector3d(
       tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
 
-  mVelocityLimits = std::vector<double>{0.2, 0.2, 0.2, 0.2, 0.2, 0.4};
+  mVelocityLimits
+      = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
+  mTableHeight = getRosParam<double>("/study/tableHeight", *mNodeHandle);
 }
 
 //==============================================================================
@@ -197,6 +202,12 @@ FeedingDemo::~FeedingDemo()
 void FeedingDemo::setPerception(std::shared_ptr<Perception> perception)
 {
   mPerception = perception;
+}
+
+//==============================================================================
+std::shared_ptr<ros::NodeHandle> FeedingDemo::getNodeHandle()
+{
+  return mNodeHandle;
 }
 
 //==============================================================================
@@ -218,18 +229,22 @@ std::shared_ptr<ada::Ada> FeedingDemo::getAda()
 }
 
 //==============================================================================
+bool FeedingDemo::isAdaReal()
+{
+  return mAdaReal;
+}
+
+//==============================================================================
 CollisionFreePtr FeedingDemo::getCollisionConstraint()
 {
   return mCollisionFreeConstraint;
 }
-
 
 //==============================================================================
 CollisionFreePtr FeedingDemo::getCollisionConstraintWithWallFurtherBack()
 {
   return mCollisionFreeConstraintWithWallFurtherBack;
 }
-
 
 //==============================================================================
 Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
@@ -240,7 +255,7 @@ Eigen::Isometry3d FeedingDemo::getDefaultFoodTransform()
 }
 
 //==============================================================================
-aikido::rviz::WorldInteractiveMarkerViewerPtr FeedingDemo::getViewer()
+aikido::rviz::InteractiveMarkerViewerPtr FeedingDemo::getViewer()
 {
   return mViewer;
 }
@@ -262,10 +277,9 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
 {
   Eigen::Isometry3d eeTransform
       = mAda->getHand()->getEndEffectorTransform("plate").get();
-  eeTransform.linear()
-      = eeTransform.linear()
-        * Eigen::Matrix3d(
-              Eigen::AngleAxisd(M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+  eeTransform.linear() = eeTransform.linear()
+                         * Eigen::Matrix3d(Eigen::AngleAxisd(
+                             M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   eeTransform.translation()
       = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
 

@@ -1,4 +1,5 @@
 #include "feeding/action/PickUpFork.hpp"
+
 #include "feeding/TargetItem.hpp"
 #include "feeding/action/MoveAboveForque.hpp"
 #include "feeding/action/MoveAbovePlate.hpp"
@@ -85,5 +86,5 @@ void pickUpFork(
       velocityLimits);
 }
 
-} // namespace feeding
 } // namespace action
+} // namespace feeding

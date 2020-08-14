@@ -46,5 +46,5 @@ void scoop(const std::shared_ptr<ada::Ada>& ada)
   // }
 }
 
-} // namespace feeding
 } // namespace action
+} // namespace feeding

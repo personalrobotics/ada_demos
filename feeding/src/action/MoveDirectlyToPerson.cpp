@@ -1,9 +1,11 @@
 #include "feeding/action/MoveDirectlyToPerson.hpp"
+
 #include <libada/util.hpp>
+
 #include "feeding/util.hpp"
 
-using aikido::constraint::dart::TSR;
 using ada::util::createBwMatrixForTSR;
+using aikido::constraint::dart::TSR;
 
 // Contains motions which are mainly TSR actions
 namespace feeding {
@@ -23,7 +25,10 @@ bool moveDirectlyToPerson(
     const Eigen::Vector3d* tiltOffset,
     FeedingDemo* feedingDemo)
 {
-  Eigen::Isometry3d person(personPose);
+  Eigen::Isometry3d person = Eigen::Isometry3d::Identity();
+  person.translation() = personPose.translation();
+  person.linear()
+      = Eigen::Matrix3d(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitZ()));
   if (tiltOffset)
   {
     person.translation() += *tiltOffset;
@@ -31,7 +36,8 @@ bool moveDirectlyToPerson(
 
   TSR personTSR;
   personTSR.mT0_w = person;
-  personTSR.mTw_e.translation() = Eigen::Vector3d{0, distanceToPerson, 0};
+  // TODO: Remove this Erroneous offset
+  personTSR.mTw_e.translation() = Eigen::Vector3d{0, 0.2, 0.15};
 
   if (tiltOffset)
   {
@@ -41,14 +47,14 @@ bool moveDirectlyToPerson(
         verticalToleranceForPerson,
         0,
         M_PI / 4,
-        -M_PI / 4);
+        M_PI / 4);
     Eigen::Isometry3d eeTransform
         = ada->getHand()->getEndEffectorTransform("person").get();
     eeTransform.linear()
         = eeTransform.linear()
           * Eigen::Matrix3d(
-                Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
-                * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
+              Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
+              * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
     personTSR.mTw_e.matrix() *= eeTransform.matrix();
   }
   else
@@ -64,13 +70,13 @@ bool moveDirectlyToPerson(
         *= ada->getHand()->getEndEffectorTransform("person")->matrix();
   }
 
-  if(feedingDemo)
-  {
-    feedingDemo->getViewer()->addTSRMarker(personTSR);
-    std::cout << "check person TSR" << std::endl;
-    int n;
-    std::cin >> n;
-  }
+  // if (feedingDemo)
+  //{
+  //  feedingDemo->getViewer()->addTSRMarker(personTSR);
+  //  std::cout << "check person TSR" << std::endl;
+  //  int n;
+  //  std::cin >> n;
+  //}
 
   if (!ada->moveArmToTSR(
           personTSR,
@@ -86,5 +92,5 @@ bool moveDirectlyToPerson(
   }
   return true;
 }
-}
-}
+} // namespace action
+} // namespace feeding

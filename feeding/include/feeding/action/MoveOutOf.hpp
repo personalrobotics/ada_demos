@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_MOVEOUTOF_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/FTThresholdHelper.hpp"
 #include "feeding/TargetItem.hpp"
 #include "feeding/Workspace.hpp"
@@ -18,8 +19,9 @@ void moveOutOf(
     double planningTimeout,
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
-    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper);
+    const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
+    const std::vector<double>& velocityLimits = std::vector<double>());
 }
-}
+} // namespace feeding
 
 #endif

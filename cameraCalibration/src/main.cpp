@@ -2,7 +2,7 @@
 #include <aikido/io/CatkinResourceRetriever.hpp>
 #include <aikido/io/util.hpp>
 #include <aikido/planner/World.hpp>
-#include <aikido/rviz/WorldInteractiveMarkerViewer.hpp>
+#include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <dart/dynamics/Frame.hpp>
 #include <pr_tsr/plate.hpp>
 #include <ros/ros.h>
@@ -22,12 +22,15 @@ static const Eigen::Isometry3d targetToWorld = robotPose.inverse() * createIsome
   .425, 0.15, -0.005, 3.1415, 0, 0);
 std::vector<Eigen::Isometry3d> cameraToJouleEstimates;
 
+static const double planningTimeout = 1.0;
+static const int maxNumTrials = 50;
+
 bool tryPerceivePoint(
         std::string frameName,
         Perception& perception,
         tf::TransformListener& tfListener,
-        aikido::rviz::WorldInteractiveMarkerViewer& jouleViewer,
-        aikido::rviz::WorldInteractiveMarkerViewer& targetPointViewer,
+        aikido::rviz::InteractiveMarkerViewer& jouleViewer,
+        aikido::rviz::InteractiveMarkerViewer& targetPointViewer,
         std::vector<Eigen::Isometry3d>& targetPointsInCameraLensFrame,
         std::vector<Eigen::Isometry3d>& cameraLensPointsInWorldFrame,
         std::vector<dart::dynamics::SimpleFramePtr>& frames,
@@ -45,7 +48,7 @@ bool tryPerceivePoint(
     Eigen::Isometry3d joule = getWorldToJoule(tfListener).inverse();
     dart::dynamics::SimpleFramePtr jouleFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "joule_" + frameName, joule);
     frames.push_back(jouleFrame);
-    frameMarkers.push_back(jouleViewer.addFrame(jouleFrame.get(), 0.07, 0.007));
+    frameMarkers.push_back(jouleViewer.addFrameMarker(jouleFrame.get(), 0.07, 0.007));
     return true;
   }
   catch (...)
@@ -84,9 +87,7 @@ int main(int argc, char** argv)
       "package://ada_description/robots_urdf/ada_with_camera.urdf",
       "package://ada_description/robots_urdf/ada_with_camera.srdf",
       "j2n6s200_hand_tip");
-  auto armSpace
-      = std::make_shared<aikido::statespace::dart::MetaSkeletonStateSpace>(
-          ada.getArm()->getMetaSkeleton().get());
+  auto armSpace = ada.getArm()->getStateSpace();
 
   // Setting up workspace
   const auto resourceRetriever
@@ -143,19 +144,19 @@ int main(int argc, char** argv)
   std::vector<Eigen::Isometry3d> cameraLensPointsInWorldFrame;
 
   // visualization
-  aikido::rviz::WorldInteractiveMarkerViewer viewer(
-      world, "dart_markers/cameraCalibration", "map");
+  aikido::rviz::InteractiveMarkerViewer viewer(
+      "dart_markers/cameraCalibration", "map", world);
   viewer.setAutoUpdate(true);
-  auto frame1 = viewer.addFrame(
+  auto frame1 = viewer.addFrameMarker(
       ada.getMetaSkeleton()->getBodyNode("j2n6s200_end_effector"), 0.02, 0.002);
-  auto frame2 = viewer.addFrame(
+  auto frame2 = viewer.addFrameMarker(
       ada.getMetaSkeleton()->getBodyNode("j2n6s200_hand_tip"), 0.02, 0.002);
 
-  aikido::rviz::WorldInteractiveMarkerViewer jouleViewer(
-      world, "dart_markers/cameraCalibration/cameraLens", "map");
+  aikido::rviz::InteractiveMarkerViewer jouleViewer(
+      "dart_markers/cameraCalibration/cameraLens", "map", world);
   jouleViewer.setAutoUpdate(true);
-  aikido::rviz::WorldInteractiveMarkerViewer targetPointViewer(
-      world, "dart_markers/cameraCalibration/targetPoint", "map");
+  aikido::rviz::InteractiveMarkerViewer targetPointViewer(
+      "dart_markers/cameraCalibration/targetPoint", "map", world);
   targetPointViewer.setAutoUpdate(true);
 
   waitForUser("Startup complete.");
@@ -169,9 +170,9 @@ int main(int argc, char** argv)
       = robotPose.inverse() * createIsometry(.425, 0.15, -0.005, 3.1415, 0, 0);
   auto targetTSR = getCalibrationTSR(targetPointPose);
   dart::dynamics::SimpleFramePtr targetFrame = std::make_shared<dart::dynamics::SimpleFrame>(dart::dynamics::Frame::World(), "targetFrame", targetPointPose);
-  auto targetFrameMarker = viewer.addFrame(targetFrame.get(), 0.07, 0.007);
+  auto targetFrameMarker = viewer.addFrameMarker(targetFrame.get(), 0.07, 0.007);
 
-  if (!moveArmToTSR(targetTSR, ada, collisionFreeConstraint, armSpace))
+  if (!ada.moveArmToTSR(targetTSR, collisionFreeConstraint, planningTimeout, maxNumTrials))
   {
     throw std::runtime_error("Trajectory execution failed");
   }
@@ -187,8 +188,13 @@ int main(int argc, char** argv)
       0.425 + sin(angle)*0.1 + cos(angle)*-0.03,
       0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
       0.05, 3.58, 0, angle));
+<<<<<<< HEAD
     if
     (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+=======
+    if (!ada.moveArmToTSR(tsr, collisionFreeConstraint,
+        planningTimeout, maxNumTrials))
+>>>>>>> master
     {
       ROS_INFO_STREAM("Fail: Step " << i);
     } else {
@@ -216,7 +222,8 @@ int main(int argc, char** argv)
               3.98,
               0,
               angle));
-    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+    if (!ada.moveArmToTSR(tsr, collisionFreeConstraint,
+          planningTimeout, maxNumTrials))
     {
       ROS_INFO_STREAM("Fail: Step " << i);
     }
@@ -252,7 +259,8 @@ int main(int argc, char** argv)
       0.15 - cos(angle)*0.1 + sin(angle)*-0.03,
       0.05, 3.58, 0, angle));
 
-    if (!moveArmToTSR(tsr, ada, collisionFreeConstraint, armSpace))
+    if (!ada.moveArmToTSR(tsr, collisionFreeConstraint,
+      planningTimeout, maxNumTrials))
     {
       ROS_INFO_STREAM("Fail: Step " << i);
     } else
@@ -266,7 +274,8 @@ int main(int argc, char** argv)
 
   waitForUser("Move back to center");
 
-  if (!moveArmToTSR(targetTSR, ada, collisionFreeConstraint, armSpace))
+  if (!ada.moveArmToTSR(targetTSR, collisionFreeConstraint,
+      planningTimeout, maxNumTrials))
   {
     throw std::runtime_error("Trajectory execution failed");
   }

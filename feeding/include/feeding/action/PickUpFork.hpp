@@ -2,6 +2,7 @@
 #define FEEDING_ACTION_PICKUPFORK_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/FTThresholdHelper.hpp"
 
 namespace feeding {
@@ -25,6 +26,6 @@ void pickUpFork(
     std::vector<double> velocityLimits,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper);
 }
-}
+} // namespace feeding
 
 #endif

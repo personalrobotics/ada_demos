@@ -2,9 +2,12 @@
 #define FEEDING_ACTION_MOVEINTO_HPP_
 
 #include <libada/Ada.hpp>
+
 #include "feeding/TargetItem.hpp"
 #include "feeding/Workspace.hpp"
 #include "feeding/perception/Perception.hpp"
+
+#include "feeding/FTThresholdHelper.hpp"
 
 namespace feeding {
 namespace action {
@@ -19,7 +22,8 @@ bool moveInto(
     double endEffectorOffsetPositionTolerenace,
     double endEffectorOffsetAngularTolerance,
     const Eigen::Vector3d& endEffectorDirection,
-    std::shared_ptr<FTThresholdHelper> ftThresholdHelper);
+    std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
+    const std::vector<double>& velocityLimits = std::vector<double>());
 
 } // namespace action
 } // namespace feeding

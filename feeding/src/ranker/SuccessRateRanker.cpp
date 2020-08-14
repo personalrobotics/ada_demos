@@ -1,6 +1,7 @@
 #include "feeding/ranker/SuccessRateRanker.hpp"
 
 #include <dart/common/StlHelpers.hpp>
+
 #include "feeding/AcquisitionAction.hpp"
 
 namespace feeding {
