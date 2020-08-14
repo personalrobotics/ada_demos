@@ -31,6 +31,7 @@ add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
   scripts/spanetDemo.cpp
+  scripts/gelslightDemo.cpp
   # scripts/acquisition.cpp
   # scripts/bite_location_detector.cpp
   # src/DataCollector.cpp

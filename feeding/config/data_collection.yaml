@@ -38,7 +38,7 @@ planning:
 ftSensor:
   thresholds:
     standard:       # used when no other thresholds are specified
-      force: 25
+      force: 10
       torque: 2
     grabFood:       # active when going down to grab the food
       force: 25

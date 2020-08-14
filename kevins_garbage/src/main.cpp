@@ -138,11 +138,11 @@ int main(int argc, char** argv)
   
   // GILWOO: 
   // Additionally pass in
-  //ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
+  // ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
 
   // Kevin: Uncomment below and comment above for FT
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri,
-    "j2n6s200_forque_end_effector", "move_until_touch_topic_controller"); 
+   "j2n6s200_forque_end_effector", "move_until_touch_topic_controller"); 
   
 
   // GILWOO: construct  FTThresholdHelper
@@ -150,10 +150,16 @@ int main(int argc, char** argv)
 
 
     /////////////// FT Sensor //////////////
-  FTThresholdHelper ftThresholdHelper(true, nh);
+  // FTThresholdHelper ftThresholdHelper(true, nh);
   
+  std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr;
+
+  std::cout << "Construct FTThresholdHelper" << std::endl;
+  ftThresholdHelper = std::make_shared<FTThresholdHelper>(true, nh);
+  std::cout << "Done Construct FTThresholdHelper" << std::endl;
+
   // GILWOO: Set the threshold:
-  //bool resultFT = ftThresholdHelper.setThresholds(30, 3);
+  // bool resultFT = ftThresholdHelper.setThresholds(30, 3);
 
   auto robotSkeleton = robot.getMetaSkeleton();
 
@@ -199,32 +205,66 @@ int main(int argc, char** argv)
   viewer.setAutoUpdate(true);
   waitForUser("You can view ADA in RViz now. \n Press [ENTER] to proceed:");
 
+  getCurrentConfig(robot);
+
+
+  Eigen::VectorXd measure_pose(Eigen::VectorXd::Zero(6));
+  measure_pose[0] = -1.40947;
+  measure_pose[1] = 3.17954;
+  measure_pose[2] = 1.3428;
+  measure_pose[3] = -2.22972;
+  measure_pose[4] = 2.08668;
+  measure_pose[5] = 1.13232;
+
+
+  if (!prompt_y_n("Got config, continue? "))
+    return 0;
+
+
   Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
-  home[0] = -2.06676;
-  home[1] = 3.36636;
-  home[2] = 1.65604;
-  home[3] = -0.473418;
-  home[4] = 1.76851;
-  home[5] = -1.18618;
-  bool resultFT = ftThresholdHelper.setThresholds(30, 3);
+  home[0] = -2.1006;
+  home[1] = 3.08929;
+  home[2] = 1.41905;
+  home[3] = -0.473552;
+  home[4] = 1.76847;
+  home[5] = -1.18618; 
+  
+
   if (!adaSim)
   {
     ROS_INFO("Start trajectory executor");
-    robot.startTrajectoryExecutor();
+    robot.startTrajectoryExecutor(); // Starts rewd_controllers
+
+    // Requires rewd_controller to be started
+    ftThresholdHelper->init();
+
+    if (prompt_y_n("Set custom force threshold?"))
+    {
+      double fThreshold;
+      std::cout << "Enter force threshold (N): " << std::endl;
+      std::cin >> fThreshold;
+      bool resultFT = ftThresholdHelper->setThresholds(fThreshold, 3);
+    }
+    else
+    {
+      bool resultFT = ftThresholdHelper->setThresholds(5, 3);
+    }
 
 
     moveArmTo(robot, armSpace, armSkeleton, home);
 
-    auto hand = robot.getArm()->getHand();
-    auto future = hand->executePreshape("open");
+    auto hand = robot.getArm()->getHand(); 
+    if (!prompt_y_n("Is forque currently grasped?"))
+    {  
+      auto future = hand->executePreshape("open");
+      future.wait();
+
+      waitForUser("Position Forque between gripper for grasping.\n Press [ENTER] to proceed");
+
+    }
+
+    auto future = hand->executePreshape("light_grip"); //TODO: customize finger positions. Going to need sensors for this
     future.wait();
-
-    waitForUser("Position Forque between gripper for grasping.\n Press [ENTER] to proceed");
-
-    future = hand->executePreshape("light_grip"); //TODO: customize finger positions. Going to need sensors for this
-    future.wait();
-
-
   /////////////// Gripper //////////////
     while(true) {
       if (prompt_y_n("Hard grip? "))
@@ -235,23 +275,26 @@ int main(int argc, char** argv)
 
     ///////////////Move Hand Down//////////////
       //double length = 0.01;
+      const std::vector<double> velocityLimits{0.001, 0.001, 0.001, 0.001, 0.001, 0.001};
+
       double length = 0.1;
       Eigen::Vector3d endEffectorPushDirection(0, 0, -1);
       Eigen::Vector3d endEffectorRecoverDirection(0, 0, 1);
       auto result = robot.moveArmToEndEffectorOffset(
-        //endEffectorPushDirection,
-        endEffectorRecoverDirection,
+        endEffectorPushDirection,
+        //endEffectorRecoverDirection,
           length,
           nullptr,
           1,
           1,
-          1);
+          1,
+          velocityLimits);
 
       future.wait();
 
       result = robot.moveArmToEndEffectorOffset(
-        //endEffectorRecoverDirection,
-        endEffectorPushDirection,
+        endEffectorRecoverDirection,
+        // endEffectorPushDirection,
           length,
           nullptr,
           1,

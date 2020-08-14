@@ -43,11 +43,12 @@ int main(int argc, char** argv)
   bool autoContinueDemo = false;
 
   // the FT sensing can stop trajectories if the forces are too big
-  bool useFTSensingToStopTrajectories = false;
+  bool useFTSensingToStopTrajectories = true;
 
   bool TERMINATE_AT_USER_PROMPT = true;
 
-  std::string demoType{"nips"};
+  //std::string demoType{"gelslight_calib"};
+  std::string demoType{"gelslight_calib"};
 
   // Arguments for data collection.
   std::string foodName{"testItem"};
@@ -97,7 +98,10 @@ int main(int argc, char** argv)
   ros::AsyncSpinner spinner(2); // 2 threads
   spinner.start();
 
+
   std::shared_ptr<FTThresholdHelper> ftThresholdHelper = nullptr;
+
+  std::cout << "adaReal " << adaReal << std::endl;
 
   if (useFTSensingToStopTrajectories)
   {
@@ -118,7 +122,7 @@ int main(int argc, char** argv)
 
   std::shared_ptr<TargetFoodRanker> ranker;
 
-  if (demoType == "nips")
+  if (demoType == "nips" || demoType == "gelslight_calib")
   {
     ranker = std::make_shared<ShortestDistanceRanker>();
   }
@@ -152,6 +156,16 @@ int main(int argc, char** argv)
   else if (demoType == "spanet")
   {
     spanetDemo(*feedingDemo, perception, nodeHandle);
+  }
+  else if (demoType == "gelslight_calib")
+  {
+    gelslightCalibration(*feedingDemo, perception, nodeHandle);
+    //gelslight_demo(*feedingDemo, perception, nodeHandle);
+  }
+  else if (demoType == "gelslight_ba")
+  {
+    gelslightBiteAcquisition(*feedingDemo, perception, nodeHandle);
+    //gelslight_demo(*feedingDemo, perception, nodeHandle);
   }
   else
   {
