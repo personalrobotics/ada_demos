@@ -156,6 +156,10 @@ int main(int argc, char** argv)
   {
     humanStudyDemo(*feedingDemo, perception, nodeHandle);
   }
+  else if (demoType == "gs")
+  {
+    gelsightDemo(*feedingDemo, *nodeHandle);
+  }
   else
   {
     demo(*feedingDemo, perception, *nodeHandle);

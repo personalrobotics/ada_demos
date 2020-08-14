@@ -35,6 +35,10 @@ void spanetDemo(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle);
+
+void gelsightDemo(
+    FeedingDemo& feedingDemo,
+    ros::NodeHandle nodeHandle);
 };
 
 #endif
