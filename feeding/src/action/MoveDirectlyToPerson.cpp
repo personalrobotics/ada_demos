@@ -84,8 +84,7 @@ bool moveDirectlyToPerson(
           planningTimeout,
           maxNumTrials,
           getConfigurationRanker(ada),
-          velocityLimits,
-          ada::TrajectoryPostprocessType::KUNZ))
+          velocityLimits))
   {
     ROS_WARN_STREAM("Execution failed");
     return false;

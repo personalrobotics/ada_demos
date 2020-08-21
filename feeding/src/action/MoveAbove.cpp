@@ -54,8 +54,7 @@ bool moveAbove(
           planningTimeout,
           maxNumTrials,
           getConfigurationRanker(ada),
-          velocityLimits,
-          ::ada::TrajectoryPostprocessType::KUNZ);
+          velocityLimits);
 
       if (!trajectoryCompleted)
       {
