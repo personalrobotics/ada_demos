@@ -60,6 +60,8 @@ bool moveAboveFood(
       == rotationFreeFoodNames.end())
   {
     target.linear() = target.linear() * baseRotation;
+  } else {
+    rotationTolerance = M_PI; // Looser rotation tolerance
   }
   target.translation()[2] = feedingDemo->mTableHeight;
   ROS_WARN_STREAM("Food Height: " << target.translation()[2]);

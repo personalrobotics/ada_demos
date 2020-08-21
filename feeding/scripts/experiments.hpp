@@ -41,6 +41,10 @@ void dataCollection(
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle);
 
+void onlineDemo(
+    FeedingDemo& feedingDemo,
+    std::shared_ptr<Perception>& perception,
+    ros::NodeHandle nodeHandle);
 };
 
 #endif

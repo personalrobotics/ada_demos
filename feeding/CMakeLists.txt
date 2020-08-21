@@ -61,6 +61,16 @@ add_executable(feeding
   src/ranker/TargetFoodRanker.cpp
 )
 
+IF (conban_spanet_FOUND)
+  message(STATUS "conban_spanet found!")
+  target_sources(feeding
+    PUBLIC scripts/onlineDemo.cpp
+  )
+  add_definitions(-DCONBAN_SPANET_FOUND)
+ELSE()
+message("conban_spanet not found, `online` demo will not build!")
+ENDIF()
+
 include_directories(include $(rosbag_INCLUDE_DIRS))
 
 target_link_libraries(feeding

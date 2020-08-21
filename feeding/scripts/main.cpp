@@ -160,6 +160,13 @@ int main(int argc, char** argv)
   {
     dataCollection(*feedingDemo, perception, *nodeHandle);
   }
+  else if (demoType == "online") {
+    #ifdef CONBAN_SPANET_FOUND
+    onlineDemo(*feedingDemo, perception, *nodeHandle);
+    #else
+    ROS_ERROR("Cannot run online demo, please re-build with conban_spanet");
+    #endif
+  }
   else
   {
     demo(*feedingDemo, perception, *nodeHandle);

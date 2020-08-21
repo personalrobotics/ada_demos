@@ -59,7 +59,7 @@ bool moveAbove(
 
       if (!trajectoryCompleted)
       {
-        if (rotationTolerance <= 2.0)
+        if (rotationTolerance <= 3.0)
         {
           rotationTolerance *= 4;
           std::cout << "Trying again with rotation Tolerance:"
@@ -79,7 +79,7 @@ bool moveAbove(
         break;
       }
 
-    } while (rotationTolerance <= 2.0);
+    } while (rotationTolerance <= 3.0);
     if (!trajectoryCompleted)
     {
       // talk("No trajectory, check T.S.R.", true);

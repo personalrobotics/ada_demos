@@ -58,6 +58,12 @@ IF (rewd_controllers_FOUND)
   include_directories(${rewd_controllers_INCLUDE_DIRS})
 ENDIF()
 
+find_package(conban_spanet)
+IF (conban_spanet_FOUND)
+  include_directories(${conban_spanet_INCLUDE_DIRS})
+ENDIF()
+
+
 find_package(pr_assets REQUIRED)
 include_directories(${pr_assets_INCLUDE_DIRS})
 
