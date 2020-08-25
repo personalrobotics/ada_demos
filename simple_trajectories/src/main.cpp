@@ -78,13 +78,11 @@ void moveArmTo(
 
   auto smoothTrajectory
       = robot.postProcessPath<ParabolicSmoother>(
-          armSkeleton,
           trajectory.get(),
           satisfied,
           ParabolicSmoother::Params());
   aikido::trajectory::TrajectoryPtr timedTrajectory
       = std::move(robot.postProcessPath<KunzRetimer>(
-          armSkeleton,
           smoothTrajectory.get(),
           satisfied,
           KunzRetimer::Params()));

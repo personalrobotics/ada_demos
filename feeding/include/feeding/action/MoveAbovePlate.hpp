@@ -16,7 +16,7 @@ bool moveAbovePlate(
     double rotationTolerance,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits);
+    Eigen::Vector6d& velocityLimits);
 
 } // namespace action
 } // namespace feeding

@@ -23,7 +23,7 @@ void putDownFork(
     double endEffectorOffsetAngularTolerance,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits,
+    Eigen::Vector6d& velocityLimits,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper);
 }
 } // namespace feeding

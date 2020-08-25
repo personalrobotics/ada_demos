@@ -35,7 +35,7 @@ bool skewer(
     std::chrono::milliseconds waitTimeForFood,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits,
+    Eigen::Vector6d& velocityLimits,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
     std::vector<std::string> rotationFreeFoodNames = std::vector<std::string>(),
     FeedingDemo* feedingDemo = nullptr);

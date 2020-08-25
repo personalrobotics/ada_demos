@@ -23,7 +23,7 @@ bool moveAbove(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    const std::vector<double>& velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     FeedingDemo* feedingDemo)
 {
   ROS_WARN_STREAM("CALLED MOVE ABOVE; Rotation: " << rotationTolerance);

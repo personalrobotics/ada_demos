@@ -19,6 +19,7 @@ using aikido::constraint::dart::CollisionFreePtr;
 const bool TERMINATE_AT_USER_PROMPT = true;
 
 static const std::size_t MAX_NUM_TRIALS = 3;
+static const double DEFAULT_VELOCITY_LIM = 0.2;
 static const double inf = std::numeric_limits<double>::infinity();
 
 namespace feeding {
@@ -182,8 +183,11 @@ FeedingDemo::FeedingDemo(
   mTiltOffset = Eigen::Vector3d(
       tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
 
-  mVelocityLimits
-      = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
+  std::vector<double> velocityLimits = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
+  while(velocityLimits.size() < 6) velocityLimits.push_back(DEFAULT_VELOCITY_LIM);
+  mVelocityLimits <<  velocityLimits[0], velocityLimits[1], velocityLimits[2],
+                      velocityLimits[3], velocityLimits[4], velocityLimits[5];
+
   mTableHeight = getRosParam<double>("/study/tableHeight", *mNodeHandle);
 }
 

@@ -83,13 +83,11 @@ void moveArmTo(
 
   auto smoothTrajectory
       = robot.postProcessPath<ParabolicSmoother>(
-          armSkeleton,
           trajectory.get(),
           testable,
           ParabolicSmoother::Params());
   aikido::trajectory::TrajectoryPtr timedTrajectory
       = std::move(robot.postProcessPath<KunzRetimer>(
-          armSkeleton,
           smoothTrajectory.get(),
           testable,
           KunzRetimer::Params()));
@@ -180,7 +178,6 @@ int main(int argc, char** argv)
   auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
   aikido::trajectory::TrajectoryPtr timedTrajectory
       = robot.postProcessPath<KunzRetimer>(
-          armSkeleton,
           trajectory.get(),
           testable,
           KunzRetimer::Params());

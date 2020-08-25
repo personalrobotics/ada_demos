@@ -41,7 +41,7 @@ void feedFoodToPerson(
     int maxNumTrials,
     double endEffectorOffsetPositionTolerenace,
     double endEffectorOffsetAngularTolerance,
-    std::vector<double> velocityLimits,
+    Eigen::Vector6d& velocityLimits,
     const Eigen::Vector3d* tiltOffset,
     FeedingDemo* feedingDemo)
 {
@@ -254,12 +254,9 @@ void feedFoodToPerson(
     //   int n;
     //   std::cin >> n;
     // }
-    std::vector<double> slowerVelocity;
+    Eigen::Vector6d slowerVelocity = Eigen::Vector6d(velocityLimits);
     double slowFactor = (velocityLimits[0] > 0.5) ? 2.0 : 1.0;
-    for (int i = 0; i < velocityLimits.size(); i++)
-    {
-      slowerVelocity.push_back(velocityLimits[i] / slowFactor);
-    }
+    slowerVelocity /= slowFactor;
 
     talk("Tilting, hold tight.", true);
 

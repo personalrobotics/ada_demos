@@ -29,7 +29,7 @@ bool moveAboveFood(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits,
+    Eigen::Vector6d& velocityLimits,
     FeedingDemo* feedingDemo,
     double* angleGuess)
 {
