@@ -183,10 +183,12 @@ FeedingDemo::FeedingDemo(
   mTiltOffset = Eigen::Vector3d(
       tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
 
-  std::vector<double> velocityLimits = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
-  while(velocityLimits.size() < 6) velocityLimits.push_back(DEFAULT_VELOCITY_LIM);
-  mVelocityLimits <<  velocityLimits[0], velocityLimits[1], velocityLimits[2],
-                      velocityLimits[3], velocityLimits[4], velocityLimits[5];
+  std::vector<double> velocityLimits
+      = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
+  while (velocityLimits.size() < 6)
+    velocityLimits.push_back(DEFAULT_VELOCITY_LIM);
+  mVelocityLimits << velocityLimits[0], velocityLimits[1], velocityLimits[2],
+      velocityLimits[3], velocityLimits[4], velocityLimits[5];
 
   mTableHeight = getRosParam<double>("/study/tableHeight", *mNodeHandle);
 }
@@ -283,7 +285,7 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
       = mAda->getHand()->getEndEffectorTransform("plate").get();
   eeTransform.linear() = eeTransform.linear()
                          * Eigen::Matrix3d(Eigen::AngleAxisd(
-                             M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+                               M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   eeTransform.translation()
       = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
 
