@@ -22,7 +22,7 @@ bool moveInFrontOfPerson(
     double verticalToleranceForPerson,
     double planningTimeout,
     int maxNumTrials,
-    Eigen::Vector6d& velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     FeedingDemo* feedingDemo)
 {
   ROS_INFO_STREAM("move in front of person");

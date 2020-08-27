@@ -15,7 +15,7 @@ bool moveAbovePlate(
     double rotationTolerance,
     double planningTimeout,
     int maxNumTrials,
-    Eigen::Vector6d& velocityLimits)
+    const Eigen::Vector6d& velocityLimits)
 {
 
   // Hardcoded pose

@@ -34,7 +34,7 @@ void feedFoodToPerson(
     int maxNumTrials,
     double endEffectorOffsetPositionTolerenace,
     double endEffectorOffsetAngularTolerance,
-    Eigen::Vector6d& velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     const Eigen::Vector3d* tiltOffset,
     FeedingDemo* feedingDemo);
 }

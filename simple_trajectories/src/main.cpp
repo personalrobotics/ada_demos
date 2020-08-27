@@ -80,7 +80,7 @@ void moveArmTo(
       trajectory.get(), satisfied, ParabolicSmoother::Params());
   aikido::trajectory::TrajectoryPtr timedTrajectory
       = std::move(robot.postProcessPath<KunzRetimer>(
-          smoothTrajectory.get(), satisfied, KunzRetimer::Params()));
+          smoothTrajectory.get(), satisfied, ada::KunzParams()));
 
   waitForUser("Press key to move arm to goal");
   auto future = robot.executeTrajectory(timedTrajectory);

@@ -72,7 +72,7 @@ PerceptionServoClient::PerceptionServoClient(
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
     bool servoFood,
-    Eigen::Vector6d& velocityLimits)
+    const Eigen::Vector6d& velocityLimits)
   : mNodeHandle(*node, "perceptionServo")
   , mGetTransform(getTransform)
   , mMetaSkeletonStateSpace(std::move(metaSkeletonStateSpace))

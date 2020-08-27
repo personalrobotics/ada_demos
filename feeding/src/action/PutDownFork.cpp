@@ -25,7 +25,7 @@ void putDownFork(
     double endEffectorOffsetAngularTolerance,
     double planningTimeout,
     int maxNumTrials,
-    Eigen::Vector6d& velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper)
 {
   ada->closeHand();

@@ -185,10 +185,14 @@ FeedingDemo::FeedingDemo(
 
   std::vector<double> velocityLimits
       = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
-  while (velocityLimits.size() < 6)
-    velocityLimits.push_back(DEFAULT_VELOCITY_LIM);
-  mVelocityLimits << velocityLimits[0], velocityLimits[1], velocityLimits[2],
-      velocityLimits[3], velocityLimits[4], velocityLimits[5];
+  mVelocityLimits = DEFAULT_VELOCITY_LIM * Eigen::Vector6d::Ones();
+
+  // If /study/velocityLimits size < 6
+  // assume it is only setting the limits
+  // for the first few joints.
+  for (std::size_t i = 0; i < velocityLimits.size(); ++i) {
+    mVelocityLimits[i] = velocityLimits[i];
+  }
 
   mTableHeight = getRosParam<double>("/study/tableHeight", *mNodeHandle);
 }

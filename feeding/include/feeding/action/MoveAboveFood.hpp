@@ -25,7 +25,7 @@ bool moveAboveFood(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    Eigen::Vector6d& velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     FeedingDemo* feedingDemo = nullptr,
     double* angleGuess = nullptr);
 
