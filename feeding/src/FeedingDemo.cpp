@@ -190,7 +190,8 @@ FeedingDemo::FeedingDemo(
   // If /study/velocityLimits size < 6
   // assume it is only setting the limits
   // for the first few joints.
-  for (std::size_t i = 0; i < velocityLimits.size(); ++i) {
+  for (std::size_t i = 0; i < velocityLimits.size(); ++i)
+  {
     mVelocityLimits[i] = velocityLimits[i];
   }
 
