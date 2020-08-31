@@ -23,7 +23,7 @@ bool moveInto(
     double endEffectorOffsetAngularTolerance,
     const Eigen::Vector3d& endEffectorDirection,
     std::shared_ptr<FTThresholdHelper> ftThresholdHelper,
-    const std::vector<double>& velocityLimits)
+    const Eigen::Vector6d& velocityLimits)
 {
   ROS_INFO_STREAM("Move into " + TargetToString.at(item));
 

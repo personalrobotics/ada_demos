@@ -17,7 +17,7 @@ bool moveDirectlyToPerson(
     double verticalToleranceForPerson,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     const Eigen::Vector3d* tiltOffset,
     FeedingDemo* feedingDemo = nullptr);
 

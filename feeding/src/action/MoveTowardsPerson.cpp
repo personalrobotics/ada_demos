@@ -21,9 +21,9 @@ bool moveTowardsPerson(
 
   int numDofs = ada->getArm()->getMetaSkeleton()->getNumDofs();
   // FAST
-  std::vector<double> velocityLimits(numDofs, 0.3);
+  Eigen::Vector6d velocityLimits = Eigen::Vector6d::Ones() * 0.3;
   // SLOW
-  // std::vector<double> velocityLimits(numDofs, 0.1);
+  // Eigen::Vector6d velocityLimits = Eigen::Vector6d::Ones() * 0.1;
 
   /*
 

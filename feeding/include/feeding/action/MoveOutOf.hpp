@@ -20,7 +20,7 @@ void moveOutOf(
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
-    const std::vector<double>& velocityLimits = std::vector<double>());
+    const Eigen::Vector6d& velocityLimits = Eigen::Vector6d::Zero());
 }
 } // namespace feeding
 

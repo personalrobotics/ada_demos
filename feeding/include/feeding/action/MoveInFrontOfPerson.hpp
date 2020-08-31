@@ -19,7 +19,7 @@ bool moveInFrontOfPerson(
     double verticalToleranceForPerson,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     FeedingDemo* feedingDemo = nullptr);
 }
 } // namespace feeding

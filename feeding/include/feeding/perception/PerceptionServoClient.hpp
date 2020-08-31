@@ -39,7 +39,7 @@ public:
       double endEffectorOffsetPositionTolerance,
       double endEffectorOffsetAngularTolerance,
       bool servoFood,
-      std::vector<double> velocityLimits = std::vector<double>(6, 0.2));
+      const Eigen::Vector6d& velocityLimits);
 
   virtual ~PerceptionServoClient();
 
