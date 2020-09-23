@@ -199,7 +199,8 @@ int main(int argc, char** argv)
   /////////////////////////////////////////////////////////////////////////////
   Eigen::VectorXd homeConfig(6);
   homeConfig << -2.11666, 3.34967, 2.04129, -2.30031, -2.34026, 2.9545;
-  std::vector<double> velocityLimits{0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
+  Eigen::Vector6d velocityLimits;
+  velocityLimits << 0.5, 0.5, 0.5, 0.5, 0.5, 0.5;
   std::cout << "Moving ARM to hard-coded position." << std::endl;
   waitForUser("Press [ENTER] to proceed:");
   robot.moveArmToConfiguration(
