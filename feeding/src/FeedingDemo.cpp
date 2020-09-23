@@ -19,6 +19,7 @@ using aikido::constraint::dart::CollisionFreePtr;
 const bool TERMINATE_AT_USER_PROMPT = true;
 
 static const std::size_t MAX_NUM_TRIALS = 3;
+static const double DEFAULT_VELOCITY_LIM = 0.2;
 static const double inf = std::numeric_limits<double>::infinity();
 
 namespace feeding {
@@ -182,8 +183,18 @@ FeedingDemo::FeedingDemo(
   mTiltOffset = Eigen::Vector3d(
       tiltOffsetVector[0], tiltOffsetVector[1], tiltOffsetVector[2]);
 
-  mVelocityLimits
+  std::vector<double> velocityLimits
       = getRosParam<std::vector<double>>("/study/velocityLimits", *mNodeHandle);
+  mVelocityLimits = DEFAULT_VELOCITY_LIM * Eigen::Vector6d::Ones();
+
+  // If /study/velocityLimits size < 6
+  // assume it is only setting the limits
+  // for the first few joints.
+  for (std::size_t i = 0; i < velocityLimits.size(); ++i)
+  {
+    mVelocityLimits[i] = velocityLimits[i];
+  }
+
   mTableHeight = getRosParam<double>("/study/tableHeight", *mNodeHandle);
 }
 
@@ -279,7 +290,7 @@ Eigen::Isometry3d FeedingDemo::getPlateEndEffectorTransform() const
       = mAda->getHand()->getEndEffectorTransform("plate").get();
   eeTransform.linear() = eeTransform.linear()
                          * Eigen::Matrix3d(Eigen::AngleAxisd(
-                             M_PI * 0.5, Eigen::Vector3d::UnitZ()));
+                               M_PI * 0.5, Eigen::Vector3d::UnitZ()));
   eeTransform.translation()
       = Eigen::Vector3d(0, 0, mPlateTSRParameters.at("height"));
 

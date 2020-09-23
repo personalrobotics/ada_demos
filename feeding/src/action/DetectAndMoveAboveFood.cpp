@@ -27,7 +27,7 @@ std::unique_ptr<FoodItem> detectAndMoveAboveFood(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     FeedingDemo* feedingDemo,
     double* angleGuess,
     int actionOverride)

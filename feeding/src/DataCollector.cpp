@@ -31,12 +31,12 @@ TSR getSideViewTSR(int step)
   auto tsr = pr_tsr::getDefaultPlateTSR();
   tsr.mT0_w = robotPose.inverse()
               * createIsometry(
-                  0.425 + sin(angle) * 0.1 + cos(angle) * -0.03,
-                  0.15 - cos(angle) * 0.1 + sin(angle) * -0.03,
-                  0.05,
-                  3.58,
-                  0,
-                  angle);
+                    0.425 + sin(angle) * 0.1 + cos(angle) * -0.03,
+                    0.15 - cos(angle) * 0.1 + sin(angle) * -0.03,
+                    0.05,
+                    3.58,
+                    0,
+                    angle);
 
   tsr.mBw = createBwMatrixForTSR(0.001, 0.001, 0, 0);
   return tsr;

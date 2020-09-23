@@ -7,7 +7,7 @@ Assuming you already have `ros-$DISTRO-desktop-full` installed (as per [here](ht
 
 ```
 DISTRO=melodic
-sudo apt install libopencv-dev libblas-dev liblapack-dev libeigen3-dev ros-$DISTRO-control-toolbox ros-$DISTRO-ompl ros-$DISTRO-force-torque-sensor-controller ros-$DISTRO-srdfdom python-wstool ros-$DISTRO-octomap-ros ros-$DISTRO-joint-trajectory-controller ros-$DISTRO-transmission-interface ros-$DISTRO-cv-bridge ros-$DISTRO-image-transport ros-$DISTRO-image-geometry ros-$DISTRO-diagnostic-updater ros-$DISTRO-controller-manager ros-$DISTRO-rviz
+sudo apt install libopencv-dev libblas-dev liblapack-dev libmicrohttpd-dev libeigen3-dev ros-$DISTRO-control-toolbox ros-$DISTRO-ompl ros-$DISTRO-force-torque-sensor-controller ros-$DISTRO-srdfdom python-wstool ros-$DISTRO-octomap-ros ros-$DISTRO-joint-trajectory-controller ros-$DISTRO-transmission-interface ros-$DISTRO-cv-bridge ros-$DISTRO-image-transport ros-$DISTRO-image-geometry ros-$DISTRO-diagnostic-updater ros-$DISTRO-controller-manager ros-$DISTRO-rviz python-catkin-tools
 ```
 Replace `melodic` with the appropriate ROS version: `noetic` on 20.04 (Focal) and `kinetic` on 16.04 (Xenial).
 
@@ -42,10 +42,11 @@ Note that the current demo has only been tested on the JACO 2.
 
 After running `catkin build` and `devel/setup.bash` on your Workspace:
 
-1) Start 'roscore', 'rviz', subscribe to the topic 'feeding/update/InteractiveMarkers'
+1) Start 'roscore', 'rviz'
 2) `roslaunch ada_launch simulation.launch` (will put 2 simulated *cantaloupe* on the plate)
-3) `roslaunch ada_demos feeding.launch` (will quit after writing ROS parameters) 
-3) `cd my_catkin_workspace/devel/bin/` and `./feeding`
+3) `roslaunch ada_demos feeding.launch` (will quit after writing ROS parameters)
+4) `cd my_catkin_workspace/devel/bin/` and `./feeding`
+5)  In RViz, subscribe to the topic `feeding/update/InteractiveMarkers` to actually see the robot.
 
 ## Running the Demo on the JACO 2
 

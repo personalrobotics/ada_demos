@@ -41,7 +41,7 @@ void feedFoodToPerson(
     int maxNumTrials,
     double endEffectorOffsetPositionTolerenace,
     double endEffectorOffsetAngularTolerance,
-    std::vector<double> velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     const Eigen::Vector3d* tiltOffset,
     FeedingDemo* feedingDemo)
 {
@@ -242,8 +242,8 @@ void feedFoodToPerson(
     eeTransform.linear()
         = eeTransform.linear()
           * Eigen::Matrix3d(
-              Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
-              * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
+                Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
+                * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
     personTSR.mTw_e.matrix() *= eeTransform.matrix();
 
     // Actually execute movement
@@ -254,12 +254,9 @@ void feedFoodToPerson(
     //   int n;
     //   std::cin >> n;
     // }
-    std::vector<double> slowerVelocity;
+    Eigen::Vector6d slowerVelocity = Eigen::Vector6d(velocityLimits);
     double slowFactor = (velocityLimits[0] > 0.5) ? 2.0 : 1.0;
-    for (int i = 0; i < velocityLimits.size(); i++)
-    {
-      slowerVelocity.push_back(velocityLimits[i] / slowFactor);
-    }
+    slowerVelocity /= slowFactor;
 
     talk("Tilting, hold tight.", true);
 

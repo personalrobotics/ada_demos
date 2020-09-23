@@ -23,7 +23,7 @@ void moveOutOf(
     double endEffectorOffsetPositionTolerance,
     double endEffectorOffsetAngularTolerance,
     const std::shared_ptr<FTThresholdHelper>& ftThresholdHelper,
-    const std::vector<double>& velocityLimits)
+    const Eigen::Vector6d& velocityLimits)
 {
 
   ROS_INFO_STREAM("Move Out of " + TargetToString.at(item));

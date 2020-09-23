@@ -24,6 +24,9 @@ using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
+using aikido::planner::kunzretimer::KunzRetimer;
+using aikido::planner::parabolic::ParabolicSmoother;
+
 static const double planningTimeout{5.};
 bool adaReal = false;
 bool feeding = false;
@@ -78,10 +81,11 @@ void moveArmTo(
     throw std::runtime_error("Failed to find a solution");
   }
 
-  auto smoothTrajectory
-      = robot.smoothPath(armSkeleton, trajectory.get(), testable);
+  auto smoothTrajectory = robot.postProcessPath<ParabolicSmoother>(
+      trajectory.get(), testable, ParabolicSmoother::Params());
   aikido::trajectory::TrajectoryPtr timedTrajectory
-      = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+      = std::move(robot.postProcessPath<KunzRetimer>(
+          smoothTrajectory.get(), testable, ada::KunzParams()));
 
   auto future = robot.executeTrajectory(timedTrajectory);
   future.wait();
@@ -168,7 +172,8 @@ int main(int argc, char** argv)
 
   auto testable = std::make_shared<aikido::constraint::Satisfied>(armSpace);
   aikido::trajectory::TrajectoryPtr timedTrajectory
-      = robot.retimePath(armSkeleton, trajectory.get());
+      = robot.postProcessPath<KunzRetimer>(
+          trajectory.get(), testable, ada::KunzParams());
 
   auto future = robot.executeTrajectory(timedTrajectory);
   future.wait();
