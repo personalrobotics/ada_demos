@@ -21,7 +21,7 @@ bool moveAbove(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    const std::vector<double>& velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     FeedingDemo* feedingDemo = nullptr);
 }
 } // namespace feeding

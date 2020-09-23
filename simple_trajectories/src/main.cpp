@@ -20,6 +20,9 @@ using aikido::robot::Robot;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
 
+using aikido::planner::kunzretimer::KunzRetimer;
+using aikido::planner::parabolic::ParabolicSmoother;
+
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
@@ -73,10 +76,11 @@ void moveArmTo(
   armSpace->convertStateToPositions(state, positions);
   ROS_INFO_STREAM(positions.transpose());
 
-  auto smoothTrajectory
-      = robot.smoothPath(armSkeleton, trajectory.get(), satisfied);
+  auto smoothTrajectory = robot.postProcessPath<ParabolicSmoother>(
+      trajectory.get(), satisfied, ParabolicSmoother::Params());
   aikido::trajectory::TrajectoryPtr timedTrajectory
-      = std::move(robot.retimePath(armSkeleton, smoothTrajectory.get()));
+      = std::move(robot.postProcessPath<KunzRetimer>(
+          smoothTrajectory.get(), satisfied, ada::KunzParams()));
 
   waitForUser("Press key to move arm to goal");
   auto future = robot.executeTrajectory(timedTrajectory);

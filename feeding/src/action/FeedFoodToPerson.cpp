@@ -25,7 +25,7 @@ void feedFoodToPerson(
     const ros::NodeHandle* nodeHandle,
     ros::Duration waitAtPerson,
     FeedingDemo* feedingDemo,
-    std::vector<double> jointVelocityLimits,
+    const Eigen::Vector6d& jointVelocityLimits,
     // Visual Servoing Params
     double servoVelocityLimit,
     double distanceFromPerson,
@@ -212,8 +212,8 @@ void feedFoodToPerson(
     eeTransform.linear()
         = eeTransform.linear()
           * Eigen::Matrix3d(
-              Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
-              * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
+                Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
+                * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
     personTSR.mTw_e.matrix() *= eeTransform.matrix();
 
     // Actually execute movement
@@ -224,12 +224,9 @@ void feedFoodToPerson(
     //   int n;
     //   std::cin >> n;
     // }
-    std::vector<double> slowerVelocity;
+    Eigen::Vector6d slowerVelocity = Eigen::Vector6d(jointVelocityLimits);
     double slowFactor = (jointVelocityLimits[0] > 0.5) ? 2.0 : 1.0;
-    for (int i = 0; i < jointVelocityLimits.size(); i++)
-    {
-      slowerVelocity.push_back(jointVelocityLimits[i] / slowFactor);
-    }
+    slowerVelocity /= slowFactor;
 
     talk("Tilting, hold tight.", true);
 

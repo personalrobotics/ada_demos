@@ -13,7 +13,7 @@ namespace action {
 bool moveInFrontOfPerson(
     const std::shared_ptr<ada::Ada>& ada,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-    std::vector<double> velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     FeedingDemo* feedingDemo = nullptr);
 }
 } // namespace feeding

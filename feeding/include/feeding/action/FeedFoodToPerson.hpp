@@ -17,7 +17,7 @@ void feedFoodToPerson(
     const ros::NodeHandle* nodeHandle,
     ros::Duration waitAtPerson,
     FeedingDemo* feedingDemo,
-    std::vector<double> jointVelocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     // Visual Servoing Params
     double servoVelocityLimit,
     double distanceFromPerson,

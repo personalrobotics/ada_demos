@@ -114,7 +114,7 @@ public:
   double mEndEffectorOffsetAngularTolerance;
   std::chrono::milliseconds mWaitTimeForFood;
   ros::Duration mWaitTimeForPerson;
-  std::vector<double> mVelocityLimits;
+  Eigen::Vector6d mVelocityLimits;
 
   double mForkHolderAngle;
   std::vector<double> mForkHolderTranslation;

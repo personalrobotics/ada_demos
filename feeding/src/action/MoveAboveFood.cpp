@@ -29,7 +29,7 @@ bool moveAboveFood(
     double tiltTolerance,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     FeedingDemo* feedingDemo,
     double* angleGuess)
 {
@@ -84,10 +84,16 @@ bool moveAboveFood(
         = Eigen::AngleAxisd(
               rotateAngle,
               Eigen::Vector3d::UnitZ()) // Take into account action rotation
+<<<<<<< HEAD
           * Eigen::Vector3d{
               0,
               -sin(M_PI * 0.25) * heightAboveFood,
               cos(M_PI * 0.25) * heightAboveFood};
+=======
+          * Eigen::Vector3d{0,
+                            -sin(M_PI * 0.25) * heightAboveFood * 0.7,
+                            cos(M_PI * 0.25) * heightAboveFood * 0.9};
+>>>>>>> master
   }
 
   return moveAbove(

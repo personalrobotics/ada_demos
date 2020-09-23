@@ -21,7 +21,7 @@ bool moveDirectlyToPerson(
     double verticalToleranceForPerson,
     double planningTimeout,
     int maxNumTrials,
-    std::vector<double> velocityLimits,
+    const Eigen::Vector6d& velocityLimits,
     const Eigen::Vector3d* tiltOffset,
     FeedingDemo* feedingDemo)
 {
@@ -53,8 +53,8 @@ bool moveDirectlyToPerson(
     eeTransform.linear()
         = eeTransform.linear()
           * Eigen::Matrix3d(
-              Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
-              * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
+                Eigen::AngleAxisd(M_PI * -0.25, Eigen::Vector3d::UnitY())
+                * Eigen::AngleAxisd(M_PI * 0.25, Eigen::Vector3d::UnitX()));
     personTSR.mTw_e.matrix() *= eeTransform.matrix();
   }
   else
@@ -84,8 +84,7 @@ bool moveDirectlyToPerson(
           planningTimeout,
           maxNumTrials,
           getConfigurationRanker(ada),
-          velocityLimits,
-          ada::TrajectoryPostprocessType::KUNZ))
+          velocityLimits))
   {
     ROS_WARN_STREAM("Execution failed");
     return false;

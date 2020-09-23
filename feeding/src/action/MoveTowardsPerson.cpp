@@ -17,7 +17,7 @@ bool moveTowardsPerson(
     double velocityLimit)
 {
   ROS_INFO_STREAM("Move towards person");
-
+  
   PerceptionServoClient servoClient(
       nodeHandle,
       std::bind(&Perception::perceiveFace, perception.get()),
