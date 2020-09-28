@@ -33,21 +33,29 @@ public:
   /// Useful if you don't use the MoveUntilTouchController and don't need to set
   /// these thresholds.
   /// \param[in] nodeHandle Handle of the ros node.
-  FTThresholdHelper(bool useThresholdControl, ros::NodeHandle nodeHandle);
+  /// \param[in] topicOverride manually specify FTThreshold Action Server
+  FTThresholdHelper(
+      bool useThresholdControl,
+      ros::NodeHandle nodeHandle,
+      const std::string& topicOverride = "");
+
+  /// Swaps the action client to a new server.
+  /// Blocks until server is online.
+  void swapTopic(const std::string& topic);
 
   /// Needs to be called before setting the first thresholds.
   /// Blocks until the threshold could be set successfully.
   /// Can be aborted with Ctrl-C.
-  void init();
+  void init(bool retare = true);
 
   /// Sets the MoveUntilTouchControllers Thresholds accordingly.
   /// Throws a runtime_error if we useThresholdControl and we are unable to set
   /// because of an error.
   /// \return True if the thresholds were set successfully or false if we
   /// experienced a timeout.
-  bool setThresholds(FTThreshold);
+  bool setThresholds(FTThreshold, bool retare = false);
 
-  bool setThresholds(double forces, double torques);
+  bool setThresholds(double forces, double torques, bool retare = false);
 
   bool startDataCollection(int numberOfDataPoints);
   bool isDataCollectionFinished(
