@@ -214,16 +214,12 @@ bool FTThresholdHelper::setThresholds(
 
 #ifdef REWD_CONTROLLERS_FOUND
   ROS_INFO_STREAM("Set thresholds " << forces << " " << torques);
-<<<<<<< HEAD
   if (mFTThresholdClient->setThresholds(forces, torques, retare)) {
     mForceThresh = forces;
     mTorqueThresh = torques;
   } else {
     return false;
   }
-=======
-  return mFTThresholdClient->setThresholds(forces, torques, retare);
->>>>>>> master
 #endif
 
   return true;
