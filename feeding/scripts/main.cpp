@@ -160,6 +160,10 @@ int main(int argc, char** argv)
   {
     dataCollection(*feedingDemo, perception, *nodeHandle);
   }
+  else if (demoType == "posthoc")
+  {
+    posthocExperiment(*feedingDemo, perception, *nodeHandle);
+  }
   else
   {
     demo(*feedingDemo, perception, *nodeHandle);

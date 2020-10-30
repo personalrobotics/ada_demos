@@ -68,6 +68,9 @@ public:
       Eigen::Vector3d& forceMean, Eigen::Vector3d& torqueMean);
   bool writeDataToFile(const std::string& fileName);
 
+  // Return empty if !isDatacollectionFinished
+  std::vector<double> getData();
+
 private:
   bool mUseThresholdControl;
   ros::NodeHandle mNodeHandle;

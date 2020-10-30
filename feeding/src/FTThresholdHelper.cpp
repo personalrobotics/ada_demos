@@ -187,6 +187,27 @@ bool FTThresholdHelper::writeDataToFile(const std::string& fileName) {
   file.close();
 }
 
+std::vector<double> FTThresholdHelper::getData() {
+  std::vector<double> ret;
+
+  if(mCollectingData.load()) {
+    return ret;
+  }
+
+  for (int i = 0; i < mCollectedForces.size(); i++)
+  {
+    ret.push_back(mTimestamps[i].toNSec() / 1000000);
+    ret.push_back(mCollectedForces[i].x());
+    ret.push_back(mCollectedForces[i].y());
+    ret.push_back(mCollectedForces[i].z());
+    ret.push_back(mCollectedTorques[i].x());
+    ret.push_back(mCollectedTorques[i].y());
+    ret.push_back(mCollectedTorques[i].z());
+  }
+
+  return ret;
+}
+
 //==============================================================================
 bool FTThresholdHelper::setThresholds(FTThreshold threshold, bool retare)
 {

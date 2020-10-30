@@ -30,6 +30,7 @@ include_directories(include)
 add_executable(feeding
   scripts/main.cpp
   scripts/demo.cpp
+  scripts/posthocExperiment.cpp
   scripts/humanStudy.cpp
   scripts/dataCollection.cpp
   scripts/spanetDemo.cpp

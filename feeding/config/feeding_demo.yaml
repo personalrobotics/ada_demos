@@ -163,7 +163,7 @@ study:
   servoVelocity: 0.05
 
 acquisitionData:
-  datasetDir: dataset/
+  datasetDir: posthoc_dataset/
   foodOffsetFork: [0.0, -0.04, 0.0]
   foodOffsetWorld: [0.0, 0.0, -0.06]
   
