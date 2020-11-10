@@ -23,7 +23,7 @@ FoodItem::FoodItem(
   {
     // where to load it? and what's the yamlStr 
     mYamlNode = YAML::Load(yamlStr);
-    // mYamlNode = YAML::Load("{push_direction: 'left', push_vec: [1,0,0]}");
+    std::cout << "here's ymal str = " << yamlStr << std::endl;
   }
   catch (const YAML::Exception& e)
   {

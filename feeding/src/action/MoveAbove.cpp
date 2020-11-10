@@ -13,8 +13,8 @@ namespace action {
 bool moveAbove(
     const std::shared_ptr<::ada::Ada>& ada,
     const CollisionFreePtr& collisionFree,
-    const Eigen::Isometry3d& targetTransform,
-    const Eigen::Isometry3d& endEffectorTransform,
+    const Eigen::Isometry3d& targetTransform, // T0_w: the pose of TSR frame in world frame 0.
+    const Eigen::Isometry3d& endEffectorTransform, // Tw_e: the pose of EE in TSR frame w.
     double horizontalTolerance,
     double verticalTolerance,
     double rotationTolerance,
@@ -27,7 +27,7 @@ bool moveAbove(
   TSR target;
 
   target.mT0_w = targetTransform;
-  target.mBw = createBwMatrixForTSR(
+  target.mBw = createBwMatrixForTSR( // Bw: tolerance Matrix
       horizontalTolerance,
       horizontalTolerance,
       verticalTolerance,

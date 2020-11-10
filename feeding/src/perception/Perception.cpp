@@ -44,6 +44,8 @@ Perception::Perception(
       "/perception/referenceFrameName", *mNodeHandle);
   std::string foodDetectorTopicName = getRosParam<std::string>(
       "/perception/foodDetectorTopicName", *mNodeHandle);
+  std::string ReconfiguredfoodDetectorTopicName = getRosParam<std::string>(
+      "/perception/ReconfiguredfoodDetectorTopicName", *mNodeHandle);
   std::string faceDetectorTopicName = getRosParam<std::string>(
       "/perception/faceDetectorTopicName", *mNodeHandle);
 
@@ -57,6 +59,16 @@ Perception::Perception(
       new aikido::perception::PoseEstimatorModule(
           *mNodeHandle,
           foodDetectorTopicName,
+          mAssetDatabase,
+          resourceRetriever,
+          referenceFrameName,
+          aikido::robot::util::getBodyNodeOrThrow(
+              *adaMetaSkeleton, referenceFrameName)));
+
+  mReconfiguredFoodDetector = std::unique_ptr<aikido::perception::PoseEstimatorModule>(
+      new aikido::perception::PoseEstimatorModule(
+          *mNodeHandle,
+          ReconfiguredfoodDetectorTopicName,
           mAssetDatabase,
           resourceRetriever,
           referenceFrameName,
@@ -124,9 +136,10 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
       ros::Time(0),
       &detectedObjects);
 
-  std::cout << "Detected " << detectedObjects.size() << " " << foodName
+  std::cout << "Detected " << detectedObjects.size() << " Objects in total"
             << std::endl;
-  detectedFoodItems.reserve(detectedObjects.size());
+  detectedFoodItems.reserve(detectedObjects.size()); // reserve! not reverse !
+  std::cout << "init with " << detectedObjects.size() << " size" << std::endl;
 
   // mCorrectForkTip = true;
 
@@ -156,6 +169,58 @@ std::vector<std::unique_ptr<FoodItem>> Perception::perceiveFood(
       continue;
     detectedFoodItems.emplace_back(std::move(foodItem));
   }
+  std::cout << "Detected " << detectedFoodItems.size() << " " <<foodName <<" in total" << std::endl;
+
+  // sort
+  mTargetFoodRanker->sort(detectedFoodItems);
+  return detectedFoodItems;
+}
+
+//==============================================================================
+std::vector<std::unique_ptr<FoodItem>> Perception::perceiveReconfiguredFood(
+    const std::string& foodName)
+{
+  if (foodName != ""
+      & (std::find(mFoodNames.begin(), mFoodNames.end(), foodName)
+         == mFoodNames.end()))
+  {
+    std::stringstream ss;
+    ss << "[" << foodName << "] is unknown." << std::endl;
+    throw std::invalid_argument(ss.str());
+  }
+
+  std::vector<std::unique_ptr<FoodItem>> detectedFoodItems;
+
+  // Detect items
+  std::vector<DetectedObject> detectedObjects;
+  mReconfiguredFoodDetector->detectObjects(
+      mWorld,
+      ros::Duration(mPerceptionTimeout),
+      ros::Time(0),
+      &detectedObjects);
+
+  std::cout << "Detected " << detectedObjects.size() << " Reconfigured Objects in total"
+            << std::endl;
+  detectedFoodItems.reserve(detectedObjects.size()); // reserve! not reverse !
+
+  Eigen::Isometry3d forqueTF
+      = mAdaMetaSkeleton->getBodyNode("j2n6s200_forque_end_effector")
+            ->getWorldTransform();
+
+  for (const auto& item : detectedObjects)
+  {
+    auto foodItem = mTargetFoodRanker->createFoodItem(item, forqueTF);
+
+    if (mRemoveRotationForFood)
+    {
+      removeRotation(foodItem.get());
+    }
+
+    if (foodName != "" && foodItem->getName() != foodName)
+      continue;
+    detectedFoodItems.emplace_back(std::move(foodItem));
+  }
+  std::cout << "Detected " << detectedFoodItems.size() << " Reconfigured " <<foodName <<" in total" << std::endl;
 
   // sort
   mTargetFoodRanker->sort(detectedFoodItems);

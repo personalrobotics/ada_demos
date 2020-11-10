@@ -315,7 +315,7 @@ Eigen::Isometry3d FeedingDemo::getFoodEndEffectorTransform(int scoop_mode, doubl
 
     Eigen::Isometry3d eeTransform
         = mAda->getHand()->getEndEffectorTransform("food").get();
-    // std::cout << "food debug test"<< eeTransform.linear() << std::endl; // debug test
+    std::cout << "food debug test"<< eeTransform.linear() << std::endl; // debug test
     
     /* scoop_mode: 0 Kinova Scoop
                  1 Kinova Scoop with twist

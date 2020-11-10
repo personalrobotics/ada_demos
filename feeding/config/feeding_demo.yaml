@@ -66,7 +66,8 @@ pushingDemo:
   liftLength: 0.05
   downLength: 0.14
   pushVelocityLimits: [0.4, 0.4, 0.4, 0.4, 0.4, 0.5]
-  push_direction: "left"
+  push_direction: "left_push"
+  length: 0.05
 
 scoopDemo:
   height: 0.15
@@ -123,6 +124,7 @@ ftSensor:
 perception:
   detectorDataUri: package://pr_assets/data/objects/tag_data_foods.json
   foodDetectorTopicName: /food_detector/marker_array
+  ReconfiguredfoodDetectorTopicName: /pushed/marker_array
   faceDetectorTopicName: /face_detector/marker_array
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
@@ -134,9 +136,9 @@ foodItems:
   #names: ["cantaloupe", "egg",  "banana", "carrot", "celery", "strawberry", "melon"]
   #forces: [15,3,3,7,22,15,7]
   #pickUpAngleModes: [0, 2, 2, 0, 0, 0, 0]
-  names: ["apple", "banana", "bell_pepper", "broccoli", "cantaloupe", "carrot", "cauliflower", "celery", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry", "lettuce", "spinach", "kale"]
-  forces: [7, 7, 7, 7, 15, 15, 3, 22, 7, 7, 7, 7, 7, 7, 7, 7]
-  pickUpAngleModes: [1, 5, 1, 2, 1, 1, 0, 1, 1, 3, 3, 3, 0, 1, 2, 0]
+  names: ["apple", "banana", "bell_pepper", "broccoli", "cantaloupe", "carrot", "cauliflower", "celery", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry", "lettuce", "spinach", "kale", "onebite_mpotato"]
+  forces: [7, 7, 7, 7, 15, 15, 3, 22, 7, 7, 7, 7, 7, 7, 7, 7, 7]
+  pickUpAngleModes: [1, 5, 1, 2, 1, 1, 0, 1, 1, 3, 3, 3, 0, 1, 2, 0, 0]
 
 rotationFree:
   names: ["cantaloupe", "banana", "melon", "strawberry"]
@@ -162,5 +164,6 @@ study:
   personPose: [0.295, 0.24, 0.73, 0, 0, 3.1415]
   tiltOffset: [-0.04, 0, -0.04]
 
-  velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1]
+  velocityLimits: [1, 1, 1, 1, 1, 1]
+  # velocityLimits: [0.8, 0.8, 0.8, 0.8, 0.8, 1]
   # velocityLimits: [0.4, 0.4, 0.4, 0.4, 0.4, 0.5]

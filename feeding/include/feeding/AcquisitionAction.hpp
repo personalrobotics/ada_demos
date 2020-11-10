@@ -11,13 +11,15 @@ enum TiltStyle
 {
   NONE = 0,
   VERTICAL = 1,
-  ANGLED = 2
+  ANGLED = 2,
+  SCOOP = 3
 };
 
 static const std::map<const std::string, TiltStyle> StringToTiltStyle{
     {"vertical", NONE},
     {"tilted-vertical", VERTICAL},
-    {"tilted-angled", ANGLED}};
+    {"tilted-angled", ANGLED},
+    {"side-scoop", SCOOP}};
 
 class AcquisitionAction
 {

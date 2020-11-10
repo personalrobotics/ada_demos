@@ -61,7 +61,8 @@ public:
   /// \return All food items on the plate of matching name.
   std::vector<std::unique_ptr<FoodItem>> perceiveFood(
       const std::string& foodName = "");
-
+  std::vector<std::unique_ptr<FoodItem>> perceiveReconfiguredFood(
+      const std::string& foodName = "");
   void setFoodItemToTrack(FoodItem* target);
 
   /// Throws exception if target item is not set.
@@ -90,6 +91,7 @@ private:
   dart::dynamics::MetaSkeletonPtr mAdaMetaSkeleton;
 
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFoodDetector;
+  std::unique_ptr<aikido::perception::PoseEstimatorModule> mReconfiguredFoodDetector;
   std::unique_ptr<aikido::perception::PoseEstimatorModule> mFaceDetector;
   std::shared_ptr<aikido::perception::AssetDatabase> mAssetDatabase;
 

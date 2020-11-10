@@ -181,29 +181,29 @@ bool PolyScoop(
 // -------------------------------------------------------------------------------------------------------
 // Lift the arm after every excecution
 
-    char lift;
+    // char lift;
 
-    if (!successConTraj)
-        lift = 'Y';
-    else
-    {        
-        std::cout<<"lift or not? Y/y"<< std::endl;
-        std::cin >> lift;
-    }
+    // if (!successConTraj)
+    //     lift = 'Y';
+    // else
+    // {        
+    //     std::cout<<"lift or not? Y/y"<< std::endl;
+    //     std::cin >> lift;
+    // }
 
-    if ( (lift == 'Y') || (lift == 'y'))
-    {
-        Eigen::VectorXd twists(6);
-        twists << 0, 0, 0.0, 0, 0.0, 0.075;
-        ada->moveArmWithEndEffectorTwist(
-            twists,
-            1,
-            collisionFree,
-            planningTimeout,
-            endEffectorOffsetPositionTolerance,
-            endEffectorOffsetAngularTolerance,
-            velocityLimits);
-    }
+    // if ( (lift == 'Y') || (lift == 'y'))
+    // {
+    //     Eigen::VectorXd twists(6);
+    //     twists << 0, 0, 0.0, 0, 0.0, 0.075;
+    //     ada->moveArmWithEndEffectorTwist(
+    //         twists,
+    //         1,
+    //         collisionFree,
+    //         planningTimeout,
+    //         endEffectorOffsetPositionTolerance,
+    //         endEffectorOffsetAngularTolerance,
+    //         velocityLimits);
+    // }
 
     return true;
 }

@@ -8,6 +8,11 @@ ELSE()
 message("rewd controllers not found!")
 ENDIF()
 
+IF (aikido_FOUND)
+  message(STATUS "aikido found!")
+ELSE()
+message("aikido not found!")
+ENDIF()
 
 #==============================================================================
 # Required Dependencies
@@ -60,6 +65,7 @@ add_executable(feeding
   src/action/Skewer.cpp
 
   src/action/Push.cpp
+  src/action/PushOnFood.cpp
   src/action/TouchTable.cpp
   src/action/LiftUp.cpp
   src/action/MoveAboveAndScoop.cpp
@@ -88,6 +94,7 @@ target_link_libraries(feeding
   libada)
 
 IF (rewd_controllers_FOUND)
+  message("rewd controllers found and add lib!")
   target_link_libraries(feeding ${rewd_controllers_LIBRARIES})
 ENDIF()
 
