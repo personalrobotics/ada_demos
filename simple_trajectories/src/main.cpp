@@ -91,16 +91,18 @@ void moveArmTo(
 
 int main(int argc, char** argv)
 {
-  bool adaSim = true;
+  bool adaReal = false;
 
   // Default options for flags
   po::options_description po_desc("simple_trajectories options");
   po_desc.add_options()("help", "Produce help message")(
-      "adasim,a", po::bool_switch(&adaSim), "Run ADA in sim");
+      "adareal,a", po::bool_switch(&adaReal), "Run real ADA");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, po_desc), vm);
   po::notify(vm);
+
+  bool adaSim = !adaReal;
 
   if (vm.count("help"))
   {
