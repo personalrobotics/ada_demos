@@ -102,6 +102,7 @@ void dataCollection(
     int action = -1;
     double pitch = 0.0;
     double roll = 0.0;
+    double force = 15.0;
     std::cout << "Action List (all Force 15N, Rotate 0, Liftoff 0)" << std::endl;
     std::cout << "[0] Pitch 0, Roll 0" << std::endl;
     std::cout << "[1] Pitch 0, Roll 90" << std::endl;
@@ -118,34 +119,40 @@ void dataCollection(
     std::string fileName = foodName;
     switch(action) {
         case 0:
-        fileName += "_0_0_15_0_0/";
+        fileName += "_0_0_25_0_0/";
         pitch = 0.0;
         roll = 0.0;
+        force = 25.0;
         break;
         case 1:
-        fileName += "_0_1.57_15_0_0/";
+        fileName += "_0_1.57_25_0_0/";
         pitch = 0.0;
         roll = 1.57;
+        force = 25.0;
         break;
         case 2:
-        fileName += "_-0.5_0_15_0_0/";
+        fileName += "_-0.5_0_20_0_0/";
         pitch = -0.5;
         roll = 0.0;
+        force = 20.0;
         break;
         case 3:
-        fileName += "_-0.5_1.57_15_0_0/";
+        fileName += "_-0.5_1.57_20_0_0/";
         pitch = -0.5;
         roll = 1.57;
+        force = 20.0;
         break;
         case 4:
-        fileName += "_0.4_0_15_0_0/";
+        fileName += "_0.4_0_10_0_0/";
         pitch = 0.4;
         roll = 0.0;
+        force = 10.0;
         break;
         case 5:
-        fileName += "_0.4_1.57_15_0_0/";
+        fileName += "_0.4_1.57_10_0_0/";
         pitch = 0.4;
         roll = 1.57;
+        force = 10.0;
         break;
     }
     std::string folderName = dataPath + fileName;
@@ -232,7 +239,7 @@ void dataCollection(
     // Re-tare force, set to move-in threshold
     ROS_INFO_STREAM("Setting force thresholds and re-taring...");
     if (feedingDemo.getFTThresholdHelper()) {
-        feedingDemo.getFTThresholdHelper()->setThresholds(15.0, 2.0, true);
+        feedingDemo.getFTThresholdHelper()->setThresholds(force, 2.0, true);
     }
 
     // Start Force Data Collection
@@ -316,7 +323,7 @@ void dataCollection(
     node["foodName"] = foodName;
     node["action"].push_back(pitch);
     node["action"].push_back(roll);
-    node["action"].push_back(10.0);
+    node["action"].push_back(force);
     node["action"].push_back(0.0);
     node["action"].push_back(0.0);
     node["actionNum"] = action;

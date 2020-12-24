@@ -58,6 +58,11 @@ IF (rewd_controllers_FOUND)
   include_directories(${rewd_controllers_INCLUDE_DIRS})
 ENDIF()
 
+find_package(posthoc_learn QUIET)
+IF (posthoc_learn_FOUND)
+  include_directories(${posthoc_learn_INCLUDE_DIRS})
+ENDIF()
+
 find_package(pr_assets REQUIRED)
 include_directories(${pr_assets_INCLUDE_DIRS})
 

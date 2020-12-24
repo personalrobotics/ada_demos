@@ -5,8 +5,16 @@ IF (rewd_controllers_FOUND)
   message(STATUS "rewd controllers found!")
   add_definitions(-DREWD_CONTROLLERS_FOUND)
 ELSE()
-message("rewd controllers not found!")
+message("rewd controllers not found (only required for real robot experiments)")
 ENDIF()
+
+IF (posthoc_learn_FOUND)
+  message(STATUS "posthoc learn found!")
+  add_definitions(-DPOSTHOC_FOUND)
+ELSE()
+message("posthoc learn not found (only required for online learning experiments)")
+ENDIF()
+
 
 
 #==============================================================================

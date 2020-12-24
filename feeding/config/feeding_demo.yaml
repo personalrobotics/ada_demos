@@ -48,7 +48,7 @@ wheelchair:
 # Feeding demo movement parameters
 feedingDemo:
   heightAbovePlate: 0.15
-  heightAboveFood: 0.08
+  heightAboveFood: 0.1
   heightIntoFood: 0.05           # the real robot plans *below* the food. This parameter specifies how far
   moveOutofFood: 0.025
   distanceToPerson: 0.05
@@ -164,6 +164,6 @@ study:
 
 acquisitionData:
   datasetDir: posthoc_dataset/
-  foodOffsetFork: [0.0, -0.04, 0.0]
-  foodOffsetWorld: [0.0, 0.0, -0.06]
+  foodOffsetFork: [-0.015, -0.053, 0.0]
+  foodOffsetWorld: [0.0, 0.0, -0.065]
   

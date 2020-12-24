@@ -75,7 +75,7 @@ std::future<CartVelocityResult> PerceptionServoClient::start()
   // Swap to proper ftThresholdServer
   if (mFTThresholdHelper) {
     mFTThresholdHelper->swapTopic(
-      "/move_until_touch_cartvel_controller/set_forcetorque_threshold/", 
+      "/move_until_touch_cartvel_controller/set_forcetorque_threshold", 
       true);
   }
 

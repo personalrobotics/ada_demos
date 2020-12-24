@@ -41,11 +41,13 @@ void dataCollection(
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle);
 
+#ifdef POSTHOC_FOUND
 void posthocExperiment(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle);
-
+#endif
 };
+
 
 #endif

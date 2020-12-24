@@ -14,15 +14,12 @@ namespace feeding {
 //==============================================================================
 FTThresholdHelper::FTThresholdHelper(
     bool useThresholdControl,
-    ros::NodeHandle nodeHandle,
-    const std::string& topicOverride)
+    ros::NodeHandle nodeHandle)
   : mUseThresholdControl(useThresholdControl), mNodeHandle(nodeHandle)
   , mForceThresh(0.0), mTorqueThresh(0.0)
 {
   if (!mUseThresholdControl)
     return;
-
-  swapTopic(topicOverride);
 }
 
 //==============================================================================
@@ -47,8 +44,11 @@ void FTThresholdHelper::swapTopic(const std::string& topic, bool maintainThresho
 }
 
 //==============================================================================
-bool FTThresholdHelper::init(bool retare)
+bool FTThresholdHelper::init(bool retare, const std::string& topicOverride)
 {
+
+  swapTopic(topicOverride);
+  
   // Start sensor topic
   std::string ftTopic
       = getRosParam<std::string>("/ftSensor/ftTopic", mNodeHandle);
@@ -185,6 +185,7 @@ bool FTThresholdHelper::writeDataToFile(const std::string& fileName) {
   }
 
   file.close();
+  return true;
 }
 
 std::vector<double> FTThresholdHelper::getData() {

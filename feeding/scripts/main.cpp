@@ -160,10 +160,12 @@ int main(int argc, char** argv)
   {
     dataCollection(*feedingDemo, perception, *nodeHandle);
   }
+  #ifdef POSTHOC_FOUND
   else if (demoType == "posthoc")
   {
     posthocExperiment(*feedingDemo, perception, *nodeHandle);
   }
+  #endif
   else
   {
     demo(*feedingDemo, perception, *nodeHandle);

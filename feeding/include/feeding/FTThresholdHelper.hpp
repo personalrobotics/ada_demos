@@ -36,8 +36,7 @@ public:
   /// \param[in] topicOverride manually specify FTThreshold Action Server
   FTThresholdHelper(
       bool useThresholdControl,
-      ros::NodeHandle nodeHandle,
-      const std::string& topicOverride = "");
+      ros::NodeHandle nodeHandle);
 
   /// Swaps the action client to a new server.
   /// Blocks until server is online.
@@ -46,7 +45,7 @@ public:
   /// Needs to be called before setting the first thresholds.
   /// Blocks until initial thresholds set.
   /// Can be aborted with Ctrl-C.
-  bool init(bool retare = true);
+  bool init(bool retare = true, const std::string& topicOverride = "");
 
   /// Sets the MoveUntilTouchControllers Thresholds accordingly.
   /// Throws a runtime_error if we useThresholdControl and we are unable to set

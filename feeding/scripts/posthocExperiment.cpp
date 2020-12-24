@@ -1,3 +1,4 @@
+#ifdef POSTHOC_FOUND
 
 #include <aikido/rviz/InteractiveMarkerViewer.hpp>
 #include <ros/ros.h>
@@ -123,7 +124,7 @@ void posthocExperiment(
     // Construct data folder
     std::string fileName = foodName;
     
-    std::string folderName = dataPath + fileName;
+    std::string folderName = dataPath + fileName + "/";
     std::string sysCommand = "mkdir -p " + folderName;
     system(sysCommand.c_str());
 
@@ -153,7 +154,7 @@ void posthocExperiment(
 
     // Get action from Bandit
     int action = -1;
-    double pitch, roll;
+    double pitch, roll, force;
     std::vector<double> prob;
     posthoc_learn::GetAction getAction;
     getAction.request.visual.insert(std::end(getAction.request.visual), std::begin(features), std::end(features));
@@ -170,26 +171,32 @@ void posthocExperiment(
         case 0:
         pitch = 0.0;
         roll = 0.0;
+        force = 25.0;
         break;
         case 1:
         pitch = 0.0;
         roll = 1.57;
+        force = 25.0;
         break;
         case 2:
         pitch = -0.5;
         roll = 0.0;
+        force = 20.0;
         break;
         case 3:
         pitch = -0.5;
         roll = 1.57;
+        force = 20.0;
         break;
         case 4:
         pitch = 0.4;
         roll = 0.0;
+        force = 10.0;
         break;
         case 5:
         pitch = 0.4;
         roll = 1.57;
+        force = 10.0;
         break;
         default:
         ROS_ERROR("Invalid Action!");
@@ -324,7 +331,7 @@ void posthocExperiment(
     node["foodName"] = foodName;
     node["action"].push_back(pitch);
     node["action"].push_back(roll);
-    node["action"].push_back(10.0);
+    node["action"].push_back(force);
     node["action"].push_back(0.0);
     node["action"].push_back(0.0);
     node["actionNum"] = action;
@@ -373,3 +380,6 @@ void posthocExperiment(
   ROS_INFO("Data collection finished.");
 }
 };
+
+// POSTHOC_FOUND
+#endif

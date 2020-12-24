@@ -58,11 +58,10 @@ bool moveAbove(
 
       if (!trajectoryCompleted)
       {
-        if (rotationTolerance <= 2.0)
-        {
-          rotationTolerance *= 4;
-          std::cout << "Trying again with rotation Tolerance:"
-                    << rotationTolerance << std::endl;
+        std::cout << "Failed with Rotation Tolerance: " << rotationTolerance << std::endl;
+        if (rotationTolerance < M_PI) {
+          rotationTolerance = M_PI;
+          std::cout << "Trying again with maximum rotation Tolerance" << std::endl;
           target.mBw = createBwMatrixForTSR(
               horizontalTolerance,
               horizontalTolerance,
@@ -71,14 +70,9 @@ bool moveAbove(
               tiltTolerance,
               rotationTolerance);
           continue;
-        }
+        } else break;
       }
-      else
-      {
-        break;
-      }
-
-    } while (rotationTolerance <= 2.0);
+    } while (!trajectoryCompleted);
     if (!trajectoryCompleted)
     {
       // talk("No trajectory, check T.S.R.", true);
