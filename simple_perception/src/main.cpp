@@ -26,9 +26,9 @@ static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
 dart::common::Uri adaUrdfUri{
-    "package://ada_description/robots_urdf/ada_with_camera.urdf"};
+    "package://ada_description/jaco/urdf/ada_with_camera.urdf"};
 dart::common::Uri adaSrdfUri{
-    "package://ada_description/robots_urdf/ada_with_camera.srdf"};
+    "package://ada_description/jaco/urdf/ada_with_camera.srdf"};
 
 void waitForUser(const std::string& msg)
 {

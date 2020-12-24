@@ -84,8 +84,8 @@ int main(int argc, char** argv)
   ada::Ada ada(
       world,
       !adaReal,
-      "package://ada_description/robots_urdf/ada_with_camera.urdf",
-      "package://ada_description/robots_urdf/ada_with_camera.srdf",
+      "package://ada_description/jaco/urdf/ada_with_camera.urdf",
+      "package://ada_description/jaco/urdf/ada_with_camera.srdf",
       "j2n6s200_hand_tip");
   auto armSpace = ada.getArm()->getStateSpace();
 
