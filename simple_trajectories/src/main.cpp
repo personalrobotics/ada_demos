@@ -26,10 +26,11 @@ using aikido::planner::parabolic::ParabolicSmoother;
 static const std::string topicName("dart_markers");
 static const std::string baseFrameName("map");
 
+// TODO: Make Gen 2 / Gen 3 a command line arg.
 dart::common::Uri adaUrdfUri{
-    "package://ada_description/jaco/urdf/ada_with_camera.urdf"};
+    "package://ada_description/urdf/ada.urdf"};
 dart::common::Uri adaSrdfUri{
-    "package://ada_description/jaco/urdf/ada_with_camera.srdf"};
+    "package://ada_description/urdf/ada.srdf"};
 
 static const double planningTimeout{5.};
 
@@ -76,12 +77,15 @@ void moveArmTo(
   armSpace->convertStateToPositions(state, positions);
   ROS_INFO_STREAM(positions.transpose());
 
-  aikido::trajectory::TrajectoryPtr timedTrajectory
-      = std::move(robot.postProcessPath<KunzRetimer>(
-          trajectory.get(), satisfied, ada::KunzParams()));
+  // TODO: Debug State Space so we can re-time
+  // It thinks there is a non-R1/SO2 state space in here.
+  //ROS_INFO_STREAM("Retiming trajectory...");
+  //aikido::trajectory::TrajectoryPtr timedTrajectory
+  //    = std::move(robot.postProcessPath<KunzRetimer>(
+  //        trajectory.get(), satisfied, ada::KunzParams()));
 
   waitForUser("Press key to move arm to goal");
-  auto future = robot.executeTrajectory(timedTrajectory);
+  auto future = robot.executeTrajectory(trajectory);
 
   future.wait();
   getCurrentConfig(robot);
@@ -144,9 +148,11 @@ int main(int argc, char** argv)
 
   if (adaSim)
   {
-    Eigen::VectorXd home(Eigen::VectorXd::Zero(6));
-    home[1] = 3.14;
-    home[2] = 3.14;
+
+    // TODO: makebased on whether Gen2 or Gen3
+    Eigen::VectorXd home(Eigen::VectorXd::Zero(7));
+    //home[1] = 3.14;
+    //home[2] = 3.14;
     armSkeleton->setPositions(home);
 
     auto startState
@@ -197,15 +203,22 @@ int main(int argc, char** argv)
   /////////////////////////////////////////////////////////////////////////////
   //   Hardcoded Position (pointing down)
   /////////////////////////////////////////////////////////////////////////////
-  Eigen::VectorXd homeConfig(6);
-  homeConfig << -2.11666, 3.34967, 2.04129, -2.30031, -2.34026, 2.9545;
-  Eigen::Vector6d velocityLimits;
-  velocityLimits << 0.5, 0.5, 0.5, 0.5, 0.5, 0.5;
-  std::cout << "Moving ARM to hard-coded position." << std::endl;
-  waitForUser("Press [ENTER] to proceed:");
-  robot.moveArmToConfiguration(
-      homeConfig, nullptr, 2.0, velocityLimits);
-  waitForUser("Done. \n Press [ENTER] to proceed:");
+  // TODO: Make size based off of Gen2 vs Gen3
+  // TODO: There is a hardcoded 6 somewhere in Ada.cpp, remove
+  Eigen::VectorXd homeConfig(7);
+  Eigen::VectorXd velocityLimits(7);
+  if(!adaSim) {
+  
+    homeConfig << -2.11666, 3.34967, 2.04129, -2.30031, -2.34026, 2.9545, 0.0;
+    
+    velocityLimits << 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5;
+    std::cout << "Moving ARM to hard-coded position." << std::endl;
+    waitForUser("Press [ENTER] to proceed:");
+    robot.moveArmToConfiguration(
+        homeConfig, nullptr, 2.0, velocityLimits);
+    waitForUser("Done. \n Press [ENTER] to proceed:");
+  }
+  
   
 
   /////////////////////////////////////////////////////////////////////////////
