@@ -185,6 +185,7 @@ bool FTThresholdHelper::writeDataToFile(const std::string& fileName) {
   }
 
   file.close();
+  return true;
 }
 
 //==============================================================================
