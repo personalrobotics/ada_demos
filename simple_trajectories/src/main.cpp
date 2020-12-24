@@ -76,11 +76,9 @@ void moveArmTo(
   armSpace->convertStateToPositions(state, positions);
   ROS_INFO_STREAM(positions.transpose());
 
-  auto smoothTrajectory = robot.postProcessPath<ParabolicSmoother>(
-      trajectory.get(), satisfied, ParabolicSmoother::Params());
   aikido::trajectory::TrajectoryPtr timedTrajectory
       = std::move(robot.postProcessPath<KunzRetimer>(
-          smoothTrajectory.get(), satisfied, ada::KunzParams()));
+          trajectory.get(), satisfied, ada::KunzParams()));
 
   waitForUser("Press key to move arm to goal");
   auto future = robot.executeTrajectory(timedTrajectory);
