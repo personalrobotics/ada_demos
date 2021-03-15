@@ -7,9 +7,19 @@ Assuming you already have `ros-$DISTRO-desktop-full` installed (as per [here](ht
 
 ```
 DISTRO=melodic
-sudo apt install libopencv-dev libblas-dev liblapack-dev libmicrohttpd-dev libeigen3-dev ros-$DISTRO-control-toolbox ros-$DISTRO-ompl ros-$DISTRO-force-torque-sensor-controller ros-$DISTRO-srdfdom python-wstool ros-$DISTRO-octomap-ros ros-$DISTRO-joint-trajectory-controller ros-$DISTRO-transmission-interface ros-$DISTRO-cv-bridge ros-$DISTRO-image-transport ros-$DISTRO-image-geometry ros-$DISTRO-diagnostic-updater ros-$DISTRO-controller-manager ros-$DISTRO-rviz python-catkin-tools
+sudo apt install libopencv-dev libblas-dev liblapack-dev libmicrohttpd-dev libeigen3-dev ros-$DISTRO-control-toolbox ros-$DISTRO-ompl ros-$DISTRO-force-torque-sensor-controller ros-$DISTRO-srdfdom python3-wstool ros-$DISTRO-octomap-ros ros-$DISTRO-joint-trajectory-controller ros-$DISTRO-transmission-interface ros-$DISTRO-cv-bridge ros-$DISTRO-image-transport ros-$DISTRO-image-geometry ros-$DISTRO-diagnostic-updater ros-$DISTRO-controller-manager ros-$DISTRO-rviz python-catkin-tools
 ```
 Replace `melodic` with the appropriate ROS version: `noetic` on 20.04 (Focal) and `kinetic` on 16.04 (Xenial).
+
+If you cannot install `python-catkin-tools` you may have to use this workaround to install directly from the source repo, for more details see [this issue](https://github.com/catkin/catkin_tools/issues/594):
+```
+pip3 install -U "git+https://github.com/catkin/catkin_tools.git#egg=catkin_tools"
+```
+
+If you are on 20.04 (Focal), you should also symlink `python` to `python3` otherwise some scripts will be unable to find the python binary, causing "No such file or directory" errors when running `roslaunch`:
+```
+sudo apt install python-is-python3
+```
 
 ### PRL Git Packages
 
@@ -40,13 +50,16 @@ Note that the current demo has only been tested on the JACO 2.
 
 ## Running the Demo in Simulation
 
-After running `catkin build` and `devel/setup.bash` on your Workspace:
+Run the following commands from your ROS workspace:
 
-1) Start 'roscore', 'rviz'
-2) `roslaunch ada_launch simulation.launch` (will put 2 simulated *cantaloupe* on the plate)
-3) `roslaunch ada_demos feeding.launch` (will quit after writing ROS parameters)
-4) `cd my_catkin_workspace/devel/bin/` and `./feeding`
-5)  In RViz, subscribe to the topic `feeding/update/InteractiveMarkers` to actually see the robot.
+1. `catkin build`
+1. `source devel/setup.bash`
+1. `roscore`
+1. `rviz`
+1. `roslaunch ada_launch simulation.launch` (will put 2 simulated *cantaloupe* on the plate)
+1. `roslaunch ada_demos feeding.launch` (will quit after writing ROS parameters)
+1. `cd my_catkin_workspace/devel/bin/` and `./feeding`
+1.  In RViz, subscribe to the topic `feeding/update/InteractiveMarkers` to actually see the robot.
 
 ## Running the Demo on the JACO 2
 
