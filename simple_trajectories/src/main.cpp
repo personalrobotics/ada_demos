@@ -16,6 +16,7 @@ namespace po = boost::program_options;
 using dart::dynamics::MetaSkeletonPtr;
 using dart::dynamics::SkeletonPtr;
 
+using aikido::constraint::dart::CollisionFreePtr;
 using aikido::robot::Robot;
 using aikido::statespace::dart::MetaSkeletonStateSpace;
 using aikido::statespace::dart::MetaSkeletonStateSpacePtr;
@@ -60,7 +61,6 @@ void moveArmTo(
 
   std::cout << "Goal Pose: " << goalPos.transpose() << std::endl;
 
-  auto satisfied = std::make_shared<aikido::constraint::Satisfied>(armSpace);
   auto trajectory = robot.planToConfiguration(
       armSpace, armSkeleton, goalPos, nullptr, planningTimeout);
 
@@ -76,16 +76,11 @@ void moveArmTo(
   armSpace->convertStateToPositions(state, positions);
   ROS_INFO_STREAM(positions.transpose());
 
-  auto smoothTrajectory = robot.postProcessPath<ParabolicSmoother>(
-      trajectory.get(), satisfied, ParabolicSmoother::Params());
-  aikido::trajectory::TrajectoryPtr timedTrajectory
-      = std::move(robot.postProcessPath<KunzRetimer>(
-          smoothTrajectory.get(), satisfied, ada::KunzParams()));
-
   waitForUser("Press key to move arm to goal");
-  auto future = robot.executeTrajectory(timedTrajectory);
+  CollisionFreePtr collisionFree = robot.getSelfCollisionConstraint(
+      robot.getArm()->getStateSpace(), armSkeleton);
+  robot.moveArmOnTrajectory(trajectory, collisionFree);
 
-  future.wait();
   getCurrentConfig(robot);
 }
 
@@ -121,7 +116,6 @@ int main(int argc, char** argv)
   // Load ADA either in simulation or real based on arguments
   ROS_INFO("Loading ADA.");
   ada::Ada robot(env, adaSim, adaUrdfUri, adaSrdfUri);
-  auto robotSkeleton = robot.getMetaSkeleton();
 
   // Start Visualization Topic
   static const std::string execTopicName = topicName + "/simple_trajectories";
@@ -134,10 +128,8 @@ int main(int argc, char** argv)
       execTopicName, baseFrameName, env);
 
   auto space = robot.getStateSpace();
+  auto robotSkeleton = robot.getMetaSkeleton();
   auto collision = robot.getSelfCollisionConstraint(space, robotSkeleton);
-
-  dart::dynamics::MetaSkeletonPtr metaSkeleton = robot.getMetaSkeleton();
-  auto metaSpace = std::make_shared<MetaSkeletonStateSpace>(metaSkeleton.get());
 
   auto armSkeleton = robot.getArm()->getMetaSkeleton();
   auto armSpace = std::make_shared<MetaSkeletonStateSpace>(armSkeleton.get());
