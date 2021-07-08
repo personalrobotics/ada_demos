@@ -2,130 +2,65 @@
 #define FEEDING_PERCEPTIONSERVOCLIENT_HPP_
 
 #include <mutex>
-
-#include <aikido/control/ros/RosTrajectoryExecutor.hpp>
-#include <aikido/rviz/InteractiveMarkerViewer.hpp>
-#include <aikido/statespace/dart/MetaSkeletonStateSpace.hpp>
-#include <aikido/trajectory/Spline.hpp>
-#include <boost/optional.hpp>
-#include <dart/dynamics/BodyNode.hpp>
 #include <ros/ros.h>
-#include <sensor_msgs/JointState.h>
 
 #include <libada/Ada.hpp>
 
-#include "feeding/perception/Perception.hpp"
+#include "feeding/FTThresholdHelper.hpp"
 
 namespace feeding {
 
 class PerceptionServoClient
 {
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  using CartVelocityResult = ada::CartVelocityResult;
 
   PerceptionServoClient(
-      const ::ros::NodeHandle* node,
-      boost::function<Eigen::Isometry3d(void)> getTransform,
-      aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
-          metaSkeletonStateSpace,
-      std::shared_ptr<ada::Ada> ada,
-      ::dart::dynamics::MetaSkeletonPtr metaSkeleton,
-      ::dart::dynamics::BodyNodePtr bodyNode,
-      std::shared_ptr<aikido::control::TrajectoryExecutor> trajectoryExecutor,
-      aikido::constraint::dart::CollisionFreePtr collisionFreeConstraint,
-      double perceptionUpdateTime,
-      float goalPrecision,
-      double planningTimeout,
-      double endEffectorOffsetPositionTolerance,
-      double endEffectorOffsetAngularTolerance,
-      bool servoFood,
-      const Eigen::Vector6d& velocityLimits);
+      const ::ros::NodeHandle* node,  // For creating timer
+      std::function<std::unique_ptr<Eigen::Isometry3d>(void)> getPerception, // Actual perception function
+      std::shared_ptr<ada::Ada> ada, // Robot pointer, used for sending velocity commands
+      ros::Duration perceptionUpdateTime, // How often to run perception 
+      ros::Duration perceptionTimeout, // How long to keep running without perception
+      double goalPrecision, // In m, defines sphere around goal point
+      double approachVelocity, // In m/s, how fast to approach goal
+      std::shared_ptr<FTThresholdHelper> ftThresholdHelper); // Set to use FT sensor
 
   virtual ~PerceptionServoClient();
 
-  void start();
+  std::future<CartVelocityResult> start();
 
-  void stop();
-
-  bool isRunning();
-
-  bool wait(double timelimit);
+  void stop(CartVelocityResult result = CartVelocityResult::kCVR_CANCELLED);
 
 protected:
+
   void nonRealtimeCallback(const ros::TimerEvent& event);
 
-  bool updatePerception(Eigen::Isometry3d& goalPose);
+  void nonRealtimeWatchdog(const ros::TimerEvent& event);
 
-  aikido::trajectory::SplinePtr planEndEffectorOffset(
-      const Eigen::Isometry3d& goalPose);
-
-  aikido::trajectory::SplinePtr planToGoalPose(
-      const Eigen::Isometry3d& goalPose);
-
-  aikido::trajectory::TrajectoryPtr planEndEffectorOffset(
-      const Eigen::Vector3d& goalDirection, double threshold = 0.1);
-
-  aikido::trajectory::UniqueSplinePtr
-  createPartialTimedTrajectoryFromCurrentConfig(
-      const aikido::trajectory::Spline* trajectory);
-
-  ::ros::NodeHandle mNodeHandle;
-  boost::function<Eigen::Isometry3d(void)> mGetTransform;
-  /// Meta skeleton state space.
-  aikido::statespace::dart::ConstMetaSkeletonStateSpacePtr
-      mMetaSkeletonStateSpace;
-
-  /// Meta Skeleton
-  ::dart::dynamics::MetaSkeletonPtr mMetaSkeleton;
-
-  /// BodyNode
-  ::dart::dynamics::BodyNodePtr mBodyNode;
-
-  std::shared_ptr<aikido::control::TrajectoryExecutor> mTrajectoryExecutor;
-
-  double mPerceptionUpdateTime;
-
-  aikido::trajectory::SplinePtr mCurrentTrajectory;
-
-  std::future<void> mExec;
-
+  // Perception Update Loop
   ros::Timer mNonRealtimeTimer;
 
-  Eigen::VectorXd mMaxVelocity;
-  Eigen::VectorXd mMaxAcceleration;
+  // Watchdog loop
+  ros::Timer mNonRealtimeWatchdog;
 
-  Eigen::VectorXd mCurrentPosition;
+  // Execution variables
+  std::atomic<bool> mExecutionDone;
+  std::atomic<bool> mWatchdogFed;
+  std::shared_ptr<std::promise<CartVelocityResult>> mPromise;
+  std::future<CartVelocityResult> mFuture;
 
-  Eigen::Isometry3d mOriginalPose;
-  Eigen::Isometry3d mPreviousGoalPose;
-  Eigen::VectorXd mOriginalConfig;
-
-  aikido::constraint::dart::CollisionFreePtr mCollisionFreeConstraint;
-
-  std::vector<dart::dynamics::SimpleFramePtr> mFrames;
-  std::vector<aikido::rviz::FrameMarkerPtr> mFrameMarkers;
-  bool mExecutionDone;
-  bool mIsRunning;
-  bool mNotFailed;
-  bool mServoFood;
-
-  ros::Subscriber mSub;
-  std::mutex mJointStateUpdateMutex;
+  // Mutex between update loop
   std::mutex mTimerMutex;
 
+  // Robot pointer
   std::shared_ptr<ada::Ada> mAda;
 
-  std::chrono::time_point<std::chrono::system_clock> mStartTime;
-  std::chrono::time_point<std::chrono::system_clock> mLastSuccess;
-
-  float mGoalPrecision = 0.01;
-
-  double mPlanningTimeout;
-  double mEndEffectorOffsetPositionTolerance;
-  double mEndEffectorOffsetAngularTolerance;
-
-  bool mRemoveRotation;
-  Eigen::VectorXd mVelocityLimits;
+  // See Constructor Doc
+  ::ros::NodeHandle mNodeHandle;
+  std::function<std::unique_ptr<Eigen::Isometry3d>(void)> mGetPerception;
+  double mGoalPrecision;
+  double mApproachVelocity;
+  std::shared_ptr<FTThresholdHelper> mFTThresholdHelper;
 };
 } // namespace feeding
 

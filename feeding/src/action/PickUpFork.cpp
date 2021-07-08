@@ -37,6 +37,7 @@ void pickUpFork(
       planningTimeout,
       maxNumTrials);
 
+  /*
   Eigen::Vector3d endEffectorDirection(0, 0, -1);
   moveInto(
       ada,
@@ -49,6 +50,7 @@ void pickUpFork(
       endEffectorOffsetAngularTolerance,
       endEffectorDirection,
       ftThresholdHelper);
+  */
 
   std::vector<std::string> optionPrompts{"(1) close", "(2) leave-as-is"};
   auto input = getUserInputWithOptions(optionPrompts, "Close Hand?");

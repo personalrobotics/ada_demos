@@ -35,6 +35,12 @@ void spanetDemo(
     FeedingDemo& feedingDemo,
     std::shared_ptr<Perception>& perception,
     ros::NodeHandle nodeHandle);
+
+void dataCollection(
+    FeedingDemo& feedingDemo,
+    std::shared_ptr<Perception>& perception,
+    ros::NodeHandle nodeHandle);
+
 };
 
 #endif

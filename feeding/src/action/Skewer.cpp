@@ -321,15 +321,10 @@ bool skewer(
     auto moveIntoSuccess = moveInto(
         ada,
         perception,
-        collisionFree,
         nodeHandle,
-        TargetItem::FOOD,
-        planningTimeout,
-        endEffectorOffsetPositionTolerance,
-        endEffectorOffsetAngularTolerance,
-        endEffectorDirection,
         ftThresholdHelper,
-        velocityLimits);
+        feedingDemo->mServoVelocity,
+        item->getUid());
 
     if (!moveIntoSuccess)
     {

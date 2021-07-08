@@ -20,63 +20,48 @@ static const std::vector<std::string> optionPrompts{"(1) tilt", "(2) no tilt"};
 //==============================================================================
 void feedFoodToPerson(
     const std::shared_ptr<ada::Ada>& ada,
-    const std::shared_ptr<Workspace>& workspace,
     const aikido::constraint::dart::CollisionFreePtr& collisionFree,
-    const aikido::constraint::dart::CollisionFreePtr&
-        collisionFreeWithWallFurtherBack,
     const std::shared_ptr<Perception>& perception,
     const ros::NodeHandle* nodeHandle,
+    ros::Duration waitAtPerson,
+    FeedingDemo* feedingDemo,
+    const Eigen::Vector6d& jointVelocityLimits,
+    // Visual Servoing Params
+    double servoVelocityLimit,
+    double distanceFromPerson,
+    // Returning to plate params
     const Eigen::Isometry3d& plate,
     const Eigen::Isometry3d& plateEndEffectorTransform,
-    const Eigen::Isometry3d& personPose,
-    std::chrono::milliseconds waitAtPerson,
-    double heightAbovePlate,
     double horizontalToleranceAbovePlate,
     double verticalToleranceAbovePlate,
     double rotationToleranceAbovePlate,
-    double distanceToPerson,
+    // Tilting params
+    const Eigen::Vector3d* tiltOffset,
     double horizontalToleranceForPerson,
     double verticalToleranceForPerson,
     double planningTimeout,
-    int maxNumTrials,
-    double endEffectorOffsetPositionTolerenace,
-    double endEffectorOffsetAngularTolerance,
-    const Eigen::Vector6d& velocityLimits,
-    const Eigen::Vector3d* tiltOffset,
-    FeedingDemo* feedingDemo)
+    int maxNumTrials)
 {
+
+  // Step 1: Move In Front Of Person
   auto moveIFOPerson = [&] {
     return moveInFrontOfPerson(
         ada,
         collisionFree,
-        personPose,
-        distanceToPerson,
-        horizontalToleranceForPerson,
-        verticalToleranceForPerson,
-        planningTimeout,
-        maxNumTrials,
-        velocityLimits);
+        jointVelocityLimits,
+        feedingDemo);
   };
-
-  bool moveIFOSuccess = false;
-  bool moveSuccess = false;
-  for (std::size_t i = 0; i < 2; ++i)
+  if (!moveIFOPerson())
   {
-    moveIFOSuccess = moveIFOPerson();
-    if (!moveIFOSuccess)
-    {
-      ROS_WARN_STREAM("Failed to move in front of person, retry");
-      talk("Sorry, I'm having a little trouble moving. Let me try again.");
-      continue;
-    }
-    else
-      break;
+    ROS_WARN_STREAM("Failed to move in front of person");
+    talk("Sorry, I'm having a little trouble moving to you.");
+    return;
   }
 
-  // Send message to web interface to indicate skewer finished
+  // HS: Send message to web interface to indicate skewer finished
   publishActionDoneToWeb((ros::NodeHandle*)nodeHandle);
 
-  // Ask for Tilt Override
+  // HS: Ask for Tilt Override
   auto overrideTiltOffset = tiltOffset;
 
   if (!getRosParam<bool>("/humanStudy/autoTransfer", *nodeHandle))
@@ -120,7 +105,7 @@ void feedFoodToPerson(
 
   publishTransferDoneToWeb((ros::NodeHandle*)nodeHandle);
 
-  // Check autoTiming, and if false, wait for topic
+  // HS: Check autoTiming, and if false, wait for topic
   if (!getRosParam<bool>("/humanStudy/autoTiming", *nodeHandle))
   {
     talk("Let me know when you are ready.", false);
@@ -161,66 +146,51 @@ void feedFoodToPerson(
     }
   }
 
-  if (moveIFOSuccess)
+  // HS: Check for Error in Bite Transfer
+  if (getRosParam<bool>("/humanStudy/autoTransfer", *nodeHandle)
+      && getRosParam<bool>("/humanStudy/createError", *nodeHandle))
   {
-
-    if (getRosParam<bool>("/humanStudy/autoTransfer", *nodeHandle)
-        && getRosParam<bool>("/humanStudy/createError", *nodeHandle))
-    {
-      ROS_WARN_STREAM("Error Requested for Transfer!");
-      // Erroneous Transfer
-      /*moveDirectlyToPerson(
-        ada,
-        collisionFreeWithWallFurtherBack,
-        personPose,
-        distanceToPerson,
-        horizontalToleranceForPerson,
-        verticalToleranceForPerson,
-        planningTimeout,
-        maxNumTrials,
-        velocityLimits,
-        nullptr,
-        feedingDemo
-        );
-      */
-      Eigen::VectorXd moveErrorPose(6);
-      moveErrorPose << -2.78470, 4.57978, 4.86316, -3.05050, 1.89748, -0.6150;
-      ada->moveArmToConfiguration(moveErrorPose, nullptr, 2.0, velocityLimits);
-      std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-      talk("Oops, let me try that again.", true);
-      moveIFOSuccess = moveInFrontOfPerson(
-          ada,
-          nullptr,
-          personPose,
-          distanceToPerson,
-          horizontalToleranceForPerson,
-          verticalToleranceForPerson,
-          planningTimeout,
-          maxNumTrials,
-          velocityLimits);
-    }
-
-    nodeHandle->setParam("/feeding/facePerceptionOn", true);
-
-    if (overrideTiltOffset == nullptr)
-    {
-      distanceToPerson = 0;
-    }
-
-    ROS_INFO_STREAM("Move towards person");
-    moveSuccess = moveTowardsPerson(
-        ada,
-        nullptr,
-        perception,
-        nodeHandle,
-        distanceToPerson,
-        planningTimeout,
-        endEffectorOffsetPositionTolerenace,
-        endEffectorOffsetAngularTolerance);
-    nodeHandle->setParam("/feeding/facePerceptionOn", false);
+    ROS_WARN_STREAM("Error Requested for Transfer!");
+    // Erroneous Transfer
+    Eigen::VectorXd moveErrorPose(6);
+    moveErrorPose << -2.78470, 4.57978, 4.86316, -3.05050, 1.89748, -0.6150;
+    ada->moveArmToConfiguration(moveErrorPose, nullptr, 2.0, jointVelocityLimits);
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+    talk("Oops, let me try that again.", true);
+    moveIFOPerson();
   }
 
-  // Execute Tilt
+  // Step 2: Enable Face Detection
+  nodeHandle->setParam("/feeding/facePerceptionOn", true);
+
+  // If tilting, position further away from face.
+  if (overrideTiltOffset)
+  {
+    distanceFromPerson += overrideTiltOffset->norm();
+  }
+
+  // Step 3: Execute visual Servoing
+  ROS_INFO_STREAM("Move towards person");
+  bool moveSuccess = moveTowardsPerson(
+      ada,
+      perception,
+      nodeHandle,
+      feedingDemo,
+      distanceFromPerson,
+      servoVelocityLimit);
+
+  // No longer nead face perception
+  nodeHandle->setParam("/feeding/facePerceptionOn", false);
+
+  // Do not tilt if servoing fails (e.g. because user is touching fork)
+  if (!moveSuccess) {
+    ROS_WARN_STREAM("Unsuccessful servoing (FT threshold?), we probably shouldn't tilt.");
+    overrideTiltOffset = nullptr;
+  } else {
+    ROS_WARN_STREAM("Visual servoing completed!");
+  }
+
+  // Step 4: Execute Tilt
   if (overrideTiltOffset != nullptr)
   {
 
@@ -254,57 +224,38 @@ void feedFoodToPerson(
     //   int n;
     //   std::cin >> n;
     // }
-    Eigen::Vector6d slowerVelocity = Eigen::Vector6d(velocityLimits);
-    double slowFactor = (velocityLimits[0] > 0.5) ? 2.0 : 1.0;
+    Eigen::Vector6d slowerVelocity = Eigen::Vector6d(jointVelocityLimits);
+    double slowFactor = (jointVelocityLimits[0] > 0.5) ? 2.0 : 1.0;
     slowerVelocity /= slowFactor;
 
     talk("Tilting, hold tight.", true);
 
     ada->moveArmToTSR(
         personTSR,
-        nullptr, // collisionFreeWithWallFurtherBack,
+        nullptr,
         planningTimeout,
         maxNumTrials,
         getConfigurationRanker(ada),
         slowerVelocity);
-
-    /*
-    Eigen::VectorXd moveTiltPose(6);
-    moveTiltPose << -2.9180319979864375, 2.7142495745346644, 2.1617317989753038,
-    -3.0472035666546597, -2.144422317154225, -1.1420007596812383;
-    ada->moveArmToConfiguration(moveTiltPose, nullptr, 2.0, velocityLimits);
-    */
   }
 
-  if (moveIFOSuccess)
-  {
-    // ===== EATING =====
-    ROS_WARN("Human is eating");
-    talk("Ready to eat!");
-    std::this_thread::sleep_for(waitAtPerson);
+  // Step 5: EATING
+  ROS_WARN("Human is eating");
+  talk("Ready to eat!");
+  ROS_WARN("Waiting for person...");
+  waitAtPerson.sleep();
 
-    // Backward
-    ada::util::waitForUser("Move backward", ada);
-    talk("Let me get out of your way.", true);
-    Eigen::Vector3d goalDirection(0, -1, 0);
-    bool success = moveInFrontOfPerson(
-        ada,
-        nullptr,
-        personPose,
-        distanceToPerson,
-        horizontalToleranceForPerson * 2,
-        verticalToleranceForPerson * 2,
-        planningTimeout,
-        maxNumTrials,
-        velocityLimits);
-    ROS_INFO_STREAM("Backward " << success << std::endl);
+  // Step 6: Return to fronto of person
+  ada::util::waitForUser("Move backward", ada);
+  talk("Let me get out of your way.", true);
+  if (!moveInFrontOfPerson(ada, nullptr, jointVelocityLimits, feedingDemo)) {
+    ROS_WARN_STREAM("Failed to move in front of person");
+    talk("Sorry, I'm having a little trouble moving away from you.");
+    return;
   }
 
-  // ===== BACK TO PLATE =====
+  // Step 7: Back above the plate
   ROS_INFO_STREAM("Move back to plate");
-
-  // TODO: add a back-out motion and then do move above plate with
-  // collisionFree.
   talk("And now back to the plate.", true);
   moveAbovePlate(
       ada,
@@ -316,7 +267,7 @@ void feedFoodToPerson(
       rotationToleranceAbovePlate,
       planningTimeout,
       maxNumTrials,
-      velocityLimits);
+      jointVelocityLimits);
 
   publishTimingDoneToWeb((ros::NodeHandle*)nodeHandle);
 }

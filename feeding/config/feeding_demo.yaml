@@ -51,12 +51,10 @@ feedingDemo:
   heightAboveFood: 0.08
   heightIntoFood: 0.05           # the real robot plans *below* the food. This parameter specifies how far
   moveOutofFood: 0.025
-  #distanceToPerson: 0.25
   distanceToPerson: 0.05
-  distanceFromPerson: 0.15
   waitMillisecsAtFood: 00     # short pause after skewering the food
   waitMillisecsAtPerson: 1000   # long pause so person can take a bite
-  fixedFaceY: 0.28
+  fixedFaceY: 0.35
 
 # Planning parameters
 planning:
@@ -99,7 +97,7 @@ ftSensor:
 perception:
   detectorDataUri: package://pr_assets/data/objects/tag_data_foods.json
   foodDetectorTopicName: /food_detector/marker_array
-  faceDetectorTopicName: /face_detector/marker_array
+  faceDetectorTopicName: /face_detector/marker_array #/face_tracker_py/marker_array 
   referenceFrameName: j2n6s200_link_base
   timeoutSeconds: 5
   faceName: mouth
@@ -123,7 +121,8 @@ humanStudy:
   actionTopic: /study_action_msgs
 
 rotationFree:
-  names: ["banana", "broccoli", "cantaloupe", "cauliflower", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry"]
+  #names: ["banana", "broccoli", "cantaloupe", "cauliflower", "cherry_tomato", "grape", "honeydew", "kiwi", "strawberry"]
+  names: ["banana", "grape", "strawberry"]
 
 tiltFood:
   names: ["apple", "bell_pepper", "carrot", "celery"]
@@ -156,6 +155,15 @@ study:
   tiltOffset: [0.0, 0.05, -0.02]
 
   # FAST:
-  velocityLimits: [0.7, 0.7, 0.7, 0.7, 0.7, 0.7]
+  velocityLimits: [0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
   # SLOW:
   #velocityLimits: [0.2, 0.2, 0.2, 0.2, 0.2, 0.4]
+
+  # For Servoing, m/s
+  servoVelocity: 0.05
+
+acquisitionData:
+  datasetDir: dataset/
+  foodOffsetFork: [0.0, -0.04, 0.0]
+  foodOffsetWorld: [0.0, 0.0, -0.06]
+  

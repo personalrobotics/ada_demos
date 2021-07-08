@@ -186,6 +186,41 @@ int main(int argc, char** argv)
 
   moveArmTo(robot, armSpace, armSkeleton, movedPose);
 
+  /////////////////////////////////////////////////////////////////////////////
+  //   Hardcoded Position (pointing down)
+  /////////////////////////////////////////////////////////////////////////////
+  Eigen::VectorXd homeConfig(6);
+  homeConfig << -2.11666, 3.34967, 2.04129, -2.30031, -2.34026, 2.9545;
+  Eigen::Vector6d velocityLimits;
+  velocityLimits << 0.5, 0.5, 0.5, 0.5, 0.5, 0.5;
+  std::cout << "Moving ARM to hard-coded position." << std::endl;
+  waitForUser("Press [ENTER] to proceed:");
+  robot.moveArmToConfiguration(
+      homeConfig, nullptr, 2.0, velocityLimits);
+  waitForUser("Done. \n Press [ENTER] to proceed:");
+  
+
+  /////////////////////////////////////////////////////////////////////////////
+  //   Cartesian Velocity control (real only)
+  /////////////////////////////////////////////////////////////////////////////
+  if(!adaSim) {
+    std::cout << "Enabling Cartesian Velocity control." << std::endl;
+    robot.setVelocityControl(true);
+    std::cout << "Moving 5cm in X" << std::endl;
+    waitForUser("Press [ENTER] to proceed:");
+    Eigen::Vector3d zero{0.0, 0.0, 0.0};
+    Eigen::Vector3d Xvel{0.05, 0.0, 0.0};
+    auto result = robot.moveArmCommandVelocity(Xvel, zero, ros::Duration(1.0), false);
+    std::cout << "Waiting for result... ";
+    result.wait();
+    std::cout << "Done! Status: " << result.get() << std::endl;
+    robot.setVelocityControl(false);
+    std::cout <<"Returning to hard-coded position..." << std::endl;
+    waitForUser("Press [ENTER] to proceed:");
+    robot.moveArmToConfiguration(
+      homeConfig, nullptr, 2.0, velocityLimits);
+  }
+
   waitForUser("Press [ENTER] to exit. ");
   ros::shutdown();
   return 0;

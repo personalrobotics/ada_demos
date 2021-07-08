@@ -37,6 +37,7 @@ void putDownFork(
       planningTimeout,
       maxNumTrials);
 
+  /*
   moveInto(
       ada,
       nullptr,
@@ -48,6 +49,7 @@ void putDownFork(
       endEffectorOffsetAngularTolerance,
       Eigen::Vector3d(0, 1, 0), // direction
       ftThresholdHelper);
+  */
 
   ada->openHand();
   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
